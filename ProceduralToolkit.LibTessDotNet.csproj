@@ -58,12 +58,12 @@
   <ItemGroup>
     <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\Geom.cs" />
     <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\MeshUtils.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\PriorityQueue.cs" />
     <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\Mesh.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\Tess.cs" />
+    <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\Sweep.cs" />
     <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\PriorityHeap.cs" />
     <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\Dict.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\Sweep.cs" />
+    <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\PriorityQueue.cs" />
+    <Compile Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\Tess.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\ProceduralToolkit\Runtime\LibTessDotNet\License.txt" />

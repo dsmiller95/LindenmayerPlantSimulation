@@ -1,4 +1,5 @@
 using ProceduralToolkit;
+using ProceduralToolkit.SplineMesh;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,25 +8,26 @@ namespace PlantBuilder
     [CreateAssetMenu(fileName = "CapsuleComponent", menuName = "Builders/CapsuleComponent")]
     public class CapsuleBuilder : ComponentBuilder
     {
-        public float height = 10;
+        public float height = 1;
         public float radius = 1;
 
         public int childComponentCount = 10;
         public float rotationPerChild = 360 * 3 / 5;
 
+        public SplineNode splineNode1;
+        public SplineNode splineNode2;
+
         [Range(0, 1f)]
         public float childBeginRange = .3f;
         [Range(0, 1f)]
         public float childEndRange = .7f;
-
-        public float randomFactor = .05f;
-
+        public float childRandomFactor = .05f;
         public float childSizeReduction = 0.2f;
 
 
         public override MeshDraft CreateComponentMesh(
-            Matrix4x4 meshTransform, 
-            int componentLevel, 
+            Matrix4x4 meshTransform,
+            int componentLevel,
             Stack<NextComponentSpawnCommand> extraComponents,
             System.Random rand)
         {
@@ -54,6 +56,10 @@ namespace PlantBuilder
 
             var resultDraft = MeshDraft.Capsule(height, radius);
             resultDraft.Move(new Vector3(0, height / 2, 0));
+            resultDraft.Rotate(Quaternion.Euler(0, 0, -90));
+            var bezier = new CubicBezierCurve(splineNode1, splineNode2);
+            resultDraft.WrapSplineOnce(bezier);
+            resultDraft.Rotate(Quaternion.Euler(0, 0, 90));
             resultDraft.Transform(meshTransform);
             return resultDraft;
         }
@@ -61,7 +67,7 @@ namespace PlantBuilder
 
         private float NextRand(System.Random rand)
         {
-            return (float)((rand.NextDouble() * 2 - 1) * randomFactor);
+            return (float)((rand.NextDouble() * 2 - 1) * childRandomFactor);
         }
     }
 }

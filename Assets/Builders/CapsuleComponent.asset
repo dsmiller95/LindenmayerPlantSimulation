@@ -12,11 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd01e828c9cbda04c9572847dd6bf59e, type: 3}
   m_Name: CapsuleComponent
   m_EditorClassIdentifier: 
-  height: 10
+  height: 1
   radius: 1
   childComponentCount: 15
   rotationPerChild: 216
+  splineNode1:
+    position: {x: 0, y: 0, z: 0}
+    direction: {x: 1, y: 0, z: 0}
+    up: {x: 0, y: 1, z: 0}
+    scale: {x: 1, y: 1}
+    roll: 0
+  splineNode2:
+    position: {x: 10, y: 0, z: 0}
+    direction: {x: -1, y: 0, z: 0}
+    up: {x: 0, y: 1, z: 0}
+    scale: {x: 1, y: 1}
+    roll: 0
   childBeginRange: 0.472
   childEndRange: 1
-  randomFactor: 0.1
+  childRandomFactor: 0.05
   childSizeReduction: 0.2
