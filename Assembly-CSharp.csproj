@@ -61,6 +61,7 @@
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Scripts\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\PlantBuilder\ComponentBuilder.cs" />
+    <Compile Include="Assets\Scripts\PlantBuilder\StemBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\ProceduralToolkit\Shaders\VertexColor\Standard Vertex Color.shader" />
@@ -76,7 +77,6 @@
      <None Include="Assets\ProceduralToolkit\Shaders\Debug\Debug UV2.shader" />
      <None Include="Assets\ProceduralToolkit\Shaders\VertexColor\Diffuse Vertex Color.shader" />
      <None Include="Assets\ProceduralToolkit\Shaders\Debug\Debug Normals.shader" />
-     <None Include="Assets\SplineMesh\Doc.txt" />
      <None Include="Assets\ProceduralToolkit\Shaders\Transitions.cginc" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>

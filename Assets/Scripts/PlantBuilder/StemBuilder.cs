@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace PlantBuilder
 {
-    [CreateAssetMenu(fileName = "CapsuleComponent", menuName = "Builders/CapsuleComponent")]
-    public class CapsuleBuilder : ComponentBuilder
+    [CreateAssetMenu(fileName = "StemComponent", menuName = "Builders/StemComponent")]
+    public class StemBuilder : ComponentBuilder
     {
         public float height = 1;
         public float radius = 1;
@@ -54,7 +54,7 @@ namespace PlantBuilder
                 });
             }
 
-            var resultDraft = MeshDraft.Capsule(height, radius);
+            var resultDraft = MeshDraft.Cylinder(radius, 9, height, false);
             resultDraft.Move(new Vector3(0, height / 2, 0));
             resultDraft.Rotate(Quaternion.Euler(0, 0, -90));
             var bezier = new CubicBezierCurve(splineNode1, splineNode2);

@@ -149,6 +149,8 @@
     <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Line3.cs" />
     <Compile Include="Assets\ProceduralToolkit\Runtime\DebugE.cs" />
     <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Distance2D.cs" />
+    <Compile Include="Assets\ProceduralToolkit\Runtime\Splining\Editor\SplineEditor.cs" />
+    <Compile Include="Assets\ProceduralToolkit\Runtime\Splining\Editor\SplineExtrusionEditor.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\ProceduralToolkit\Runtime\ProceduralToolkit.asmdef" />
