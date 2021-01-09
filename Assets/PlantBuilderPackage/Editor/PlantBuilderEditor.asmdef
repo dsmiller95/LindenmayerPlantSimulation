@@ -2,7 +2,7 @@
     "name": "PlantBuilder.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:b3329d191313a81459f2135524ee11d3"
+        "PlantBuilder"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
