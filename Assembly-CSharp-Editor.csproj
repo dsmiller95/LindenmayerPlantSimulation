@@ -56,8 +56,7 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\SplineMesh\Scripts\Editor\SplineEditor.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Editor\SplineExtrusionEditor.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Editor\BuilderControllerEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -290,9 +289,6 @@
     </Reference>
     <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Editor\SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
-    </Reference>
-    <Reference Include="ICSharpCode.NRefactory">
-      <HintPath>Library\PackageCache\com.unity.render-pipelines.core@10.2.2\Editor\ShaderGenerator\ICSharpCode.NRefactory.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>Library\PackageCache\com.unity.ext.nunit@1.0.5\net35\unity-custom\nunit.framework.dll</HintPath>
@@ -648,14 +644,17 @@
     <Reference Include="UnityEditor.TestRunner">
       <HintPath>Library\ScriptAssemblies\UnityEditor.TestRunner.dll</HintPath>
     </Reference>
+    <Reference Include="ProceduralToolkit">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.VSCode.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.VSCode.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Shaders">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
+    <Reference Include="ProceduralToolkit.FastNoiseLib">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.FastNoiseLib.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+    <Reference Include="ProceduralToolkit.LibTessDotNet">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.LibTessDotNet.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
@@ -669,93 +668,37 @@
     <Reference Include="Unity.TextMeshPro">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Searcher.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Searcher.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rider.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Rider.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
+    <Reference Include="ProceduralToolkit.ClipperLib">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.ClipperLib.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Mathematics">
-      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.ShaderGraph.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+    <Reference Include="ProceduralToolkit.Editor">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Mathematics.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="Assembly-CSharp.csproj">
-      <Project>{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}</Project>
-      <Name>Assembly-CSharp</Name>
+    <ProjectReference Include="NewAssembly.csproj">
+      <Project>{E4E21F74-CCB6-0DA2-085F-FC5F9FEDBE77}</Project>
+      <Name>NewAssembly</Name>
+    </ProjectReference>
+    <ProjectReference Include="SplineMesh.Editor.csproj">
+      <Project>{0FF9C463-61C5-B7A0-4999-B8CB64F76FA3}</Project>
+      <Name>SplineMesh.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="PlantBuilder.csproj">
       <Project>{408F3866-5553-D928-D598-7EDA73C56DD8}</Project>
       <Name>PlantBuilder</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.LibTessDotNet.csproj">
-      <Project>{71F58FA6-9D3F-1D59-4DFC-8D668C0C6573}</Project>
-      <Name>ProceduralToolkit.LibTessDotNet</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.Samples.Buildings.Editor.csproj">
-      <Project>{8AEC4EB9-CE74-F35F-3A2B-838D4D2023F1}</Project>
-      <Name>ProceduralToolkit.Samples.Buildings.Editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.ClipperLib.csproj">
-      <Project>{5D4E8CAB-E5DE-ADA5-2A25-B51F1E32F9D9}</Project>
-      <Name>ProceduralToolkit.ClipperLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.Editor.csproj">
-      <Project>{767FA5C8-F6C0-CF60-0C7C-772DE35965D5}</Project>
-      <Name>ProceduralToolkit.Editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.FastNoiseLib.csproj">
-      <Project>{C6AC08D6-6DBF-941A-8752-8C5F9C4F7CF6}</Project>
-      <Name>ProceduralToolkit.FastNoiseLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.Samples.Chairs.Editor.csproj">
-      <Project>{3B093122-26E7-2EEE-A12A-19934D0BD5C0}</Project>
-      <Name>ProceduralToolkit.Samples.Chairs.Editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.csproj">
-      <Project>{2CFC23C7-2BFD-9817-AF9F-721435C70CB8}</Project>
-      <Name>ProceduralToolkit</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.Samples.csproj">
-      <Project>{A5504774-2D2D-8684-0A35-C7B387C81FEB}</Project>
-      <Name>ProceduralToolkit.Samples</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.Samples.LowPolyTerrain.Editor.csproj">
-      <Project>{0AE8F46D-0651-E61B-2897-EC48485D1CCD}</Project>
-      <Name>ProceduralToolkit.Samples.LowPolyTerrain.Editor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

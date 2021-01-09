@@ -1,12 +1,11 @@
 {
-  "name": "plantBuilder",
+  "name": "com.dman.plantbuilder",
   "version": "0.1",
   "displayName": "Plant builder",
   "description": "This package procedurally generates plants",
   "unity": "2020.1",
-  "unityRelease": "0b5",
   "author": {
-    "name": "Dan",
+    "name": "Dan Miller",
     "email": "dsmiller95@gmail.com"
   }
 }

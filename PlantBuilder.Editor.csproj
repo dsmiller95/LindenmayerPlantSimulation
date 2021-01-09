@@ -9,10 +9,10 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}</ProjectGuid>
+    <ProjectGuid>{D416B3D2-1F38-DEF8-13C1-A420157DA023}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <AssemblyName>PlantBuilder.Editor</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <BaseDirectory>.</BaseDirectory>
@@ -48,7 +48,7 @@
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <UnityProjectGenerator>Package</UnityProjectGenerator>
     <UnityProjectGeneratorVersion>2.0.5</UnityProjectGeneratorVersion>
-    <UnityProjectType>Game:1</UnityProjectType>
+    <UnityProjectType>Editor:5</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>2020.2.1f1</UnityVersion>
   </PropertyGroup>
@@ -56,30 +56,10 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\SplineMesh\Scripts\Example\ExampleTrack.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\MeshProcessing\SplineExtrusion.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Utils\UOUtility.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Example\ExampleSower.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\MeshProcessing\MeshBender.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\MeshProcessing\ExtrusionSegment.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Example\ExampleContortAlong.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\MeshProcessing\SplineMeshTiling.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Bezier\SplineNode.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Example\RopeBuilder.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Example\ExampleFollowSpline.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\MeshProcessing\MeshVertex.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\MeshProcessing\SourceMesh.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Example\ExampleTentacle.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Example\ExampleGrowingRoot.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Utils\CameraUtility.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Bezier\CubicBezierCurve.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Bezier\Spline.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Bezier\SplineSmoother.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Bezier\CurveSample.cs" />
-    <Compile Include="Assets\SplineMesh\Scripts\Utils\MeshUtility.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Editor\BuilderControllerEditor.cs" />
   </ItemGroup>
   <ItemGroup>
-     <None Include="Assets\SplineMesh\Doc.txt" />
+     <None Include="Assets\PlantBuilderPackage\Editor\PlantBuilderEditor.asmdef" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
@@ -301,6 +281,15 @@
     </Reference>
     <Reference Include="UnityEditor.UnityConnectModule">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEditor.UnityConnectModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.Graphs">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.WindowsStandalone.Extensions">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Editor\SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>Library\PackageCache\com.unity.ext.nunit@1.0.5\net35\unity-custom\nunit.framework.dll</HintPath>
@@ -650,83 +639,11 @@
     <Reference Include="System.Xml.XPath.XDocument">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\MonoBleedingEdge\lib\mono\4.7.1-api\Facades\System.Xml.XPath.XDocument.dll</HintPath>
     </Reference>
-    <Reference Include="ProceduralToolkit">
-      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.VSCode.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.VSCode.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Shaders">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
-    </Reference>
-    <Reference Include="ProceduralToolkit.FastNoiseLib">
-      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.FastNoiseLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="ProceduralToolkit.LibTessDotNet">
-      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.LibTessDotNet.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.VisualStudio.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Timeline">
-      <HintPath>Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Searcher.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Searcher.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Rider.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Rider.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="ProceduralToolkit.ClipperLib">
-      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.ClipperLib.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics">
-      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.ShaderGraph.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="ProceduralToolkit.Editor">
-      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Timeline.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,16 @@
+{
+    "name": "PlantBuilder.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:61ac147fa77187244bcb853d0567e635"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
