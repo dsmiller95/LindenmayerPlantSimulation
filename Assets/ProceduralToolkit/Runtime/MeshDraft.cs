@@ -724,16 +724,6 @@ namespace ProceduralToolkit
             return this;
         }
 
-        public MeshDraft Transform(Matrix4x4 transformation)
-        {
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                vertices[i] = transformation.MultiplyPoint(vertices[i]);
-                normals[i] = transformation.MultiplyVector(normals[i]).normalized;
-            }
-            return this;
-        }
-
         /// <summary>
         /// Paints draft vertices with <paramref name="color"/>
         /// </summary>

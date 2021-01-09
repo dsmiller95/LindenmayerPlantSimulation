@@ -1,0 +1,16 @@
+{
+    "name": "PlantBuilder",
+    "rootNamespace": "PlantBuilder",
+    "references": [
+        "GUID:561cd3090aa423b4584912885a62ef6f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

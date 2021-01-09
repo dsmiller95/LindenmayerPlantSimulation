@@ -8,11 +8,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
-    <ProjectGuid>{2CFC23C7-2BFD-9817-AF9F-721435C70CB8}</ProjectGuid>
+    <RootNamespace>PlantBuilder</RootNamespace>
+    <ProjectGuid>{408F3866-5553-D928-D598-7EDA73C56DD8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <AssemblyName>ProceduralToolkit</AssemblyName>
+    <AssemblyName>PlantBuilder</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <BaseDirectory>.</BaseDirectory>
@@ -56,80 +56,40 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\ProceduralToolkit\Runtime\ColorHSV.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Geometry.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Closest2D.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionSegmentSphere.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\MeshDraftPrimitives.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionLineCircle.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\RoofConstructor.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\RendererProperties.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionCircleCircle.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\StraightSkeleton\StraightSkeletonGenerator.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\Interfaces\IConstructible.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\GLE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\PTUtils.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\GizmosE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Sphere.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionLineLine2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Draw.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Directions.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\IntersectionType.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionRaySegment2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\Interfaces\ILayout.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Segment2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionSegmentCircle.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionLineSegment2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\VerticalLayout.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\StraightSkeleton\Plan.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\DrawRaster.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\FacadePlanner.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\ArrayE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\Interfaces\ILayoutElement.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\RandomE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Closest3D.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\Interfaces\IRoofPlanner.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\Interfaces\IFacadePlanner.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionRaySphere.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\ColorE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\BuildingGenerator.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Circle2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\PathOffsetter.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\VectorE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\ClipperUtility.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionSphereSphere.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\CompoundMeshDraft.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionLineRay2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\MeshE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\Interfaces\IFacadeConstructor.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionRayRay2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\RoofPlanner.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\FacadeConstructor.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionRayCircle.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\Interfaces\IRoofConstructor.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Line2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersect2D.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\Layout.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Distance3D.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionLineSphere.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\ProceduralRoofs.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\TextureE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Segment3.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersect3D.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Tessellator.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Buildings\HorizontalLayout.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\MeshDraft.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\StraightSkeleton\StraightSkeleton.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Circle3.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Intersections\IntersectionSegmentSegment2.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\CellularAutomaton.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\PathClipper.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Line3.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\DebugE.cs" />
-    <Compile Include="Assets\ProceduralToolkit\Runtime\Geometry\Distance2D.cs" />
+    <Compile Include="Assets\Runtime\PlantBuilder\CapsuleBuilder.cs" />
+    <Compile Include="Assets\Runtime\PlantBuilder\BuilderController.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Editor\SplineEditor.cs" />
+    <Compile Include="Assets\Runtime\PlantBuilder\Editor\BuilderControllerEditor.cs" />
+    <Compile Include="Assets\Runtime\PlantBuilder\ComponentBuilder.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Editor\SplineExtrusionEditor.cs" />
+    <Compile Include="Assets\Runtime\PlantBuilder\StemBuilder.cs" />
+    <Compile Include="Assets\Runtime\PlantBuilder\MeshDraftSplining.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Bezier\CubicBezierCurve.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleTrack.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleTentacle.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\SourceMesh.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Utils\CameraUtility.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Bezier\SplineSmoother.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\SplineMeshTiling.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\SplineExtrusion.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\ExtrusionSegment.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\MeshBender.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Bezier\SplineNode.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleContortAlong.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Utils\UOUtility.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Bezier\CurveSample.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Bezier\Spline.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleGrowingRoot.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Example\RopeBuilder.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\MeshVertex.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleSower.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleFollowSpline.cs" />
+    <Compile Include="Assets\Runtime\SplineMesh\Utils\MeshUtility.cs" />
+    <Compile Include="Assets\Runtime\PlantBuilder\MeshDraftExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-     <None Include="Assets\ProceduralToolkit\Runtime\ProceduralToolkit.asmdef" />
+     <None Include="Assets\Runtime\PlantBuilder.asmdef" />
+     <None Include="Assets\Runtime\SplineMesh\Doc.txt" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
@@ -720,17 +680,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="ProceduralToolkit.LibTessDotNet.csproj">
-      <Project>{71F58FA6-9D3F-1D59-4DFC-8D668C0C6573}</Project>
-      <Name>ProceduralToolkit.LibTessDotNet</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.ClipperLib.csproj">
-      <Project>{5D4E8CAB-E5DE-ADA5-2A25-B51F1E32F9D9}</Project>
-      <Name>ProceduralToolkit.ClipperLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.FastNoiseLib.csproj">
-      <Project>{C6AC08D6-6DBF-941A-8752-8C5F9C4F7CF6}</Project>
-      <Name>ProceduralToolkit.FastNoiseLib</Name>
+    <ProjectReference Include="ProceduralToolkit.csproj">
+      <Project>{2CFC23C7-2BFD-9817-AF9F-721435C70CB8}</Project>
+      <Name>ProceduralToolkit</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

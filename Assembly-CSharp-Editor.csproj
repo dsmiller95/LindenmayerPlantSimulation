@@ -56,8 +56,8 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\PlantBuilder\Editor\BuilderControllerEditor.cs" />
-    <Compile Include="Assets\TutorialInfo\Scripts\Editor\ReadmeEditor.cs" />
+    <Compile Include="Assets\SplineMesh\Scripts\Editor\SplineEditor.cs" />
+    <Compile Include="Assets\SplineMesh\Scripts\Editor\SplineExtrusionEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -717,17 +717,9 @@
       <Project>{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}</Project>
       <Name>Assembly-CSharp</Name>
     </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.csproj">
-      <Project>{2CFC23C7-2BFD-9817-AF9F-721435C70CB8}</Project>
-      <Name>ProceduralToolkit</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.FastNoiseLib.csproj">
-      <Project>{C6AC08D6-6DBF-941A-8752-8C5F9C4F7CF6}</Project>
-      <Name>ProceduralToolkit.FastNoiseLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.Samples.csproj">
-      <Project>{A5504774-2D2D-8684-0A35-C7B387C81FEB}</Project>
-      <Name>ProceduralToolkit.Samples</Name>
+    <ProjectReference Include="PlantBuilder.csproj">
+      <Project>{408F3866-5553-D928-D598-7EDA73C56DD8}</Project>
+      <Name>PlantBuilder</Name>
     </ProjectReference>
     <ProjectReference Include="ProceduralToolkit.LibTessDotNet.csproj">
       <Project>{71F58FA6-9D3F-1D59-4DFC-8D668C0C6573}</Project>
@@ -737,25 +729,33 @@
       <Project>{8AEC4EB9-CE74-F35F-3A2B-838D4D2023F1}</Project>
       <Name>ProceduralToolkit.Samples.Buildings.Editor</Name>
     </ProjectReference>
-    <ProjectReference Include="ProceduralToolkit.Samples.LowPolyTerrain.Editor.csproj">
-      <Project>{0AE8F46D-0651-E61B-2897-EC48485D1CCD}</Project>
-      <Name>ProceduralToolkit.Samples.LowPolyTerrain.Editor</Name>
-    </ProjectReference>
     <ProjectReference Include="ProceduralToolkit.ClipperLib.csproj">
       <Project>{5D4E8CAB-E5DE-ADA5-2A25-B51F1E32F9D9}</Project>
       <Name>ProceduralToolkit.ClipperLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="UniRx.csproj">
-      <Project>{A23A984D-431B-F270-3DA3-ADEBEB3134D5}</Project>
-      <Name>UniRx</Name>
     </ProjectReference>
     <ProjectReference Include="ProceduralToolkit.Editor.csproj">
       <Project>{767FA5C8-F6C0-CF60-0C7C-772DE35965D5}</Project>
       <Name>ProceduralToolkit.Editor</Name>
     </ProjectReference>
+    <ProjectReference Include="ProceduralToolkit.FastNoiseLib.csproj">
+      <Project>{C6AC08D6-6DBF-941A-8752-8C5F9C4F7CF6}</Project>
+      <Name>ProceduralToolkit.FastNoiseLib</Name>
+    </ProjectReference>
     <ProjectReference Include="ProceduralToolkit.Samples.Chairs.Editor.csproj">
       <Project>{3B093122-26E7-2EEE-A12A-19934D0BD5C0}</Project>
       <Name>ProceduralToolkit.Samples.Chairs.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="ProceduralToolkit.csproj">
+      <Project>{2CFC23C7-2BFD-9817-AF9F-721435C70CB8}</Project>
+      <Name>ProceduralToolkit</Name>
+    </ProjectReference>
+    <ProjectReference Include="ProceduralToolkit.Samples.csproj">
+      <Project>{A5504774-2D2D-8684-0A35-C7B387C81FEB}</Project>
+      <Name>ProceduralToolkit.Samples</Name>
+    </ProjectReference>
+    <ProjectReference Include="ProceduralToolkit.Samples.LowPolyTerrain.Editor.csproj">
+      <Project>{0AE8F46D-0651-E61B-2897-EC48485D1CCD}</Project>
+      <Name>ProceduralToolkit.Samples.LowPolyTerrain.Editor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
