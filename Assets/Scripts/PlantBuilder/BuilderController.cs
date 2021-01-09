@@ -5,6 +5,12 @@ using UnityEngine;
 
 namespace PlantBuilder
 {
+    [Serializable]
+    public class BuilderConfiguration
+    {
+        public ComponentBuilder builder;
+        public Material material;
+    }
 
     [RequireComponent(typeof(MeshRenderer))]
     [RequireComponent(typeof(MeshFilter))]
@@ -57,20 +63,26 @@ namespace PlantBuilder
                     continue;
                 }
                 var nextComponent = builders[nextMesh.componentIndex];
-                combinedMesh.Add(nextComponent
+                var nextDraft = nextComponent
                     .CreateComponentMesh(
                         nextMesh.componentTransformation,
                         nextMesh.componentIndex,
                         newMeshes,
-                        randGen));
+                        randGen);
+                nextDraft.name = nextMesh.componentIndex.ToString();
+                combinedMesh.Add(nextDraft);
             }
 
 
             var meshFilter = GetComponent<MeshFilter>();
 
-            var meshMesh = meshFilter.mesh;
-            combinedMesh.ToMeshDraft().ToMesh(ref meshMesh, true, true);
-            meshFilter.mesh = meshMesh;
+            combinedMesh.MergeDraftsWithTheSameName();
+            combinedMesh.SortDraftsByName();
+
+
+            //var meshMesh = meshFilter.mesh;
+            meshFilter.mesh = combinedMesh.ToMeshWithSubMeshes(true, true);
+            //meshFilter.mesh = meshMesh;
         }
     }
 }

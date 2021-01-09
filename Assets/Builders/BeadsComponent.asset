@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd01e828c9cbda04c9572847dd6bf59e, type: 3}
-  m_Name: CapsuleComponent
+  m_Name: BeadsComponent
   m_EditorClassIdentifier: 
   height: 1
   radius: 0.5
