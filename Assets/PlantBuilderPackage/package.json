@@ -1,9 +1,12 @@
 {
   "name": "com.dman.plantbuilder",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "displayName": "Plant builder",
   "description": "This package procedurally generates plants",
   "unity": "2020.1",
+  "dependencies": {
+    "com.syomus.proceduraltoolkit": "0.2.3"
+  },
   "author": {
     "name": "Dan Miller",
     "email": "dsmiller95@gmail.com"
