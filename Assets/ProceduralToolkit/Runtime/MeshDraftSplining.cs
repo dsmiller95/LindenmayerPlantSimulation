@@ -23,10 +23,12 @@ namespace ProceduralToolkit
             {
                 var vert = vertices[vertIndex];
                 float distance = vert.x - minX + curveOffset;
-                Debug.Log($"sampling at {distance}");
                 if (distance < 0)
                 {
-                    Debug.LogWarning($"Distance less than 0: {distance}. setting to 0");
+                    if(distance < -.01)
+                    {
+                        Debug.LogWarning($"Distance less than 0: {distance}. setting to 0");
+                    }
                     distance = 0;
                 }
                 CurveSample sample;

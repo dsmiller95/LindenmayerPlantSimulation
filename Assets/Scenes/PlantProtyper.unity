@@ -154,32 +154,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodes:
   - position: {x: 0, y: 0, z: 0}
-    direction: {x: 1.2069203, y: 0, z: 0}
+    direction: {x: 1.4318578, y: 4.5985866, z: -4.3216014}
     up: {x: 0, y: 1, z: 0}
     scale: {x: 1, y: 1}
     roll: 0
   - position: {x: 10, y: 0, z: 0}
-    direction: {x: 11.231642, y: 0, z: 0}
+    direction: {x: 11.231642, y: -0.3546483, z: -1.8520205}
     up: {x: 0, y: 1, z: 0}
     scale: {x: 1, y: 1}
     roll: 0
   curves:
   - n1:
       position: {x: 0, y: 0, z: 0}
-      direction: {x: 1.2069203, y: 0, z: 0}
+      direction: {x: 1.4318578, y: 4.5985866, z: -4.3216014}
       up: {x: 0, y: 1, z: 0}
       scale: {x: 1, y: 1}
       roll: 0
     n2:
       position: {x: 10, y: 0, z: 0}
-      direction: {x: 11.231642, y: 0, z: 0}
+      direction: {x: 11.231642, y: -0.3546483, z: -1.8520205}
       up: {x: 0, y: 1, z: 0}
       scale: {x: 1, y: 1}
       roll: 0
     Changed:
       m_PersistentCalls:
         m_Calls: []
-  Length: 10
+  Length: 12.183812
   isLoop: 0
   CurveChanged:
     m_PersistentCalls:

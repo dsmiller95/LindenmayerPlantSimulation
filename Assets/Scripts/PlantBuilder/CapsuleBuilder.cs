@@ -58,9 +58,7 @@ namespace PlantBuilder
             resultDraft.Move(new Vector3(0, height / 2, 0));
             resultDraft.Rotate(Quaternion.Euler(0, 0, -90));
             var bezier = new CubicBezierCurve(splineNode1, splineNode2);
-            //resultDraft.DuplicateSelf(3, new Vector3(height, 0, 0));
             resultDraft.WrapSplineAll(bezier, 0, height);
-            resultDraft.Rotate(Quaternion.Euler(0, 0, 90));
             resultDraft.Transform(meshTransform);
             return resultDraft;
         }
