@@ -1,0 +1,12 @@
+{
+  "name": "plantBuilder",
+  "version": "0.1",
+  "displayName": "Plant builder",
+  "description": "This package procedurally generates plants",
+  "unity": "2020.1",
+  "unityRelease": "0b5",
+  "author": {
+    "name": "Dan",
+    "email": "dsmiller95@gmail.com"
+  }
+}

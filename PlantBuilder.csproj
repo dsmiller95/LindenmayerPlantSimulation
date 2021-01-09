@@ -56,40 +56,40 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Runtime\PlantBuilder\CapsuleBuilder.cs" />
-    <Compile Include="Assets\Runtime\PlantBuilder\BuilderController.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Editor\SplineEditor.cs" />
-    <Compile Include="Assets\Runtime\PlantBuilder\Editor\BuilderControllerEditor.cs" />
-    <Compile Include="Assets\Runtime\PlantBuilder\ComponentBuilder.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Editor\SplineExtrusionEditor.cs" />
-    <Compile Include="Assets\Runtime\PlantBuilder\StemBuilder.cs" />
-    <Compile Include="Assets\Runtime\PlantBuilder\MeshDraftSplining.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Bezier\CubicBezierCurve.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleTrack.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleTentacle.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\SourceMesh.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Utils\CameraUtility.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Bezier\SplineSmoother.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\SplineMeshTiling.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\SplineExtrusion.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\ExtrusionSegment.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\MeshBender.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Bezier\SplineNode.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleContortAlong.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Utils\UOUtility.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Bezier\CurveSample.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Bezier\Spline.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleGrowingRoot.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Example\RopeBuilder.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\MeshProcessing\MeshVertex.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleSower.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Example\ExampleFollowSpline.cs" />
-    <Compile Include="Assets\Runtime\SplineMesh\Utils\MeshUtility.cs" />
-    <Compile Include="Assets\Runtime\PlantBuilder\MeshDraftExtensions.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\MeshProcessing\SplineExtrusion.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\PlantBuilder\CapsuleBuilder.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\PlantBuilder\BuilderController.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Editor\SplineEditor.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Example\RopeBuilder.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\PlantBuilder\MeshDraftExtensions.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Example\ExampleSower.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\MeshProcessing\SourceMesh.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\PlantBuilder\Editor\BuilderControllerEditor.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Example\ExampleTrack.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Utils\CameraUtility.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Bezier\SplineNode.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Bezier\Spline.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\MeshProcessing\MeshBender.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\PlantBuilder\ComponentBuilder.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Bezier\CurveSample.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Editor\SplineExtrusionEditor.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Utils\UOUtility.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Example\ExampleFollowSpline.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Example\ExampleTentacle.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Example\ExampleContortAlong.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Utils\MeshUtility.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\PlantBuilder\MeshDraftSplining.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Example\ExampleGrowingRoot.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Bezier\CubicBezierCurve.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\MeshProcessing\SplineMeshTiling.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\MeshProcessing\MeshVertex.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\PlantBuilder\StemBuilder.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\Bezier\SplineSmoother.cs" />
+    <Compile Include="Assets\PlantBuilder\Runtime\SplineMesh\MeshProcessing\ExtrusionSegment.cs" />
   </ItemGroup>
   <ItemGroup>
-     <None Include="Assets\Runtime\PlantBuilder.asmdef" />
-     <None Include="Assets\Runtime\SplineMesh\Doc.txt" />
+     <None Include="Assets\PlantBuilder\Runtime\Unity.PlantBuilder.asmdef" />
+     <None Include="Assets\PlantBuilder\Runtime\SplineMesh\Doc.txt" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
@@ -672,6 +672,9 @@
     <Reference Include="System.Xml.XPath.XDocument">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\MonoBleedingEdge\lib\mono\4.7.1-api\Facades\System.Xml.XPath.XDocument.dll</HintPath>
     </Reference>
+    <Reference Include="ProceduralToolkit">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
     </Reference>
@@ -680,10 +683,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="ProceduralToolkit.csproj">
-      <Project>{2CFC23C7-2BFD-9817-AF9F-721435C70CB8}</Project>
-      <Name>ProceduralToolkit</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
