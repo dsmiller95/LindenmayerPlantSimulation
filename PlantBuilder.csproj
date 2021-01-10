@@ -61,7 +61,9 @@
     <Compile Include="Assets\PlantBuilderPackage\Runtime\BuilderController.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\MeshDraftExtensions.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\MeshDraftSplining.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Runtime\StemBuilder.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\SplineFitBuilder.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\SplineTransformPlacement.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\ComponentMeshSource.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\PlantBuilderPackage\Runtime\PlantBuilder.asmdef" />

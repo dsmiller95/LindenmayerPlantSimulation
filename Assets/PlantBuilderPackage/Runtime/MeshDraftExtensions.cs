@@ -20,7 +20,6 @@ namespace PlantBuilder
 
         public static void DuplicateSelf(this MeshDraft self, int times, Vector3 vectorOffset)
         {
-
             // building triangles and UVs for the repeated mesh
             var triangles = new List<int>(self.triangles.Count * times);
             var uv = new List<Vector2>(self.uv.Count * times);
@@ -33,6 +32,11 @@ namespace PlantBuilder
             var normals = new List<Vector3>(self.normals.Count * times);
 
             var vertices = new List<Vector3>(self.vertices.Count * times);
+
+            //if (self.uv.Count != self.vertexCount || self.tangents.Count != self.vertexCount)
+            //{
+            //    Debug.LogError("problem with uv and tangent counts on import");
+            //}
             for (int i = 0; i < times; i++)
             {
                 foreach (var index in self.triangles)
@@ -51,6 +55,12 @@ namespace PlantBuilder
                 vertices.AddRange(self.vertices.Select(x => x + vectorOffset * i));
             }
 
+            //Debug.Log($"Creating big array this big {self.vertexCount - uv.Count}");
+            var extraUVs = new Vector2[vertices.Count - uv.Count];
+            uv.AddRange(extraUVs);
+            var extraTangents = new Vector4[vertices.Count - tangents.Count];
+            tangents.AddRange(extraTangents);
+
             self.triangles = triangles;
             self.uv = uv;
             self.uv2 = uv2;
@@ -62,6 +72,11 @@ namespace PlantBuilder
             self.normals = normals;
 
             self.vertices = vertices;
+
+            //if(self.uv.Count != self.vertexCount || self.tangents.Count != self.vertexCount)
+            //{
+            //    Debug.LogError("problem with uv and tangent counts");
+            //}
         }
     }
 }
