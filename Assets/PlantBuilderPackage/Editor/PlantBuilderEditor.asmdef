@@ -2,7 +2,9 @@
     "name": "PlantBuilder.Editor",
     "rootNamespace": "",
     "references": [
-        "PlantBuilder"
+        "PlantBuilder",
+        "com.alelievr.NodeGraphProcessor.Editor",
+        "com.alelievr.NodeGraphProcessor.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

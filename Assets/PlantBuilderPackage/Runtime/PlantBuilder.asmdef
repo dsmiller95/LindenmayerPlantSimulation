@@ -3,7 +3,8 @@
     "rootNamespace": "PlantBuilder",
     "references": [
         "ProceduralToolkit",
-        "SplineMesh"
+        "SplineMesh",
+        "com.alelievr.NodeGraphProcessor.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

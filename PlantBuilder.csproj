@@ -56,14 +56,22 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\ComponentMeshSource.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\SplineTransformPlacement.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\CapsuleBuilder.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Mesh\PlantMeshComponent.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\ComponentBuilder.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\BuilderController.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Mesh\CapsuleMeshNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraphMeshFilter.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\DeferredEvaluator.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\MeshDraftExtensions.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\PlantMeshGeneratorGraph.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\MeshDraftSplining.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Mesh\MeshGraphOutputNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\SplineFitBuilder.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Runtime\SplineTransformPlacement.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Runtime\ComponentMeshSource.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\FloatNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\TypeConversions.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\PlantBuilderPackage\Runtime\PlantBuilder.asmdef" />
@@ -648,6 +656,9 @@
     </Reference>
     <Reference Include="ProceduralToolkit">
       <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
+      <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
