@@ -21,6 +21,7 @@ namespace PlantBuilder.NodeGraph
         protected override void OnEnable()
         {
             ResetRandom();
+            base.OnEnable();
         }
 
         private void Awake()

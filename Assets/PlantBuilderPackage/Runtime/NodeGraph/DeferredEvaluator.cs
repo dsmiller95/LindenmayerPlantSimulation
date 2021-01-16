@@ -7,16 +7,16 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace PlantBuilder.NodeGraph
 {
-    [System.Serializable]
-    public abstract class DeferredEvaluator<T>
-    {
-        public abstract T Evalute(Dictionary<string, object> context);
-    }
+    //[System.Serializable]
+    //public abstract class DeferredEvaluator<T>
+    //{
+    //    public abstract T Evalute(Dictionary<string, object> context);
+    //}
 
     [Serializable]
-    public class DeferredMeshEvaluator : DeferredEvaluator<PlantMeshComponent>
+    public class DeferredMeshEvaluator// : DeferredEvaluator<PlantMeshComponent>
     {
-        public override PlantMeshComponent Evalute(Dictionary<string, object> context)
+        public virtual PlantMeshComponent Evalute(Dictionary<string, object> context)
         {
             return null;
         }

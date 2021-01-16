@@ -1,6 +1,7 @@
 using GraphProcessor;
 using PlantBuilder.NodeGraph.MeshNodes;
 using ProceduralToolkit;
+using System;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -9,7 +10,7 @@ using UnityEngine.UIElements;
 namespace PlantBuilder.NodeGraph.Core
 {
     [NodeCustomEditor(typeof(CapsuleMeshNode))]
-    public class CapsuleMeshNodeView : BaseNodeView
+    public class CapsuleMeshNodeView : BaseNodeView, IDisposable
     {
         private MeshRenderingVisualElement meshRenderTool;
         public override void Enable()
@@ -29,30 +30,10 @@ namespace PlantBuilder.NodeGraph.Core
             meshRenderTool = new MeshRenderingVisualElement(new Rect(0, 0, 300, 300));
             controlsContainer.Add(meshRenderTool);
 
+            var trueOwner = owner as PlantMeshGeneratorView;
+            trueOwner.onWindowDisposed += Dispose;
+
             TargetNodeProcessed();
-
-            
-
-            //var nodeOutput = target.output;
-
-            //var newMeshDraft = target.output.Evalute(PlantMeshGeneratorView.DEFAULT_CONTEXT)?.meshDraft;
-            ////newMeshDraft.Rotate(Quaternion.Euler(30, 30, 30));
-            //var newMesh = newMeshDraft?.ToMesh(true, true);
-
-            //var previewPanel = new MeshRenderingVisualElement(newMesh, new Rect(0, 0, 300, 300));
-            //controlsContainer.Add(previewPanel);
-
-            //var defaultMaterial = Resources.Load(
-            //    "Material/" + PlantMeshGeneratorView.DEFAULT_MATERIAL_NAME,
-            //    typeof(Material)) as Material;
-
-            //testscene.BeginPreview(previewSize, sceneStyle);
-            //testscene.DrawMesh(newMesh,
-            //    Matrix4x4.identity,
-            //    defaultMaterial,
-            //    0);
-
-            //testscene.EndAndDrawPreview(previewSize);
         }
 
         private void TargetNodeProcessed()
@@ -68,8 +49,15 @@ namespace PlantBuilder.NodeGraph.Core
         public override void OnRemoved()
         {
             Debug.Log("I've been removed. or have I?");
-            meshRenderTool?.Dispose();
+            this.Dispose();
             base.OnRemoved();
+        }
+
+        public void Dispose()
+        {
+            meshRenderTool?.Dispose();
+            var trueOwner = owner as PlantMeshGeneratorView;
+            trueOwner.onWindowDisposed -= Dispose;
         }
 
         //public void OnPostVisualCreation()

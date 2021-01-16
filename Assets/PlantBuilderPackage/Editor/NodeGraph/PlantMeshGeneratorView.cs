@@ -13,6 +13,8 @@ namespace PlantBuilder.NodeGraph
         public static Dictionary<string, object> DEFAULT_CONTEXT = new Dictionary<string, object>();
         public static string DEFAULT_MATERIAL_NAME = "defaultMaterial";
 
+        public event Action onWindowDisposed;
+
 		public PlantMeshGeneratorView(EditorWindow window) : base(window) { }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -37,5 +39,14 @@ namespace PlantBuilder.NodeGraph
 			RegisterCompleteObjectUndo("Added " + type + " node");
 			AddNode(BaseNode.CreateFromType(type, position));
 		}
-	}
+
+        private bool isDisposed = false;
+        public new void Dispose()
+        {
+            if (isDisposed) return;
+            isDisposed = true;
+            onWindowDisposed?.Invoke();
+            base.Dispose();
+        }
+    }
 }

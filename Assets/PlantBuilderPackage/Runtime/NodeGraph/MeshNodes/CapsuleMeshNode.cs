@@ -13,14 +13,13 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         [Input(name = "Radius")]
         public float radius = 1;
 
-        [Output(name = "Out")]
+        [Output(name = "Out"), SerializeField]
         public DeferredMeshEvaluator output;
 
         public override string name => "Capsule";
 
         protected override void Process()
         {
-            Debug.Log("evaluaged capsule");
             output = new DeferredCapsuleBuilder(this);
         }
 
