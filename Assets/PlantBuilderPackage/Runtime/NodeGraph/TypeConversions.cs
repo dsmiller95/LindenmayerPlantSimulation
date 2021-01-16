@@ -1,5 +1,7 @@
 ﻿
 using GraphProcessor;
+using PlantBuilder.NodeGraph.DeferredEvaluators;
+using PlantBuilder.NodeGraph.MeshNodes;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,13 +20,10 @@ namespace PlantBuilder.NodeGraph
         {
             return from.x;
         }
-
-        //public static SerializedDeferredMeshEvaluator ConvertSerializeDeferredMeshEvaluator(DeferredMeshEvaluator from) => SerializedDeferredMeshEvaluator.GetFromInstance(from);
-        //public static DeferredMeshEvaluator ConvertDeserializeDeferredMeshEvaluator(SerializedDeferredMeshEvaluator from) => from.GetSerializedGuy();
-
         public override IEnumerable<(Type, Type)> GetIncompatibleTypes()
         {
-            yield return (typeof(DeferredMeshEvaluator), typeof(object));
+            yield return (typeof(DeferredEvaluator<PlantMeshComponent>), typeof(object));
+            yield return (typeof(DeferredEvaluator<float>), typeof(object));
             yield return (typeof(RelayNode.PackedRelayData), typeof(object));
         }
     }

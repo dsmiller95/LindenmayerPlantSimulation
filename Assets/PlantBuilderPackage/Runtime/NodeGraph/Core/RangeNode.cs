@@ -1,4 +1,6 @@
 using GraphProcessor;
+using PlantBuilder.NodeGraph.DeferredEvaluators;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace PlantBuilder.NodeGraph.Core
@@ -7,23 +9,38 @@ namespace PlantBuilder.NodeGraph.Core
     public class RangeNode : BaseNode
     {
         [Input(name = "Min")]
-        public float min = 1;
+        public DeferredEvaluator<float> min = 1;
         [Input(name = "Max")]
-        public float max = 1;
+        public DeferredEvaluator<float> max = 2;
         [Output(name = "Out")]
-        public float output;
+        public DeferredEvaluator<float> output;
 
         public override string name => "Range";
 
         protected override void Process()
         {
-            var typedGraph = graph as PlantMeshGeneratorGraph;
-            if(graph == null)
+            output = new DeferredRangeGenerator(this);
+        }
+
+        [System.Serializable]
+        class DeferredRangeGenerator : DeferredEvaluator<float>
+        {
+            private DeferredEvaluator<float> min;
+            private DeferredEvaluator<float> max;
+
+            public DeferredRangeGenerator(RangeNode node)
             {
-                Debug.LogWarning("owner graph isn't our kin");
-                return;
+                this.min = node.min;
+                this.max = node.max;
             }
-            output = (float)(typedGraph.MyRandom.NextDouble() * (max - min) + min);
+
+            public override float Evalute(System.Random randomSource, Dictionary<string, object> context)
+            {
+                var minNum = min.Evalute(randomSource, context);
+                var maxNum = max.Evalute(randomSource, context);
+
+                return (float)(randomSource.NextDouble() * (maxNum - minNum) + minNum);
+            }
         }
     }
 }

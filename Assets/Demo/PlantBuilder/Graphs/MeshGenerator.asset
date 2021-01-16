@@ -15,114 +15,82 @@ MonoBehaviour:
   serializedNodes:
   - type: PlantBuilder.NodeGraph.MeshNodes.MeshGraphOutputNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"a2d9283d-23f7-4887-9a5b-382f015e3c8d","computeOrder":7,"position":{"serializedVersion":"2","x":970.14111328125,"y":427.08349609375,"width":85.0,"height":77.0},"expanded":false,"debug":false,"nodeLock":false,"draft":{}}'
+    jsonDatas: '{"GUID":"60a67663-56c1-4a4d-b9d3-a1e7edd7bd0b","computeOrder":5,"position":{"serializedVersion":"2","x":654.0,"y":363.0,"width":85.0,"height":77.0},"expanded":false,"debug":false,"nodeLock":false}'
   - type: PlantBuilder.NodeGraph.MeshNodes.CapsuleMeshNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"701c8ba2-38ea-4c1b-b1bb-b12fec32e090","computeOrder":6,"position":{"serializedVersion":"2","x":519.0,"y":420.0,"width":308.0,"height":431.0},"expanded":false,"debug":false,"nodeLock":false,"height":2.7268004417419435,"radius":1.0,"output":{}}'
+    jsonDatas: '{"GUID":"729f5ada-bcc5-4f7f-88bb-317469e92d9f","computeOrder":4,"position":{"serializedVersion":"2","x":235.0,"y":355.0,"width":308.0,"height":401.0},"expanded":false,"debug":false,"nodeLock":false}'
+  - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"65b02153-9218-4670-b5ee-ec42aa01402f","computeOrder":2,"position":{"serializedVersion":"2","x":-288.1304626464844,"y":153.04348754882813,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":2.0}'
+  - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"158b5501-95e9-49a2-94f7-8177b82316f6","computeOrder":0,"position":{"serializedVersion":"2","x":-201.02191162109376,"y":573.540771484375,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":1.0}'
   - type: PlantBuilder.NodeGraph.Core.RangeNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
-    jsonDatas: '{"GUID":"25e450fa-cd9e-4aba-b98b-36c3dd467303","computeOrder":5,"position":{"serializedVersion":"2","x":322.0,"y":425.0,"width":100.0,"height":100.0},"expanded":false,"debug":false,"nodeLock":false,"min":2.3261873722076418,"max":10.0,"output":2.7268004417419435}'
-  - type: PlantBuilder.NodeGraph.Core.FloatNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"b17bd85e-72a8-419e-9d7a-705b4a11a9de","computeOrder":3,"position":{"serializedVersion":"2","x":-215.0,"y":133.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":2.0,"output":2.0}'
-  - type: PlantBuilder.NodeGraph.Core.FloatNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"7cf30b82-3486-4264-a424-4ca9faa9802b","computeOrder":1,"position":{"serializedVersion":"2","x":-26.0,"y":557.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":10.0,"output":10.0}'
-  - type: PlantBuilder.NodeGraph.Core.FloatNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"9871f868-23e8-4a7d-bd52-9eba30b5de92","computeOrder":0,"position":{"serializedVersion":"2","x":178.0,"y":837.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":1.0,"output":1.0}'
-  - type: PlantBuilder.NodeGraph.Core.RangeNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"fe920985-79ae-40c5-b884-ac7c50ec4dd0","computeOrder":4,"position":{"serializedVersion":"2","x":76.0,"y":213.0,"width":115.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"min":2.0,"max":3.0,"output":2.3261873722076418}'
-  - type: PlantBuilder.NodeGraph.Core.FloatNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"e4adde7c-1cd5-4c43-a58d-133d19ede517","computeOrder":2,"position":{"serializedVersion":"2","x":-211.0,"y":290.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":3.0,"output":3.0}'
+    jsonDatas: '{"GUID":"1002703e-fa34-4a61-8610-98ed989df9f1","computeOrder":3,"position":{"serializedVersion":"2","x":-106.82610321044922,"y":292.9130859375,"width":115.00000762939453,"height":101.0},"expanded":false,"debug":false,"nodeLock":false}'
+  - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"91dd1ab7-812d-4393-8f75-9f2c4bd0cf3b","computeOrder":1,"position":{"serializedVersion":"2","x":-305.478271484375,"y":365.1739501953125,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":10.0}'
   edges:
-  - GUID: 0b40c1f9-cd15-4ff6-a980-2c7c83f8477a
+  - GUID: 58cac407-8ff1-4e51-a804-e47bedd47dc0
     owner: {fileID: 11400000}
-    inputNodeGUID: a2d9283d-23f7-4887-9a5b-382f015e3c8d
-    outputNodeGUID: 701c8ba2-38ea-4c1b-b1bb-b12fec32e090
+    inputNodeGUID: 60a67663-56c1-4a4d-b9d3-a1e7edd7bd0b
+    outputNodeGUID: 729f5ada-bcc5-4f7f-88bb-317469e92d9f
     inputFieldName: draft
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
-  - GUID: 015bf461-a56a-418f-8957-18ab6525998c
+  - GUID: 9815ffa9-a4b6-4a71-906d-7f6fe10d11e3
     owner: {fileID: 11400000}
-    inputNodeGUID: 701c8ba2-38ea-4c1b-b1bb-b12fec32e090
-    outputNodeGUID: 25e450fa-cd9e-4aba-b98b-36c3dd467303
-    inputFieldName: height
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: 851e2c89-6e56-445e-aa1c-77cc80a04b11
-    owner: {fileID: 11400000}
-    inputNodeGUID: 25e450fa-cd9e-4aba-b98b-36c3dd467303
-    outputNodeGUID: 7cf30b82-3486-4264-a424-4ca9faa9802b
-    inputFieldName: max
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: e1836568-8a96-437c-a4b3-b155cfe7d391
-    owner: {fileID: 11400000}
-    inputNodeGUID: 701c8ba2-38ea-4c1b-b1bb-b12fec32e090
-    outputNodeGUID: 9871f868-23e8-4a7d-bd52-9eba30b5de92
+    inputNodeGUID: 729f5ada-bcc5-4f7f-88bb-317469e92d9f
+    outputNodeGUID: 158b5501-95e9-49a2-94f7-8177b82316f6
     inputFieldName: radius
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
-  - GUID: e2bb403e-3682-42aa-8314-17237e7ad8b4
+  - GUID: 938c4315-1962-4c07-aff2-b721e63b4231
     owner: {fileID: 11400000}
-    inputNodeGUID: fe920985-79ae-40c5-b884-ac7c50ec4dd0
-    outputNodeGUID: b17bd85e-72a8-419e-9d7a-705b4a11a9de
+    inputNodeGUID: 729f5ada-bcc5-4f7f-88bb-317469e92d9f
+    outputNodeGUID: 1002703e-fa34-4a61-8610-98ed989df9f1
+    inputFieldName: height
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: c85d926d-6224-4ecb-9f97-da449591f98b
+    owner: {fileID: 11400000}
+    inputNodeGUID: 1002703e-fa34-4a61-8610-98ed989df9f1
+    outputNodeGUID: 65b02153-9218-4670-b5ee-ec42aa01402f
     inputFieldName: min
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
-  - GUID: 40e8f3f1-ad77-4aaa-aa0c-298a3517a6b5
+  - GUID: c3d823cb-0e5d-4d9f-874f-58f7fb54dafe
     owner: {fileID: 11400000}
-    inputNodeGUID: 25e450fa-cd9e-4aba-b98b-36c3dd467303
-    outputNodeGUID: fe920985-79ae-40c5-b884-ac7c50ec4dd0
-    inputFieldName: min
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: 022f1e5e-db61-485d-a6fb-3599f005405b
-    owner: {fileID: 11400000}
-    inputNodeGUID: fe920985-79ae-40c5-b884-ac7c50ec4dd0
-    outputNodeGUID: e4adde7c-1cd5-4c43-a58d-133d19ede517
+    inputNodeGUID: 1002703e-fa34-4a61-8610-98ed989df9f1
+    outputNodeGUID: 91dd1ab7-812d-4393-8f75-9f2c4bd0cf3b
     inputFieldName: max
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
   groups: []
   stackNodes: []
-  pinnedElements:
-  - position:
-      serializedVersion: 2
-      x: 36
-      y: 175
-      width: 150
-      height: 200
-    opened: 1
-    editorType:
-      serializedType: GraphProcessor.ExposedParameterView, com.alelievr.NodeGraphProcessor.Editor,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  pinnedElements: []
   exposedParameters:
-  - guid: bf87899f-7544-455c-a472-0b2196dd450b
+  - guid: e7922e88-329e-4d9d-a091-1d32f085d92b
     name: output
-    type: PlantBuilder.NodeGraph.SerializedDeferredMeshEvaluator, PlantBuilder, Version=0.0.0.0,
-      Culture=neutral, PublicKeyToken=null
+    type: PlantBuilder.NodeGraph.DeferredEvaluators.SerializedDeferredMeshEvaluator,
+      PlantBuilder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     serializedValue:
-      serializedType: PlantBuilder.NodeGraph.SerializedDeferredMeshEvaluator, PlantBuilder,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      serializedType: PlantBuilder.NodeGraph.DeferredEvaluators.SerializedDeferredMeshEvaluator,
+        PlantBuilder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       serializedName: 
-      serializedValue: '{"serializedData":[0,1,0,0,0,255,255,255,255,1,0,0,0,0,0,0,0,12,2,0,0,0,67,80,108,97,110,116,66,117,105,108,100,101,114,44,32,86,101,114,115,105,111,110,61,48,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,110,117,108,108,5,1,0,0,0,71,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,77,101,115,104,78,111,100,101,115,46,67,97,112,115,117,108,101,77,101,115,104,78,111,100,101,43,68,101,102,101,114,114,101,100,67,97,112,115,117,108,101,66,117,105,108,100,101,114,2,0,0,0,6,104,101,105,103,104,116,6,114,97,100,105,117,115,0,0,11,11,2,0,0,0,230,131,46,64,0,0,128,63,11]}'
+      serializedValue: '{"serializedData":[0,1,0,0,0,255,255,255,255,1,0,0,0,0,0,0,0,12,2,0,0,0,67,80,108,97,110,116,66,117,105,108,100,101,114,44,32,86,101,114,115,105,111,110,61,48,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,110,117,108,108,5,1,0,0,0,71,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,77,101,115,104,78,111,100,101,115,46,67,97,112,115,117,108,101,77,101,115,104,78,111,100,101,43,68,101,102,101,114,114,101,100,67,97,112,115,117,108,101,66,117,105,108,100,101,114,2,0,0,0,6,104,101,105,103,104,116,6,114,97,100,105,117,115,4,4,60,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,67,111,114,101,46,82,97,110,103,101,78,111,100,101,43,68,101,102,101,114,114,101,100,82,97,110,103,101,71,101,110,101,114,97,116,111,114,2,0,0,0,163,1,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,68,101,102,101,114,114,101,100,69,118,97,108,117,97,116,111,114,115,46,68,101,102,101,114,114,101,100,67,111,110,115,116,97,110,116,69,118,97,108,117,97,116,111,114,96,49,91,91,83,121,115,116,101,109,46,83,105,110,103,108,101,44,32,109,115,99,111,114,108,105,98,44,32,86,101,114,115,105,111,110,61,52,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,98,55,55,97,53,99,53,54,49,57,51,52,101,48,56,57,93,93,2,0,0,0,2,0,0,0,9,3,0,0,0,9,4,0,0,0,5,3,0,0,0,60,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,67,111,114,101,46,82,97,110,103,101,78,111,100,101,43,68,101,102,101,114,114,101,100,82,97,110,103,101,71,101,110,101,114,97,116,111,114,2,0,0,0,3,109,105,110,3,109,97,120,4,4,163,1,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,68,101,102,101,114,114,101,100,69,118,97,108,117,97,116,111,114,115,46,68,101,102,101,114,114,101,100,67,111,110,115,116,97,110,116,69,118,97,108,117,97,116,111,114,96,49,91,91,83,121,115,116,101,109,46,83,105,110,103,108,101,44,32,109,115,99,111,114,108,105,98,44,32,86,101,114,115,105,111,110,61,52,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,98,55,55,97,53,99,53,54,49,57,51,52,101,48,56,57,93,93,2,0,0,0,163,1,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,68,101,102,101,114,114,101,100,69,118,97,108,117,97,116,111,114,115,46,68,101,102,101,114,114,101,100,67,111,110,115,116,97,110,116,69,118,97,108,117,97,116,111,114,96,49,91,91,83,121,115,116,101,109,46,83,105,110,103,108,101,44,32,109,115,99,111,114,108,105,98,44,32,86,101,114,115,105,111,110,61,52,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,98,55,55,97,53,99,53,54,49,57,51,52,101,48,56,57,93,93,2,0,0,0,2,0,0,0,9,5,0,0,0,9,6,0,0,0,5,4,0,0,0,163,1,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,68,101,102,101,114,114,101,100,69,118,97,108,117,97,116,111,114,115,46,68,101,102,101,114,114,101,100,67,111,110,115,116,97,110,116,69,118,97,108,117,97,116,111,114,96,49,91,91,83,121,115,116,101,109,46,83,105,110,103,108,101,44,32,109,115,99,111,114,108,105,98,44,32,86,101,114,115,105,111,110,61,52,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,98,55,55,97,53,99,53,54,49,57,51,52,101,48,56,57,93,93,1,0,0,0,13,99,111,110,115,116,97,110,116,86,97,108,117,101,0,11,2,0,0,0,0,0,128,63,1,5,0,0,0,4,0,0,0,0,0,0,64,1,6,0,0,0,4,0,0,0,0,0,32,65,11]}'
     input: 1
     settings:
       isHidden: 0
   stickyNotes: []
-  position: {x: 326, y: 214, z: 0}
+  position: {x: 388, y: 360, z: 0}
   scale: {x: 0.65751624, y: 0.65751624, z: 1}
-  seed: 1815464825
+  seed: 1579132605
   references:
     version: 1

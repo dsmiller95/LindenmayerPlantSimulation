@@ -1,4 +1,5 @@
 using GraphProcessor;
+using PlantBuilder.NodeGraph.DeferredEvaluators;
 using ProceduralToolkit;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,12 +10,12 @@ namespace PlantBuilder.NodeGraph.MeshNodes
     public class CapsuleMeshNode : BaseNode
     {
         [Input(name = "Height")]
-        public float height = 1;
+        public DeferredEvaluator<float> height = 1;
         [Input(name = "Radius")]
-        public float radius = 1;
+        public DeferredEvaluator<float> radius = 1;
 
         [Output(name = "Out"), SerializeField]
-        public DeferredMeshEvaluator output;
+        public DeferredEvaluator<PlantMeshComponent> output;
 
         public override string name => "Capsule";
 
@@ -24,10 +25,10 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         }
 
         [System.Serializable]
-        class DeferredCapsuleBuilder : DeferredMeshEvaluator
+        class DeferredCapsuleBuilder : DeferredEvaluator<PlantMeshComponent>
         {
-            private float height;
-            private float radius;
+            private DeferredEvaluator<float> height;
+            private DeferredEvaluator<float> radius;
 
             public DeferredCapsuleBuilder(CapsuleMeshNode node)
             {
@@ -35,11 +36,13 @@ namespace PlantBuilder.NodeGraph.MeshNodes
                 radius = node.radius;
             }
 
-            public override PlantMeshComponent Evalute(Dictionary<string, object> context)
+            public override PlantMeshComponent Evalute(System.Random randomSource, Dictionary<string, object> context)
             {
+                var heightNum = height.Evalute(randomSource, context);
+                var radiusNum = radius.Evalute(randomSource, context);
                 return new PlantMeshComponent
                 {
-                    meshDraft = MeshDraft.Capsule(height, radius)
+                    meshDraft = MeshDraft.Capsule(heightNum, radiusNum)
                 };
             }
         }

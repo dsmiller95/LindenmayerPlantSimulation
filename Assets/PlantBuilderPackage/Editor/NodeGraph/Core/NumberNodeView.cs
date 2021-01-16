@@ -4,12 +4,12 @@ using UnityEngine.UIElements;
 
 namespace PlantBuilder.NodeGraph.Core
 {
-    [NodeCustomEditor(typeof(FloatNode))]
-    public class FloatNodeView : BaseNodeView
+    [NodeCustomEditor(typeof(NumberNode))]
+    public class NumberNodeView : BaseNodeView
     {
         public override void Enable()
         {
-            var floatNode = nodeTarget as FloatNode;
+            var floatNode = nodeTarget as NumberNode;
 
             DoubleField floatField = new DoubleField
             {

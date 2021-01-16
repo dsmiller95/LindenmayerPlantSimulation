@@ -1,4 +1,5 @@
 using GraphProcessor;
+using PlantBuilder.NodeGraph.DeferredEvaluators;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace PlantBuilder.NodeGraph.MeshNodes
     public class MeshGraphOutputNode : BaseNode
     {
         [Input(name = "Draft")]
-        public DeferredMeshEvaluator draft;
+        public DeferredEvaluator<PlantMeshComponent> draft;
 
         public override string name => "Output";
 

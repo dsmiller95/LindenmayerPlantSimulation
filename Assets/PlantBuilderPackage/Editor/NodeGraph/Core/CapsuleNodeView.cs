@@ -17,14 +17,6 @@ namespace PlantBuilder.NodeGraph.Core
         {
             var target = nodeTarget as CapsuleMeshNode;
 
-            //owner.win
-
-            var heightLabel = new Label($"height: {target.height.ToString()}");
-            var widthLabel = new Label($"width: {target.radius.ToString()}");
-
-            controlsContainer.Add(heightLabel);
-            controlsContainer.Add(widthLabel);
-
             target.onProcessed += TargetNodeProcessed;
             meshRenderTool?.Dispose();
             meshRenderTool = new MeshRenderingVisualElement(new Rect(0, 0, 300, 300));
@@ -40,8 +32,9 @@ namespace PlantBuilder.NodeGraph.Core
         {
             var target = nodeTarget as CapsuleMeshNode;
 
-            var newMeshDraft = target?.output?.Evalute(PlantMeshGeneratorView.DEFAULT_CONTEXT)?.meshDraft;
-            //newMeshDraft.Rotate(Quaternion.Euler(30, 30, 30));
+            var rootGraph = owner.graph as PlantMeshGeneratorGraph;
+
+            var newMeshDraft = target?.output?.Evalute(rootGraph.MyRandom, PlantMeshGeneratorView.DEFAULT_CONTEXT)?.meshDraft;
             var newMesh = newMeshDraft?.ToMesh(true, true);
             meshRenderTool.PreviewMesh = newMesh;
         }

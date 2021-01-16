@@ -61,7 +61,7 @@
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\CapsuleNodeView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorToolbarView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\DeferredEvaluatorSerializedFieldDrawer.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\FloatNodeView.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\NumberNodeView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\GraphAssetCallbacks.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorWindow.cs" />

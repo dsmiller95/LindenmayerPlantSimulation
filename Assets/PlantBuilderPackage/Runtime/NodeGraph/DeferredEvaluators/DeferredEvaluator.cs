@@ -5,20 +5,30 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace PlantBuilder.NodeGraph
+namespace PlantBuilder.NodeGraph.DeferredEvaluators
 {
-    //[System.Serializable]
-    //public abstract class DeferredEvaluator<T>
-    //{
-    //    public abstract T Evalute(Dictionary<string, object> context);
-    //}
-
-    [Serializable]
-    public class DeferredMeshEvaluator// : DeferredEvaluator<PlantMeshComponent>
+    [System.Serializable]
+    public abstract class DeferredEvaluator<T>
     {
-        public virtual PlantMeshComponent Evalute(Dictionary<string, object> context)
+        public abstract T Evalute(Random randomSource, Dictionary<string, object> context);
+
+        public static implicit operator DeferredEvaluator<T>(T v)
         {
-            return null;
+            return new DeferredConstantEvaluator<T>(v);
+        }
+    }
+
+    [System.Serializable]
+    public class DeferredConstantEvaluator<T> : DeferredEvaluator<T>
+    {
+        private T constantValue;
+        public DeferredConstantEvaluator(T constantValue)
+        {
+            this.constantValue = constantValue;
+        }
+        public override T Evalute(Random randomSource, Dictionary<string, object> context)
+        {
+            return constantValue;
         }
     }
 
@@ -28,7 +38,7 @@ namespace PlantBuilder.NodeGraph
         public byte[] serializedData;
 
         public static SerializedDeferredMeshEvaluator GetFromInstance(
-            DeferredMeshEvaluator deferredMesh)
+            DeferredEvaluator<PlantMeshComponent> deferredMesh)
         {
             var serializer = new BinaryFormatter();
             var stream = new MemoryStream();
@@ -44,14 +54,14 @@ namespace PlantBuilder.NodeGraph
             };
         }
 
-        public DeferredMeshEvaluator GetDeserializedGuy()
+        public DeferredEvaluator<PlantMeshComponent> GetDeserializedGuy()
         {
             var formatter = new BinaryFormatter();
             //var stringData = serializedData;// Encoding.ASCII.GetBytes(guyString);
             var stream = new MemoryStream(serializedData);
             var resultObj = formatter.Deserialize(stream);
 
-            return resultObj as DeferredMeshEvaluator;
+            return resultObj as DeferredEvaluator<PlantMeshComponent>;
         }
 
         public string GetStringRepresentation()
