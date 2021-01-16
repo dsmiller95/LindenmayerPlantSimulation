@@ -1,21 +1,24 @@
-﻿using UnityEngine.UIElements;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine;
-using GraphProcessor;
+﻿using GraphProcessor;
 using System;
-using UnityEditor;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace PlantBuilder.NodeGraph
 {
-    public class PlantMeshGeneratorView: BaseGraphView
-	{
+    public class PlantMeshGeneratorView : BaseGraphView
+    {
         public static Dictionary<string, object> DEFAULT_CONTEXT = new Dictionary<string, object>();
         public static string DEFAULT_MATERIAL_NAME = "defaultMaterial";
 
         public event Action onWindowDisposed;
 
-		public PlantMeshGeneratorView(EditorWindow window) : base(window) { }
+        public PlantMeshGeneratorView(EditorWindow window) : base(window)
+        {
+
+        }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
@@ -35,10 +38,10 @@ namespace PlantBuilder.NodeGraph
         }
 
         void CreateNodeOfType(Type type, Vector2 position)
-		{
-			RegisterCompleteObjectUndo("Added " + type + " node");
-			AddNode(BaseNode.CreateFromType(type, position));
-		}
+        {
+            RegisterCompleteObjectUndo("Added " + type + " node");
+            AddNode(BaseNode.CreateFromType(type, position));
+        }
 
         private bool isDisposed = false;
         public new void Dispose()
@@ -47,6 +50,14 @@ namespace PlantBuilder.NodeGraph
             isDisposed = true;
             onWindowDisposed?.Invoke();
             base.Dispose();
+        }
+
+        //[return: TupleElementNames(new[] { "path", "type" })]
+        public override IEnumerable<(string path, Type type)> FilterCreateNodeMenuEntries()
+        {
+            var options = base.FilterCreateNodeMenuEntries();
+
+            return options.Where(x => !x.path.ToLower().Contains("relay"));
         }
     }
 }

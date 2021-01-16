@@ -15,31 +15,23 @@ MonoBehaviour:
   serializedNodes:
   - type: PlantBuilder.NodeGraph.MeshNodes.MeshGraphOutputNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"60a67663-56c1-4a4d-b9d3-a1e7edd7bd0b","computeOrder":5,"position":{"serializedVersion":"2","x":654.0,"y":363.0,"width":85.0,"height":77.0},"expanded":false,"debug":false,"nodeLock":false}'
+    jsonDatas: '{"GUID":"60a67663-56c1-4a4d-b9d3-a1e7edd7bd0b","computeOrder":0,"position":{"serializedVersion":"2","x":654.0,"y":363.0,"width":85.0,"height":77.0},"expanded":false,"debug":false,"nodeLock":false}'
   - type: PlantBuilder.NodeGraph.MeshNodes.CapsuleMeshNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"729f5ada-bcc5-4f7f-88bb-317469e92d9f","computeOrder":4,"position":{"serializedVersion":"2","x":235.0,"y":355.0,"width":308.0,"height":401.0},"expanded":false,"debug":false,"nodeLock":false}'
+    jsonDatas: '{"GUID":"729f5ada-bcc5-4f7f-88bb-317469e92d9f","computeOrder":5,"position":{"serializedVersion":"2","x":235.0,"y":355.0,"width":308.0,"height":401.0},"expanded":false,"debug":false,"nodeLock":false}'
   - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"65b02153-9218-4670-b5ee-ec42aa01402f","computeOrder":2,"position":{"serializedVersion":"2","x":-288.1304626464844,"y":153.04348754882813,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":2.0}'
+    jsonDatas: '{"GUID":"65b02153-9218-4670-b5ee-ec42aa01402f","computeOrder":3,"position":{"serializedVersion":"2","x":-288.1304626464844,"y":153.04348754882813,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":2.0}'
   - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"158b5501-95e9-49a2-94f7-8177b82316f6","computeOrder":0,"position":{"serializedVersion":"2","x":-201.02191162109376,"y":573.540771484375,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":1.0}'
+    jsonDatas: '{"GUID":"158b5501-95e9-49a2-94f7-8177b82316f6","computeOrder":1,"position":{"serializedVersion":"2","x":-201.02191162109376,"y":573.540771484375,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":1.0}'
   - type: PlantBuilder.NodeGraph.Core.RangeNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
-    jsonDatas: '{"GUID":"1002703e-fa34-4a61-8610-98ed989df9f1","computeOrder":3,"position":{"serializedVersion":"2","x":-106.82610321044922,"y":292.9130859375,"width":115.00000762939453,"height":101.0},"expanded":false,"debug":false,"nodeLock":false}'
+    jsonDatas: '{"GUID":"1002703e-fa34-4a61-8610-98ed989df9f1","computeOrder":4,"position":{"serializedVersion":"2","x":-106.82610321044922,"y":292.9130859375,"width":115.00000762939453,"height":101.0},"expanded":false,"debug":false,"nodeLock":false}'
   - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"91dd1ab7-812d-4393-8f75-9f2c4bd0cf3b","computeOrder":1,"position":{"serializedVersion":"2","x":-305.478271484375,"y":365.1739501953125,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":10.0}'
+    jsonDatas: '{"GUID":"91dd1ab7-812d-4393-8f75-9f2c4bd0cf3b","computeOrder":2,"position":{"serializedVersion":"2","x":-305.478271484375,"y":365.1739501953125,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":10.0}'
   edges:
-  - GUID: 58cac407-8ff1-4e51-a804-e47bedd47dc0
-    owner: {fileID: 11400000}
-    inputNodeGUID: 60a67663-56c1-4a4d-b9d3-a1e7edd7bd0b
-    outputNodeGUID: 729f5ada-bcc5-4f7f-88bb-317469e92d9f
-    inputFieldName: draft
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
   - GUID: 9815ffa9-a4b6-4a71-906d-7f6fe10d11e3
     owner: {fileID: 11400000}
     inputNodeGUID: 729f5ada-bcc5-4f7f-88bb-317469e92d9f
@@ -89,8 +81,8 @@ MonoBehaviour:
     settings:
       isHidden: 0
   stickyNotes: []
-  position: {x: 388, y: 360, z: 0}
-  scale: {x: 0.65751624, y: 0.65751624, z: 1}
-  seed: 1579132605
+  position: {x: 304, y: 196, z: 0}
+  scale: {x: 0.8695652, y: 0.8695652, z: 1}
+  seed: -551279634
   references:
     version: 1
