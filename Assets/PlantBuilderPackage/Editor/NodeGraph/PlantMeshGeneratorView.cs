@@ -4,11 +4,15 @@ using UnityEngine;
 using GraphProcessor;
 using System;
 using UnityEditor;
+using System.Collections.Generic;
 
 namespace PlantBuilder.NodeGraph
 {
     public class PlantMeshGeneratorView: BaseGraphView
 	{
+        public static Dictionary<string, object> DEFAULT_CONTEXT = new Dictionary<string, object>();
+        public static string DEFAULT_MATERIAL_NAME = "defaultMaterial";
+
 		public PlantMeshGeneratorView(EditorWindow window) : base(window) { }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)

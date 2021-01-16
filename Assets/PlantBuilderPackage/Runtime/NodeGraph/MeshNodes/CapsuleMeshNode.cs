@@ -3,10 +3,8 @@ using ProceduralToolkit;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace PlantBuilder.NodeGraph.Mesh
+namespace PlantBuilder.NodeGraph.MeshNodes
 {
-
-
     [System.Serializable, NodeMenuItem("Mesh/Source/Capsule")] // Add the node in the node creation context menu
     public class CapsuleMeshNode : BaseNode
     {

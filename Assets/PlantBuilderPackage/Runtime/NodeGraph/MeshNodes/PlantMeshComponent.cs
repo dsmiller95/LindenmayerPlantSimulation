@@ -1,6 +1,6 @@
 ﻿using ProceduralToolkit;
 
-namespace PlantBuilder.NodeGraph.Mesh
+namespace PlantBuilder.NodeGraph.MeshNodes
 {
     public class PlantMeshComponent
     {

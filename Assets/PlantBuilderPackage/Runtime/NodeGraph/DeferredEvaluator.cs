@@ -1,10 +1,9 @@
-﻿using PlantBuilder.NodeGraph.Mesh;
+﻿using PlantBuilder.NodeGraph.MeshNodes;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 
 namespace PlantBuilder.NodeGraph
 {
@@ -19,7 +18,7 @@ namespace PlantBuilder.NodeGraph
     {
         public override PlantMeshComponent Evalute(Dictionary<string, object> context)
         {
-            throw new NotImplementedException();
+            return null;
         }
     }
 
@@ -39,7 +38,8 @@ namespace PlantBuilder.NodeGraph
 
             //var stringReader = new StreamReader(stream, Encoding.UTF8);
 
-            return new SerializedDeferredMeshEvaluator{
+            return new SerializedDeferredMeshEvaluator
+            {
                 serializedData = stream.ToArray()
             };
         }

@@ -13,68 +13,15 @@ MonoBehaviour:
   m_Name: MeshGenerator
   m_EditorClassIdentifier: 
   serializedNodes:
-  - type: PlantBuilder.NodeGraph.Mesh.MeshGraphOutputNode, PlantBuilder, Version=0.0.0.0,
+  - type: PlantBuilder.NodeGraph.MeshNodes.MeshGraphOutputNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"f450d7a6-3056-4a12-9a14-63876bf00aea","computeOrder":3,"position":{"serializedVersion":"2","x":704.0,"y":533.0,"width":85.0,"height":77.0},"expanded":false,"debug":false,"nodeLock":false,"draft":{}}'
-  - type: PlantBuilder.NodeGraph.Mesh.CapsuleMeshNode, PlantBuilder, Version=0.0.0.0,
-      Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"153efb16-803e-487b-bafe-950c93d27f5c","computeOrder":2,"position":{"serializedVersion":"2","x":495.0,"y":532.0,"width":128.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"height":1.0,"radius":0.5,"output":{}}'
-  - type: PlantBuilder.NodeGraph.Core.FloatNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"5976356d-a76e-4bed-bb4f-4b5cf4207d1f","computeOrder":1,"position":{"serializedVersion":"2","x":241.0,"y":466.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":1.0,"output":1.0}'
-  - type: PlantBuilder.NodeGraph.Core.FloatNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"b637d673-c175-4ad7-835a-d0739d11ed31","computeOrder":0,"position":{"serializedVersion":"2","x":256.0,"y":693.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":0.5,"output":0.5}'
-  edges:
-  - GUID: e8e77702-2d1c-4ad1-bdb7-53d42f1f10e4
-    owner: {fileID: 11400000}
-    inputNodeGUID: f450d7a6-3056-4a12-9a14-63876bf00aea
-    outputNodeGUID: 153efb16-803e-487b-bafe-950c93d27f5c
-    inputFieldName: draft
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: 93847fe3-6305-429e-b725-29733664b0ac
-    owner: {fileID: 11400000}
-    inputNodeGUID: 153efb16-803e-487b-bafe-950c93d27f5c
-    outputNodeGUID: 5976356d-a76e-4bed-bb4f-4b5cf4207d1f
-    inputFieldName: height
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: f6b4d540-9071-4bce-b12f-ce172a546abd
-    owner: {fileID: 11400000}
-    inputNodeGUID: 153efb16-803e-487b-bafe-950c93d27f5c
-    outputNodeGUID: b637d673-c175-4ad7-835a-d0739d11ed31
-    inputFieldName: radius
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
+    jsonDatas: '{"GUID":"24733e95-bc7c-4097-87ae-d4ce4b78c9ba","computeOrder":-1,"position":{"serializedVersion":"2","x":200.0,"y":200.0,"width":100.0,"height":100.0},"expanded":false,"debug":false,"nodeLock":false,"draft":{}}'
+  edges: []
   groups: []
   stackNodes: []
-  pinnedElements:
-  - position:
-      serializedVersion: 2
-      x: 0
-      y: 38
-      width: 289
-      height: 100
-    opened: 1
-    editorType:
-      serializedType: GraphProcessor.ExposedParameterView, com.alelievr.NodeGraphProcessor.Editor,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  - position:
-      serializedVersion: 2
-      x: 11
-      y: 150
-      width: 150
-      height: 200
-    opened: 1
-    editorType:
-      serializedType: GraphProcessor.ProcessorView, com.alelievr.NodeGraphProcessor.Editor,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  pinnedElements: []
   exposedParameters:
-  - guid: c27a667e-496a-4615-95cd-54fefa58bf3e
+  - guid: 8c9ff95f-18cd-42cb-a6c7-5cb4aafd9723
     name: output
     type: PlantBuilder.NodeGraph.SerializedDeferredMeshEvaluator, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
@@ -82,12 +29,13 @@ MonoBehaviour:
       serializedType: PlantBuilder.NodeGraph.SerializedDeferredMeshEvaluator, PlantBuilder,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       serializedName: 
-      serializedValue: '{"serializedData":[0,1,0,0,0,255,255,255,255,1,0,0,0,0,0,0,0,12,2,0,0,0,67,80,108,97,110,116,66,117,105,108,100,101,114,44,32,86,101,114,115,105,111,110,61,48,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,110,117,108,108,5,1,0,0,0,66,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,77,101,115,104,46,67,97,112,115,117,108,101,77,101,115,104,78,111,100,101,43,68,101,102,101,114,114,101,100,67,97,112,115,117,108,101,66,117,105,108,100,101,114,2,0,0,0,6,104,101,105,103,104,116,6,114,97,100,105,117,115,0,0,11,11,2,0,0,0,0,0,128,63,0,0,0,63,11]}'
+      serializedValue: 
     input: 1
     settings:
-      isHidden: 1
+      isHidden: 0
   stickyNotes: []
   position: {x: 0, y: 0, z: 0}
   scale: {x: 1, y: 1, z: 1}
+  seed: 1364012729
   references:
     version: 1

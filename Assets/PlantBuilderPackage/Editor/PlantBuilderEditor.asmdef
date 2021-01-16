@@ -4,7 +4,8 @@
     "references": [
         "PlantBuilder",
         "com.alelievr.NodeGraphProcessor.Editor",
-        "com.alelievr.NodeGraphProcessor.Runtime"
+        "com.alelievr.NodeGraphProcessor.Runtime",
+        "ProceduralToolkit"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -8,8 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{D416B3D2-1F38-DEF8-13C1-A420157DA023}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -57,7 +56,10 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\MeshRenderingVisualElement.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorInspector.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\CapsuleNodeView.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorToolbarView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\DeferredEvaluatorSerializedFieldDrawer.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\FloatNodeView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorView.cs" />
@@ -66,7 +68,7 @@
     <Compile Include="Assets\PlantBuilderPackage\Editor\BuilderControllerEditor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\PlantBuilderPackage\Editor\PlantBuilderEditor.asmdef" />
+     <None Include="Assets\PlantBuilderPackage\Editor\PlantBuilderEditor.asmdef" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
@@ -651,6 +653,9 @@
     </Reference>
     <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
       <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="ProceduralToolkit">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>

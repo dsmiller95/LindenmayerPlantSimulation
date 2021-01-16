@@ -9,9 +9,19 @@ namespace PlantBuilder.NodeGraph
 		protected override void OnDestroy()
 		{
 			graphView?.Dispose();
+			base.OnDestroy();
 		}
+        protected override void OnDisable()
+		{
+			graphView?.Dispose();
+			base.OnDisable();
+        }
+        //private void OnEnable()
+        //{
+            
+        //}
 
-		protected override void InitializeWindow(BaseGraph graph)
+        protected override void InitializeWindow(BaseGraph graph)
 		{
 			titleContent = new GUIContent("Plant builder");
 
@@ -20,7 +30,8 @@ namespace PlantBuilder.NodeGraph
 
 			// TODO: left this out since it creates two mini map views for some reason
 			//graphView.Add(new MiniMapView(graphView));
-			var toolbarView = new ToolbarView(graphView);
+			var baseGraph = graph as PlantMeshGeneratorGraph;
+			var toolbarView = new PlantMeshGeneratorToolbarView(graphView as PlantMeshGeneratorView, baseGraph);
 			graphView.Add(toolbarView);
 
 			rootView.Add(graphView);
