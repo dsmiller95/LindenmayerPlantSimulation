@@ -10,11 +10,11 @@ namespace PlantBuilder.NodeGraph.Core.Vectors
     {
         [Input(name = "Vector"), SerializeField]
         public Vector3 vector;
-        [Output(name = "X"), SerializeField]
+        [Output(name = "X")]
         public float x = 0;
-        [Output(name = "Y"), SerializeField]
+        [Output(name = "Y")]
         public float y = 0;
-        [Output(name = "Z"), SerializeField]
+        [Output(name = "Z")]
         public float z = 0;
 
         public override string name => "Vect Split";

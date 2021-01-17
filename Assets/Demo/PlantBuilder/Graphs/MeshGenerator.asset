@@ -15,72 +15,50 @@ MonoBehaviour:
   serializedNodes:
   - type: PlantBuilder.NodeGraph.MeshNodes.MeshGraphOutputNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"9613279f-24a2-4ccd-89c6-ca44e870a3d8","computeOrder":16,"position":{"serializedVersion":"2","x":1738.7149658203125,"y":293.0975341796875,"width":85.00000762939453,"height":77.0},"expanded":false,"debug":false,"nodeLock":false}'
-  - type: PlantBuilder.NodeGraph.MeshNodes.CapsuleMeshNode, PlantBuilder, Version=0.0.0.0,
-      Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"794744e6-5c96-4a2d-8866-32de3009f81a","computeOrder":2,"position":{"serializedVersion":"2","x":128.2899932861328,"y":310.5500183105469,"width":308.0,"height":401.0},"expanded":false,"debug":false,"nodeLock":false,"height":0.8648314476013184,"radius":0.25}'
-  - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
-      Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"03288bab-e8ba-409b-8bd9-2535edefebec","computeOrder":0,"position":{"serializedVersion":"2","x":-156.0,"y":513.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":0.25,"output":0.25}'
-  - type: PlantBuilder.NodeGraph.Core.RangeNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"bf0cb982-efc3-4d0d-8e5b-054ee6368eb6","computeOrder":1,"position":{"serializedVersion":"2","x":-166.0,"y":259.0,"width":115.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"min":0.5,"max":2.0,"output":0.8648314476013184}'
+    jsonDatas: '{"GUID":"9613279f-24a2-4ccd-89c6-ca44e870a3d8","computeOrder":14,"position":{"serializedVersion":"2","x":1738.7149658203125,"y":293.0975341796875,"width":85.00000762939453,"height":77.0},"expanded":false,"debug":false,"nodeLock":false}'
   - type: PlantBuilder.NodeGraph.MeshNodes.SplineMeshWrapNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"3daaf0f4-0c07-48d9-bb31-bb0638e67766","computeOrder":15,"position":{"serializedVersion":"2","x":1100.0,"y":269.0,"width":308.0,"height":401.0},"expanded":false,"debug":false,"nodeLock":false,"spline":{"n1":{"position":{"x":-1.0026021003723145,"y":0.0,"z":2.827505588531494},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"n2":{"position":{"x":-1.1522023677825928,"y":0.0,"z":2.7699151039123537},"direction":{"x":0.0,"y":11.0,"z":2.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"Changed":{"m_PersistentCalls":{"m_Calls":[]}}}}'
+    jsonDatas: '{"GUID":"3daaf0f4-0c07-48d9-bb31-bb0638e67766","computeOrder":13,"position":{"serializedVersion":"2","x":1100.0,"y":269.0,"width":308.0,"height":401.0},"expanded":false,"debug":false,"nodeLock":false,"spline":{"n1":{"position":{"x":-1.4047402143478394,"y":0.0,"z":1.5425809621810914},"direction":{"x":-1.447556495666504,"y":0.4610510766506195,"z":1.6378624439239503},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"n2":{"position":{"x":-0.14912697672843934,"y":5.806804656982422,"z":0.1307823359966278},"direction":{"x":-1.9086214303970338,"y":6.343754291534424,"z":-0.3508903980255127},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":0.4000000059604645,"y":0.4000000059604645},"roll":0.0},"Changed":{"m_PersistentCalls":{"m_Calls":[]}}}}'
   - type: PlantBuilder.NodeGraph.Core.BezierCurveNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"577874b0-e741-44bf-936b-53cd625d6168","computeOrder":14,"position":{"serializedVersion":"2","x":494.7174987792969,"y":-45.73497009277344,"width":128.0,"height":101.00001525878906},"expanded":false,"debug":false,"nodeLock":false,"nodeA":{"position":{"x":-1.0026021003723145,"y":0.0,"z":2.827505588531494},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"nodeB":{"position":{"x":-1.1522023677825928,"y":0.0,"z":2.7699151039123537},"direction":{"x":0.0,"y":11.0,"z":2.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"output":{"n1":{"position":{"x":-1.0026021003723145,"y":0.0,"z":2.827505588531494},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"n2":{"position":{"x":-1.1522023677825928,"y":0.0,"z":2.7699151039123537},"direction":{"x":0.0,"y":11.0,"z":2.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"Changed":{"m_PersistentCalls":{"m_Calls":[]}}}}'
+    jsonDatas: '{"GUID":"577874b0-e741-44bf-936b-53cd625d6168","computeOrder":12,"position":{"serializedVersion":"2","x":494.7174987792969,"y":-45.73497009277344,"width":128.0,"height":101.00001525878906},"expanded":false,"debug":false,"nodeLock":false,"nodeA":{"position":{"x":-1.4047402143478394,"y":0.0,"z":1.5425809621810914},"direction":{"x":-1.447556495666504,"y":0.4610510766506195,"z":1.6378624439239503},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"nodeB":{"position":{"x":-0.14912697672843934,"y":5.806804656982422,"z":0.1307823359966278},"direction":{"x":-1.9086214303970338,"y":6.343754291534424,"z":-0.3508903980255127},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":0.4000000059604645,"y":0.4000000059604645},"roll":0.0},"output":{"n1":{"position":{"x":-1.4047402143478394,"y":0.0,"z":1.5425809621810914},"direction":{"x":-1.447556495666504,"y":0.4610510766506195,"z":1.6378624439239503},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"n2":{"position":{"x":-0.14912697672843934,"y":5.806804656982422,"z":0.1307823359966278},"direction":{"x":-1.9086214303970338,"y":6.343754291534424,"z":-0.3508903980255127},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":0.4000000059604645,"y":0.4000000059604645},"roll":0.0},"Changed":{"m_PersistentCalls":{"m_Calls":[]}}}}'
   - type: PlantBuilder.NodeGraph.Core.SplineNodeNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"9dcfbd23-8cfa-40f2-8892-4b5a0c30425a","computeOrder":13,"position":{"serializedVersion":"2","x":253.71751403808595,"y":-268.7349853515625,"width":140.0,"height":173.0},"expanded":false,"debug":false,"nodeLock":false,"positionInput":{"x":-1.0026021003723145,"y":0.0,"z":2.827505588531494},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0,"output":{"position":{"x":-1.0026021003723145,"y":0.0,"z":2.827505588531494},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0}}'
+    jsonDatas: '{"GUID":"9dcfbd23-8cfa-40f2-8892-4b5a0c30425a","computeOrder":11,"position":{"serializedVersion":"2","x":253.71751403808595,"y":-268.7349853515625,"width":140.0,"height":173.0},"expanded":false,"debug":false,"nodeLock":false,"positionInput":{"x":-1.4047402143478394,"y":0.0,"z":1.5425809621810914},"direction":{"x":-0.04281628504395485,"y":0.4610510766506195,"z":0.0952814444899559},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0,"output":{"position":{"x":-1.4047402143478394,"y":0.0,"z":1.5425809621810914},"direction":{"x":-1.447556495666504,"y":0.4610510766506195,"z":1.6378624439239503},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0}}'
   - type: PlantBuilder.NodeGraph.Core.SplineNodeNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"776e3767-dcb1-4d96-b901-bc4fcdc5388d","computeOrder":8,"position":{"serializedVersion":"2","x":248.09640502929688,"y":-18.338409423828126,"width":140.0,"height":173.0},"expanded":false,"debug":false,"nodeLock":false,"positionInput":{"x":-1.1522023677825928,"y":0.0,"z":2.7699151039123537},"direction":{"x":0.0,"y":11.0,"z":2.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0,"output":{"position":{"x":-1.1522023677825928,"y":0.0,"z":2.7699151039123537},"direction":{"x":0.0,"y":11.0,"z":2.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0}}'
+    jsonDatas: '{"GUID":"776e3767-dcb1-4d96-b901-bc4fcdc5388d","computeOrder":6,"position":{"serializedVersion":"2","x":248.09640502929688,"y":-18.338409423828126,"width":140.0,"height":173.0},"expanded":false,"debug":false,"nodeLock":false,"positionInput":{"x":-0.14912697672843934,"y":5.806804656982422,"z":0.1307823359966278},"direction":{"x":-1.759494423866272,"y":0.5369497537612915,"z":-0.4816727340221405},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":0.4000000059604645,"y":0.4000000059604645},"roll":0.0,"output":{"position":{"x":-0.14912697672843934,"y":5.806804656982422,"z":0.1307823359966278},"direction":{"x":-1.9086214303970338,"y":6.343754291534424,"z":-0.3508903980255127},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":0.4000000059604645,"y":0.4000000059604645},"roll":0.0}}'
   - type: PlantBuilder.NodeGraph.MeshNodes.TransformMeshNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"57205158-c8c7-4060-acc8-71baa7a3d9be","computeOrder":3,"position":{"serializedVersion":"2","x":636.04248046875,"y":314.362548828125,"width":308.0,"height":449.0},"expanded":false,"debug":false,"nodeLock":false,"translation":{"x":0.0,"y":0.0,"z":0.0},"eulerRotation":{"x":0.0,"y":0.0,"z":90.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}'
-  - type: PlantBuilder.NodeGraph.Core.RangeNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"dda4e627-0418-4dfa-9913-6e21b14d2c9e","computeOrder":10,"position":{"serializedVersion":"2","x":-683.7151489257813,"y":-354.5174865722656,"width":115.00000762939453,"height":101.00001525878906},"expanded":false,"debug":false,"nodeLock":false,"min":0.0,"max":6.2831854820251469,"output":1.9115533828735352}'
+    jsonDatas: '{"GUID":"57205158-c8c7-4060-acc8-71baa7a3d9be","computeOrder":1,"position":{"serializedVersion":"2","x":609.9130249023438,"y":298.34783935546877,"width":308.0,"height":449.0},"expanded":false,"debug":false,"nodeLock":false,"translation":{"x":0.0,"y":0.0,"z":0.0},"eulerRotation":{"x":0.0,"y":90.0,"z":0.0},"scale":{"x":0.5,"y":0.5,"z":0.20000000298023225}}'
   - type: PlantBuilder.NodeGraph.Core.Vectors.CylinderCoordinateToVectorNode, PlantBuilder,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"4df56c48-7c0a-4328-8475-acb5a3e52b5c","computeOrder":12,"position":{"serializedVersion":"2","x":-83.48373413085938,"y":-272.72760009765627,"width":169.0,"height":77.0},"expanded":true,"debug":false,"nodeLock":false,"input":{"y":0.0,"azimuth":1.9115533828735352,"axialDistance":3.0},"output":{"x":-1.0026021003723145,"y":0.0,"z":2.827505588531494}}'
-  - type: PlantBuilder.NodeGraph.Core.Vectors.CylinderCoordinateCombineNode, PlantBuilder,
+    jsonDatas: '{"GUID":"42d9830a-f9ea-4818-8c28-9b55831fbc19","computeOrder":5,"position":{"serializedVersion":"2","x":-173.4592742919922,"y":-80.89457702636719,"width":169.0,"height":77.0},"expanded":true,"debug":false,"nodeLock":false,"input":{"y":5.806804656982422,"azimuth":2.4216387271881105,"axialDistance":0.19835038483142854},"output":{"x":-0.14912697672843934,"y":5.806804656982422,"z":0.1307823359966278}}'
+  - type: PlantBuilder.NodeGraph.Core.Vectors.CylindricalVolumeSampleNode, PlantBuilder,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"80deb7cd-cb31-43fd-bfb5-b221c18faa88","computeOrder":11,"position":{"serializedVersion":"2","x":-470.2940368652344,"y":-375.62738037109377,"width":263.0,"height":146.0},"expanded":false,"debug":false,"nodeLock":false,"y":0.0,"angle":1.9115533828735352,"dist":3.0,"output":{"y":0.0,"azimuth":1.9115533828735352,"axialDistance":3.0}}'
-  - type: PlantBuilder.NodeGraph.Core.ConstantNode, PlantBuilder, Version=0.0.0.0,
-      Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"f25d51ed-ed51-4635-b4c0-c360444a02b4","computeOrder":9,"position":{"serializedVersion":"2","x":-820.239501953125,"y":-326.5474548339844,"width":98.0,"height":98.0},"expanded":false,"debug":false,"nodeLock":false,"output":6.2831854820251469}'
+    jsonDatas: '{"GUID":"74a392bf-8af1-4b65-8b2f-845c9706d0fb","computeOrder":4,"position":{"serializedVersion":"2","x":-411.45928955078127,"y":-80.89457702636719,"width":184.0,"height":125.0},"expanded":true,"debug":false,"nodeLock":false,"yRange":{"x":5.0,"y":10.0},"arcRange":{"x":0.0,"y":1.0},"magnituteRange":{"x":0.0,"y":3.0},"output":{"y":5.806804656982422,"azimuth":2.4216387271881105,"axialDistance":0.19835038483142854}}'
+  - type: PlantBuilder.NodeGraph.Core.Vectors.CylindricalVolumeSampleNode, PlantBuilder,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"161d9931-c5c6-41c2-8e54-76955ea95728","computeOrder":2,"position":{"serializedVersion":"2","x":-393.2192687988281,"y":80.56143951416016,"width":184.0,"height":125.0},"expanded":false,"debug":false,"nodeLock":false,"yRange":{"x":0.0,"y":2.0},"arcRange":{"x":0.0,"y":1.0},"magnituteRange":{"x":0.0,"y":2.0},"output":{"y":0.5369497537612915,"azimuth":3.4088022708892824,"axialDistance":1.8242337703704835}}'
   - type: PlantBuilder.NodeGraph.Core.Vectors.CylinderCoordinateToVectorNode, PlantBuilder,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"42d9830a-f9ea-4818-8c28-9b55831fbc19","computeOrder":7,"position":{"serializedVersion":"2","x":-130.44744873046876,"y":-13.627537727355957,"width":169.0,"height":77.0},"expanded":true,"debug":false,"nodeLock":false,"input":{"y":0.0,"azimuth":1.964993953704834,"axialDistance":3.0},"output":{"x":-1.1522023677825928,"y":0.0,"z":2.7699151039123537}}'
-  - type: PlantBuilder.NodeGraph.Core.Vectors.CylinderCoordinateCombineNode, PlantBuilder,
+    jsonDatas: '{"GUID":"ebbc8b1b-d247-4900-bc37-6a441f293433","computeOrder":3,"position":{"serializedVersion":"2","x":-159.0,"y":89.0,"width":169.0,"height":77.0},"expanded":true,"debug":false,"nodeLock":false,"input":{"y":0.5369497537612915,"azimuth":3.4088022708892824,"axialDistance":1.8242337703704835},"output":{"x":-1.759494423866272,"y":0.5369497537612915,"z":-0.4816727340221405}}'
+  - type: PlantBuilder.NodeGraph.Core.Vectors.CylinderCoordinateToVectorNode, PlantBuilder,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"39d3c590-8c0d-49a0-b5c0-82a582d9c290","computeOrder":6,"position":{"serializedVersion":"2","x":-517.4474487304688,"y":-116.62747192382813,"width":313.0,"height":146.0},"expanded":false,"debug":false,"nodeLock":false,"y":10.0,"angle":1.964993953704834,"dist":3.0,"output":{"y":0.0,"azimuth":1.964993953704834,"axialDistance":3.0}}'
-  - type: PlantBuilder.NodeGraph.Core.RangeNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    jsonDatas: '{"GUID":"12a2999a-d211-48b8-a316-218a3faba040","computeOrder":5,"position":{"serializedVersion":"2","x":-731.447509765625,"y":-95.6275405883789,"width":115.00000762939453,"height":101.00001525878906},"expanded":false,"debug":false,"nodeLock":false,"min":0.0,"max":6.2831854820251469,"output":1.964993953704834}'
-  - type: PlantBuilder.NodeGraph.Core.ConstantNode, PlantBuilder, Version=0.0.0.0,
+    jsonDatas: '{"GUID":"b69a2835-c07a-4b1c-bf04-86d861096c19","computeOrder":8,"position":{"serializedVersion":"2","x":-169.41749572753907,"y":-239.28038024902345,"width":169.0,"height":77.0},"expanded":true,"debug":false,"nodeLock":false,"input":{"y":0.4610510766506195,"azimuth":1.9931232929229737,"axialDistance":0.1044595018029213},"output":{"x":-0.04281628504395485,"y":0.4610510766506195,"z":0.0952814444899559}}'
+  - type: PlantBuilder.NodeGraph.Core.Vectors.CylindricalVolumeSampleNode, PlantBuilder,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"3fe3145f-14f7-4f3e-8635-1662b5c0ad67","computeOrder":7,"position":{"serializedVersion":"2","x":-403.41754150390627,"y":-247.28038024902345,"width":184.0,"height":125.0},"expanded":false,"debug":false,"nodeLock":false,"yRange":{"x":0.0,"y":2.0},"arcRange":{"x":0.0,"y":1.0},"magnituteRange":{"x":0.0,"y":2.0},"output":{"y":0.4610510766506195,"azimuth":1.9931232929229737,"axialDistance":0.1044595018029213}}'
+  - type: PlantBuilder.NodeGraph.Core.Vectors.CylinderCoordinateToVectorNode, PlantBuilder,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"131e3285-21db-4169-823b-5d01b6996c21","computeOrder":10,"position":{"serializedVersion":"2","x":-192.70005798339845,"y":-411.04998779296877,"width":169.0,"height":77.00001525878906},"expanded":true,"debug":false,"nodeLock":false,"input":{"y":0.0,"azimuth":2.309460401535034,"axialDistance":2.08634877204895},"output":{"x":-1.4047402143478394,"y":0.0,"z":1.5425809621810914}}'
+  - type: PlantBuilder.NodeGraph.Core.Vectors.CylindricalVolumeSampleNode, PlantBuilder,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"39213b23-9cb4-4a70-b5cc-d05c97baf091","computeOrder":9,"position":{"serializedVersion":"2","x":-426.7000732421875,"y":-419.0500183105469,"width":184.00003051757813,"height":125.00001525878906},"expanded":false,"debug":false,"nodeLock":false,"yRange":{"x":0.0,"y":0.0},"arcRange":{"x":0.0,"y":1.0},"magnituteRange":{"x":0.0,"y":3.0},"output":{"y":0.0,"azimuth":2.309460401535034,"axialDistance":2.08634877204895}}'
+  - type: PlantBuilder.NodeGraph.MeshNodes.MeshAssetNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"143837d8-8d13-4ee7-b753-1dcbc37cae98","computeOrder":4,"position":{"serializedVersion":"2","x":-867.447509765625,"y":-67.62749481201172,"width":98.0,"height":98.0},"expanded":false,"debug":false,"nodeLock":false,"output":6.2831854820251469}'
+    jsonDatas: '{"GUID":"628367a4-441d-4e3b-b0dc-8703ff1c475f","computeOrder":0,"position":{"serializedVersion":"2","x":-40.920021057128909,"y":294.0975341796875,"width":308.0,"height":377.0},"expanded":false,"debug":false,"nodeLock":false,"meshAsset":{"fileID":4300000,"guid":"500594a39d643774c8e028335ee33da7","type":3}}'
   edges:
-  - GUID: eaff81be-0a3d-4532-8dd3-410dfa1c8eb8
-    owner: {fileID: 11400000}
-    inputNodeGUID: 794744e6-5c96-4a2d-8866-32de3009f81a
-    outputNodeGUID: 03288bab-e8ba-409b-8bd9-2535edefebec
-    inputFieldName: radius
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: 2c60c378-19e4-4f35-a0ed-a3f37e88adab
-    owner: {fileID: 11400000}
-    inputNodeGUID: 794744e6-5c96-4a2d-8866-32de3009f81a
-    outputNodeGUID: bf0cb982-efc3-4d0d-8e5b-054ee6368eb6
-    inputFieldName: height
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
   - GUID: 7296c032-2b7a-451c-b28a-0ad5a9967da4
     owner: {fileID: 11400000}
     inputNodeGUID: 9613279f-24a2-4ccd-89c6-ca44e870a3d8
@@ -121,75 +99,75 @@ MonoBehaviour:
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
-  - GUID: 6de3e353-1ded-416d-89c1-0b0e2c92fb78
-    owner: {fileID: 11400000}
-    inputNodeGUID: 57205158-c8c7-4060-acc8-71baa7a3d9be
-    outputNodeGUID: 794744e6-5c96-4a2d-8866-32de3009f81a
-    inputFieldName: mesh
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: 9e76cad7-ce80-41df-b067-cfbb496506c4
-    owner: {fileID: 11400000}
-    inputNodeGUID: 9dcfbd23-8cfa-40f2-8892-4b5a0c30425a
-    outputNodeGUID: 4df56c48-7c0a-4328-8475-acb5a3e52b5c
-    inputFieldName: positionInput
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: ec3e6535-159e-434a-9a64-157562f2e798
-    owner: {fileID: 11400000}
-    inputNodeGUID: 4df56c48-7c0a-4328-8475-acb5a3e52b5c
-    outputNodeGUID: 80deb7cd-cb31-43fd-bfb5-b221c18faa88
-    inputFieldName: input
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: 62ccb143-b4d2-46f8-8932-7abb8d89fa86
-    owner: {fileID: 11400000}
-    inputNodeGUID: 80deb7cd-cb31-43fd-bfb5-b221c18faa88
-    outputNodeGUID: dda4e627-0418-4dfa-9913-6e21b14d2c9e
-    inputFieldName: angle
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: de148f0f-0356-484b-b471-808caa5d17fd
-    owner: {fileID: 11400000}
-    inputNodeGUID: dda4e627-0418-4dfa-9913-6e21b14d2c9e
-    outputNodeGUID: f25d51ed-ed51-4635-b4c0-c360444a02b4
-    inputFieldName: max
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: eddbcccf-637b-4126-a9fa-6d5437624a39
-    owner: {fileID: 11400000}
-    inputNodeGUID: 42d9830a-f9ea-4818-8c28-9b55831fbc19
-    outputNodeGUID: 39d3c590-8c0d-49a0-b5c0-82a582d9c290
-    inputFieldName: input
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: 48cc79ae-ad68-4a76-98a6-6353e68f8bcb
-    owner: {fileID: 11400000}
-    inputNodeGUID: 39d3c590-8c0d-49a0-b5c0-82a582d9c290
-    outputNodeGUID: 12a2999a-d211-48b8-a316-218a3faba040
-    inputFieldName: angle
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
-  - GUID: 4a1b108e-8a44-42bd-a211-4254295a3f73
-    owner: {fileID: 11400000}
-    inputNodeGUID: 12a2999a-d211-48b8-a316-218a3faba040
-    outputNodeGUID: 143837d8-8d13-4ee7-b753-1dcbc37cae98
-    inputFieldName: max
-    outputFieldName: output
-    inputPortIdentifier: 
-    outputPortIdentifier: 
   - GUID: 1adacf42-343e-4866-bfe5-2a0b0e48e5ce
     owner: {fileID: 11400000}
     inputNodeGUID: 776e3767-dcb1-4d96-b901-bc4fcdc5388d
     outputNodeGUID: 42d9830a-f9ea-4818-8c28-9b55831fbc19
     inputFieldName: positionInput
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 32fe1d9d-e30e-4b54-b769-83e6aa94d4eb
+    owner: {fileID: 11400000}
+    inputNodeGUID: 42d9830a-f9ea-4818-8c28-9b55831fbc19
+    outputNodeGUID: 74a392bf-8af1-4b65-8b2f-845c9706d0fb
+    inputFieldName: input
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 3f80cc89-7fde-4471-9b34-0106d0599fd9
+    owner: {fileID: 11400000}
+    inputNodeGUID: ebbc8b1b-d247-4900-bc37-6a441f293433
+    outputNodeGUID: 161d9931-c5c6-41c2-8e54-76955ea95728
+    inputFieldName: input
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 80db0567-f96d-48a6-97d0-69b0c479c660
+    owner: {fileID: 11400000}
+    inputNodeGUID: 776e3767-dcb1-4d96-b901-bc4fcdc5388d
+    outputNodeGUID: ebbc8b1b-d247-4900-bc37-6a441f293433
+    inputFieldName: direction
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 44772475-7417-494e-8d2a-29e2c0fab635
+    owner: {fileID: 11400000}
+    inputNodeGUID: b69a2835-c07a-4b1c-bf04-86d861096c19
+    outputNodeGUID: 3fe3145f-14f7-4f3e-8635-1662b5c0ad67
+    inputFieldName: input
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 5f898168-2e2e-4097-b25d-db46752b8b4a
+    owner: {fileID: 11400000}
+    inputNodeGUID: 9dcfbd23-8cfa-40f2-8892-4b5a0c30425a
+    outputNodeGUID: b69a2835-c07a-4b1c-bf04-86d861096c19
+    inputFieldName: direction
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: fc60d033-7c3a-49ea-8af1-64d13bc0037e
+    owner: {fileID: 11400000}
+    inputNodeGUID: 131e3285-21db-4169-823b-5d01b6996c21
+    outputNodeGUID: 39213b23-9cb4-4a70-b5cc-d05c97baf091
+    inputFieldName: input
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: dd72483e-7f2c-4e5d-9ba0-fa89b7fe415e
+    owner: {fileID: 11400000}
+    inputNodeGUID: 9dcfbd23-8cfa-40f2-8892-4b5a0c30425a
+    outputNodeGUID: 131e3285-21db-4169-823b-5d01b6996c21
+    inputFieldName: positionInput
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 9471184c-cf2a-402b-a132-21d666c9739e
+    owner: {fileID: 11400000}
+    inputNodeGUID: 57205158-c8c7-4060-acc8-71baa7a3d9be
+    outputNodeGUID: 628367a4-441d-4e3b-b0dc-8703ff1c475f
+    inputFieldName: mesh
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
@@ -220,8 +198,8 @@ MonoBehaviour:
     settings:
       isHidden: 0
   stickyNotes: []
-  position: {x: 550, y: 504, z: 0}
-  scale: {x: 1.15, y: 1.15, z: 1}
-  seed: 340983317
+  position: {x: -595, y: 141, z: 0}
+  scale: {x: 1, y: 1, z: 1}
+  seed: 1159447347
   references:
     version: 1

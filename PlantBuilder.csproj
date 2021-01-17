@@ -86,6 +86,10 @@
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\NumberNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\TypeConversions.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\ConstantNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\BinaryMathOperationNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\Vectors\BinaryVectorMathOperationNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\Vectors\CylindricalVolumeSampleNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\MeshAssetNode.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\PlantBuilderPackage\Runtime\PlantBuilder.asmdef" />

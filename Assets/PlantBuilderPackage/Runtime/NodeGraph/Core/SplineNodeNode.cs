@@ -29,7 +29,7 @@ namespace PlantBuilder.NodeGraph.Core
 
         protected override void Process()
         {
-            output = new SplineNode(positionInput, direction)
+            output = new SplineNode(positionInput, positionInput + direction)
                 {
                     Up = up,
                     Scale = scale,
