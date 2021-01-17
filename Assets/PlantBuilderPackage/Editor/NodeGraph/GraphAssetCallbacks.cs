@@ -22,7 +22,7 @@ namespace PlantBuilder.NodeGraph
 
             graph.AddExposedParameter(
                 "output",
-                typeof(SerializedDeferredMeshEvaluator),
+                typeof(MeshDraftWithExtras),
                 null);
             ProjectWindowUtil.CreateAsset(graph, "MeshGenerator.asset");
         }

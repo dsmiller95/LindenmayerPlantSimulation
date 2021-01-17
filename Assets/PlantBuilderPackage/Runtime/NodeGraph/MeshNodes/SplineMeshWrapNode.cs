@@ -11,39 +11,39 @@ namespace PlantBuilder.NodeGraph.MeshNodes
     public class SplineMeshWrapNode : BaseNode
     {
         [Input(name = "Spline")]
-        public DeferredEvaluator<CubicBezierCurve> spline;
+        public CubicBezierCurve spline;
         [Input(name = "Mesh")]
-        public DeferredEvaluator<MeshDraftWithExtras> mesh;
+        public MeshDraftWithExtras mesh;
 
         [Output(name = "Out")]
-        public DeferredEvaluator<MeshDraftWithExtras> output;
+        public MeshDraftWithExtras output;
 
         public override string name => "Spline wrap";
 
         protected override void Process()
         {
-            output = new DefferedSplineMeshWrapper(this);
+            output = mesh.WrapSplineAll(spline);
         }
 
-        [System.Serializable]
-        class DefferedSplineMeshWrapper : DeferredEvaluator<MeshDraftWithExtras>
-        {
-            private DeferredEvaluator<CubicBezierCurve> curve;
-            private DeferredEvaluator<MeshDraftWithExtras> mesh;
+        //[System.Serializable]
+        //class DefferedSplineMeshWrapper : DeferredEvaluator<MeshDraftWithExtras>
+        //{
+        //    private DeferredEvaluator<CubicBezierCurve> curve;
+        //    private DeferredEvaluator<MeshDraftWithExtras> mesh;
 
-            public DefferedSplineMeshWrapper(SplineMeshWrapNode node)
-            {
-                this.curve = node.spline;
-                this.mesh = node.mesh;
-            }
+        //    public DefferedSplineMeshWrapper(SplineMeshWrapNode node)
+        //    {
+        //        this.curve = node.spline;
+        //        this.mesh = node.mesh;
+        //    }
 
-            public override MeshDraftWithExtras Evalute(System.Random randomSource, Dictionary<string, object> context)
-            {
-                var originMesh = mesh.Evalute(randomSource, context);
-                var spline = curve.Evalute(randomSource, context);
+        //    public override MeshDraftWithExtras Evalute(System.Random randomSource, Dictionary<string, object> context)
+        //    {
+        //        var originMesh = mesh.Evalute(randomSource, context);
+        //        var spline = curve.Evalute(randomSource, context);
 
-                return originMesh.WrapSplineAll(spline);
-            }
-        }
+        //        return originMesh.WrapSplineAll(spline);
+        //    }
+        //}
     }
 }

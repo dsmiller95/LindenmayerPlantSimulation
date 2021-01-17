@@ -10,34 +10,31 @@ namespace PlantBuilder.NodeGraph
         public System.Random MyRandom { get; private set; }
         public int seed;
 
-        public void Reseed()
-        {
-            seed = Random.Range(int.MinValue, int.MaxValue);
-            this.ResetRandom();
-        }
         public void ResetRandom()
         {
             this.MyRandom = new System.Random(seed);
         }
+        public void Reseed()
+        {
+            seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+            this.ResetRandom();
+        }
 
         public MeshDraftWithExtras GenerateMesh(bool reseed = false)
         {
-            var output = GetExposedParameter("output");
-            output.serializedValue.OnAfterDeserialize();
-            var serializedGenerator = output.serializedValue.value as SerializedDeferredMeshEvaluator;
-            if (serializedGenerator == null)
-            {
-                Debug.LogError("'output mesh' parameter not defined");
-                return default;
-            }
+            var output = GetParameterValue<MeshDraftWithExtras>("output");
+            return output;
+            //output.serializedValue.OnAfterDeserialize();
+            //var serializedGenerator = output.serializedValue.value as SerializedDeferredMeshEvaluator;
+            //if (output == null)
+            //{
+            //    Debug.LogError("'output mesh' parameter not defined");
+            //    return default;
+            //}
 
-            var generator = serializedGenerator.GetDeserializedGuy();
+            //var generator = serializedGenerator.GetDeserializedGuy();
 
-            if (reseed)
-                this.Reseed();
-            else
-                this.ResetRandom();
-            return generator.Evalute(this.MyRandom, new System.Collections.Generic.Dictionary<string, object>());
+            //return generator.Evalute(this.MyRandom, new System.Collections.Generic.Dictionary<string, object>());
 
         }
 

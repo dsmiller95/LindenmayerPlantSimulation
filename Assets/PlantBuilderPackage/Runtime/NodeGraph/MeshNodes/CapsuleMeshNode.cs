@@ -10,40 +10,42 @@ namespace PlantBuilder.NodeGraph.MeshNodes
     public class CapsuleMeshNode : BaseNode
     {
         [Input(name = "Height")]
-        public DeferredEvaluator<float> height = 1;
+        public float height = 1;
         [Input(name = "Radius")]
-        public DeferredEvaluator<float> radius = 1;
+        public float radius = 1;
 
         [Output(name = "Out"), SerializeField]
-        public DeferredEvaluator<MeshDraftWithExtras> output;
+        public MeshDraftWithExtras output;
 
         public override string name => "Capsule";
 
         protected override void Process()
         {
-            output = new DeferredCapsuleBuilder(this);
+            output = new MeshDraftWithExtras(
+                    MeshDraft.Capsule(height, radius),
+                    new Bounds(Vector3.zero, new Vector3(radius * 2, height, radius * 2)));
         }
 
-        [System.Serializable]
-        class DeferredCapsuleBuilder : DeferredEvaluator<MeshDraftWithExtras>
-        {
-            private DeferredEvaluator<float> height;
-            private DeferredEvaluator<float> radius;
+        //[System.Serializable]
+        //class DeferredCapsuleBuilder : DeferredEvaluator<MeshDraftWithExtras>
+        //{
+        //    private DeferredEvaluator<float> height;
+        //    private DeferredEvaluator<float> radius;
 
-            public DeferredCapsuleBuilder(CapsuleMeshNode node)
-            {
-                height = node.height;
-                radius = node.radius;
-            }
+        //    public DeferredCapsuleBuilder(CapsuleMeshNode node)
+        //    {
+        //        height = node.height;
+        //        radius = node.radius;
+        //    }
 
-            public override MeshDraftWithExtras Evalute(System.Random randomSource, Dictionary<string, object> context)
-            {
-                var heightNum = height.Evalute(randomSource, context);
-                var radiusNum = radius.Evalute(randomSource, context);
-                return new MeshDraftWithExtras(
-                    MeshDraft.Capsule(heightNum, radiusNum),
-                    new Bounds(Vector3.zero, new Vector3(radiusNum * 2, radiusNum * 2, heightNum)));
-            }
-        }
+        //    public override MeshDraftWithExtras Evalute(System.Random randomSource, Dictionary<string, object> context)
+        //    {
+        //        var heightNum = height.Evalute(randomSource, context);
+        //        var radiusNum = radius.Evalute(randomSource, context);
+        //        return new MeshDraftWithExtras(
+        //            MeshDraft.Capsule(heightNum, radiusNum),
+        //            new Bounds(Vector3.zero, new Vector3(radiusNum * 2, radiusNum * 2, heightNum)));
+        //    }
+        //}
     }
 }

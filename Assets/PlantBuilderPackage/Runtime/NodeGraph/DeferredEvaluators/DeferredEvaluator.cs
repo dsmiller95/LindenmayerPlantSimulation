@@ -7,6 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace PlantBuilder.NodeGraph.DeferredEvaluators
 {
+    [Obsolete]
     [System.Serializable]
     public abstract class DeferredEvaluator<T>
     {
@@ -18,6 +19,7 @@ namespace PlantBuilder.NodeGraph.DeferredEvaluators
         }
     }
 
+    [Obsolete]
     [System.Serializable]
     public class DeferredConstantEvaluator<T> : DeferredEvaluator<T>
     {
@@ -32,6 +34,7 @@ namespace PlantBuilder.NodeGraph.DeferredEvaluators
         }
     }
 
+    [Obsolete]
     [Serializable]
     public class SerializedDeferredMeshEvaluator
     {

@@ -15,60 +15,125 @@ MonoBehaviour:
   serializedNodes:
   - type: PlantBuilder.NodeGraph.MeshNodes.MeshGraphOutputNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"6df1a3c4-e854-485d-9ce3-174e290ffdd8","computeOrder":3,"position":{"serializedVersion":"2","x":200.0,"y":200.0,"width":100.0,"height":100.0},"expanded":false,"debug":false,"nodeLock":false}'
+    jsonDatas: '{"GUID":"9613279f-24a2-4ccd-89c6-ca44e870a3d8","computeOrder":8,"position":{"serializedVersion":"2","x":1278.47998046875,"y":266.0,"width":85.0,"height":77.0},"expanded":false,"debug":false,"nodeLock":false}'
   - type: PlantBuilder.NodeGraph.MeshNodes.CapsuleMeshNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"f37964c0-0b2f-4f03-aa1f-800932cdd96a","computeOrder":2,"position":{"serializedVersion":"2","x":-199.0,"y":172.0,"width":308.0,"height":401.0},"expanded":false,"debug":false,"nodeLock":false}'
+    jsonDatas: '{"GUID":"794744e6-5c96-4a2d-8866-32de3009f81a","computeOrder":2,"position":{"serializedVersion":"2","x":123.292236328125,"y":337.4989929199219,"width":308.0,"height":400.9999694824219},"expanded":false,"debug":false,"nodeLock":false,"height":0.5696309804916382,"radius":0.25}'
   - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"42da865f-a390-4694-8f85-72b197cc9925","computeOrder":1,"position":{"serializedVersion":"2","x":-503.0,"y":60.0,"width":100.0,"height":100.0},"expanded":false,"debug":false,"nodeLock":false,"input":10.0}'
-  - type: PlantBuilder.NodeGraph.Core.NumberNode, PlantBuilder, Version=0.0.0.0,
+    jsonDatas: '{"GUID":"03288bab-e8ba-409b-8bd9-2535edefebec","computeOrder":0,"position":{"serializedVersion":"2","x":-156.0,"y":513.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":0.25,"output":0.25}'
+  - type: PlantBuilder.NodeGraph.Core.RangeNode, PlantBuilder, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    jsonDatas: '{"GUID":"bf0cb982-efc3-4d0d-8e5b-054ee6368eb6","computeOrder":1,"position":{"serializedVersion":"2","x":-166.0,"y":259.0,"width":115.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"min":0.5,"max":2.0,"output":0.5696309804916382}'
+  - type: PlantBuilder.NodeGraph.MeshNodes.TransformMeshNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"2c411546-2fe6-40e9-adc4-f1c395449bdb","computeOrder":0,"position":{"serializedVersion":"2","x":-564.0,"y":376.0,"width":102.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"input":0.5}'
+    jsonDatas: '{"GUID":"b4dd2f7c-dbf8-4d81-94bf-0f1fcc580238","computeOrder":3,"position":{"serializedVersion":"2","x":689.2505493164063,"y":410.29620361328127,"width":151.0,"height":149.0},"expanded":false,"debug":false,"nodeLock":false,"translation":{"x":0.0,"y":0.0,"z":0.0},"eulerRotation":{"x":0.0,"y":0.0,"z":90.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}'
+  - type: PlantBuilder.NodeGraph.MeshNodes.SplineMeshWrapNode, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"3daaf0f4-0c07-48d9-bb31-bb0638e67766","computeOrder":7,"position":{"serializedVersion":"2","x":929.0,"y":212.0,"width":125.0,"height":101.0},"expanded":false,"debug":false,"nodeLock":false,"spline":{"n1":{"position":{"x":0.0,"y":0.0,"z":-2.0},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"n2":{"position":{"x":0.0,"y":10.0,"z":3.0},"direction":{"x":0.0,"y":11.0,"z":3.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"Changed":{"m_PersistentCalls":{"m_Calls":[]}}}}'
+  - type: PlantBuilder.NodeGraph.Core.BezierCurveNode, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"577874b0-e741-44bf-936b-53cd625d6168","computeOrder":6,"position":{"serializedVersion":"2","x":623.0,"y":68.0,"width":100.0,"height":100.0},"expanded":false,"debug":false,"nodeLock":false,"nodeA":{"position":{"x":0.0,"y":0.0,"z":-2.0},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"nodeB":{"position":{"x":0.0,"y":10.0,"z":3.0},"direction":{"x":0.0,"y":11.0,"z":3.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"output":{"n1":{"position":{"x":0.0,"y":0.0,"z":-2.0},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"n2":{"position":{"x":0.0,"y":10.0,"z":3.0},"direction":{"x":0.0,"y":11.0,"z":3.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0},"Changed":{"m_PersistentCalls":{"m_Calls":[]}}}}'
+  - type: PlantBuilder.NodeGraph.Core.SplineNodeNode, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"9dcfbd23-8cfa-40f2-8892-4b5a0c30425a","computeOrder":5,"position":{"serializedVersion":"2","x":382.0,"y":-155.0,"width":140.0,"height":173.0},"expanded":false,"debug":false,"nodeLock":false,"positionInput":{"x":0.0,"y":0.0,"z":-2.0},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0,"output":{"position":{"x":0.0,"y":0.0,"z":-2.0},"direction":{"x":0.0,"y":1.0,"z":0.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0}}'
+  - type: PlantBuilder.NodeGraph.Core.SplineNodeNode, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"776e3767-dcb1-4d96-b901-bc4fcdc5388d","computeOrder":4,"position":{"serializedVersion":"2","x":395.0,"y":45.0,"width":140.0,"height":173.0},"expanded":false,"debug":false,"nodeLock":false,"positionInput":{"x":0.0,"y":10.0,"z":3.0},"direction":{"x":0.0,"y":11.0,"z":3.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0,"output":{"position":{"x":0.0,"y":10.0,"z":3.0},"direction":{"x":0.0,"y":11.0,"z":3.0},"up":{"x":0.0,"y":1.0,"z":0.0},"scale":{"x":1.0,"y":1.0},"roll":0.0}}'
   edges:
-  - GUID: 04feabba-b197-46f3-b95b-221105936322
+  - GUID: eaff81be-0a3d-4532-8dd3-410dfa1c8eb8
     owner: {fileID: 11400000}
-    inputNodeGUID: 6df1a3c4-e854-485d-9ce3-174e290ffdd8
-    outputNodeGUID: f37964c0-0b2f-4f03-aa1f-800932cdd96a
-    inputFieldName: draft
+    inputNodeGUID: 794744e6-5c96-4a2d-8866-32de3009f81a
+    outputNodeGUID: 03288bab-e8ba-409b-8bd9-2535edefebec
+    inputFieldName: radius
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
-  - GUID: bcd15507-65ac-4c37-a8d3-251f7f0d1e41
+  - GUID: 2c60c378-19e4-4f35-a0ed-a3f37e88adab
     owner: {fileID: 11400000}
-    inputNodeGUID: f37964c0-0b2f-4f03-aa1f-800932cdd96a
-    outputNodeGUID: 42da865f-a390-4694-8f85-72b197cc9925
+    inputNodeGUID: 794744e6-5c96-4a2d-8866-32de3009f81a
+    outputNodeGUID: bf0cb982-efc3-4d0d-8e5b-054ee6368eb6
     inputFieldName: height
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
-  - GUID: 6a24cfb0-a0ac-4b55-990c-d8ff57671336
+  - GUID: 8f91db5e-ef70-448e-a465-7455b6a2d11e
     owner: {fileID: 11400000}
-    inputNodeGUID: f37964c0-0b2f-4f03-aa1f-800932cdd96a
-    outputNodeGUID: 2c411546-2fe6-40e9-adc4-f1c395449bdb
-    inputFieldName: radius
+    inputNodeGUID: b4dd2f7c-dbf8-4d81-94bf-0f1fcc580238
+    outputNodeGUID: 794744e6-5c96-4a2d-8866-32de3009f81a
+    inputFieldName: mesh
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: d9779788-e415-4210-9876-9e486229c219
+    owner: {fileID: 11400000}
+    inputNodeGUID: 3daaf0f4-0c07-48d9-bb31-bb0638e67766
+    outputNodeGUID: b4dd2f7c-dbf8-4d81-94bf-0f1fcc580238
+    inputFieldName: mesh
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 7296c032-2b7a-451c-b28a-0ad5a9967da4
+    owner: {fileID: 11400000}
+    inputNodeGUID: 9613279f-24a2-4ccd-89c6-ca44e870a3d8
+    outputNodeGUID: 3daaf0f4-0c07-48d9-bb31-bb0638e67766
+    inputFieldName: draft
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: bd87af7d-88bc-4686-afc1-7d19ebd8c12c
+    owner: {fileID: 11400000}
+    inputNodeGUID: 3daaf0f4-0c07-48d9-bb31-bb0638e67766
+    outputNodeGUID: 577874b0-e741-44bf-936b-53cd625d6168
+    inputFieldName: spline
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: b88dac0b-b6fa-4f3b-9a39-af0ab4bdffee
+    owner: {fileID: 11400000}
+    inputNodeGUID: 577874b0-e741-44bf-936b-53cd625d6168
+    outputNodeGUID: 9dcfbd23-8cfa-40f2-8892-4b5a0c30425a
+    inputFieldName: nodeA
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 441cf017-64c0-4127-bb63-de39aea7113e
+    owner: {fileID: 11400000}
+    inputNodeGUID: 577874b0-e741-44bf-936b-53cd625d6168
+    outputNodeGUID: 776e3767-dcb1-4d96-b901-bc4fcdc5388d
+    inputFieldName: nodeB
     outputFieldName: output
     inputPortIdentifier: 
     outputPortIdentifier: 
   groups: []
   stackNodes: []
-  pinnedElements: []
+  pinnedElements:
+  - position:
+      serializedVersion: 2
+      x: 41
+      y: 73
+      width: 150
+      height: 200
+    opened: 1
+    editorType:
+      serializedType: GraphProcessor.ProcessorView, com.alelievr.NodeGraphProcessor.Editor,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   exposedParameters:
-  - guid: ceefcad7-6b59-46a5-b050-53556e976dbb
+  - guid: 7126c352-a057-44b7-8ad0-f21dae89b6a1
     name: output
-    type: PlantBuilder.NodeGraph.DeferredEvaluators.SerializedDeferredMeshEvaluator,
-      PlantBuilder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    type: PlantBuilder.NodeGraph.MeshNodes.MeshDraftWithExtras, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
     serializedValue:
-      serializedType: PlantBuilder.NodeGraph.DeferredEvaluators.SerializedDeferredMeshEvaluator,
-        PlantBuilder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      serializedType: PlantBuilder.NodeGraph.MeshNodes.MeshDraftWithExtras, PlantBuilder,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       serializedName: 
-      serializedValue: '{"serializedData":[0,1,0,0,0,255,255,255,255,1,0,0,0,0,0,0,0,12,2,0,0,0,67,80,108,97,110,116,66,117,105,108,100,101,114,44,32,86,101,114,115,105,111,110,61,48,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,110,117,108,108,5,1,0,0,0,71,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,77,101,115,104,78,111,100,101,115,46,67,97,112,115,117,108,101,77,101,115,104,78,111,100,101,43,68,101,102,101,114,114,101,100,67,97,112,115,117,108,101,66,117,105,108,100,101,114,2,0,0,0,6,104,101,105,103,104,116,6,114,97,100,105,117,115,4,4,163,1,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,68,101,102,101,114,114,101,100,69,118,97,108,117,97,116,111,114,115,46,68,101,102,101,114,114,101,100,67,111,110,115,116,97,110,116,69,118,97,108,117,97,116,111,114,96,49,91,91,83,121,115,116,101,109,46,83,105,110,103,108,101,44,32,109,115,99,111,114,108,105,98,44,32,86,101,114,115,105,111,110,61,52,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,98,55,55,97,53,99,53,54,49,57,51,52,101,48,56,57,93,93,2,0,0,0,163,1,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,68,101,102,101,114,114,101,100,69,118,97,108,117,97,116,111,114,115,46,68,101,102,101,114,114,101,100,67,111,110,115,116,97,110,116,69,118,97,108,117,97,116,111,114,96,49,91,91,83,121,115,116,101,109,46,83,105,110,103,108,101,44,32,109,115,99,111,114,108,105,98,44,32,86,101,114,115,105,111,110,61,52,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,98,55,55,97,53,99,53,54,49,57,51,52,101,48,56,57,93,93,2,0,0,0,2,0,0,0,9,3,0,0,0,9,4,0,0,0,5,3,0,0,0,163,1,80,108,97,110,116,66,117,105,108,100,101,114,46,78,111,100,101,71,114,97,112,104,46,68,101,102,101,114,114,101,100,69,118,97,108,117,97,116,111,114,115,46,68,101,102,101,114,114,101,100,67,111,110,115,116,97,110,116,69,118,97,108,117,97,116,111,114,96,49,91,91,83,121,115,116,101,109,46,83,105,110,103,108,101,44,32,109,115,99,111,114,108,105,98,44,32,86,101,114,115,105,111,110,61,52,46,48,46,48,46,48,44,32,67,117,108,116,117,114,101,61,110,101,117,116,114,97,108,44,32,80,117,98,108,105,99,75,101,121,84,111,107,101,110,61,98,55,55,97,53,99,53,54,49,57,51,52,101,48,56,57,93,93,1,0,0,0,13,99,111,110,115,116,97,110,116,86,97,108,117,101,0,11,2,0,0,0,0,0,32,65,1,4,0,0,0,3,0,0,0,0,0,0,63,11]}'
+      serializedValue: '{}'
     input: 1
     settings:
       isHidden: 0
   stickyNotes: []
-  position: {x: 624, y: 222, z: 0}
-  scale: {x: 1, y: 1, z: 1}
-  seed: -1907896648
+  position: {x: -96, y: 358, z: 0}
+  scale: {x: 0.7561437, y: 0.7561437, z: 1}
+  seed: 193098825
   references:
     version: 1

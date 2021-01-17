@@ -10,21 +10,18 @@ namespace PlantBuilder.NodeGraph.MeshNodes
     public class MeshGraphOutputNode : BaseNode
     {
         [Input(name = "Draft")]
-        public DeferredEvaluator<MeshDraftWithExtras> draft;
+        public MeshDraftWithExtras draft;
 
         public override string name => "Output";
 
         protected override void Process()
         {
-
-            var serializedOutput = draft == null ? null : SerializedDeferredMeshEvaluator.GetFromInstance(draft);
+            //var serializedOutput = draft == null ? null : SerializedDeferredMeshEvaluator.GetFromInstance(draft);
             var outputParam = graph.GetExposedParameter("output");
-            graph.UpdateExposedParameter(outputParam.guid, serializedOutput);
+            graph.UpdateExposedParameter(outputParam.guid, draft);
 
             var typedGraph = graph as PlantMeshGeneratorGraph;
             typedGraph.ResetRandom();
-
-            
         }
     }
 }

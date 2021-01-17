@@ -20,6 +20,7 @@ namespace PlantBuilder.NodeGraph.MeshNodes
 
         public Mesh ToMesh()
         {
+            if (meshDraft == null) return null;
             var mesh = meshDraft.ToMesh(false, true);
             mesh.bounds = bounds;
             return mesh;
@@ -43,7 +44,7 @@ namespace PlantBuilder.NodeGraph.MeshNodes
                     meshDraft.Transform(transformation),
                     new Bounds(
                         transformation.MultiplyPoint(bounds.center),
-                        transformation.MultiplyVector(bounds.size)
+                        transformation.MultiplyVector(bounds.size).AbsoluteValue()
                     ));
             }
             else

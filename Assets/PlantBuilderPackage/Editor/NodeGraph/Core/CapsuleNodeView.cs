@@ -32,9 +32,9 @@ namespace PlantBuilder.NodeGraph.Core
         {
             var target = nodeTarget as CapsuleMeshNode;
 
-            var rootGraph = owner.graph as PlantMeshGeneratorGraph;
+            //var rootGraph = owner.graph as PlantMeshGeneratorGraph;
 
-            var newMeshDraft = target?.output?.Evalute(rootGraph.MyRandom, PlantMeshGeneratorView.DEFAULT_CONTEXT);
+            var newMeshDraft = target?.output;//?.Evalute(rootGraph.MyRandom, PlantMeshGeneratorView.DEFAULT_CONTEXT);
             var newMesh = newMeshDraft?.ToMesh();
             meshRenderTool.PreviewMesh = newMesh;
         }

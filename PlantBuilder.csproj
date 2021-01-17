@@ -78,6 +78,7 @@
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\TypeConversions.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\TmpUtilities.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\TransformMeshNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\PlantBuilderPackage\Runtime\PlantBuilder.asmdef" />

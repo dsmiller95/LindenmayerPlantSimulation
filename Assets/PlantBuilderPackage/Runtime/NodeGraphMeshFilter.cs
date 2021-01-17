@@ -13,19 +13,19 @@ namespace PlantBuilder
 
         private void Start()
         {
-            //if (generatorGraph != null)
-            //    processor = new ProcessGraphProcessor(generatorGraph);
+            if (generatorGraph != null)
+                processor = new ProcessGraphProcessor(generatorGraph);
             this.GenerateMesh();
         }
 
         public void GenerateMesh()
         {
-            //if(processor == null)
-            //{
-            //    return;
-            //}
+            if (processor == null)
+            {
+                return;
+            }
 
-            //processor.Run();
+            processor.Run();
 
             //var output = generatorGraph.GetParameterValue("output") as SerializedDeferredMeshEvaluator;
 

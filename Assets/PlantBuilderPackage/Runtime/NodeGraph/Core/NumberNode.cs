@@ -11,13 +11,13 @@ namespace PlantBuilder.NodeGraph.Core
         [Input(name = "In")]
         public float input = 1;
         [Output(name = "Out")]
-        public DeferredEvaluator<float> output;
+        public float output;
 
         public override string name => "Number";
 
         protected override void Process()
         {
-            output = new DeferredConstantEvaluator<float>(input);
+            output = input;// new DeferredConstantEvaluator<float>(input);
         }
     }
 }

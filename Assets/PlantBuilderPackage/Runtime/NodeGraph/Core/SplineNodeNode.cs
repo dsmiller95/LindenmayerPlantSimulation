@@ -23,42 +23,47 @@ namespace PlantBuilder.NodeGraph.Core
         public float roll;
 
         [Output(name = "Out")]
-        public DeferredEvaluator<SplineNode> output;
+        public SplineNode output;
 
         public override string name => "SplineNode";
 
         protected override void Process()
         {
-            output = new DefferedSplineMeshWrapper(this);
-        }
-
-        [System.Serializable]
-        class DefferedSplineMeshWrapper : DeferredEvaluator<SplineNode>
-        {
-            public SerializableVector3 positionInput;
-            public SerializableVector3 direction;
-            public SerializableVector3 up;
-            public SerializableVector2 scale;
-            public float roll;
-
-            public DefferedSplineMeshWrapper(SplineNodeNode node)
-            {
-                positionInput = node.positionInput;
-                direction = node.direction;
-                up = node.up;
-                scale = node.scale;
-                roll = node.roll;
-            }
-
-            public override SplineNode Evalute(System.Random randomSource, Dictionary<string, object> context)
-            {
-                return new SplineNode(positionInput, direction)
+            output = new SplineNode(positionInput, direction)
                 {
                     Up = up,
                     Scale = scale,
                     Roll = roll
                 };
-            }
         }
+
+        //[System.Serializable]
+        //class DefferedSplineMeshWrapper : DeferredEvaluator<SplineNode>
+        //{
+        //    public SerializableVector3 positionInput;
+        //    public SerializableVector3 direction;
+        //    public SerializableVector3 up;
+        //    public SerializableVector2 scale;
+        //    public float roll;
+
+        //    public DefferedSplineMeshWrapper(SplineNodeNode node)
+        //    {
+        //        positionInput = node.positionInput;
+        //        direction = node.direction;
+        //        up = node.up;
+        //        scale = node.scale;
+        //        roll = node.roll;
+        //    }
+
+        //    public override SplineNode Evalute(System.Random randomSource, Dictionary<string, object> context)
+        //    {
+        //        return new SplineNode(positionInput, direction)
+        //        {
+        //            Up = up,
+        //            Scale = scale,
+        //            Roll = roll
+        //        };
+        //    }
+        //}
     }
 }
