@@ -1,4 +1,6 @@
-﻿using PlantBuilder.NodeGraph;
+﻿using GraphProcessor;
+using PlantBuilder.NodeGraph;
+using PlantBuilder.NodeGraph.DeferredEvaluators;
 using UnityEngine;
 
 namespace PlantBuilder
@@ -7,12 +9,29 @@ namespace PlantBuilder
     public class NodeGraphMeshFilter : MonoBehaviour
     {
         public PlantMeshGeneratorGraph generatorGraph;
+        private ProcessGraphProcessor processor;
 
         private void Start()
         {
+            //if (generatorGraph != null)
+            //    processor = new ProcessGraphProcessor(generatorGraph);
+            this.GenerateMesh();
+        }
+
+        public void GenerateMesh()
+        {
+            //if(processor == null)
+            //{
+            //    return;
+            //}
+
+            //processor.Run();
+
+            //var output = generatorGraph.GetParameterValue("output") as SerializedDeferredMeshEvaluator;
+
             var generatedPlant = generatorGraph.GenerateMesh(true);
             var meshFilter = GetComponent<MeshFilter>();
-            meshFilter.mesh = generatedPlant.meshDraft.ToMesh(true, true);
+            meshFilter.mesh = generatedPlant.ToMesh();
         }
     }
 }

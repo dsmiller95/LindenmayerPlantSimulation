@@ -34,8 +34,8 @@ namespace PlantBuilder.NodeGraph.Core
 
             var rootGraph = owner.graph as PlantMeshGeneratorGraph;
 
-            var newMeshDraft = target?.output?.Evalute(rootGraph.MyRandom, PlantMeshGeneratorView.DEFAULT_CONTEXT)?.meshDraft;
-            var newMesh = newMeshDraft?.ToMesh(true, true);
+            var newMeshDraft = target?.output?.Evalute(rootGraph.MyRandom, PlantMeshGeneratorView.DEFAULT_CONTEXT);
+            var newMesh = newMeshDraft?.ToMesh();
             meshRenderTool.PreviewMesh = newMesh;
         }
 

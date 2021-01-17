@@ -20,7 +20,7 @@ namespace PlantBuilder.NodeGraph
             this.MyRandom = new System.Random(seed);
         }
 
-        public PlantMeshComponent GenerateMesh(bool reseed = false)
+        public MeshDraftWithExtras GenerateMesh(bool reseed = false)
         {
             var output = GetExposedParameter("output");
             output.serializedValue.OnAfterDeserialize();
@@ -28,7 +28,7 @@ namespace PlantBuilder.NodeGraph
             if (serializedGenerator == null)
             {
                 Debug.LogError("'output mesh' parameter not defined");
-                return null;
+                return default;
             }
 
             var generator = serializedGenerator.GetDeserializedGuy();

@@ -678,6 +678,12 @@
     <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
       <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="UtilitiesEditor">
+      <HintPath>Library\ScriptAssemblies\UtilitiesEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="Utilities">
+      <HintPath>Library\ScriptAssemblies\Utilities.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="PlantBuilder.csproj">

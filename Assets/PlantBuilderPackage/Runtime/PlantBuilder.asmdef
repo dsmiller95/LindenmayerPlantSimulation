@@ -4,7 +4,8 @@
     "references": [
         "ProceduralToolkit",
         "SplineMesh",
-        "com.alelievr.NodeGraphProcessor.Runtime"
+        "com.alelievr.NodeGraphProcessor.Runtime",
+        "Utilities"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -59,8 +59,9 @@
     <Compile Include="Assets\PlantBuilderPackage\Runtime\ComponentMeshSource.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\SplineTransformPlacement.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\CapsuleBuilder.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\PlantMeshComponent.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\MeshDraftWithExtras.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\ComponentBuilder.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\SplineNodeNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\BuilderController.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\CapsuleMeshNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraphMeshFilter.cs" />
@@ -69,10 +70,14 @@
     <Compile Include="Assets\PlantBuilderPackage\Runtime\MeshDraftExtensions.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\PlantMeshGeneratorGraph.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\MeshDraftSplining.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\SplineMeshWrapNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\BezierCurveNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\MeshGraphOutputNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\SplineFitBuilder.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\NumberNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\TypeConversions.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\TmpUtilities.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\TransformMeshNode.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\PlantBuilderPackage\Runtime\PlantBuilder.asmdef" />
@@ -660,6 +665,9 @@
     </Reference>
     <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
       <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Utilities">
+      <HintPath>Library\ScriptAssemblies\Utilities.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>

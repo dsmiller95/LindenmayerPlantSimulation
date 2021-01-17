@@ -15,7 +15,7 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         public DeferredEvaluator<float> radius = 1;
 
         [Output(name = "Out"), SerializeField]
-        public DeferredEvaluator<PlantMeshComponent> output;
+        public DeferredEvaluator<MeshDraftWithExtras> output;
 
         public override string name => "Capsule";
 
@@ -25,7 +25,7 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         }
 
         [System.Serializable]
-        class DeferredCapsuleBuilder : DeferredEvaluator<PlantMeshComponent>
+        class DeferredCapsuleBuilder : DeferredEvaluator<MeshDraftWithExtras>
         {
             private DeferredEvaluator<float> height;
             private DeferredEvaluator<float> radius;
@@ -36,14 +36,13 @@ namespace PlantBuilder.NodeGraph.MeshNodes
                 radius = node.radius;
             }
 
-            public override PlantMeshComponent Evalute(System.Random randomSource, Dictionary<string, object> context)
+            public override MeshDraftWithExtras Evalute(System.Random randomSource, Dictionary<string, object> context)
             {
                 var heightNum = height.Evalute(randomSource, context);
                 var radiusNum = radius.Evalute(randomSource, context);
-                return new PlantMeshComponent
-                {
-                    meshDraft = MeshDraft.Capsule(heightNum, radiusNum)
-                };
+                return new MeshDraftWithExtras(
+                    MeshDraft.Capsule(heightNum, radiusNum),
+                    new Bounds(Vector3.zero, new Vector3(radiusNum * 2, radiusNum * 2, heightNum)));
             }
         }
     }

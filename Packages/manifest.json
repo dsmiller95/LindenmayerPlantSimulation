@@ -40,7 +40,8 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
-    "com.alelievr.node-graph-processor": "0.10.3"
+    "com.alelievr.node-graph-processor": "0.10.3",
+    "com.dman.utilities": "0.2.0"
   },
   "scopedRegistries": [
     {
@@ -48,6 +49,7 @@
       "url": "https://package.openupm.com",
       "scopes": [
         "com.alelievr.node-graph-processor",
+        "com.dman.utilities",
         "com.openupm",
         "com.syomus.proceduraltoolkit"
       ]

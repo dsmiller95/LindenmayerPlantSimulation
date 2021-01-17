@@ -38,7 +38,7 @@ namespace PlantBuilder.NodeGraph.DeferredEvaluators
         public byte[] serializedData;
 
         public static SerializedDeferredMeshEvaluator GetFromInstance(
-            DeferredEvaluator<PlantMeshComponent> deferredMesh)
+            DeferredEvaluator<MeshDraftWithExtras> deferredMesh)
         {
             var serializer = new BinaryFormatter();
             var stream = new MemoryStream();
@@ -54,14 +54,14 @@ namespace PlantBuilder.NodeGraph.DeferredEvaluators
             };
         }
 
-        public DeferredEvaluator<PlantMeshComponent> GetDeserializedGuy()
+        public DeferredEvaluator<MeshDraftWithExtras> GetDeserializedGuy()
         {
             var formatter = new BinaryFormatter();
             //var stringData = serializedData;// Encoding.ASCII.GetBytes(guyString);
             var stream = new MemoryStream(serializedData);
             var resultObj = formatter.Deserialize(stream);
 
-            return resultObj as DeferredEvaluator<PlantMeshComponent>;
+            return resultObj as DeferredEvaluator<MeshDraftWithExtras>;
         }
 
         public string GetStringRepresentation()

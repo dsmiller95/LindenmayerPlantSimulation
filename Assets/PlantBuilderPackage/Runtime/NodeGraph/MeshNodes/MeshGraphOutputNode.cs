@@ -10,7 +10,7 @@ namespace PlantBuilder.NodeGraph.MeshNodes
     public class MeshGraphOutputNode : BaseNode
     {
         [Input(name = "Draft")]
-        public DeferredEvaluator<PlantMeshComponent> draft;
+        public DeferredEvaluator<MeshDraftWithExtras> draft;
 
         public override string name => "Output";
 
