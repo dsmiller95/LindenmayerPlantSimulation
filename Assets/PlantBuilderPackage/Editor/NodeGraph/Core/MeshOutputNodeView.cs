@@ -9,14 +9,14 @@ using UnityEngine.UIElements;
 
 namespace PlantBuilder.NodeGraph.Core
 {
-    [NodeCustomEditor(typeof(CapsuleMeshNode))]
+    [NodeCustomEditor(typeof(MeshNode))]
     public class CapsuleMeshNodeView : BaseNodeView, IDisposable
     {
         private MeshRenderingVisualElement meshRenderTool;
+        private MeshNode target => nodeTarget as MeshNode;
         public override void Enable()
         {
-            var target = nodeTarget as CapsuleMeshNode;
-
+            base.Enable();
             target.onProcessed += TargetNodeProcessed;
             meshRenderTool?.Dispose();
             meshRenderTool = new MeshRenderingVisualElement(new Rect(0, 0, 300, 300));
@@ -30,8 +30,6 @@ namespace PlantBuilder.NodeGraph.Core
 
         private void TargetNodeProcessed()
         {
-            var target = nodeTarget as CapsuleMeshNode;
-
             //var rootGraph = owner.graph as PlantMeshGeneratorGraph;
 
             var newMeshDraft = target?.output;//?.Evalute(rootGraph.MyRandom, PlantMeshGeneratorView.DEFAULT_CONTEXT);

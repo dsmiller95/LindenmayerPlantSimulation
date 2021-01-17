@@ -69,10 +69,12 @@ namespace PlantBuilder.NodeGraph.Core
                 //renderSize.height = Math.Max(renderSize.height, 100);
                 previewRenderer.BeginPreview(renderSize, sceneStyle);//, sceneStyle);
 
-                var scaling = (1 / Math.Max(PreviewMesh.bounds.size.magnitude, 1)) * Vector3.one;
+                var meshScalingFactor = Math.Max(PreviewMesh.bounds.size.magnitude, 1);
+                var translation = -PreviewMesh.bounds.center / meshScalingFactor;
+
 
                 previewRenderer.DrawMesh(PreviewMesh,
-                    Matrix4x4.TRS(Vector3.zero, Quaternion.identity, scaling),
+                    Matrix4x4.TRS(translation, Quaternion.identity, (1 / meshScalingFactor) * Vector3.one),
                     defaultMaterial,
                     0);
                 previewRenderer.camera.Render();

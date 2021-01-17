@@ -16,5 +16,12 @@ namespace PlantBuilder
                 Mathf.Abs(self.y),
                 Mathf.Abs(self.z));
         }
+        public static Vector3 ReciprocalByComponent(this Vector3 self)
+        {
+            return new Vector3(
+                1/self.x,
+                1 / self.y,
+                1 / self.z);
+        }
     }
 }

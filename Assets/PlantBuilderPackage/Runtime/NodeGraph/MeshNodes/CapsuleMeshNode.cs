@@ -7,15 +7,12 @@ using UnityEngine;
 namespace PlantBuilder.NodeGraph.MeshNodes
 {
     [System.Serializable, NodeMenuItem("Mesh/Source/Capsule")] // Add the node in the node creation context menu
-    public class CapsuleMeshNode : BaseNode
+    public class CapsuleMeshNode : MeshNode
     {
-        [Input(name = "Height")]
+        [Input(name = "Height"), SerializeField]
         public float height = 1;
-        [Input(name = "Radius")]
+        [Input(name = "Radius"), SerializeField]
         public float radius = 1;
-
-        [Output(name = "Out"), SerializeField]
-        public MeshDraftWithExtras output;
 
         public override string name => "Capsule";
 

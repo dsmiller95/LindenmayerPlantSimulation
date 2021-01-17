@@ -8,15 +8,12 @@ using UnityEngine;
 namespace PlantBuilder.NodeGraph.MeshNodes
 {
     [System.Serializable, NodeMenuItem("Mesh/SplineWrap")] // Add the node in the node creation context menu
-    public class SplineMeshWrapNode : BaseNode
+    public class SplineMeshWrapNode : MeshNode
     {
         [Input(name = "Spline")]
         public CubicBezierCurve spline;
         [Input(name = "Mesh")]
         public MeshDraftWithExtras mesh;
-
-        [Output(name = "Out")]
-        public MeshDraftWithExtras output;
 
         public override string name => "Spline wrap";
 

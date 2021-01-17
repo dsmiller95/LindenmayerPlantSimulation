@@ -9,7 +9,7 @@ using UnityEngine;
 namespace PlantBuilder.NodeGraph.MeshNodes
 {
     [System.Serializable, NodeMenuItem("Mesh/Transform")] // Add the node in the node creation context menu
-    public class TransformMeshNode : BaseNode
+    public class TransformMeshNode : MeshNode
     {
         [Input(name = "Mesh")]
         public MeshDraftWithExtras mesh;
@@ -19,9 +19,6 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         public Vector3 eulerRotation = Vector3.zero;
         [Input(name = "Scale"), SerializeField]
         public Vector3 scale = Vector3.one;
-
-        [Output(name = "Out")]
-        public MeshDraftWithExtras output;
 
         public override string name => "Transform mesh";
 

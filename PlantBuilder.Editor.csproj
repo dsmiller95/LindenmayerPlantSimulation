@@ -58,14 +58,16 @@
   <ItemGroup>
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\MeshRenderingVisualElement.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorInspector.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\CapsuleNodeView.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\MeshOutputNodeView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorToolbarView.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\CylinderCoordinateFieldDrawer.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\MeshDraftWithExtrasDrawer.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\NumberNodeView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorView.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\GraphAssetCallbacks.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\PlantMeshGeneratorWindow.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Editor\BuilderControllerEditor.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Editor\NodeGraph\Core\ConstantNodeView.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\PlantBuilderPackage\Editor\PlantBuilderEditor.asmdef" />

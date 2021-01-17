@@ -63,22 +63,29 @@
     <Compile Include="Assets\PlantBuilderPackage\Runtime\ComponentBuilder.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\SplineNodeNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\BuilderController.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\MeshNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\CapsuleMeshNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraphMeshFilter.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\Vectors\CylinderCoordinate.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshProcessor.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\DeferredEvaluators\DeferredEvaluator.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\TransformMeshNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\RangeNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\Vectors\CylinderCoordinateCombineNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\MeshDraftExtensions.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\PlantMeshGeneratorGraph.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\TmpUtilities.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\MeshDraftSplining.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\SplineMeshWrapNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\Vectors\CylinderCoordinateToVectorNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\BezierCurveNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\MeshGraphOutputNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\Vectors\VectorSplitNode.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\Vectors\VectorCombineNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\SplineFitBuilder.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\NumberNode.cs" />
     <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\TypeConversions.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Runtime\TmpUtilities.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshNodes\TransformMeshNode.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\MeshProcessor.cs" />
+    <Compile Include="Assets\PlantBuilderPackage\Runtime\NodeGraph\Core\ConstantNode.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\PlantBuilderPackage\Runtime\PlantBuilder.asmdef" />
