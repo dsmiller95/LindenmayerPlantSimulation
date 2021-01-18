@@ -21,26 +21,5 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         {
             output = mesh.WrapSplineAll(spline);
         }
-
-        //[System.Serializable]
-        //class DefferedSplineMeshWrapper : DeferredEvaluator<MeshDraftWithExtras>
-        //{
-        //    private DeferredEvaluator<CubicBezierCurve> curve;
-        //    private DeferredEvaluator<MeshDraftWithExtras> mesh;
-
-        //    public DefferedSplineMeshWrapper(SplineMeshWrapNode node)
-        //    {
-        //        this.curve = node.spline;
-        //        this.mesh = node.mesh;
-        //    }
-
-        //    public override MeshDraftWithExtras Evalute(System.Random randomSource, Dictionary<string, object> context)
-        //    {
-        //        var originMesh = mesh.Evalute(randomSource, context);
-        //        var spline = curve.Evalute(randomSource, context);
-
-        //        return originMesh.WrapSplineAll(spline);
-        //    }
-        //}
     }
 }

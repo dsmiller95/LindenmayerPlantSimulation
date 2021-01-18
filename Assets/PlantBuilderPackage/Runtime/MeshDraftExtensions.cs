@@ -1,4 +1,5 @@
 using ProceduralToolkit;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,14 +9,50 @@ namespace PlantBuilder
     public static class MeshDraftExtensions
     {
 
-        public static MeshDraft Transform(this MeshDraft self, Matrix4x4 transformation)
+        public static void AddWithTransform(this CompoundMeshDraft self, CompoundMeshDraft compoundDraft, Matrix4x4 geometryTransform)
+        {
+            foreach (var draft in compoundDraft)
+            {
+                var newDraft = new MeshDraft();
+                newDraft.name = draft.name;
+                newDraft.AddWithTransform(draft, geometryTransform);
+                self.Add(newDraft);
+            }
+        }
+
+        public static void AddWithTransform(this MeshDraft self, MeshDraft draft, Matrix4x4 geometryTransform)
+        {
+            if (draft == null) throw new ArgumentNullException(nameof(draft));
+
+            for (var i = 0; i < draft.triangles.Count; i++)
+            {
+                self.triangles.Add(draft.triangles[i] + self.vertices.Count);
+            }
+            self.vertices.AddRange(draft.vertices.Select(x => geometryTransform.MultiplyPoint(x)));
+            self.normals.AddRange(draft.normals.Select(x => geometryTransform.MultiplyVector(x)));
+            self.tangents.AddRange(draft.tangents);
+            self.uv.AddRange(draft.uv);
+            self.uv2.AddRange(draft.uv2);
+            self.uv3.AddRange(draft.uv3);
+            self.uv4.AddRange(draft.uv4);
+            self.colors.AddRange(draft.colors);
+        }
+
+        public static void Transform(this CompoundMeshDraft self, Matrix4x4 transformation)
+        {
+            foreach (var draft in self)
+            {
+                draft.Transform(transformation);
+            }
+        }
+
+        public static void Transform(this MeshDraft self, Matrix4x4 transformation)
         {
             for (int i = 0; i < self.vertices.Count; i++)
             {
                 self.vertices[i] = transformation.MultiplyPoint(self.vertices[i]);
                 self.normals[i] = transformation.MultiplyVector(self.normals[i]).normalized;
             }
-            return self;
         }
 
         public static void DuplicateSelf(this MeshDraft self, int times, Vector3 vectorOffset)

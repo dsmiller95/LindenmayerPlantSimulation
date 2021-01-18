@@ -2,6 +2,7 @@ using GraphProcessor;
 using PlantBuilder.NodeGraph.DeferredEvaluators;
 using ProceduralToolkit;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace PlantBuilder.NodeGraph.MeshNodes
@@ -18,8 +19,11 @@ namespace PlantBuilder.NodeGraph.MeshNodes
 
         protected override void Process()
         {
+            var capsuleMesh = MeshDraft.Capsule(height, radius);
+            capsuleMesh.tangents = new Vector4[capsuleMesh.vertexCount].ToList();
+            capsuleMesh.uv = new Vector2[capsuleMesh.vertexCount].ToList();
             output = new MeshDraftWithExtras(
-                    MeshDraft.Capsule(height, radius),
+                    capsuleMesh,
                     new Bounds(Vector3.zero, new Vector3(radius * 2, height, radius * 2)));
         }
 

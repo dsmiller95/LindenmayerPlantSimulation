@@ -19,7 +19,7 @@ namespace PlantBuilder.NodeGraph.Core
                 {
                     _cached = new PreviewRenderUtility();
                     //previewRenderer.camera.clearFlags = CameraClearFlags.Nothing;
-                    _cached.camera.transform.position = new Vector3(3, 3, 0);
+                    _cached.camera.transform.position = new Vector3(4, 4, 0);
                     _cached.camera.transform.LookAt(Vector3.zero, Vector3.up);
                 }
                 return _cached;
@@ -69,7 +69,8 @@ namespace PlantBuilder.NodeGraph.Core
                 //renderSize.height = Math.Max(renderSize.height, 100);
                 previewRenderer.BeginPreview(renderSize, sceneStyle);//, sceneStyle);
 
-                var meshScalingFactor = Math.Max(PreviewMesh.bounds.size.magnitude, 1);
+                var boundSize = PreviewMesh.bounds.size.AbsoluteValue();
+                var meshScalingFactor = Math.Max(Math.Max(boundSize.x, boundSize.y), Math.Max(boundSize.z, 1));
                 var translation = -PreviewMesh.bounds.center / meshScalingFactor;
 
 

@@ -18,8 +18,9 @@ namespace PlantBuilder.NodeGraph.MeshNodes
             {
                 return;
             }
+            var meshDraft = new MeshDraft(meshAsset);
             output = new MeshDraftWithExtras(
-                new MeshDraft(meshAsset),
+                meshDraft,
                 meshAsset.bounds);
         }
     }

@@ -6,11 +6,20 @@ namespace PlantBuilder.NodeGraph.MeshNodes
 {
     public struct MeshDraftWithExtras
     {
-        private MeshDraft meshDraft;
+        public CompoundMeshDraft meshDraft { get; private set; }
 
         public Bounds bounds { get; private set; }
 
         public MeshDraftWithExtras(MeshDraft draft, Bounds boundsOverwrite = default)
+        {
+
+            meshDraft = new CompoundMeshDraft();
+            meshDraft.Add(draft);
+            bounds = boundsOverwrite;
+            if (bounds == default)
+                CalculateBounds();
+        }
+        public MeshDraftWithExtras(CompoundMeshDraft draft, Bounds boundsOverwrite = default)
         {
             meshDraft = draft;
             bounds = boundsOverwrite;
@@ -18,10 +27,20 @@ namespace PlantBuilder.NodeGraph.MeshNodes
                 CalculateBounds();
         }
 
-        public Mesh ToMesh()
+        public Mesh ToMesh(bool submeshes = false)
         {
             if (meshDraft == null) return null;
-            var mesh = meshDraft.ToMesh(false, true);
+            Mesh mesh;
+            if (submeshes)
+            {
+                meshDraft.MergeDraftsWithTheSameName();
+                meshDraft.SortDraftsByName();
+                mesh = meshDraft.ToMeshWithSubMeshes(false, true);
+            }
+            else
+            {
+                mesh = meshDraft.ToMeshDraft().ToMesh(false, true);
+            }
             mesh.bounds = bounds;
             return mesh;
         }
@@ -35,13 +54,15 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         public MeshDraftWithExtras Transform(Matrix4x4 transformation)
         {
             var transformEulerRotation = transformation.rotation.eulerAngles;
+            meshDraft.Transform(transformation);
             if (transformation.rotation == Quaternion.identity || (
                 Mathf.Abs(transformEulerRotation.x % 90f) < 1e-5 &&
                 Mathf.Abs(transformEulerRotation.y % 90f) < 1e-5 &&
                 Mathf.Abs(transformEulerRotation.z % 90f) < 1e-5))
             {
+
                 return new MeshDraftWithExtras(
-                    meshDraft.Transform(transformation),
+                    meshDraft,
                     new Bounds(
                         transformation.MultiplyPoint(bounds.center),
                         transformation.MultiplyVector(bounds.size).AbsoluteValue()
@@ -50,7 +71,7 @@ namespace PlantBuilder.NodeGraph.MeshNodes
             else
             {
                 return new MeshDraftWithExtras(
-                    meshDraft.Transform(transformation));
+                    meshDraft);
             }
         }
 
@@ -58,23 +79,25 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         {
             var minExtent = float.MaxValue * Vector3.one;
             var maxExtent = float.MinValue * Vector3.one;
-
-            foreach (var vertex in meshDraft.vertices)
+            foreach (var draft in meshDraft)
             {
-                if (vertex.x < minExtent.x)
-                    minExtent.x = vertex.x;
-                if (vertex.x > maxExtent.x)
-                    maxExtent.x = vertex.x;
+                foreach (var vertex in draft.vertices)
+                {
+                    if (vertex.x < minExtent.x)
+                        minExtent.x = vertex.x;
+                    if (vertex.x > maxExtent.x)
+                        maxExtent.x = vertex.x;
 
-                if (vertex.y < minExtent.y)
-                    minExtent.y = vertex.y;
-                if (vertex.y > maxExtent.y)
-                    maxExtent.y = vertex.y;
+                    if (vertex.y < minExtent.y)
+                        minExtent.y = vertex.y;
+                    if (vertex.y > maxExtent.y)
+                        maxExtent.y = vertex.y;
 
-                if (vertex.z < minExtent.z)
-                    minExtent.z = vertex.z;
-                if (vertex.z > maxExtent.z)
-                    maxExtent.z = vertex.z;
+                    if (vertex.z < minExtent.z)
+                        minExtent.z = vertex.z;
+                    if (vertex.z > maxExtent.z)
+                        maxExtent.z = vertex.z;
+                }
             }
             bounds = new Bounds((maxExtent + minExtent) / 2, maxExtent - minExtent);
         }

@@ -10,7 +10,7 @@ namespace PlantBuilder
         /// <summary>
         /// Moves draft vertices by <paramref name="vector"/>
         /// </summary>
-        public static MeshDraft WrapSplineOnce(this MeshDraft self, CubicBezierCurve curve, float minX = 0, float curveOffset = 0)
+        public static void WrapSplineOnce(this MeshDraft self, CubicBezierCurve curve, float minX = 0, float curveOffset = 0)
         {
             var sampleCache = new Dictionary<float, CurveSample>();
             //var bentVertices = new List<MeshVertex>(vertexCount);
@@ -42,21 +42,33 @@ namespace PlantBuilder
                 self.vertices[vertIndex] = bentVertexAndNormal.position;
                 self.normals[vertIndex] = bentVertexAndNormal.normal;
             }
-
-            return self;
         }
 
         /// <summary>
         /// Moves draft vertices by <paramref name="vector"/>
         /// </summary>
-        public static MeshDraft WrapSplineAll(this MeshDraft self, CubicBezierCurve curve, float minX = 0, float maxX = 1)
+        public static void WrapSplineAll(this MeshDraft self, CubicBezierCurve curve, float minX = 0, float maxX = 1)
         {
             float intervalLength = curve.Length;
             int repetitionCount = Mathf.FloorToInt(intervalLength / (maxX - minX));
 
             self.DuplicateSelf(repetitionCount, new Vector3(maxX - minX, 0, 0));
             self.WrapSplineOnce(curve, minX, 0);
-            return self;
+        }
+
+        public static CompoundMeshDraft WrapSplineAll(this CompoundMeshDraft self, CubicBezierCurve curve, float minX = 0, float maxX = 1)
+        {
+            var newDraft = new CompoundMeshDraft();
+
+            foreach (var meshDraft in self)
+            {
+                var newSingleDraft = new MeshDraft();
+                newSingleDraft.Add(meshDraft);
+                newSingleDraft.name = meshDraft.name;
+                newSingleDraft.WrapSplineAll(curve, minX, maxX);
+                newDraft.Add(newSingleDraft);
+            }
+            return newDraft;
         }
     }
 }
