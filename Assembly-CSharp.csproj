@@ -656,9 +656,6 @@
     <Reference Include="Unity.VisualStudio.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="UtilitiesEditor">
-      <HintPath>Library\ScriptAssemblies\UtilitiesEditor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
     </Reference>
@@ -667,6 +664,9 @@
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UtilitiesEditor">
+      <HintPath>Library\ScriptAssemblies\UtilitiesEditor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
@@ -685,25 +685,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="SplineMesh.csproj">
-      <Project>{464D9D06-54BB-0727-018A-41EE4F0542AE}</Project>
-      <Name>SplineMesh</Name>
+    <ProjectReference Include="com.dman.LSystem-editor.csproj">
+      <Project>{A8509B69-0896-7D25-9A02-835EA15DFE2F}</Project>
+      <Name>com.dman.LSystem-editor</Name>
     </ProjectReference>
     <ProjectReference Include="PlantBuilder.csproj">
       <Project>{408F3866-5553-D928-D598-7EDA73C56DD8}</Project>
       <Name>PlantBuilder</Name>
     </ProjectReference>
-    <ProjectReference Include="PlantBuilder.Editor.csproj">
-      <Project>{D416B3D2-1F38-DEF8-13C1-A420157DA023}</Project>
-      <Name>PlantBuilder.Editor</Name>
-    </ProjectReference>
     <ProjectReference Include="SplineMeshEditor.csproj">
       <Project>{C885711F-5180-1D83-A830-02373F016E25}</Project>
       <Name>SplineMeshEditor</Name>
     </ProjectReference>
-    <ProjectReference Include="com.dman.l-system.csproj">
-      <Project>{86C9F6FE-DF85-62C4-D96B-392477A43760}</Project>
-      <Name>com.dman.l-system</Name>
+    <ProjectReference Include="PlantBuilder.Editor.csproj">
+      <Project>{D416B3D2-1F38-DEF8-13C1-A420157DA023}</Project>
+      <Name>PlantBuilder.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.LSystem.csproj">
+      <Project>{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}</Project>
+      <Name>com.dman.LSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="SplineMesh.csproj">
+      <Project>{464D9D06-54BB-0727-018A-41EE4F0542AE}</Project>
+      <Name>SplineMesh</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

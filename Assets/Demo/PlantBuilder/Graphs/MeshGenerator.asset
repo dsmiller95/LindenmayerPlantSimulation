@@ -15,7 +15,7 @@ MonoBehaviour:
   serializedNodes:
   - type: PlantBuilder.NodeGraph.MeshNodes.MeshGraphOutputNode, PlantBuilder, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-    jsonDatas: '{"GUID":"fa688a30-e67f-4b5e-8fda-b66aafa24cf6","computeOrder":-1,"position":{"serializedVersion":"2","x":200.0,"y":200.0,"width":100.0,"height":100.0},"expanded":false,"debug":false,"nodeLock":false}'
+    jsonDatas: '{"GUID":"fa688a30-e67f-4b5e-8fda-b66aafa24cf6","computeOrder":0,"position":{"serializedVersion":"2","x":200.0,"y":200.0,"width":100.0,"height":100.0},"expanded":false,"debug":false,"nodeLock":false}'
   edges: []
   groups: []
   stackNodes: []
@@ -29,7 +29,7 @@ MonoBehaviour:
       serializedType: PlantBuilder.NodeGraph.MeshNodes.MeshDraftWithExtras, PlantBuilder,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       serializedName: 
-      serializedValue: 
+      serializedValue: '{}'
     input: 1
     settings:
       isHidden: 0

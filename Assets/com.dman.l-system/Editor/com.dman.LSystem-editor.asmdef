@@ -1,8 +1,8 @@
 {
-    "name": "com.dman.l-system",
-    "rootNamespace": "PlantBuilder",
+    "name": "com.dman.LSystem-editor",
+    "rootNamespace": "Dman.LSystem.Editor",
     "references": [
-        "Utilities"
+        "com.dman.LSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

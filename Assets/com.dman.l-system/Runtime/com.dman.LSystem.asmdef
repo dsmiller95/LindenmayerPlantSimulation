@@ -1,8 +1,8 @@
 {
-    "name": "com.dman.l-system-editor",
-    "rootNamespace": "",
+    "name": "com.dman.LSystem",
+    "rootNamespace": "Dman.LSystem",
     "references": [
-        "com.dman.l-system"
+        "Utilities"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
