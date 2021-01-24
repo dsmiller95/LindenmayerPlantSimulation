@@ -466,7 +466,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshKeys:
   - Character: 70
-    MeshRef: {fileID: -6268843756984715376, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    MeshRef: {fileID: 3557837105413461654, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     IndividualScale: {x: 3, y: 1, z: 1}
   transformKeys:
   - Character: 45
@@ -476,7 +476,7 @@ MonoBehaviour:
     eulerRotation: {x: 0, y: 22.5, z: 0}
     translation: {x: 0, y: 0, z: 0}
   secondsPerUpdate: 2
-  maxUpdates: 5
+  maxUpdates: 7
   initialScale: {x: 0.3, y: 0.3, z: 0.3}
 --- !u!4 &1450058841
 Transform:
@@ -511,7 +511,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c2ded7645929e1746befa52ddd920fbb, type: 2}
+  - {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
