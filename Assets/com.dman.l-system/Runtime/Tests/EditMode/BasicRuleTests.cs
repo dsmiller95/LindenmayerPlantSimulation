@@ -12,6 +12,14 @@ public class BasicRuleTests
         Assert.AreEqual("AB".ToIntArray(), ruleFromString.replacementSymbols);
     }
     [Test]
+    public void BasicRuleParsesStringDefinitionWithNovelCharacters()
+    {
+        var ruleFromString = new BasicRule("A -> F-[[X]+X]+F[+FX]-X");
+
+        Assert.AreEqual((int)'A', ruleFromString.TargetSymbol);
+        Assert.AreEqual("F-[[X]+X]+F[+FX]-X".ToIntArray(), ruleFromString.replacementSymbols);
+    }
+    [Test]
     public void BasicRuleRejectsIfAnyParameters()
     {
         var ruleFromString = new BasicRule("A -> AB");

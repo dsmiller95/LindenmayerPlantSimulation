@@ -59,7 +59,6 @@
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\ComponentMeshSource.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\SplineTransformPlacement.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\CapsuleBuilder.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\MeshNodes\MeshDraftWithExtras.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\ComponentBuilder.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\Core\SplineNodeNode.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\BuilderController.cs" />

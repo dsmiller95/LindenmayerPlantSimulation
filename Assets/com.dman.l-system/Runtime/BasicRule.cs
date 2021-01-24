@@ -26,7 +26,7 @@ namespace Dman.LSystem
         /// <param name="ruleDef"></param>
         public BasicRule(string ruleDef)
         {
-            var ruleMatch = Regex.Match(ruleDef, @"\s*(?<target>\w)\s*->\s*(?<replacement>\w+)");
+            var ruleMatch = Regex.Match(ruleDef, @"\s*(?<target>\w)\s*->\s*(?<replacement>.+)");
             if (!ruleMatch.Success)
             {
                 throw new System.ArgumentException($"Error parsing rule defintion string '{ruleDef}'");

@@ -3,7 +3,7 @@ using SplineMesh;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace PlantBuilder
+namespace Dman.MeshDraftExtensions
 {
     public static class MeshDraftSpliningExtensions
     {

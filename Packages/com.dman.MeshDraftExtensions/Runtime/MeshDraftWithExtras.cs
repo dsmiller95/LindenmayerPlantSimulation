@@ -1,9 +1,13 @@
-﻿using ProceduralToolkit;
+﻿using Dman.MeshDraftExtensions;
+using ProceduralToolkit;
 using SplineMesh;
 using UnityEngine;
 
-namespace PlantBuilder.NodeGraph.MeshNodes
+namespace Dman.MeshDraftExtensions
 {
+    /// <summary>
+    /// Utility to keep track of the bounds around a mesh draft, as operations are performed on the mesh as necessary
+    /// </summary>
     public struct MeshDraftWithExtras
     {
         public CompoundMeshDraft meshDraft { get; private set; }

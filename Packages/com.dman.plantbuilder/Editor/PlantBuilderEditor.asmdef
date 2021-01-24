@@ -5,7 +5,8 @@
         "PlantBuilder",
         "com.alelievr.NodeGraphProcessor.Editor",
         "com.alelievr.NodeGraphProcessor.Runtime",
-        "ProceduralToolkit"
+        "ProceduralToolkit",
+        "com.dman.MeshDraftExtensions"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
