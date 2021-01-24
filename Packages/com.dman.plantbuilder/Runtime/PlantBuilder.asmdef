@@ -5,7 +5,8 @@
         "ProceduralToolkit",
         "SplineMesh",
         "com.alelievr.NodeGraphProcessor.Runtime",
-        "Utilities"
+        "Utilities",
+        "com.dman.MeshDraftExtensions"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -7,6 +7,14 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
+    "com.dman.mesh-draft-extensions": {
+      "version": "file:com.dman.MeshDraftExtensions",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.syomus.proceduraltoolkit": "0.2.3"
+      }
+    },
     "com.dman.plantbuilder": {
       "version": "file:com.dman.plantbuilder",
       "depth": 0,

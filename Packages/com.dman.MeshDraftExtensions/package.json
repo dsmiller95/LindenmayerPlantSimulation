@@ -1,0 +1,14 @@
+{
+  "name": "com.dman.mesh-draft-extensions",
+  "version": "0.1.0",
+  "displayName": "Mesh Draft Extensions",
+  "description": "extensions to the Mesh draft feature of procedural toolkit",
+  "unity": "2020.1",
+  "dependencies": {
+    "com.syomus.proceduraltoolkit": "0.2.3"
+  },
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}

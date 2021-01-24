@@ -693,6 +693,10 @@
       <Project>{408F3866-5553-D928-D598-7EDA73C56DD8}</Project>
       <Name>PlantBuilder</Name>
     </ProjectReference>
+    <ProjectReference Include="com.dman.MeshDraftExtensions.csproj">
+      <Project>{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}</Project>
+      <Name>com.dman.MeshDraftExtensions</Name>
+    </ProjectReference>
     <ProjectReference Include="SplineMeshEditor.csproj">
       <Project>{C885711F-5180-1D83-A830-02373F016E25}</Project>
       <Name>SplineMeshEditor</Name>

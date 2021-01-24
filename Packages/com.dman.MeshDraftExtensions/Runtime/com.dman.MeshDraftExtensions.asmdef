@@ -1,10 +1,9 @@
 {
-    "name": "com.dman.LSystem",
-    "rootNamespace": "Dman.LSystem",
+    "name": "com.dman.MeshDraftExtensions",
+    "rootNamespace": "",
     "references": [
-        "Utilities",
-        "ProceduralToolkit",
-        "com.dman.MeshDraftExtensions"
+        "GUID:561cd3090aa423b4584912885a62ef6f",
+        "GUID:3350dd304439e5840a3db41a6580c745"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

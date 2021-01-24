@@ -73,13 +73,11 @@
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\MeshNodes\TransformMeshNode.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\Core\RangeNode.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\Core\Vectors\CylinderCoordinateCombineNode.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Runtime\MeshDraftExtensions.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\Core\Vectors\CylindricalVolumeSampleNode.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\Core\ConstantNode.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\PlantMeshGeneratorGraph.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\Core\BinaryMathOperationNode.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\TmpUtilities.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Runtime\MeshDraftSplining.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\Core\VarianceFromNode.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\MeshNodes\SplineMeshWrapNode.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Runtime\NodeGraph\MeshNodes\CombineMeshNode.cs" />
@@ -695,6 +693,10 @@
     <ProjectReference Include="SplineMesh.csproj">
       <Project>{464D9D06-54BB-0727-018A-41EE4F0542AE}</Project>
       <Name>SplineMesh</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.MeshDraftExtensions.csproj">
+      <Project>{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}</Project>
+      <Name>com.dman.MeshDraftExtensions</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
