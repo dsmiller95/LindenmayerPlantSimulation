@@ -56,11 +56,11 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\PlantBuilderPackage\SplineMesh\Editor\SplineExtrusionEditor.cs" />
-    <Compile Include="Assets\PlantBuilderPackage\SplineMesh\Editor\SplineEditor.cs" />
+    <Compile Include="Packages\com.dman.plantbuilder\SplineMesh\Editor\SplineExtrusionEditor.cs" />
+    <Compile Include="Packages\com.dman.plantbuilder\SplineMesh\Editor\SplineEditor.cs" />
   </ItemGroup>
   <ItemGroup>
-     <None Include="Assets\PlantBuilderPackage\SplineMesh\Editor\SplineMeshEditor.asmdef" />
+     <None Include="Packages\com.dman.plantbuilder\SplineMesh\Editor\SplineMeshEditor.asmdef" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

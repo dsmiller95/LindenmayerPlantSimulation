@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4987b8a25d0db7d42a9d27ec11cbf94d, type: 3}
+  m_Name: MeshGenerator
+  m_EditorClassIdentifier: 
+  serializedNodes:
+  - type: PlantBuilder.NodeGraph.MeshNodes.MeshGraphOutputNode, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    jsonDatas: '{"GUID":"f7b561c6-622c-4139-9f90-c2ea74c60a83","computeOrder":-1,"position":{"serializedVersion":"2","x":200.0,"y":200.0,"width":100.0,"height":100.0},"expanded":false,"debug":false,"nodeLock":false}'
+  edges: []
+  groups: []
+  stackNodes: []
+  pinnedElements: []
+  exposedParameters:
+  - guid: cfd1380a-82f7-4914-ab21-4dc9a5094537
+    name: output
+    type: PlantBuilder.NodeGraph.MeshNodes.MeshDraftWithExtras, PlantBuilder, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    serializedValue:
+      serializedType: PlantBuilder.NodeGraph.MeshNodes.MeshDraftWithExtras, PlantBuilder,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      serializedName: 
+      serializedValue: 
+    input: 1
+    settings:
+      isHidden: 0
+  stickyNotes: []
+  position: {x: 0, y: 0, z: 0}
+  scale: {x: 1, y: 1, z: 1}
+  seed: -1769690314
+  references:
+    version: 1

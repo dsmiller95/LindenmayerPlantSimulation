@@ -1,0 +1,19 @@
+{
+    "name": "PlantBuilder.Editor",
+    "rootNamespace": "",
+    "references": [
+        "PlantBuilder",
+        "com.alelievr.NodeGraphProcessor.Editor",
+        "com.alelievr.NodeGraphProcessor.Runtime",
+        "ProceduralToolkit"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

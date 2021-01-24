@@ -1,0 +1,19 @@
+{
+    "name": "PlantBuilder",
+    "rootNamespace": "PlantBuilder",
+    "references": [
+        "ProceduralToolkit",
+        "SplineMesh",
+        "com.alelievr.NodeGraphProcessor.Runtime",
+        "Utilities"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
