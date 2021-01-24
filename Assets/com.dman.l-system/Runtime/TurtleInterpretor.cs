@@ -18,6 +18,7 @@ namespace Dman.LSystem
         ///     applied after the draft is placed.
         /// </summary>
         private IDictionary<int, Matrix4x4> transformationByKey;
+        public int meshIndexIncrementChar = '`';
         public int branchStartChar = '[';
         public int branchEndChar = ']';
         private Matrix4x4 rootTransform;
@@ -31,37 +32,61 @@ namespace Dman.LSystem
             this.rootTransform = rootTransform;
         }
 
-        public MeshDraft CompileStringToMesh(SymbolString symbols)
+        struct TurtleState
         {
-            var resultMesh = new MeshDraft();
-            var currentTransform = rootTransform;
+            public Matrix4x4 transformation;
+            public int submeshIndex;
+        }
 
-            var stateStack = new Stack<Matrix4x4>();
+        public Mesh CompileStringToMesh(SymbolString symbols)
+        {
+            var resultMeshes = new List<MeshDraft>();
+            resultMeshes.Add(new MeshDraft());
+
+            var currentState = new TurtleState
+            {
+                transformation = rootTransform,
+                submeshIndex = 0
+            };
+
+            var stateStack = new Stack<TurtleState>();
 
             for (int symbolIndex = 0; symbolIndex < symbols.symbols.Length; symbolIndex++)
             {
                 var symbol = symbols.symbols[symbolIndex];
                 if(symbol == branchStartChar)
                 {
-                    stateStack.Push(currentTransform);
+                    stateStack.Push(currentState);
                     continue;
                 }
                 if(symbol == branchEndChar)
                 {
-                    currentTransform = stateStack.Pop();
+                    currentState = stateStack.Pop();
+                    continue;
+                }
+                if(symbol == meshIndexIncrementChar)
+                {
+                    currentState.submeshIndex++;
+                    if (resultMeshes.Count < currentState.submeshIndex + 1)
+                        resultMeshes.Add(new MeshDraft());
                     continue;
                 }
                 if(draftsByKey.TryGetValue(symbol, out var newDraft))
                 {
-                    resultMesh.AddWithTransform(newDraft, currentTransform);
+                    resultMeshes[currentState.submeshIndex].AddWithTransform(newDraft, currentState.transformation);
                 }
                 if (transformationByKey.TryGetValue(symbol, out var transform))
                 {
-                    currentTransform *= transform;
+                    currentState.transformation *= transform;
                 }
             }
 
-            return resultMesh;
+            var resultMeshbulder = new CompoundMeshDraft();
+            foreach (var meshOutput in resultMeshes)
+            {
+                resultMeshbulder.Add(meshOutput);
+            }
+            return resultMeshbulder.ToMeshWithSubMeshes();
         }
     }
 }
