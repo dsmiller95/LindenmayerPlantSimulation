@@ -17,6 +17,6 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="parameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
-        public SymbolString ApplyRule(float[] parameters);
+        public SymbolString ApplyRule(float[] parameters, System.Random random);
     }
 }

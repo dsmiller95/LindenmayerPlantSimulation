@@ -15,7 +15,7 @@ namespace Dman.LSystem
 
         private void Awake()
         {
-            mySystem = new LSystem(axiom, rules.Select(x => new BasicRule(x)));
+            mySystem = new LSystem(axiom, ParsedRule.CompileRules(rules), Random.Range(int.MinValue, int.MaxValue));
         }
 
         public void StepSystem()

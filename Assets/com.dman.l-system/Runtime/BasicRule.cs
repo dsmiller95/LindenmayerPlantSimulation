@@ -6,6 +6,12 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
+    public struct RuleOutcome
+    {
+        public float probability;
+        public int[] replacementSymbols;
+    }
+
     public class BasicRule :IRule
     {
         /// <summary>
@@ -14,46 +20,66 @@ namespace Dman.LSystem
         public int TargetSymbol => _targetSymbol;
         private readonly int _targetSymbol;
 
-        public int[] replacementSymbols { get; private set; }
+        public RuleOutcome[] possibleOutcomes;
 
-        /// <summary>
-        /// builds a rule based on the string definition, of format:
-        ///   "A -> BACCB"
-        ///   first char is always the target character
-        ///   "->" delimits between target char and replacement string
-        ///   everything after "->" is the replacement string
-        /// </summary>
-        /// <param name="ruleDef"></param>
-        public BasicRule(string ruleDef)
+        public BasicRule(ParsedRule parsedInfo)
         {
-            var ruleMatch = Regex.Match(ruleDef, @"\s*(?<target>\w)\s*->\s*(?<replacement>.+)");
-            if (!ruleMatch.Success)
-            {
-                throw new System.ArgumentException($"Error parsing rule defintion string '{ruleDef}'");
-            }
-            _targetSymbol = ruleMatch.Groups["target"].Value[0];
-            replacementSymbols = ruleMatch.Groups["replacement"].Value.ToIntArray();
+            _targetSymbol = parsedInfo.targetSymbol;
+            possibleOutcomes = new RuleOutcome[] {
+                new RuleOutcome
+                {
+                    probability = 1,
+                    replacementSymbols = parsedInfo.replacementSymbols
+                }
+            };  
+        }
+        public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules)
+        {
+            possibleOutcomes = parsedRules
+                .Select(x => new RuleOutcome
+                {
+                    probability = x.probability,
+                    replacementSymbols = x.replacementSymbols
+                }).ToArray();
+            _targetSymbol = parsedRules.First().targetSymbol;
         }
 
-        public BasicRule(int matchingSymbol, int[] replacementSymbols)
-        {
-            _targetSymbol = matchingSymbol;
-            this.replacementSymbols = replacementSymbols;
-        }
         /// <summary>
         /// retrun the symbol string to replace the given symbol with. return null if no match
         /// </summary>
         /// <param name="symbol">the symbol to be replaced</param>
         /// <param name="parameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
-        public SymbolString ApplyRule(float[] parameters)
+        public SymbolString ApplyRule(float[] parameters, System.Random random)
         {
             if(parameters != null && parameters.Length > 0)
             {
                 return null;
             }
+            RuleOutcome outcome = default;
+            if(this.possibleOutcomes.Length > 1)
+            {
+                var sample = random.NextDouble();
+                double currentPartition = 0;
+                foreach (var possibleOutcome in possibleOutcomes)
+                {
+                    currentPartition += possibleOutcome.probability;
+                    if(sample <= currentPartition)
+                    {
+                        outcome = possibleOutcome;
+                        break;
+                    }
+                }
+                if (outcome.replacementSymbols == null)
+                {
+                    throw new System.Exception("possible outcome probabilities do not sum to 1");
+                }
+            }else
+            {
+                outcome = possibleOutcomes[0];
+            }
 
-            return new SymbolString(replacementSymbols);
+            return new SymbolString(outcome.replacementSymbols);
         }
     }
 }

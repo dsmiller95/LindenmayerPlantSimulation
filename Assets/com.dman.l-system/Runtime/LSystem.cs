@@ -7,13 +7,13 @@ namespace Dman.LSystem
     {
         public SymbolString currentSymbols { get; private set; }
         private IDictionary<int, IList<IRule>> rules;
+        private System.Random randomProvider;
 
-
-        public LSystem(string axiomString, IEnumerable<IRule> rules) : this(new SymbolString(axiomString), rules)
+        public LSystem(string axiomString, IEnumerable<IRule> rules, int seed) : this(new SymbolString(axiomString), rules, seed)
         {
         }
 
-        public LSystem(SymbolString axiomString, IEnumerable<IRule> rules)
+        public LSystem(SymbolString axiomString, IEnumerable<IRule> rules, int seed)
         {
             currentSymbols = axiomString;
             this.rules = new Dictionary<int, IList<IRule>>();
@@ -25,6 +25,8 @@ namespace Dman.LSystem
                 }
                 ruleList.Add(rule);
             }
+
+            this.randomProvider = new System.Random(seed);
         }
 
         public void StepSystem()
@@ -43,7 +45,7 @@ namespace Dman.LSystem
                 }
                 foreach (var rule in ruleList)
                 {
-                    var result = rule.ApplyRule(parameters);
+                    var result = rule.ApplyRule(parameters, randomProvider);
                     if (result != null)
                     {
                         resultString[symbolIndex] = result;
