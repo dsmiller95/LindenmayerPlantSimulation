@@ -6,22 +6,27 @@ namespace Dman.LSystem
 {
     public class LSystemBehavior: MonoBehaviour
     {
-        public string axiom;
-        public string[] rules;
+        public LSystemObject systemObject;
 
-        private LSystem mySystem;
+        private LSystem currentSystem;
 
-        public SymbolString currentState => mySystem.currentSymbols;
+        public SymbolString currentState => currentSystem?.currentSymbols;
+        public bool systemValid => currentSystem != null;
 
         private void Awake()
         {
-            mySystem = new LSystem(axiom, ParsedRule.CompileRules(rules), Random.Range(int.MinValue, int.MaxValue));
+            currentSystem = systemObject.Compile();
+        }
+
+        public void Reset()
+        {
+            currentSystem = systemObject.Compile(Random.Range(int.MinValue, int.MaxValue));
         }
 
         public void StepSystem()
         {
-            mySystem.StepSystem();
-            Debug.Log(currentState.symbols.ToStringFromChars());
+            currentSystem?.StepSystem();
+            Debug.Log(currentState?.symbols.ToStringFromChars());
         }
     }
 }

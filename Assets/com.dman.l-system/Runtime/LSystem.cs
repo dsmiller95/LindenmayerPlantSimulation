@@ -13,9 +13,16 @@ namespace Dman.LSystem
         {
         }
 
+        public void RestartSystem(string axiomString, int seed)
+        {
+            this.currentSymbols = new SymbolString(axiomString);
+            this.randomProvider = new System.Random(seed);
+        }
+
         public LSystem(SymbolString axiomString, IEnumerable<IRule> rules, int seed)
         {
             currentSymbols = axiomString;
+            this.randomProvider = new System.Random(seed);
             this.rules = new Dictionary<int, IList<IRule>>();
             foreach (var rule in rules)
             {
@@ -25,8 +32,6 @@ namespace Dman.LSystem
                 }
                 ruleList.Add(rule);
             }
-
-            this.randomProvider = new System.Random(seed);
         }
 
         public void StepSystem()

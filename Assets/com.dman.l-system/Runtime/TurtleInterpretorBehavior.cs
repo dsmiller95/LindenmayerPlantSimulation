@@ -35,9 +35,12 @@ namespace Dman.LSystem
         public Vector3 initialScale = Vector3.one;
 
         public char meshIndexIncrementor = '`';
+        public float timeBeforeRestart = 5;
 
         private TurtleInterpretor turtle;
         private int currentUpdates = 0;
+
+        private LSystemBehavior system => GetComponent<LSystemBehavior>();
 
         private void Awake()
         {
@@ -66,18 +69,36 @@ namespace Dman.LSystem
         private float lastUpdate;
         private void Update()
         {
+            
             if (currentUpdates < maxUpdates && Time.time > lastUpdate + secondsPerUpdate)
             {
                 lastUpdate = Time.time;
+                if (!system.systemValid)
+                {
+                    currentUpdates = maxUpdates;
+                    return;
+                }
                 UpdateMeshAndSystem();
                 currentUpdates++;
+            }else if (currentUpdates >= maxUpdates && Time.time > lastUpdate + timeBeforeRestart)
+            {
+                lastUpdate = Time.time;
+                currentUpdates = 2;
+                system.Reset();
+                if (system.systemValid)
+                {
+                    system.StepSystem();
+                    this.UpdateMeshAndSystem();
+                }
             }
         }
 
         private void UpdateMeshAndSystem()
         {
-            var system = GetComponent<LSystemBehavior>();
-
+            if(!system.systemValid)
+            {
+                return;
+            }
             var output = turtle.CompileStringToMesh(system.currentState);
             GetComponent<MeshFilter>().mesh = output;
             system.StepSystem();

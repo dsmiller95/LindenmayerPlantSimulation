@@ -43,7 +43,7 @@ namespace Dman.LSystem
             return rule;
         }
 
-        public static IEnumerable<IRule> CompileRules(string[] ruleStrings) {
+        public static IEnumerable<IRule> CompileRules(IEnumerable<string> ruleStrings) {
             var parsedRules = ruleStrings.Select(x => ParseToRule(x)).ToArray();
             var basicRules = parsedRules.Where(r => !(r is ParsedStochasticRule))
                 .Select(x => new BasicRule(x));
