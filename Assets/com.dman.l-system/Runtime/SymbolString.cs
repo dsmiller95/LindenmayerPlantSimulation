@@ -6,32 +6,32 @@ using System.Threading.Tasks;
 
 namespace Dman.LSystem
 {
-    public class SymbolString
+    public class SymbolString<ParamType>
     {
         public int[] symbols;
-        public float[][] parameters;
+        public ParamType[][] parameters;
 
         public SymbolString(string symbols) : this(symbols.ToIntArray())
         {
         }
-        public SymbolString(int[] symbols): this(symbols, new float[symbols.Length][])
+        public SymbolString(int[] symbols): this(symbols, new ParamType[symbols.Length][])
         {
         }
-        public SymbolString(int[] symbols, float[][] parameters)
+        public SymbolString(int[] symbols, ParamType[][] parameters)
         {
             this.symbols = symbols;
             this.parameters = parameters;
         }
 
-        public static SymbolString FromSingle(int symbol, float[] paramters)
+        public static SymbolString<ParamType> FromSingle(int symbol, ParamType[] paramters)
         {
-            return new SymbolString(new int[] { symbol }, new float[][] { paramters });
+            return new SymbolString<ParamType>(new int[] { symbol }, new ParamType[][] { paramters });
         }
-        public static SymbolString ConcatAll(IList<SymbolString> symbolStrings)
+        public static SymbolString<ParamType> ConcatAll(IList<SymbolString<ParamType>> symbolStrings)
         {
             var totalSize = symbolStrings.Sum(x => x.symbols.Length);
             var newSymbols = new int[totalSize];
-            var newParameters = new float[totalSize][];
+            var newParameters = new ParamType[totalSize][];
             int currentIndex = 0;
             foreach (var symbolString in symbolStrings)
             {
@@ -40,7 +40,7 @@ namespace Dman.LSystem
 
                 currentIndex += symbolString.symbols.Length;
             }
-            return new SymbolString(newSymbols, newParameters);
+            return new SymbolString<ParamType>(newSymbols, newParameters);
         }
     }
 }

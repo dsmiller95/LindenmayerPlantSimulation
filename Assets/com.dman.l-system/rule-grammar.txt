@@ -1,0 +1,33 @@
+rule grammer, and examples
+
+
+[(P<float probability of rule>)] [<Contextual matching pattern><] <symbol to replace>[list of parameters] [> <Contextual matching pattern] [: <boolean expression using parameters] -> <replacement string>
+
+F -> FF
+	basic replacement
+FA -> FF
+	multi replacement
+
+(P0.4) F -> FF
+	stochastic
+
+A(x, y) -> B(x + y)C(x)
+	parametric
+A(x, y) : y > 4 -> B(x)
+	conditional: only apply when y > 4 evaluates to true
+	parametric
+
+(P0.5) A(x, y) : y < x -> B(x + y)C(x)
+	stochastic, parametric
+
+
+A < C > B -> E
+	replace C with E, only if preceeded with A and followed by B
+	contextual
+(P0.5) A < C > B -> E
+	contextual, stochastic
+A(x) < C > B(y) : x < y -> E(x)
+	contextual, parametric
+	
+(P0.5) A(x) < C > B(y) : x < y -> E(x)
+	contextual, parametric, stochastic

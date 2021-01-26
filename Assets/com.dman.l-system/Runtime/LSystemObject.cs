@@ -12,11 +12,11 @@ namespace Dman.LSystem
         [Multiline(30)]
         public string rules;
 
-        public LSystem Compile(int? seedOverride = null)
+        public LSystem<float> Compile(int? seedOverride = null)
         {
             try
             {
-                return new LSystem(
+                return new LSystem<float>(
                     axiom,
                     ParsedRule.CompileRules(
                         rules

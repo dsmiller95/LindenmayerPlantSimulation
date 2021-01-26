@@ -8,9 +8,9 @@ namespace Dman.LSystem
     {
         public LSystemObject systemObject;
 
-        private LSystem currentSystem;
+        private LSystem<float> currentSystem;
 
-        public SymbolString currentState => currentSystem?.currentSymbols;
+        public SymbolString<float> currentState => currentSystem?.currentSymbols;
         public bool systemValid => currentSystem != null;
 
         private void Awake()

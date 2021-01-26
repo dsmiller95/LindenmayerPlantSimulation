@@ -13,7 +13,7 @@ namespace Dman.LSystem
 
     public class ParsedRule
     {
-        public int targetSymbol;
+        public int[] targetSymbols;
         public int[] replacementSymbols;
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Dman.LSystem
         /// <param name="ruleDef"></param>
         public static ParsedRule ParseToRule(string ruleString)
         {
-            var ruleMatch = Regex.Match(ruleString.Trim(), @"(?<target>\w)\s*(?:\(P(?<probability>[.0-9]+)\))?\s*->\s*(?<replacement>.+)");
+            var ruleMatch = Regex.Match(ruleString.Trim(), @"(?<target>\w+)\s*(?:\(P(?<probability>[.0-9]+)\))?\s*->\s*(?<replacement>.+)");
             ParsedRule rule;
             if (ruleMatch.Groups["probability"].Success)
             {
@@ -38,28 +38,28 @@ namespace Dman.LSystem
             {
                 rule = new ParsedRule();
             }
-            rule.targetSymbol = ruleMatch.Groups["target"].Value[0];
+            rule.targetSymbols = ruleMatch.Groups["target"].Value.ToIntArray();
             rule.replacementSymbols = ruleMatch.Groups["replacement"].Value.ToIntArray();
             return rule;
         }
 
-        public static IEnumerable<IRule> CompileRules(IEnumerable<string> ruleStrings) {
+        public static IEnumerable<IRule<float>> CompileRules(IEnumerable<string> ruleStrings) {
             var parsedRules = ruleStrings.Select(x => ParseToRule(x)).ToArray();
             var basicRules = parsedRules.Where(r => !(r is ParsedStochasticRule))
-                .Select(x => new BasicRule(x));
+                .Select(x => new BasicRule(x)).ToList();
 
             var stochasticRules = parsedRules.Where(r => r is ParsedStochasticRule)
                 .Select(x => x as ParsedStochasticRule)
-                .GroupBy(x => x.targetSymbol)
+                .GroupBy(x => x.targetSymbols, new ArrayElementEqualityComparer<int>()) // TODO: be sure that the array values are being compared here
                 .Select(group =>
                 {
                     var probabilityDeviation = Mathf.Abs(group.Sum(x => x.probability) - 1);
                     if (probabilityDeviation > 1e-30)
                     {
-                        throw new System.Exception($"Error: group for {(char)group.Key} has probability {probabilityDeviation} away from 1");
+                        throw new System.Exception($"Error: group for {group.Key.ToStringFromChars()} has probability {probabilityDeviation} away from 1");
                     }
                     return new BasicRule(group);
-                });
+                }).ToList();
 
 
             return basicRules.Concat(stochasticRules);

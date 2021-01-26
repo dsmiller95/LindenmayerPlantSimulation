@@ -38,7 +38,7 @@ namespace Dman.LSystem
             public int submeshIndex;
         }
 
-        public Mesh CompileStringToMesh(SymbolString symbols)
+        public Mesh CompileStringToMesh(SymbolString<float> symbols)
         {
             var resultMeshes = new List<MeshDraft>();
             resultMeshes.Add(new MeshDraft());

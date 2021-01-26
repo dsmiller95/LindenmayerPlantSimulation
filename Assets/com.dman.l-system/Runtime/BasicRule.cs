@@ -12,19 +12,25 @@ namespace Dman.LSystem
         public int[] replacementSymbols;
     }
 
-    public class BasicRule :IRule
+    public class BasicRule : IRule<float>
     {
         /// <summary>
         /// the symbol which this rule will replace. Apply rule will only ever be called with this symbol.
         /// </summary>
-        public int TargetSymbol => _targetSymbol;
-        private readonly int _targetSymbol;
+        public int[] TargetSymbolSeries => _targetSymbols;
+        private readonly int[] _targetSymbols;
 
         public RuleOutcome[] possibleOutcomes;
 
+        public BasicRule(int[] targetSymbols, RuleOutcome[] outcomes)
+        {
+            this._targetSymbols = targetSymbols;
+            this.possibleOutcomes = outcomes;
+        }
+
         public BasicRule(ParsedRule parsedInfo)
         {
-            _targetSymbol = parsedInfo.targetSymbol;
+            _targetSymbols = parsedInfo.targetSymbols;
             possibleOutcomes = new RuleOutcome[] {
                 new RuleOutcome
                 {
@@ -41,7 +47,7 @@ namespace Dman.LSystem
                     probability = x.probability,
                     replacementSymbols = x.replacementSymbols
                 }).ToArray();
-            _targetSymbol = parsedRules.First().targetSymbol;
+            _targetSymbols = parsedRules.First().targetSymbols;
         }
 
         /// <summary>
@@ -50,9 +56,10 @@ namespace Dman.LSystem
         /// <param name="symbol">the symbol to be replaced</param>
         /// <param name="parameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
-        public SymbolString ApplyRule(float[] parameters, System.Random random)
+        public SymbolString<float> ApplyRule(System.ArraySegment<float[]> parameters, System.Random random)
         {
-            if(parameters != null && parameters.Length > 0)
+            var firstParam = parameters.First();
+            if(firstParam != null && firstParam.Length > 0)
             {
                 return null;
             }
@@ -79,7 +86,7 @@ namespace Dman.LSystem
                 outcome = possibleOutcomes[0];
             }
 
-            return new SymbolString(outcome.replacementSymbols);
+            return new SymbolString<float>(outcome.replacementSymbols);
         }
     }
 }
