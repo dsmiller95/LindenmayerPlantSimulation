@@ -6,7 +6,7 @@ using System.Linq;
 public class TokenizerTests
 {
     [Test]
-    public void TokenizesFloatExpression()
+    public void TokenizesNumericExpression()
     {
         var expressionString = "(2 + 0.4 - (4 * (2 - .1))/3 >= 3)";
         var tokens = Tokenizer.Tokenize(expressionString).ToArray();
@@ -15,7 +15,7 @@ public class TokenizerTests
             new Token(TokenType.LEFT_PAREN),
             new Token(2),
             new Token(TokenType.ADD),
-            new Token(0.4f),
+            new Token(0.4),
             new Token(TokenType.SUBTRACT),
             new Token(TokenType.LEFT_PAREN),
             new Token(4),
@@ -23,7 +23,7 @@ public class TokenizerTests
             new Token(TokenType.LEFT_PAREN),
             new Token(2),
             new Token(TokenType.SUBTRACT),
-            new Token(0.1f),
+            new Token(0.1),
             new Token(TokenType.RIGHT_PAREN),
             new Token(TokenType.RIGHT_PAREN),
             new Token(TokenType.DIVIDE),
@@ -35,7 +35,7 @@ public class TokenizerTests
     }
 
     [Test]
-    public void TokenizesFloatExpressionWithParameters()
+    public void TokenizeNumericExpressionWithParameters()
     {
         var expressionString = "(2 + value - (x * (2 - .1))/3 >= 3)";
         var tokens = Tokenizer.Tokenize(expressionString, new string[] {"value", "x"}).ToArray();
@@ -52,7 +52,7 @@ public class TokenizerTests
             new Token(TokenType.LEFT_PAREN),
             new Token(2),
             new Token(TokenType.SUBTRACT),
-            new Token(0.1f),
+            new Token(0.1),
             new Token(TokenType.RIGHT_PAREN),
             new Token(TokenType.RIGHT_PAREN),
             new Token(TokenType.DIVIDE),

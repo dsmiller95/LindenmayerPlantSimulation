@@ -1,27 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dman.LSystem.ExpressionCompiler
 {
+    [Flags]
     public enum TokenType
     {
-        ADD,
-        SUBTRACT,
-        MULTIPLY,
-        DIVIDE,
-        EXPONENT,
-        GREATER_THAN,
-        LESS_THAN,
-        GREATER_THAN_OR_EQ,
-        LESS_THAN_OR_EQ,
-        LEFT_PAREN,
-        RIGHT_PAREN,
-        CONSTANT,
-        VARIABLE
+        MULTIPLY = 1 << 0,
+        DIVIDE = 1 << 1,
+        ADD = 1 << 2,
+        SUBTRACT = 1 << 3,
+        EXPONENT = 1 << 4,
+        GREATER_THAN = 1 << 5,
+        LESS_THAN = 1 << 6,
+        GREATER_THAN_OR_EQ = 1 << 7,
+        LESS_THAN_OR_EQ = 1 << 8,
+
+
+        LEFT_PAREN = 1 << 9,
+        RIGHT_PAREN = 1 << 10,
+        CONSTANT = 1 << 11,
+        VARIABLE = 1 << 12
     }
 
     public struct Token
@@ -30,13 +29,26 @@ namespace Dman.LSystem.ExpressionCompiler
         /// <summary>
         /// only set if token is CONSTANT
         /// </summary>
-        public float value;
+        public double value;
         /// <summary>
         /// only set if token is VARIABLE
         /// </summary>
         public string name;
 
-        public Token(float constantValue)
+        public static readonly Dictionary<TokenType, int> OPERATOR_PRECIDENCE = new Dictionary<TokenType, int>
+        {
+            {TokenType.MULTIPLY, 0 },
+            {TokenType.DIVIDE, 0 },
+            {TokenType.EXPONENT, 1 },
+            {TokenType.ADD, 2 },
+            {TokenType.SUBTRACT, 2 },
+            {TokenType.GREATER_THAN, 3 },
+            {TokenType.LESS_THAN, 3 },
+            {TokenType.GREATER_THAN_OR_EQ, 3 },
+            {TokenType.LESS_THAN_OR_EQ, 3 },
+        };
+
+        public Token(double constantValue)
         {
             token = TokenType.CONSTANT;
             value = constantValue;

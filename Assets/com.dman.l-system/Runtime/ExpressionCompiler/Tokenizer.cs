@@ -32,9 +32,9 @@ namespace Dman.LSystem.ExpressionCompiler
                     {
                         return new Token(operatorToken);
                     }
-                    if(float.TryParse(x, out var floatConst))
+                    if(double.TryParse(x, out var doubleConst))
                     {
-                        return new Token(floatConst);
+                        return new Token(doubleConst);
                     }
                     if (variables != null && variables.Contains(x))
                     {
