@@ -14,9 +14,64 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axiom: A
   seed: 0
-  rules: "\r\nA (P0.0)-> QN^A\nA (P0.0)-> QN&A\nA (P0.0)-> QN-A\nA (P0.0)-> QN+A\nA
-    (P1.0)-> QNA\n\nQ (P0.2) -> W-NW+W\nQ (P0.2) -> W+WN-W\nQ (P0.2) -> W&W^W\nQ
-    (P0.2) -> WN^W&W\nQ (P0.2) -> WNW\nW (P0.2) -> F-F+F\nW (P0.2) -> F+F-F\nW (P0.2)
-    -> F&F^F\nW (P0.2) -> F^F&F\nW (P0.2) -> FFF\n\n\nS (P0.2)-> F--F+F+F\nS (P0.2)->
-    F^^F&&F^F&F\nS (P0.2)-> F++F-F-F\nS (P0.2)-> F+F+F-F-F\nS (P0.2)-> &F&FSF^F^\n\nN
-    -> [//&&L][//^^//////////L]\nL -> `l\r"
+  rules: '
+
+    (P0.0) A -> QN^A
+
+    (P0.0) A -> QN&A
+
+    (P0.0) A -> QN-A
+
+    (P0.0)
+    A -> QN+A
+
+    (P1.0) A -> QNA
+
+    
+
+    (P0.2) Q -> W-NW+W
+
+    (P0.2)
+    Q -> W+WN-W
+
+    (P0.2) Q -> W&W^W
+
+    (P0.2) Q -> WN^W&W
+
+    (P0.2) Q ->
+    WNW
+
+    (P0.2) W -> F-F+F
+
+    (P0.2) W -> F+F-F
+
+    (P0.2) W -> F&F^F
+
+    (P0.2)
+    W -> F^F&F
+
+    (P0.2) W -> FFF
+
+    
+
+    
+
+    (P0.2) S -> F--F+F+F
+
+    (P0.2)
+    S -> F^^F&&F^F&F
+
+    (P0.2) S -> F++F-F-F
+
+    (P0.2) S -> F+F+F-F-F
+
+    (P0.2)
+    S -> &F&FSF^F^
+
+    
+
+    N -> [//&&L][//^^//////////L]
+
+    L -> `l
+
+'

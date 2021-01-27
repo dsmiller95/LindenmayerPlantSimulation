@@ -59,15 +59,15 @@
     <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\MeshRenderingVisualElement.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorInspector.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\MeshOutputNodeView.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorToolbarView.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\CylinderCoordinateFieldDrawer.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\MeshDraftWithExtrasDrawer.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\NumberNodeView.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorView.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\GraphAssetCallbacks.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\ConstantNodeView.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorWindow.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Editor\BuilderControllerEditor.cs" />
+    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorToolbarView.cs" />
+    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\MeshDraftWithExtrasDrawer.cs" />
+    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\NumberNodeView.cs" />
+    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\GraphAssetCallbacks.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Packages\com.dman.plantbuilder\Editor\PlantBuilderEditor.asmdef" />

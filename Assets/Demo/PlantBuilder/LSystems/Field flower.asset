@@ -14,6 +14,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   axiom: P
   seed: 0
-  rules: "\r\nP -> I+[P+R]--//[--L]I[++L]-[PR]++P\r\nI -> FSBFS\r\nL -> `l\r\nR ->
-    [DE]\r\nD -> FF\rF\nE -> ``r\r\nS (P0.5)-> S\r\nS (P0.0)-> SFS\r\nS (P0.5)->
-    SBFS\nB -> [//&&L][//^^//////////L]"
+  rules: '
+
+    P -> I+[P+R]--//[--L]I[++L]-[PR]++P
+
+    I -> FSBFS
+
+    L ->
+    `l
+
+    R -> [DE]
+
+    D -> FFF
+
+    E -> ``r
+
+    (P0.5) S -> S
+
+    (P0.0)
+    S -> SFS
+
+    (P0.5) S -> SBFS
+
+    B -> [//&&L][//^^//////////L]'

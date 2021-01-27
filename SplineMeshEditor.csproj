@@ -56,8 +56,8 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Packages\com.dman.MeshDraftExtensions\SplineMesh\Editor\SplineExtrusionEditor.cs" />
     <Compile Include="Packages\com.dman.MeshDraftExtensions\SplineMesh\Editor\SplineEditor.cs" />
+    <Compile Include="Packages\com.dman.MeshDraftExtensions\SplineMesh\Editor\SplineExtrusionEditor.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Packages\com.dman.MeshDraftExtensions\SplineMesh\Editor\SplineMeshEditor.asmdef" />

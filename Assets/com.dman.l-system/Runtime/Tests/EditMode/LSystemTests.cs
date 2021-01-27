@@ -99,8 +99,8 @@ public class LSystemTests
     {
         var basicLSystem = new LSystem<float>("C", ParsedRule.CompileRules(new string[] {
             "A -> AC",
-            "C (P0.5)-> A",
-            "C (P0.5)-> AB"
+            "(P0.5) C -> A",
+            "(P0.5) C -> AB"
         }), 0);
 
         Assert.AreEqual("C", basicLSystem.currentSymbols.symbols.ToStringFromChars());
@@ -120,8 +120,8 @@ public class LSystemTests
     {
         var basicLSystem = new LSystem<float>("C", ParsedRule.CompileRules(new string[] {
             "A -> AC",
-            "C (P0.9)-> A",
-            "C (P0.1)-> AB"
+            "(P0.9) C -> A",
+            "(P0.1) C -> AB"
         }), 0);
 
         Assert.AreEqual("C", basicLSystem.currentSymbols.symbols.ToStringFromChars());

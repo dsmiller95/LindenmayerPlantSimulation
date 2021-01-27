@@ -26,7 +26,7 @@ namespace Dman.LSystem
         /// <param name="ruleDef"></param>
         public static ParsedRule ParseToRule(string ruleString)
         {
-            var ruleMatch = Regex.Match(ruleString.Trim(), @"(?<target>\w+)\s*(?:\(P(?<probability>[.0-9]+)\))?\s*->\s*(?<replacement>.+)");
+            var ruleMatch = Regex.Match(ruleString.Trim(), @"(?:\(P(?<probability>[.0-9]+)\))?\s*(?<target>\w+)\s*->\s*(?<replacement>.+)");
             ParsedRule rule;
             if (ruleMatch.Groups["probability"].Success)
             {
