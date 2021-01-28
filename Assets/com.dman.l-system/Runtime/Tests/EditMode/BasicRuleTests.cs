@@ -5,23 +5,7 @@ using System;
 public class BasicRuleTests
 {
     [Test]
-    public void ParsedRuleParsesStringDefinition()
-    {
-        var ruleFromString = ParsedRule.ParseToRule("A -> AB");
-
-        Assert.AreEqual("A", ruleFromString.targetSymbols.ToStringFromChars());
-        Assert.AreEqual("AB".ToIntArray(), ruleFromString.replacementSymbols);
-    }
-    [Test]
-    public void ParsedRuleParsesStringDefinitionWithNovelCharacters()
-    {
-        var ruleFromString = ParsedRule.ParseToRule("A -> F-[[X]+X]+F[+FX]-X");
-
-        Assert.AreEqual("A", ruleFromString.targetSymbols.ToStringFromChars());
-        Assert.AreEqual("F-[[X]+X]+F[+FX]-X".ToIntArray(), ruleFromString.replacementSymbols);
-    }
-    [Test]
-    public void BasicRuleRejectsIfAnyParameters()
+    public void BasicRuleRejectsApplicationIfAnyParameters()
     {
         var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A -> AB"));
         var paramArray = new float[1][];

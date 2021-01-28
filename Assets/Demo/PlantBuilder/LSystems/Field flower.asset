@@ -16,7 +16,7 @@ MonoBehaviour:
   seed: 0
   rules: '
 
-    P -> I+[P+R]--//[--L]I[++L]-[PR]++P
+    P(x) -> I+[P+R]--//[--L]I[++L]-[PR]++P
 
     I -> FSBFS
 
@@ -29,11 +29,11 @@ MonoBehaviour:
 
     E -> ``r
 
-    (P0.5) S -> S
+    (P0.7) S -> S
 
-    (P0.0)
+    (P0.2)
     S -> SFS
 
-    (P0.5) S -> SBFS
+    (P0.1) S -> SBFS
 
     B -> [//&&L][//^^//////////L]'

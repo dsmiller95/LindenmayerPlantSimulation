@@ -20,6 +20,8 @@ namespace Dman.LSystem
         public int[] TargetSymbolSeries => _targetSymbols;
         private readonly int[] _targetSymbols;
 
+        private readonly SingleSymbolMatcher[] _targetSymbolsWithParameters;
+
         public RuleOutcome[] possibleOutcomes;
 
         public BasicRule(int[] targetSymbols, RuleOutcome[] outcomes)
@@ -30,7 +32,8 @@ namespace Dman.LSystem
 
         public BasicRule(ParsedRule parsedInfo)
         {
-            _targetSymbols = parsedInfo.targetSymbols;
+            _targetSymbolsWithParameters = parsedInfo.targetSymbols;
+            _targetSymbols = _targetSymbolsWithParameters.Select(x => x.targetSymbol).ToArray();
             possibleOutcomes = new RuleOutcome[] {
                 new RuleOutcome
                 {
@@ -47,7 +50,8 @@ namespace Dman.LSystem
                     probability = x.probability,
                     replacementSymbols = x.replacementSymbols
                 }).ToArray();
-            _targetSymbols = parsedRules.First().targetSymbols;
+            _targetSymbolsWithParameters = parsedRules.First().targetSymbols;
+            _targetSymbols = _targetSymbolsWithParameters.Select(x => x.targetSymbol).ToArray();
         }
 
         /// <summary>

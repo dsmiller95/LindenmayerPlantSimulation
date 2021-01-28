@@ -12,7 +12,7 @@ namespace Dman.LSystem
         {
             return self.Select(x => (int)x).ToArray();
         }
-        public static string ToStringFromChars(this int[] self)
+        public static string ToStringFromChars(this IEnumerable<int> self)
         {
             return new string(self.Select(x => (char)x).ToArray());
         }
