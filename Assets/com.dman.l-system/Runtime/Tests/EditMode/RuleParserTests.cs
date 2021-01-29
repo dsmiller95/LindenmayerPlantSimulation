@@ -87,4 +87,21 @@ public class RuleParserTests
         Assert.AreEqual(4, ruleFromString.replacementSymbols[2].evaluators[0].DynamicInvoke(30, 4));
         Assert.AreEqual(30, ruleFromString.replacementSymbols[2].evaluators[1].DynamicInvoke(30, 4));
     }
+    [Test]
+    public void ParsesRuleWithParametersAndConditionalMatch()
+    {
+        var ruleFromString = ParsedRule.ParseToRule("A(x, y): x < 10 -> A(x + 1, y - x)");
+
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(11, 2));
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(10, 2));
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(9, 202));
+
+        Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+
+        Assert.AreEqual('A', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(2, ruleFromString.replacementSymbols[0].evaluators.Length);
+        Assert.AreEqual(5, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(4, 10));
+        Assert.AreEqual(6, ruleFromString.replacementSymbols[0].evaluators[1].DynamicInvoke(4, 10));
+    }
 }

@@ -17,6 +17,8 @@ namespace Dman.LSystem
         public SingleSymbolMatcher[] targetSymbols;
         public SymbolReplacementExpressionMatcher[] replacementSymbols;
 
+        public System.Delegate conditionalMatch;
+
         public string TargetSymbolString()
         {
             return targetSymbols.Aggregate(new StringBuilder(), (agg, curr) => agg.Append(curr.ToString())).ToString();
@@ -51,7 +53,7 @@ namespace Dman.LSystem
         {
             var symbolMatchPattern = @"(\w(?:\((?:\w+, )*\w+\))?)+";
 
-            var ruleMatch = Regex.Match(ruleString.Trim(), @$"(?:\(P(?<probability>[.0-9]+)\))?\s*(?<targetSymbols>{symbolMatchPattern})\s*->\s*(?<replacement>.+)");
+            var ruleMatch = Regex.Match(ruleString.Trim(), @$"(?:\(P(?<probability>[.0-9]+)\))?\s*(?<targetSymbols>{symbolMatchPattern})\s*(?::(?<conditional>.*)\s*)?->\s*(?<replacement>.+)");
             ParsedRule rule;
             if (ruleMatch.Groups["probability"].Success)
             {
@@ -67,7 +69,15 @@ namespace Dman.LSystem
 
             rule.targetSymbols = ParseSymbolMatcher(ruleMatch.Groups["targetSymbols"].Value);
             var replacementSymbolString = ruleMatch.Groups["replacement"].Value;
-            rule.replacementSymbols = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(replacementSymbolString, rule.TargetSymbolParameterNames()).ToArray();
+            var availableParameters = rule.TargetSymbolParameterNames();
+            rule.replacementSymbols = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(replacementSymbolString, availableParameters).ToArray();
+
+            if (ruleMatch.Groups["conditional"].Success)
+            {
+                var conditionalExpression = $"({ruleMatch.Groups["conditional"].Value})";
+                rule.conditionalMatch = ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateWithParameters(conditionalExpression, availableParameters);
+            }
+
             return rule;
         }
 

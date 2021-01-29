@@ -212,4 +212,25 @@ public class LSystemTests
         basicLSystem.StepSystem();
         Assert.AreEqual("A(13)B(8)", basicLSystem.currentSymbols.ToString());
     }
+
+    [Test]
+    public void LSystemAppliesParameterMatchesAndTerminatesAtCondition()
+    {
+        var basicLSystem = new LSystem<double>("A(2)", ParsedRule.CompileRules(new string[] {
+            "A(x) : x < 6 -> A(x + 1)",
+        }), 0);
+
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(4)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(5)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(6)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(6)", basicLSystem.currentSymbols.ToString());
+    }
+
 }

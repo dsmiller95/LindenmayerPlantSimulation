@@ -51,4 +51,46 @@ public class BasicRuleTests
         };
         Assert.AreEqual(expectedParameters, replacement.parameters);
     }
+    [Test]
+    public void BasicRuleDifferentParametersNoMatch()
+    {
+        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
+
+        var paramArray = new double[][]
+        {
+            new double[] {20}
+        };
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        Assert.IsNull(replacement);
+    }
+    [Test]
+    public void ParametricConditionalNoMatch()
+    {
+        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
+
+        var paramArray = new double[][]
+        {
+            new double[] {20}
+        };
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        Assert.IsNull(replacement);
+    }
+    [Test]
+    public void ParametricConditionalMatch()
+    {
+        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
+
+        var paramArray = new double[][]
+        {
+            new double[] {6}
+        };
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        Assert.IsNotNull(replacement);
+        Assert.AreEqual("A".ToIntArray(), replacement.symbols);
+        var expectedParameters = new double[][]
+        {
+            new double[]{ 7},
+        };
+        Assert.AreEqual(expectedParameters, replacement.parameters);
+    }
 }

@@ -15,8 +15,10 @@ namespace Dman.LSystem
         private readonly int[] _targetSymbols;
 
         private readonly SingleSymbolMatcher[] _targetSymbolsWithParameters;
+        private System.Delegate conditionalChecker;
 
         public RuleOutcome[] possibleOutcomes;
+
 
         //public BasicRule(int[] targetSymbols, RuleOutcome[] outcomes)
         //{
@@ -28,6 +30,7 @@ namespace Dman.LSystem
         {
             _targetSymbolsWithParameters = parsedInfo.targetSymbols;
             _targetSymbols = _targetSymbolsWithParameters.Select(x => x.targetSymbol).ToArray();
+            conditionalChecker = parsedInfo.conditionalMatch;
             possibleOutcomes = new RuleOutcome[] {
                 new RuleOutcome
                 {
@@ -44,8 +47,11 @@ namespace Dman.LSystem
                     probability = x.probability,
                     replacementSymbols = x.replacementSymbols
                 }).ToArray();
-            _targetSymbolsWithParameters = parsedRules.First().targetSymbols;
+            var firstOutcome = parsedRules.First();
+            _targetSymbolsWithParameters = firstOutcome.targetSymbols;
             _targetSymbols = _targetSymbolsWithParameters.Select(x => x.targetSymbol).ToArray();
+
+            conditionalChecker = firstOutcome.conditionalMatch;
         }
 
         /// <summary>
@@ -79,6 +85,18 @@ namespace Dman.LSystem
                 }
             }
 
+            var paramArray = orderedMatchedParameters.ToArray();
+
+            if(conditionalChecker != null)
+            {
+                var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
+                var conditionalResult = (bool)invokeResult;
+                if (!conditionalResult)
+                {
+                    return null;
+                }
+            }
+
 
             RuleOutcome outcome = default;
             if(this.possibleOutcomes.Length > 1)
@@ -103,7 +121,7 @@ namespace Dman.LSystem
                 outcome = possibleOutcomes[0];
             }
 
-            return outcome.GenerateReplacement(orderedMatchedParameters.ToArray());
+            return outcome.GenerateReplacement(paramArray);
         }
     }
 }
