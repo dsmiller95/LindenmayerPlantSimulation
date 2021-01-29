@@ -11,7 +11,7 @@ namespace Dman.LSystem
         public float probability;
         public SymbolReplacementExpressionMatcher[] replacementSymbols;
 
-        public SymbolString<double> GenerateReplacement(double[] matchedParameters)
+        public SymbolString<double> GenerateReplacement(object[] matchedParameters)
         {
             var replacedSymbols = new int[replacementSymbols.Length];
             var replacedParams = new double[replacementSymbols.Length][];

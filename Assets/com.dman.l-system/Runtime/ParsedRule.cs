@@ -67,7 +67,7 @@ namespace Dman.LSystem
 
             rule.targetSymbols = ParseSymbolMatcher(ruleMatch.Groups["targetSymbols"].Value);
             var replacementSymbolString = ruleMatch.Groups["replacement"].Value;
-            rule.replacementSymbols = ParseAllSymbolExpressions(replacementSymbolString, rule.TargetSymbolParameterNames()).ToArray();
+            rule.replacementSymbols = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(replacementSymbolString, rule.TargetSymbolParameterNames()).ToArray();
             return rule;
         }
 
@@ -96,76 +96,6 @@ namespace Dman.LSystem
             return targetSymbols.ToArray();
         }
 
-        private static IEnumerable<SymbolReplacementExpressionMatcher> ParseAllSymbolExpressions(string allsymbols, string[] validParameters)
-        {
-            var charEnumerator = allsymbols.GetEnumerator();
-            charEnumerator.MoveNext();
-            bool hasNextMatch;
-            do
-            {
-                var nextMatch = ParseOutSymbolExpression(charEnumerator, validParameters);
-                hasNextMatch = nextMatch.Item2;
-                yield return nextMatch.Item1;
-            } while (hasNextMatch);
-        }
-
-        /// <summary>
-        /// parse out one symbol expression matcher. leave the enumerator on the character directly following the matched symbol.
-        ///     return the next symbol, and whether or not there is another symbol
-        /// </summary>
-        /// <param name="symbols"></param>
-        /// <param name="validParameters"></param>
-        /// <returns></returns>
-        private static (SymbolReplacementExpressionMatcher, bool) ParseOutSymbolExpression(IEnumerator<char> symbols, string[] validParameters)
-        {
-            var nextSymbol = symbols.Current;
-            if(nextSymbol == '(' || nextSymbol == ')')
-            {
-                throw new SyntaxException("cannot use parentheses as a symbol");
-            }
-            if (!symbols.MoveNext())
-            {
-                return (new SymbolReplacementExpressionMatcher(nextSymbol), false);
-            }
-            if (symbols.Current != '(')
-            {
-                return (new SymbolReplacementExpressionMatcher(nextSymbol), true);
-            }
-            var delegates = new List<System.Delegate>();
-            while(symbols.Current != ')')
-            {
-                symbols.MoveNext();
-                var indentationDepth = 0;
-                var expressionString = new StringBuilder();
-                while (symbols.Current != ',')
-                {
-                    switch (symbols.Current)
-                    {
-                        case '(':
-                            indentationDepth++;
-                            break;
-                        case ')':
-                            indentationDepth--;
-                            break;
-                        default:
-                            break;
-                    }
-                    if(indentationDepth < 0)
-                    {
-                        break;
-                    }
-                    expressionString.Append(symbols.Current);
-                    symbols.MoveNext();
-                }
-                delegates.Add(ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateWithParameters(
-                    "(" + expressionString.ToString() + ")",
-                    validParameters));
-            }
-            // reset to next char to stay consistent
-            
-
-            return (new SymbolReplacementExpressionMatcher(nextSymbol, delegates), symbols.MoveNext());
-        }
 
         public static IEnumerable<IRule<double>> CompileRules(IEnumerable<string> ruleStrings)
         {

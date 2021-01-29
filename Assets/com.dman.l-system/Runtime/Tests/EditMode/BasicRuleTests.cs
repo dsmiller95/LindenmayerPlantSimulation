@@ -32,4 +32,23 @@ public class BasicRuleTests
         };
         Assert.AreEqual(expectedParameters, replacement.parameters);
     }
+    [Test]
+    public void BasicRuleReplacesParameters()
+    {
+        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
+
+        var paramArray = new double[][]
+        {
+            new double[] {20, 1 }
+        };
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        Assert.AreEqual("BCA".ToIntArray(), replacement.symbols);
+        var expectedParameters = new double[][]
+        {
+            new double[]{ 21},
+            new double[]{ 20},
+            new double[]{ 1, 20}
+        };
+        Assert.AreEqual(expectedParameters, replacement.parameters);
+    }
 }

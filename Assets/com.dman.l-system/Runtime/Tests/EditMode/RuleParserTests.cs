@@ -47,9 +47,44 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithParametersAndReplacementParameters()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B(x)");
+        var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B(y)");
 
         Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
-        Assert.AreEqual("B(x)", ruleFromString.ReplacementSymbolString());
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+        Assert.AreEqual('B', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
+        Assert.AreEqual(7331, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(1337, 7331));
+    }
+    [Test]
+    public void ParsesRuleWithParametersAndReplacementParametersAndComplexExpression()
+    {
+        var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B(y + (y - x) * y)");
+
+        Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+        Assert.AreEqual('B', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
+        Assert.AreEqual(4 + (4 - 30) * 4, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(30, 4));
+    }
+    [Test]
+    public void ParsesRuleWithParametersAndMultipleReplacementParameters()
+    {
+        var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B(y + (y - x) * y)C(x)A(y, x)");
+
+        Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual(3, ruleFromString.replacementSymbols.Length);
+
+        Assert.AreEqual('B', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
+        Assert.AreEqual(4 + (4 - 30) * 4, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(30, 4));
+
+        Assert.AreEqual('C', ruleFromString.replacementSymbols[1].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[1].evaluators.Length);
+        Assert.AreEqual(30, ruleFromString.replacementSymbols[1].evaluators[0].DynamicInvoke(30, 4));
+
+        Assert.AreEqual('A', ruleFromString.replacementSymbols[2].targetSymbol);
+        Assert.AreEqual(2, ruleFromString.replacementSymbols[2].evaluators.Length);
+        Assert.AreEqual(4, ruleFromString.replacementSymbols[2].evaluators[0].DynamicInvoke(30, 4));
+        Assert.AreEqual(30, ruleFromString.replacementSymbols[2].evaluators[1].DynamicInvoke(30, 4));
     }
 }

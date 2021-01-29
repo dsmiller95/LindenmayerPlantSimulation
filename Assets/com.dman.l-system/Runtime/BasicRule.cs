@@ -56,7 +56,7 @@ namespace Dman.LSystem
         /// <returns></returns>
         public SymbolString<double> ApplyRule(System.ArraySegment<double[]> parameters, System.Random random)
         {
-            var orderedMatchedParameters = new List<double>();
+            var orderedMatchedParameters = new List<object>();
             for (int targetSymbolIndex = 0; targetSymbolIndex < _targetSymbolsWithParameters.Length; targetSymbolIndex++)
             {
                 var target = _targetSymbolsWithParameters[targetSymbolIndex];

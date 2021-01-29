@@ -9,7 +9,9 @@ public class LSystemTests
         var basicLSystem = new LSystem<double>("B", new IRule<double>[0], 0);
 
         Assert.AreEqual("B".ToIntArray(), basicLSystem.currentSymbols.symbols);
-        Assert.AreEqual(new float[1][], basicLSystem.currentSymbols.parameters);
+        Assert.AreEqual(new float[][]{
+            new float[0]
+            }, basicLSystem.currentSymbols.parameters);
     }
     [Test]
     public void LSystemAppliesBasicRules()
@@ -39,21 +41,21 @@ public class LSystemTests
             "AA -> B"
         }), 0);
 
-        Assert.AreEqual("B", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("B", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("A", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("A", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("AB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("AB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABA", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ABA", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABAAB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ABAAB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABABA", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ABABA", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABAABAAB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ABAABAAB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABABABA", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ABABABA", basicLSystem.currentSymbols.ToString());
     }
 
     [Test]
@@ -64,15 +66,15 @@ public class LSystemTests
             "AA -> B"
         }), 0);
 
-        Assert.AreEqual("B", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("B", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABA", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ABA", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("AABAA", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("AABAA", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("BABAB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("BABAB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABAAABAAABA", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ABAAABAAABA", basicLSystem.currentSymbols.ToString());
     }
 
     [Test]
@@ -103,17 +105,17 @@ public class LSystemTests
             "(P0.5) C -> AB"
         }), 0);
 
-        Assert.AreEqual("C", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("C", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("AB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("AB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ACB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACABB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ACABB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACABACBB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ACABACBB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACABACBACABB", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ACABACBACABB", basicLSystem.currentSymbols.ToString());
     }
     [Test]
     public void LSystemAppliesStochasticRuleDifferently()
@@ -124,16 +126,90 @@ public class LSystemTests
             "(P0.1) C -> AB"
         }), 0);
 
-        Assert.AreEqual("C", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("C", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("A", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("A", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("AC", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("AC", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACA", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ACA", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACAAC", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ACAAC", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACAACACA", basicLSystem.currentSymbols.symbols.ToStringFromChars());
+        Assert.AreEqual("ACAACACA", basicLSystem.currentSymbols.ToString());
+    }
+
+    [Test]
+    public void LSystemAppliesParameterMatches()
+    {
+        var basicLSystem = new LSystem<double>("A(1)", ParsedRule.CompileRules(new string[] {
+            "A(x) -> A(x + 1)",
+        }), 0);
+
+        Assert.AreEqual("A(1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(4)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(5)", basicLSystem.currentSymbols.ToString());
+    }
+
+    [Test]
+    public void LSystemAppliesComplexParameterEquations()
+    {
+        var basicLSystem = new LSystem<double>("A(1, 1)", ParsedRule.CompileRules(new string[] {
+            "A(x, y) -> A(x + y, x * y)",
+        }), 0);
+
+        Assert.AreEqual("A(1, 1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(2, 1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(3, 2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(5, 6)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(11, 30)", basicLSystem.currentSymbols.ToString());
+    }
+
+    [Test]
+    public void LSystemAppliesParameterEquationsWhenMultiMatch()
+    {
+        var basicLSystem = new LSystem<double>("A(1, 1)B(0)", ParsedRule.CompileRules(new string[] {
+            "A(x, y)B(z) -> A(x + z, y + z)B(y)",
+        }), 0);
+
+        Assert.AreEqual("A(1, 1)B(0)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(1, 1)B(1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(2, 2)B(1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(3, 3)B(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(5, 5)B(3)", basicLSystem.currentSymbols.ToString());
+    }
+
+    [Test]
+    public void LSystemDoesAFibbonachi()
+    {
+        var basicLSystem = new LSystem<double>("A(1)B(1)", ParsedRule.CompileRules(new string[] {
+            "A(x)B(y) -> A(x + y)B(x)",
+        }), 0);
+
+        Assert.AreEqual("A(1)B(1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(2)B(1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(3)B(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(5)B(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(8)B(5)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem();
+        Assert.AreEqual("A(13)B(8)", basicLSystem.currentSymbols.ToString());
     }
 }
