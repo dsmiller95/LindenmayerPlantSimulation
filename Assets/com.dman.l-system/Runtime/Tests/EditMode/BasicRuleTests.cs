@@ -8,23 +8,28 @@ public class BasicRuleTests
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
         var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A -> AB"));
-        var paramArray = new float[1][];
+        var paramArray = new double[1][];
         paramArray[0] = null;
-        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<float[]>(paramArray, 0, 1), null));
-        paramArray[0] = new float[0];
-        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<float[]>(paramArray, 0, 1), null));
-        paramArray[0] = new float[] { 1 };
-        Assert.IsNull(ruleFromString.ApplyRule(new ArraySegment<float[]>(paramArray, 0, 1), null));
+        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null));
+        paramArray[0] = new double[0];
+        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null));
+        paramArray[0] = new double[] { 1 };
+        Assert.IsNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null));
     }
     [Test]
     public void BasicRuleReplacesSelfWithReplacement()
     {
         var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A -> AB"));
 
-        var paramArray = new float[1][];
+        var paramArray = new double[1][];
         paramArray[0] = null;
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<float[]>(paramArray, 0, 1), null);
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
         Assert.AreEqual("AB".ToIntArray(), replacement.symbols);
-        Assert.AreEqual(new float[2][], replacement.parameters);
+        var expectedParameters = new double[][]
+        {
+            new double[0],
+            new double[0]
+        };
+        Assert.AreEqual(expectedParameters, replacement.parameters);
     }
 }

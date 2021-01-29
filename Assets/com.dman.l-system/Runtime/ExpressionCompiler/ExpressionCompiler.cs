@@ -19,6 +19,15 @@ namespace Dman.LSystem.ExpressionCompiler
             this.parameters = doubleParams.ToDictionary(x => x, x => Expression.Parameter(typeof(double), x));
         }
 
+        public static Delegate CompileExpressionToDelegateWithParameters(string expressionString, string[] namedNumericParameters)
+        {
+            var compiler = new ExpressionCompiler(namedNumericParameters);
+            var expression = compiler.CompileToExpression(expressionString);
+            // TODO: does this preserve parameter ordering?
+            var lambdaExpr = Expression.Lambda(expression, compiler.parameters.Values.ToList());
+            return lambdaExpr.Compile();
+        }
+
         public Expression CompileToExpression(string expressionString)
         {
             var tokens = Tokenizer.Tokenize(expressionString, parameters.Keys.ToArray()).ToArray();

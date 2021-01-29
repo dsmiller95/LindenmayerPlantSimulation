@@ -31,3 +31,12 @@ A(x) < C > B(y) : x < y -> E(x)
 	
 (P0.5) A(x) < C > B(y) : x < y -> E(x)
 	contextual, parametric, stochastic
+	
+@"(?<all>((<?symbol>\w)(\(?<params>(\w+, )*\w+\))?)+)"
+
+
+parses " A(x, y, variable)B(variable) " into two matches
+@"(?<symbol>\w)\((?<params>(?:\w+, )*\w+)\)"
+
+(\w)(?:\(((?:\w+, )*\w+)\))?
+(?<symbol>\w)(?:\((?<params>(?:\w+, )*\w+)\))?

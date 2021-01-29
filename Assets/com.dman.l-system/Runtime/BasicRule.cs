@@ -6,13 +6,7 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
-    public struct RuleOutcome
-    {
-        public float probability;
-        public int[] replacementSymbols;
-    }
-
-    public class BasicRule : IRule<float>
+    public class BasicRule : IRule<double>
     {
         /// <summary>
         /// the symbol which this rule will replace. Apply rule will only ever be called with this symbol.
@@ -24,11 +18,11 @@ namespace Dman.LSystem
 
         public RuleOutcome[] possibleOutcomes;
 
-        public BasicRule(int[] targetSymbols, RuleOutcome[] outcomes)
-        {
-            this._targetSymbols = targetSymbols;
-            this.possibleOutcomes = outcomes;
-        }
+        //public BasicRule(int[] targetSymbols, RuleOutcome[] outcomes)
+        //{
+        //    this._targetSymbols = targetSymbols;
+        //    this.possibleOutcomes = outcomes;
+        //}
 
         public BasicRule(ParsedRule parsedInfo)
         {
@@ -60,13 +54,32 @@ namespace Dman.LSystem
         /// <param name="symbol">the symbol to be replaced</param>
         /// <param name="parameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
-        public SymbolString<float> ApplyRule(System.ArraySegment<float[]> parameters, System.Random random)
+        public SymbolString<double> ApplyRule(System.ArraySegment<double[]> parameters, System.Random random)
         {
-            var firstParam = parameters.First();
-            if(firstParam != null && firstParam.Length > 0)
+            var orderedMatchedParameters = new List<double>();
+            for (int targetSymbolIndex = 0; targetSymbolIndex < _targetSymbolsWithParameters.Length; targetSymbolIndex++)
             {
-                return null;
+                var target = _targetSymbolsWithParameters[targetSymbolIndex];
+                var parameter = parameters.Array[parameters.Offset + targetSymbolIndex];
+                if(parameter == null)
+                {
+                    if (target.namedParameters.Length > 0)
+                    {
+                        return null;
+                    }
+                    continue;
+                }
+                if(target.namedParameters.Length != parameter.Length)
+                {
+                    return null;
+                }
+                for (int parameterIndex = 0; parameterIndex < parameter.Length; parameterIndex++)
+                {
+                    orderedMatchedParameters.Add(parameter[parameterIndex]);
+                }
             }
+
+
             RuleOutcome outcome = default;
             if(this.possibleOutcomes.Length > 1)
             {
@@ -90,7 +103,7 @@ namespace Dman.LSystem
                 outcome = possibleOutcomes[0];
             }
 
-            return new SymbolString<float>(outcome.replacementSymbols);
+            return outcome.GenerateReplacement(orderedMatchedParameters.ToArray());
         }
     }
 }

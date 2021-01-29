@@ -6,7 +6,7 @@ public class LSystemTests
     [Test]
     public void LSystemParsesStringAxiom()
     {
-        var basicLSystem = new LSystem<float>("B", new IRule<float>[0], 0);
+        var basicLSystem = new LSystem<double>("B", new IRule<double>[0], 0);
 
         Assert.AreEqual("B".ToIntArray(), basicLSystem.currentSymbols.symbols);
         Assert.AreEqual(new float[1][], basicLSystem.currentSymbols.parameters);
@@ -14,7 +14,7 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesBasicRules()
     {
-        var basicLSystem = new LSystem<float>("B", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = new LSystem<double>("B", ParsedRule.CompileRules(new string[] {
             "A -> AB",
             "B -> A"
         }), 0);
@@ -33,7 +33,7 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesMultiMatchRules()
     {
-        var basicLSystem = new LSystem<float>("B", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = new LSystem<double>("B", ParsedRule.CompileRules(new string[] {
             "A -> AB",
             "B -> A",
             "AA -> B"
@@ -59,7 +59,7 @@ public class LSystemTests
     [Test]
     public void LSystemAssumesIdentityReplacementWithMultiMatchRules()
     {
-        var basicLSystem = new LSystem<float>("B", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = new LSystem<double>("B", ParsedRule.CompileRules(new string[] {
             "B -> ABA",
             "AA -> B"
         }), 0);
@@ -78,7 +78,7 @@ public class LSystemTests
     [Test]
     public void LSystemAssumesIdentityRule()
     {
-        var basicLSystem = new LSystem<float>("B", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = new LSystem<double>("B", ParsedRule.CompileRules(new string[] {
             "A -> ACB",
             "B -> A"
         }), 0);
@@ -97,7 +97,7 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesStochasticRule()
     {
-        var basicLSystem = new LSystem<float>("C", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = new LSystem<double>("C", ParsedRule.CompileRules(new string[] {
             "A -> AC",
             "(P0.5) C -> A",
             "(P0.5) C -> AB"
@@ -118,7 +118,7 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesStochasticRuleDifferently()
     {
-        var basicLSystem = new LSystem<float>("C", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = new LSystem<double>("C", ParsedRule.CompileRules(new string[] {
             "A -> AC",
             "(P0.9) C -> A",
             "(P0.1) C -> AB"
