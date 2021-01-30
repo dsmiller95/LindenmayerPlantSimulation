@@ -110,7 +110,7 @@ namespace Dman.LSystem.ExpressionCompiler
                 var newVal = new TokenExpression(
                     GetExpressionFromBinaryOperator(
                         firstVal.CompileSelfToExpression(),
-                        op.type,
+                        op,
                         secondVal.CompileSelfToExpression()),
                     firstVal.context);
                 tokenLinkedList.Remove(firstVal);
@@ -126,9 +126,9 @@ namespace Dman.LSystem.ExpressionCompiler
             return (tokenLinkedList.First.Value as TokenExpression).compiledExpression;
         }
 
-        private Expression GetExpressionFromBinaryOperator(Expression a, TokenType op, Expression b)
+        private Expression GetExpressionFromBinaryOperator(Expression a, TokenOperator op, Expression b)
         {
-            switch (op)
+            switch (op.type)
             {
                 case TokenType.MULTIPLY:
                     return Expression.MultiplyChecked(a, b);
@@ -149,7 +149,7 @@ namespace Dman.LSystem.ExpressionCompiler
                 case TokenType.LESS_THAN_OR_EQ:
                     return Expression.LessThanOrEqual(a, b);
                 default:
-                    throw new SyntaxException($"Invalid binary operator symbol: {Enum.GetName(typeof(TokenType), op)}");
+                    throw op.context.ExceptionHere($"Invalid binary operator symbol: {Enum.GetName(typeof(TokenType), op)}");
             }
         }
     }
