@@ -48,11 +48,19 @@ namespace Dman.LSystem
 
         private void SetConditional(string conditionalExpression, string[] validParameters)
         {
-            var compiledResult = ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateAndDescriptionWithParameters(
-                $"({conditionalExpression})",
-                validParameters);
-            conditionalMatch = compiledResult.Item1;
-            conditionalStringDescription = compiledResult.Item2;
+            try
+            {
+                var compiledResult = ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateAndDescriptionWithParameters(
+                    $"({conditionalExpression})",
+                    validParameters);
+                conditionalMatch = compiledResult.Item1;
+                conditionalStringDescription = compiledResult.Item2;
+            }
+            catch (SyntaxException e)
+            {
+                e.RecontextualizeIndex(-1);
+                throw;
+            }
         }
 
         /// <summary>
@@ -65,6 +73,25 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="ruleDef"></param>
         public static ParsedRule ParseToRule(string ruleString, string[] globalParameters = null)
+        {
+            //try
+            //{
+            return RuleParser(ruleString, globalParameters);
+            //}
+            //catch (System.InvalidOperationException e)
+            //{
+
+            //    Debug.LogError($"Unexpected end of input when parsing rule:\n{ruleString}");
+            //    return null;
+            //}
+            //catch (System.Exception)
+            //{
+            //    Debug.LogError($"Error parsing rule: {ruleString}");
+            //    throw;
+            //}
+        }
+
+        private static ParsedRule RuleParser(string ruleString, string[] globalParameters = null)
         {
             var symbolMatchPattern = @"(\w(?:\((?:\w+, )*\w+\))?)+";
 
@@ -83,21 +110,49 @@ namespace Dman.LSystem
             }
 
             rule.targetSymbols = ParseSymbolMatcher(ruleMatch.Groups["targetSymbols"].Value);
-            var replacementSymbolString = ruleMatch.Groups["replacement"].Value;
             var availableParameters = rule.TargetSymbolParameterNames();
             if (globalParameters != null)
             {
                 availableParameters = globalParameters.Concat(availableParameters);
             }
             var parameterArray = availableParameters.ToArray();
-            rule.replacementSymbols = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(
-                replacementSymbolString,
-                parameterArray)
-                .ToArray();
 
-            if (ruleMatch.Groups["conditional"].Success)
+            var replacementSymbolMatch = ruleMatch.Groups["replacement"];
+
+            if (!replacementSymbolMatch.Success)
             {
-                rule.SetConditional(ruleMatch.Groups["conditional"].Value, parameterArray);
+                throw new SyntaxException(
+                    "Rule must follow pattern: <Target symbols> -> <replacement symbols>",
+                    0,
+                    ruleString.Length,
+                    ruleString);
+            }
+
+            try
+            {
+                rule.replacementSymbols = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(
+                    replacementSymbolMatch.Value,
+                    parameterArray)
+                    .ToArray();
+            }
+            catch (SyntaxException e)
+            {
+                e.RecontextualizeIndex(replacementSymbolMatch.Index, ruleString);
+                throw;
+            }
+
+            var conditionalMatch = ruleMatch.Groups["conditional"];
+            if (conditionalMatch.Success)
+            {
+                try
+                {
+                    rule.SetConditional(conditionalMatch.Value, parameterArray);
+                }
+                catch (SyntaxException e)
+                {
+                    e.RecontextualizeIndex(conditionalMatch.Index, ruleString);
+                    throw;
+                }
             }
 
             return rule;
@@ -131,7 +186,10 @@ namespace Dman.LSystem
 
         public static IEnumerable<IRule<double>> CompileRules(IEnumerable<string> ruleStrings, string[] globalParameters = null)
         {
-            var parsedRules = ruleStrings.Select(x => ParseToRule(x, globalParameters)).ToArray();
+            var parsedRules = ruleStrings
+                .Select(x => ParseToRule(x, globalParameters))
+                .Where(x => x != null)
+                .ToArray();
             var basicRules = parsedRules.Where(r => !(r is ParsedStochasticRule))
                 .Select(x => new BasicRule(x)).ToList();
 

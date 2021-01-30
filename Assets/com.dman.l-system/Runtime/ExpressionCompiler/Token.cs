@@ -6,6 +6,7 @@ namespace Dman.LSystem.ExpressionCompiler
     [Flags]
     public enum TokenType
     {
+        NONE = 0,
         MULTIPLY = 1 << 0,
         DIVIDE = 1 << 1,
         ADD = 1 << 2,
@@ -35,6 +36,8 @@ namespace Dman.LSystem.ExpressionCompiler
         /// </summary>
         public string name;
 
+        public int originalStringIndex;
+
         public static readonly Dictionary<TokenType, int> OPERATOR_PRECIDENCE = new Dictionary<TokenType, int>
         {
             {TokenType.MULTIPLY, 0 },
@@ -48,28 +51,47 @@ namespace Dman.LSystem.ExpressionCompiler
             {TokenType.LESS_THAN_OR_EQ, 3 },
         };
 
-        public Token(double constantValue)
+        public Token(double constantValue, int originalIndex)
         {
             token = TokenType.CONSTANT;
             value = constantValue;
 
             name = default;
+
+            originalStringIndex = originalIndex;
         }
 
-        public Token(TokenType type)
+        public Token(TokenType type, int originalIndex)
         {
             token = type;
 
             value = default;
             name = default;
+
+            originalStringIndex = originalIndex;
         }
 
-        public Token(string variableName)
+        public Token(string variableName, int originalIndex)
         {
             token = TokenType.VARIABLE;
             name = variableName;
 
             value = default;
+
+            originalStringIndex = originalIndex;
+        }
+
+        public override string ToString()
+        {
+            if (token == TokenType.VARIABLE)
+            {
+                return $"var \"{name}\" : {originalStringIndex}";
+            }
+            if (token == TokenType.CONSTANT)
+            {
+                return $"const {value:F2} : {originalStringIndex}";
+            }
+            return $"{Enum.GetName(typeof(TokenType), token)} : {originalStringIndex}";
         }
     }
 }

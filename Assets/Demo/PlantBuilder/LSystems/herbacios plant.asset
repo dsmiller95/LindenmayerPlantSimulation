@@ -12,61 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4c04f427737a0147974aaa47b597e91, type: 3}
   m_Name: herbacios plant
   m_EditorClassIdentifier: 
+  iterations: 10
   axiom: A(1)
   seed: 0
   rules: '
 
-    (P1.0) A(x) -> QN^A(x + 1)
+    A(x) : x < 4 -> QNA(x + 1)
 
-    (P0.0) A -> QN&A
-
-    (P0.0) A ->
-    QN-A
-
-    (P0.0) A -> QN+A
-
-    (P1.0) A -> QNA
+    A(x) : x >= 4 -> QN
 
 
-
-    (P0.2) Q -> W-NW+W
-
-    (P0.2)
-    Q -> W+WN-W
-
-    (P0.2) Q -> W&W^W
-
-    (P0.2) Q -> WN^W&W
-
-    (P0.2) Q -> WNW
-
-    (P0.2)
-    W -> F-F+F
-
-    (P0.2) W -> F+F-F
-
-    (P0.2) W -> F&F^F
-
-    (P0.2) W -> F^F&F
-
-    (P0.2)
-    W -> FFF
-
-
-
-
-
-    (P0.2) S -> F--F+F+F
-
-    (P0.2) S -> F^^F&&F^F&F
-
-    (P0.2)
-    S -> F++F-F-F
-
-    (P0.2) S -> F+F+F-F-F
-
-    (P0.2) S -> &F&FSF^F^
-
+    Q -> FFF
 
 
     N

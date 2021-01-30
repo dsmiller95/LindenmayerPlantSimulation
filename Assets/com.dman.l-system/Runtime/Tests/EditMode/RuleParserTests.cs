@@ -1,6 +1,9 @@
 using Dman.LSystem;
 using NUnit.Framework;
 using System;
+using System.Text.RegularExpressions;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 public class RuleParserTests
 {
@@ -107,7 +110,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithGlobalParametersMatch()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A(x) -> B(x + stretch, stretch)", new string[] { "stretch"});
+        var ruleFromString = ParsedRule.ParseToRule("A(x) -> B(x + stretch, stretch)", new string[] { "stretch" });
 
         Assert.IsNull(ruleFromString.conditionalMatch);
 
@@ -118,5 +121,135 @@ public class RuleParserTests
         Assert.AreEqual(2, ruleFromString.replacementSymbols[0].evaluators.Length);
         Assert.AreEqual(12, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(10, 2));
         Assert.AreEqual(10, ruleFromString.replacementSymbols[0].evaluators[1].DynamicInvoke(10, 2));
+    }
+    [Test]
+    public void RuleWithMissingParameterThrowsMeaningfulException()
+    {
+        var ruleString = "A(x) -> B(x, y)";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }catch(SyntaxException e)
+        {
+            Assert.AreEqual(13, e.errorStartIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+            Assert.IsTrue(e.Message.Contains("\"y\""), "Should contain the missing parameter name");
+        }
+    }
+    [Test]
+    public void RuleWithNoReplacementThrowsMeaninfulException()
+    {
+        var ruleString = "A(x) ->";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }
+        catch (SyntaxException e)
+        {
+            Assert.AreEqual(0, e.errorStartIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+        }
+    }
+    [Test]
+    public void RuleWithOneTooFewParensThrowsMeaninfulException()
+    {
+        var ruleString = "A(x) -> B(x + (y)";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }
+        catch (SyntaxException e)
+        {
+            Assert.AreEqual(17, e.errorStartIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+        }
+    }
+    [Test]
+    public void RuleWith3ConsecutiveExpressionOperatorsThrowsMeaninfulException()
+    {
+        var ruleString = "A(x, y) -> B(x + / * y)";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }
+        catch (SyntaxException e)
+        {
+            Assert.AreEqual(19, e.errorStartIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+        }
+    }
+    [Test]
+    public void RuleWithInvalidUnaryOperatorThrowsMeaninfulException()
+    {
+        var ruleString = "A(x, y) -> B(x + / y)";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }
+        catch (SyntaxException e)
+        {
+            Assert.AreEqual(17, e.errorStartIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+        }
+    }
+    [Test]
+    public void RuleWithStrandedOperatorThrowsMeaninfulException()
+    {
+        var ruleString = "A(x, y) -> B(+)";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }
+        catch (SyntaxException e)
+        {
+            Assert.AreEqual(13, e.errorStartIndex);
+            Assert.AreEqual(14, e.ErrorEndIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+        }
+    }
+    [Test]
+    public void RuleWithEmptyParensThrowsMeaninfulException()
+    {
+        var ruleString = "A(x, y) -> B()";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }
+        catch (SyntaxException e)
+        {
+            Assert.AreEqual(12, e.errorStartIndex);
+            Assert.AreEqual(14, e.ErrorEndIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+        }
+    }
+    [Test]
+    public void RuleWithExtraRightParenThrowsMeaninfulException()
+    {
+        var ruleString = "A(x, y) -> B(x))";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }
+        catch (SyntaxException e)
+        {
+            Assert.AreEqual(15, e.errorStartIndex);
+            Assert.AreEqual(16, e.ErrorEndIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+        }
+    }
+    [Test]
+    public void RuleWithInvalidParameterInConditionalThrowsMeaningfulException()
+    {
+        var ruleString = "A(x, y) : x >= e -> B(x)";
+        try
+        {
+            ParsedRule.ParseToRule(ruleString);
+        }
+        catch (SyntaxException e)
+        {
+            Assert.AreEqual(15, e.errorStartIndex);
+            Assert.AreEqual(16, e.ErrorEndIndex);
+            Assert.AreEqual(ruleString, e.ruleText);
+        }
     }
 }

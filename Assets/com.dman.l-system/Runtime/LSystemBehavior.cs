@@ -26,7 +26,7 @@ namespace Dman.LSystem
         public void StepSystem()
         {
             currentSystem?.StepSystem();
-            Debug.Log(currentState?.symbols.ToStringFromChars());
+            Debug.Log(currentState?.ToString());
         }
     }
 }

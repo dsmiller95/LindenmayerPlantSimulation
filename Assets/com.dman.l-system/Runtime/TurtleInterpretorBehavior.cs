@@ -31,7 +31,6 @@ namespace Dman.LSystem
         public MeshKey[] meshKeys;
         public TransformKey[] transformKeys;
         public float secondsPerUpdate;
-        public int maxUpdates = 10;
         public Vector3 initialScale = Vector3.one;
 
         public char meshIndexIncrementor = '`';
@@ -69,7 +68,7 @@ namespace Dman.LSystem
         private float lastUpdate;
         private void Update()
         {
-            
+            var maxUpdates = system.systemObject.iterations;
             if (currentUpdates < maxUpdates && Time.time > lastUpdate + secondsPerUpdate)
             {
                 lastUpdate = Time.time;

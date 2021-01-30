@@ -45,19 +45,28 @@ namespace Dman.LSystem.ExpressionCompiler
 
         public TokenExpression GetHeirarchicalExpression(IEnumerable<Token> tokens)
         {
-            var enumerator = tokens.GetEnumerator();
+            Token lastReadSample = default;
+            var enumerator = tokens.Select(x => {
+                lastReadSample = x;
+                return x;
+            }).GetEnumerator();
             enumerator.MoveNext();
-            if(enumerator.Current.token != TokenType.LEFT_PAREN)
+            var firstToken = enumerator.Current;
+            if (firstToken.token != TokenType.LEFT_PAREN)
             {
                 throw new Exception("token string must begin with an open paren");
             }
-            return new TokenExpression(ParseToTokenExpressionTillNextParen(enumerator).ToList());
+            var internalExpressionList = ParseToTokenExpressionTillNextParen(enumerator).ToList();
+            return new TokenExpression(
+                internalExpressionList,
+                firstToken.originalStringIndex,
+                lastReadSample.originalStringIndex);
         }
 
         private TokenType expressions = TokenType.CONSTANT | TokenType.VARIABLE;
 
         /// <summary>
-        /// assumes the open paren has alread been consumed
+        /// assumes the open paren has already been consumed
         /// </summary>
         /// <param name="enumerator"></param>
         /// <returns></returns>
@@ -69,28 +78,31 @@ namespace Dman.LSystem.ExpressionCompiler
                 var tokenType = current.token;
                 if(tokenType == TokenType.LEFT_PAREN)
                 {
-                    yield return new TokenExpression(ParseToTokenExpressionTillNextParen(enumerator).ToList());
+                    yield return new TokenExpression(
+                        ParseToTokenExpressionTillNextParen(enumerator).ToList(),
+                        current.originalStringIndex,
+                        enumerator.Current.originalStringIndex);
                 }else if (expressions.HasFlag(tokenType))
                 {
                     if(tokenType == TokenType.CONSTANT)
                     {
-                        yield return new TokenExpression(Expression.Constant(enumerator.Current.value));
+                        yield return new TokenExpression(Expression.Constant(current.value), current.originalStringIndex);
                     }else if (tokenType == TokenType.VARIABLE)
                     {
                         if (!this.parameters.TryGetValue(current.name, out var parameterExp)) {
-                            throw new Exception($"no parameter found for '{current.name}'");
+                            throw new SyntaxException($"no parameter found for '{current.name}'", current.originalStringIndex);
                         }
-                        yield return new TokenExpression(parameterExp);
+                        yield return new TokenExpression(parameterExp, current.originalStringIndex);
                     }else
                     {
-                        throw new Exception($"no parameter found for '{Enum.GetName(typeof(TokenType), tokenType)}'");
+                        throw new Exception($"Invalid Expression Token Type: '{Enum.GetName(typeof(TokenType), tokenType)}'");
                     }
                 }else
                 {
                     // the token must be an operator
-                    yield return new TokenOperator
+                    yield return new TokenOperator(current.originalStringIndex)
                     {
-                        type = tokenType
+                        type = tokenType,
                     };
                 }
             }

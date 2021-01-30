@@ -7,6 +7,8 @@ namespace Dman.LSystem
     [CreateAssetMenu(fileName = "LSystem", menuName = "LSystem/SystemDefinition")]
     public class LSystemObject : ScriptableObject
     {
+        public int iterations = 7;
+
         public string axiom;
         public int seed;
         [Multiline(30)]

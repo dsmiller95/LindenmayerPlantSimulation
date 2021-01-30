@@ -5,8 +5,23 @@ using System.Linq.Expressions;
 
 namespace Dman.LSystem.ExpressionCompiler
 {
-    public interface TokenTarget
+    public abstract class TokenTarget
     {
+        public int originalStringIndex;
+        public int originalStringEndIndex;
+        protected TokenTarget(int originalIndex) : this(originalIndex, originalIndex + 1)
+        {
+        }
+        protected TokenTarget(int originalIndex, int endIndex)
+        {
+            this.originalStringIndex = originalIndex;
+            this.originalStringEndIndex = endIndex;
+        }
+
+        public SyntaxException ExceptionHere(string message)
+        {
+            return new SyntaxException(message, originalStringIndex, originalStringEndIndex - originalStringIndex);
+        }
     }
 
     public class TokenExpression : TokenTarget
@@ -15,14 +30,19 @@ namespace Dman.LSystem.ExpressionCompiler
         public Expression compiledExpression;
         public List<TokenTarget> tokenSeries;
 
-        public TokenExpression(Expression expression)
+        public TokenExpression(Expression expression, int index): base(index)
         {
             compiledExpression = expression;
             isTokenSeries = false;
         }
 
-        public TokenExpression(List<TokenTarget> series)
+        public TokenExpression(List<TokenTarget> series, int index, int endIndex): base(index, endIndex)
         {
+            if(series.Count == 0)
+            {
+                throw new SyntaxException("Empty parentheses are not allowed", index, (endIndex + 1) - index);
+            }
+
             tokenSeries = series;
             isTokenSeries = true;
         }
@@ -48,7 +68,8 @@ namespace Dman.LSystem.ExpressionCompiler
                     }
                     else if (totalPrecedingOperators > 2)
                     {
-                        throw new SyntaxException($"{totalPrecedingOperators} consecutive operators detected");
+                        throw tokenSeries[i].ExceptionHere(
+                            $"{totalPrecedingOperators} consecutive operators detected");
                     }
                 }
                 else
@@ -61,15 +82,19 @@ namespace Dman.LSystem.ExpressionCompiler
             {
                 var op = tokenSeries[unaryIndex] as TokenOperator;
                 tokenSeries.RemoveAt(unaryIndex);
+                if(tokenSeries.Count <= unaryIndex)
+                {
+                    throw op.ExceptionHere("Stranded Operator");
+                }
                 var value = tokenSeries[unaryIndex] as TokenExpression;
                 var valuesExpression = value.CompileSelfToExpression();
                 switch (op.type)
                 {
                     case TokenType.SUBTRACT:
-                        tokenSeries[unaryIndex] = new TokenExpression(Expression.NegateChecked(valuesExpression));
+                        tokenSeries[unaryIndex] = new TokenExpression(Expression.NegateChecked(valuesExpression), op.originalStringIndex);
                         break;
                     default:
-                        throw new SyntaxException($"Unsupported unary operator: {Enum.GetName(typeof(TokenType), op.type)}");
+                        throw op.ExceptionHere($"Unsupported unary operator: {Enum.GetName(typeof(TokenType), op.type)}");
                 }
             }
 
@@ -92,7 +117,12 @@ namespace Dman.LSystem.ExpressionCompiler
                 var op = operatorNode.Value as TokenOperator;
                 var secondVal = operatorNode.Next.Value as TokenExpression;
 
-                var newVal = new TokenExpression(GetExpressionFromBinaryOperator(firstVal.CompileSelfToExpression(), op.type, secondVal.CompileSelfToExpression()));
+                var newVal = new TokenExpression(
+                    GetExpressionFromBinaryOperator(
+                        firstVal.CompileSelfToExpression(),
+                        op.type,
+                        secondVal.CompileSelfToExpression()),
+                    firstVal.originalStringIndex);
                 tokenLinkedList.Remove(firstVal);
                 operatorNode.Value = newVal;
                 tokenLinkedList.Remove(secondVal);
@@ -137,5 +167,10 @@ namespace Dman.LSystem.ExpressionCompiler
     public class TokenOperator : TokenTarget
     {
         public TokenType type;
+
+        public TokenOperator(int index): base(index)
+        {
+
+        }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Dman.LSystem.ExpressionCompiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -100,11 +99,12 @@ namespace Dman.LSystem
         public static IEnumerable<SymbolReplacementExpressionMatcher> ParseAllSymbolExpressions(string allsymbols, string[] validParameters)
         {
             var charEnumerator = allsymbols.GetEnumerator();
-            charEnumerator.MoveNext();
+            int currentIndexInStream = -1;
+            AttemptMoveNext(charEnumerator, ref currentIndexInStream);
             bool hasNextMatch;
             do
             {
-                var nextMatch = ParseOutSymbolExpression(charEnumerator, validParameters);
+                var nextMatch = ParseOutSymbolExpression(charEnumerator, validParameters, ref currentIndexInStream);
                 hasNextMatch = nextMatch.Item2;
                 yield return nextMatch.Item1;
             } while (hasNextMatch);
@@ -116,14 +116,19 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="symbols"></param>
         /// <param name="validParameters"></param>
+        /// <param name="currentIndexInStream"></param>
         /// <returns></returns>
-        private static (SymbolReplacementExpressionMatcher, bool) ParseOutSymbolExpression(IEnumerator<char> symbols, string[] validParameters)
+        private static (SymbolReplacementExpressionMatcher, bool) ParseOutSymbolExpression(
+            CharEnumerator symbols,
+            string[] validParameters,
+            ref int currentIndexInStream)
         {
             var nextSymbol = symbols.Current;
             if (nextSymbol == '(' || nextSymbol == ')')
             {
-                throw new SyntaxException("cannot use parentheses as a symbol");
+                throw new SyntaxException("Cannot use parentheses as a symbol", currentIndexInStream);
             }
+            currentIndexInStream++;
             if (!symbols.MoveNext())
             {
                 return (new SymbolReplacementExpressionMatcher(nextSymbol), false);
@@ -135,7 +140,7 @@ namespace Dman.LSystem
             var delegates = new List<System.Delegate>();
             while (symbols.Current != ')')
             {
-                symbols.MoveNext();
+                AttemptMoveNext(symbols, ref currentIndexInStream);
                 var indentationDepth = 0;
                 var expressionString = new StringBuilder();
                 while (symbols.Current != ',')
@@ -156,16 +161,42 @@ namespace Dman.LSystem
                         break;
                     }
                     expressionString.Append(symbols.Current);
-                    symbols.MoveNext();
+                    AttemptMoveNext(symbols, ref currentIndexInStream);
                 }
-                delegates.Add(ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateWithParameters(
-                    "(" + expressionString.ToString() + ")",
-                    validParameters));
+                var expressionToParse = expressionString.ToString();
+                try
+                {
+                    delegates.Add(ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateWithParameters(
+                        "(" + expressionToParse + ")",
+                        validParameters));
+                }
+                catch (SyntaxException e)
+                {
+                    e.RecontextualizeIndex(currentIndexInStream - expressionToParse.Length - 1);
+                    throw e;
+                }
             }
             // reset to next char to stay consistent
 
 
+            currentIndexInStream++;
             return (new SymbolReplacementExpressionMatcher(nextSymbol, delegates), symbols.MoveNext());
         }
+
+        /// <summary>
+        /// used when the next character must exist, and if it doesn't throw a parsing exception
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="enumerator"></param>
+        /// <param name="currentIndexInStream"></param>
+        private static void AttemptMoveNext<T>(IEnumerator<T> enumerator, ref int currentIndexInStream)
+        {
+            currentIndexInStream++;
+            if (!enumerator.MoveNext())
+            {
+                throw new SyntaxException("Unexpected end of input. Are you missing a parentheses?", currentIndexInStream);
+            }
+        }
     }
+
 }
