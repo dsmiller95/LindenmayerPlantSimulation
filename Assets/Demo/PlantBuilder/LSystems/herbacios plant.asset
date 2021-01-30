@@ -17,17 +17,20 @@ MonoBehaviour:
   seed: 0
   rules: '
 
-    A(x) : x < 4 -> QNA(x + 1)
+    A(x) : x < growthStop -> QNA(x + 1)
 
-    A(x) : x >= 4 -> QN
+    A(x) : x >= growthStop ->
+    QN
 
 
     Q -> FFF
 
 
-    N
-    -> [//&&L][//^^//////////L]
+    N -> [//&&L][//^^//////////L]
 
     L -> `l
 
 '
+  defaultGlobalParameters:
+  - name: growthStop
+    defaultValue: 4

@@ -6,7 +6,7 @@ public class LSystemTests
     [Test]
     public void LSystemParsesStringAxiom()
     {
-        var basicLSystem = new LSystem<double>("B", new IRule<double>[0], 0);
+        var basicLSystem = new LSystem<double>(new SymbolString<double>("B"), new IRule<double>[0], 0);
 
         Assert.AreEqual("B".ToIntArray(), basicLSystem.currentSymbols.symbols);
         Assert.AreEqual(new float[][]{
@@ -16,10 +16,13 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesBasicRules()
     {
-        var basicLSystem = new LSystem<double>("B", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem(
+            "B",
+            new string[] {
             "A -> AB",
             "B -> A"
-        }), 0);
+            },
+            0);
 
         Assert.AreEqual("B".ToIntArray(), basicLSystem.currentSymbols.symbols);
         basicLSystem.StepSystem();
@@ -35,11 +38,11 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesMultiMatchRules()
     {
-        var basicLSystem = new LSystem<double>("B", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("B", new string[] {
             "A -> AB",
             "B -> A",
             "AA -> B"
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("B", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -61,10 +64,10 @@ public class LSystemTests
     [Test]
     public void LSystemAssumesIdentityReplacementWithMultiMatchRules()
     {
-        var basicLSystem = new LSystem<double>("B", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("B", new string[] {
             "B -> ABA",
             "AA -> B"
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("B", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -80,10 +83,10 @@ public class LSystemTests
     [Test]
     public void LSystemAssumesIdentityRule()
     {
-        var basicLSystem = new LSystem<double>("B", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("B", new string[] {
             "A -> ACB",
             "B -> A"
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("B".ToIntArray(), basicLSystem.currentSymbols.symbols);
         basicLSystem.StepSystem();
@@ -99,11 +102,11 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesStochasticRule()
     {
-        var basicLSystem = new LSystem<double>("C", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("C", new string[] {
             "A -> AC",
             "(P0.5) C -> A",
             "(P0.5) C -> AB"
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("C", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -120,11 +123,11 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesStochasticRuleDifferently()
     {
-        var basicLSystem = new LSystem<double>("C", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("C", new string[] {
             "A -> AC",
             "(P0.9) C -> A",
             "(P0.1) C -> AB"
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("C", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -142,9 +145,9 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesParameterMatches()
     {
-        var basicLSystem = new LSystem<double>("A(1)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(1)", new string[] {
             "A(x) -> A(x + 1)",
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("A(1)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -160,9 +163,9 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesComplexParameterEquations()
     {
-        var basicLSystem = new LSystem<double>("A(1, 1)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(1, 1)", new string[] {
             "A(x, y) -> A(x + y, x * y)",
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("A(1, 1)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -178,9 +181,9 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesParameterEquationsWhenMultiMatch()
     {
-        var basicLSystem = new LSystem<double>("A(1, 1)B(0)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(1, 1)B(0)", new string[] {
             "A(x, y)B(z) -> A(x + z, y + z)B(y)",
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("A(1, 1)B(0)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -196,9 +199,9 @@ public class LSystemTests
     [Test]
     public void LSystemDoesAFibbonachi()
     {
-        var basicLSystem = new LSystem<double>("A(1)B(1)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(1)B(1)", new string[] {
             "A(x)B(y) -> A(x + y)B(x)",
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("A(1)B(1)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -216,9 +219,9 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesParameterMatchesAndTerminatesAtCondition()
     {
-        var basicLSystem = new LSystem<double>("A(2)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(2)", new string[] {
             "A(x) : x < 6 -> A(x + 1)",
-        }), 0);
+        }, 0);
 
         Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
@@ -239,9 +242,9 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        var basicLSystem = new LSystem<double>("A(1, 1)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(1, 1)", new string[] {
             "A(x, y) -> A((x + y) - global, x * y + global)",
-        }, globalParameters), 0);
+        }, 0, globalParameters);
 
         var defaultGlobalParams = new double[] { 5 };
 
@@ -264,9 +267,9 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        var basicLSystem = new LSystem<double>("A(0)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(0)", new string[] {
             "A(x) : x < global -> A(x + 1)",
-        }, globalParameters), 0);
+        }, 0, globalParameters);
 
         var defaultGlobalParams = new double[] { 3 };
 
@@ -291,10 +294,10 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        var basicLSystem = new LSystem<double>("A(0)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(0)", new string[] {
             "A(x) : x < global -> A(x + 1)",
             "A(x) : x >= global -> A(x - 1)",
-        }, globalParameters), 0);
+        }, 0, globalParameters);
 
         var defaultGlobalParams = new double[] { 3 };
 
@@ -319,12 +322,12 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        var basicLSystem = new LSystem<double>("A(0)", ParsedRule.CompileRules(new string[] {
+        var basicLSystem = LSystemBuilder.DoubleSystem("A(0)", new string[] {
             "(P0.5) A(x) : x < global -> A(x + 1)",
             "(P0.5) A(x) : x < global -> A(x + 0.5)",
             "(P0.5) A(x) : x >= global -> A(x - 1)",
             "(P0.5) A(x) : x >= global -> A(x - 0.5)",
-        }, globalParameters), 0);
+        }, 0, globalParameters);
 
         var defaultGlobalParams = new double[] { 3 };
 

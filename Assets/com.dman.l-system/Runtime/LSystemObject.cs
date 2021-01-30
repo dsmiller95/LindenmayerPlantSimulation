@@ -4,6 +4,13 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
+    [System.Serializable]
+    public struct GlobalParameterAndDefault
+    {
+        public string name;
+        public double defaultValue;
+    }
+
     [CreateAssetMenu(fileName = "LSystem", menuName = "LSystem/SystemDefinition")]
     public class LSystemObject : ScriptableObject
     {
@@ -14,18 +21,20 @@ namespace Dman.LSystem
         [Multiline(30)]
         public string rules;
 
+        public GlobalParameterAndDefault[] defaultGlobalParameters;
+
         public LSystem<double> Compile(int? seedOverride = null)
         {
             try
             {
-                return new LSystem<double>(
+                var ruleLines = rules.Split('\n')
+                                .Select(x => x.Trim())
+                                .Where(x => !string.IsNullOrEmpty(x));
+                return LSystemBuilder.DoubleSystem(
                     axiom,
-                    ParsedRule.CompileRules(
-                        rules
-                            .Split('\n')
-                            .Select(x => x.Trim())
-                            .Where(x => !string.IsNullOrEmpty(x))),
-                    seedOverride ?? seed);
+                    ruleLines,
+                    seedOverride ?? seed,
+                    defaultGlobalParameters.Select(x => x.name).ToArray());
             }
             catch (System.Exception e)
             {

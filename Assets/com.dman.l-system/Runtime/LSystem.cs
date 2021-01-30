@@ -4,6 +4,26 @@ using System.Linq;
 
 namespace Dman.LSystem
 {
+    public static class LSystemBuilder
+    {
+        public static LSystem<double> DoubleSystem(
+           string axiomString,
+           IEnumerable<string> rules,
+           int seed,
+           string[] globalParameters = null)
+        {
+            return new LSystem<double>(
+                new SymbolString<double>(axiomString),
+                ParsedRule.CompileRules(
+                        rules,
+                        globalParameters
+                        ),
+                seed,
+                globalParameters?.Length ?? 0
+                );
+        }
+    }
+
     public class LSystem<T>
     {
         public SymbolString<T> currentSymbols { get; private set; }
@@ -14,23 +34,19 @@ namespace Dman.LSystem
         private IDictionary<int, IList<IRule<T>>> rulesByFirstTargetSymbol;
         private System.Random randomProvider;
 
+        public int GlobalParameters { get; private set;}
+
+
         public LSystem(
-            string axiomString,
+            SymbolString<T> axiomString,
             IEnumerable<IRule<T>> rules,
-            int seed) : this(new SymbolString<T>(axiomString), rules, seed)
-        {
-        }
-
-        public void RestartSystem(string axiomString, int seed)
-        {
-            currentSymbols = new SymbolString<T>(axiomString);
-            randomProvider = new System.Random(seed);
-        }
-
-        public LSystem(SymbolString<T> axiomString, IEnumerable<IRule<T>> rules, int seed)
+            int seed,
+            int expectedGlobalParameters = 0)
         {
             currentSymbols = axiomString;
             randomProvider = new System.Random(seed);
+            this.GlobalParameters = expectedGlobalParameters;
+
             rulesByFirstTargetSymbol = new Dictionary<int, IList<IRule<T>>>();
             foreach (var rule in rules)
             {
@@ -49,9 +65,21 @@ namespace Dman.LSystem
             }
         }
 
+        public void RestartSystem(string axiomString, int seed)
+        {
+            currentSymbols = new SymbolString<T>(axiomString);
+            randomProvider = new System.Random(seed);
+        }
+
         public void StepSystem(T[] globalParameters = null)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
+            var globalParamSize = globalParameters?.Length ?? 0;
+            if(globalParamSize != GlobalParameters)
+            {
+                throw new Exception($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
+            }
+
             var resultString = GenerateNextSymbols(globalParameters).ToList();
             currentSymbols = SymbolString<T>.ConcatAll(resultString);
             UnityEngine.Profiling.Profiler.EndSample();
