@@ -1,10 +1,11 @@
+using Dman.LSystem.SystemRuntime;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemCompiler
 {
     public class ParsedStochasticRule : ParsedRule
     {
@@ -13,8 +14,8 @@ namespace Dman.LSystem
 
     public class ParsedRule
     {
-        public SingleSymbolMatcher[] targetSymbols;
-        public SymbolReplacementExpressionMatcher[] replacementSymbols;
+        public InputSymbol[] targetSymbols;
+        public ReplacementSymbolGenerator[] replacementSymbols;
 
         public System.Delegate conditionalMatch;
         public string conditionalStringDescription;
@@ -50,7 +51,7 @@ namespace Dman.LSystem
         {
             try
             {
-                var compiledResult = ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateAndDescriptionWithParameters(
+                var compiledResult = ExpressionCompiler.CompileExpressionToDelegateAndDescriptionWithParameters(
                     $"({conditionalExpression})",
                     validParameters);
                 conditionalMatch = compiledResult.Item1;
@@ -74,25 +75,6 @@ namespace Dman.LSystem
         /// <param name="ruleDef"></param>
         public static ParsedRule ParseToRule(string ruleString, string[] globalParameters = null)
         {
-            //try
-            //{
-            return RuleParser(ruleString, globalParameters);
-            //}
-            //catch (System.InvalidOperationException e)
-            //{
-
-            //    Debug.LogError($"Unexpected end of input when parsing rule:\n{ruleString}");
-            //    return null;
-            //}
-            //catch (System.Exception)
-            //{
-            //    Debug.LogError($"Error parsing rule: {ruleString}");
-            //    throw;
-            //}
-        }
-
-        private static ParsedRule RuleParser(string ruleString, string[] globalParameters = null)
-        {
             var symbolMatchPattern = @"(\w(?:\((?:\w+, )*\w+\))?)+";
 
             var ruleMatch = Regex.Match(ruleString.Trim(), @$"(?:\(P(?<probability>[.0-9]+)\))?\s*(?<targetSymbols>{symbolMatchPattern})\s*(?::(?<conditional>.*)\s*)?->\s*(?<replacement>.+)");
@@ -109,7 +91,7 @@ namespace Dman.LSystem
                 rule = new ParsedRule();
             }
 
-            rule.targetSymbols = ParseSymbolMatcher(ruleMatch.Groups["targetSymbols"].Value);
+            rule.targetSymbols = InputSymbolParser.ParseInputSymbols(ruleMatch.Groups["targetSymbols"].Value);
             var availableParameters = rule.TargetSymbolParameterNames();
             if (globalParameters != null)
             {
@@ -130,7 +112,7 @@ namespace Dman.LSystem
 
             try
             {
-                rule.replacementSymbols = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(
+                rule.replacementSymbols = ReplacementSymbolGeneratorParser.ParseReplacementSymbolGenerators(
                     replacementSymbolMatch.Value,
                     parameterArray)
                     .ToArray();
@@ -156,31 +138,6 @@ namespace Dman.LSystem
             }
 
             return rule;
-        }
-
-        private static SingleSymbolMatcher[] ParseSymbolMatcher(string symbolSeries)
-        {
-            var individualSymbolTargets = Regex.Matches(symbolSeries, @"(?<symbol>\w)(?:\((?<params>(?:\w+, )*\w+)\))?");
-
-            var targetSymbols = new List<SingleSymbolMatcher>();
-            for (int i = 0; i < individualSymbolTargets.Count; i++)
-            {
-                var match = individualSymbolTargets[i];
-                var symbol = match.Groups["symbol"].Value[0];
-                var namedParameters = match.Groups["params"];
-                var namedParamList = new List<string>();
-                if (namedParameters.Success)
-                {
-                    var individualParamMatches = Regex.Matches(namedParameters.Value, @"(?<parameter>\w+),?\s*");
-                    for (int j = 0; j < individualParamMatches.Count; j++)
-                    {
-                        namedParamList.Add(individualParamMatches[j].Groups["parameter"].Value);
-                    }
-                }
-                targetSymbols.Add(new SingleSymbolMatcher(symbol, namedParamList));
-            }
-
-            return targetSymbols.ToArray();
         }
 
 

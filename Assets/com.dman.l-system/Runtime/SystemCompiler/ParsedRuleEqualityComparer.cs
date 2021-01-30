@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Dman.LSystem.SystemRuntime;
+using System.Collections.Generic;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemCompiler
 {
     public class ParsedRuleEqualityComparer : IEqualityComparer<ParsedRule>
     {
@@ -18,7 +19,7 @@ namespace Dman.LSystem
             return true;
         }
 
-        private bool TargetSymbolsEqual(SingleSymbolMatcher[] x, SingleSymbolMatcher[] y)
+        private bool TargetSymbolsEqual(InputSymbol[] x, InputSymbol[] y)
         {
             if (x == y)
             {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Dman.LSystem.ExpressionCompiler
+namespace Dman.LSystem.SystemCompiler
 {
     [Flags]
     public enum TokenType

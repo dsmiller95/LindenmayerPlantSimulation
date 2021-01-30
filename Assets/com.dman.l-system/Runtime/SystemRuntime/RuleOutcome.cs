@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemRuntime
 {
     public struct RuleOutcome
     {
         public float probability;
-        public SymbolReplacementExpressionMatcher[] replacementSymbols;
+        public ReplacementSymbolGenerator[] replacementSymbols;
 
         public SymbolString<double> GenerateReplacement(object[] matchedParameters)
         {

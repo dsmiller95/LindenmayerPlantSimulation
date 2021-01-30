@@ -1,10 +1,11 @@
+using Dman.LSystem.SystemCompiler;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemRuntime
 {
     public class BasicRule : IRule<double>
     {
@@ -14,17 +15,10 @@ namespace Dman.LSystem
         public int[] TargetSymbolSeries => _targetSymbols;
         private readonly int[] _targetSymbols;
 
-        private readonly SingleSymbolMatcher[] _targetSymbolsWithParameters;
+        private readonly InputSymbol[] _targetSymbolsWithParameters;
         private System.Delegate conditionalChecker;
 
         public RuleOutcome[] possibleOutcomes;
-
-
-        //public BasicRule(int[] targetSymbols, RuleOutcome[] outcomes)
-        //{
-        //    this._targetSymbols = targetSymbols;
-        //    this.possibleOutcomes = outcomes;
-        //}
 
         public BasicRule(ParsedRule parsedInfo)
         {

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dman.LSystem.ExpressionCompiler
+namespace Dman.LSystem.SystemCompiler
 {
     public class ExpressionCompiler
     {

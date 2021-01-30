@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemRuntime
 {
     public class SymbolString<ParamType>
     {
@@ -13,7 +13,9 @@ namespace Dman.LSystem
 
         public SymbolString(string symbolString)
         {
-            var symbolMatch = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(symbolString, new string[0]).ToArray();
+            var symbolMatch = ReplacementSymbolGeneratorParser.ParseReplacementSymbolGenerators(
+                symbolString,
+                new string[0]).ToArray();
             symbols = new int[symbolMatch.Length];
             parameters = new ParamType[symbolMatch.Length][];
             for (int i = 0; i < symbolMatch.Length; i++)

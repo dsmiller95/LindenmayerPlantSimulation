@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemRuntime
 {
     public interface IRule<T>
     {

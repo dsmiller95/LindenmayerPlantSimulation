@@ -1,4 +1,4 @@
-﻿namespace Dman.LSystem
+﻿namespace Dman.LSystem.SystemCompiler
 {
     public class SyntaxException : System.Exception
     {
@@ -44,16 +44,8 @@
                 var prefix = ruleText.Substring(0, errorStartIndex);
                 var errorRule = $"<color=red>{ruleText.Substring(errorStartIndex, errorLength)}</color>";
                 var suffix = ruleText.Substring(ErrorEndIndex, ruleText.Length - ErrorEndIndex);
-                //var resultRule = ruleText.Substring(0, errorStartIndex) +
-                //    $"<color=red>{ruleText.Substring(errorStartIndex, errorEndIndex - errorStartIndex)}</color>" +
-                //    ruleText.Substring(errorEndIndex, ruleText.Length - errorEndIndex);
                 return $"{prefix + errorRule + suffix} : {errorDescription}";
             }
         }
-
-        //public override string ToString()
-        //{
-        //    return base.ToString();
-        //}
     }
 }

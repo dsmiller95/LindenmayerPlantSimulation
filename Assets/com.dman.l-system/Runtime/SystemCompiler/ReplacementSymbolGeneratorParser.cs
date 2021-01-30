@@ -1,102 +1,13 @@
-﻿using System;
+﻿using Dman.LSystem.SystemCompiler;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemRuntime
 {
-    public interface ISymbolMatcher
+    public static class ReplacementSymbolGeneratorParser
     {
-    }
-
-    public class SingleSymbolMatcher : ISymbolMatcher, System.IEquatable<SingleSymbolMatcher>
-    {
-        public int targetSymbol;
-        public string[] namedParameters;
-
-        public SingleSymbolMatcher(int targetSymbol, IEnumerable<string> namedParams)
-        {
-            this.targetSymbol = targetSymbol;
-            namedParameters = namedParams.ToArray();
-        }
-
-        public override string ToString()
-        {
-            string result = ((char)targetSymbol) + "";
-            if (namedParameters.Length > 0)
-            {
-                result += $"({namedParameters.Aggregate((agg, curr) => agg + ", " + curr)})";
-            }
-            return result;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (!(obj is SingleSymbolMatcher typed))
-            {
-                return false;
-            }
-            return Equals(typed);
-        }
-
-        public override int GetHashCode()
-        {
-            var hash = targetSymbol.GetHashCode();
-            foreach (var parameter in namedParameters)
-            {
-                hash ^= parameter.GetHashCode();
-            }
-            return hash;
-        }
-
-        public bool Equals(SingleSymbolMatcher other)
-        {
-            if (targetSymbol != other.targetSymbol || namedParameters.Length != other.namedParameters.Length)
-            {
-                return false;
-            }
-            for (int i = 0; i < namedParameters.Length; i++)
-            {
-                if (namedParameters[i] != other.namedParameters[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
-    public class SymbolReplacementExpressionMatcher : ISymbolMatcher
-    {
-        public int targetSymbol;
-        public Delegate[] evaluators;
-        public SymbolReplacementExpressionMatcher(int targetSymbol)
-        {
-            this.targetSymbol = targetSymbol;
-            evaluators = new Delegate[0];
-        }
-        public SymbolReplacementExpressionMatcher(int targetSymbol, IEnumerable<Delegate> evaluatorExpressions)
-        {
-            this.targetSymbol = targetSymbol;
-            evaluators = evaluatorExpressions.ToArray();
-        }
-
-        public double[] EvaluateNewParameters(object[] matchedParameters)
-        {
-            return evaluators.Select(x => (double)x.DynamicInvoke(matchedParameters)).ToArray();
-        }
-
-        public override string ToString()
-        {
-            string result = ((char)targetSymbol) + "";
-            if (evaluators.Length > 0)
-            {
-                result += @$"({evaluators
-                    .Select(x => x.ToString())
-                    .Aggregate((agg, curr) => agg + ", " + curr)})";
-            }
-            return result;
-        }
-        public static IEnumerable<SymbolReplacementExpressionMatcher> ParseAllSymbolExpressions(string allsymbols, string[] validParameters)
+        public static IEnumerable<ReplacementSymbolGenerator> ParseReplacementSymbolGenerators(string allsymbols, string[] validParameters)
         {
             var charEnumerator = allsymbols.GetEnumerator();
             int currentIndexInStream = -1;
@@ -118,7 +29,7 @@ namespace Dman.LSystem
         /// <param name="validParameters"></param>
         /// <param name="currentIndexInStream"></param>
         /// <returns></returns>
-        private static (SymbolReplacementExpressionMatcher, bool) ParseOutSymbolExpression(
+        private static (ReplacementSymbolGenerator, bool) ParseOutSymbolExpression(
             CharEnumerator symbols,
             string[] validParameters,
             ref int currentIndexInStream)
@@ -131,11 +42,11 @@ namespace Dman.LSystem
             currentIndexInStream++;
             if (!symbols.MoveNext())
             {
-                return (new SymbolReplacementExpressionMatcher(nextSymbol), false);
+                return (new ReplacementSymbolGenerator(nextSymbol), false);
             }
             if (symbols.Current != '(')
             {
-                return (new SymbolReplacementExpressionMatcher(nextSymbol), true);
+                return (new ReplacementSymbolGenerator(nextSymbol), true);
             }
             var delegates = new List<System.Delegate>();
             while (symbols.Current != ')')
@@ -166,7 +77,7 @@ namespace Dman.LSystem
                 var expressionToParse = expressionString.ToString();
                 try
                 {
-                    delegates.Add(ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateWithParameters(
+                    delegates.Add(ExpressionCompiler.CompileExpressionToDelegateWithParameters(
                         "(" + expressionToParse + ")",
                         validParameters));
                 }
@@ -180,7 +91,7 @@ namespace Dman.LSystem
 
 
             currentIndexInStream++;
-            return (new SymbolReplacementExpressionMatcher(nextSymbol, delegates), symbols.MoveNext());
+            return (new ReplacementSymbolGenerator(nextSymbol, delegates), symbols.MoveNext());
         }
 
         /// <summary>
