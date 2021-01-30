@@ -35,7 +35,7 @@ namespace Dman.LSystem.SystemRuntime
         private IDictionary<int, IList<IRule<T>>> rulesByFirstTargetSymbol;
         private System.Random randomProvider;
 
-        public int GlobalParameters { get; private set;}
+        public int GlobalParameters { get; private set; }
 
 
         public LSystem(
@@ -46,7 +46,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             currentSymbols = axiomString;
             randomProvider = new System.Random(seed);
-            this.GlobalParameters = expectedGlobalParameters;
+            GlobalParameters = expectedGlobalParameters;
 
             rulesByFirstTargetSymbol = new Dictionary<int, IList<IRule<T>>>();
             foreach (var rule in rules)
@@ -76,7 +76,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
             var globalParamSize = globalParameters?.Length ?? 0;
-            if(globalParamSize != GlobalParameters)
+            if (globalParamSize != GlobalParameters)
             {
                 throw new Exception($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
@@ -103,7 +103,7 @@ namespace Dman.LSystem.SystemRuntime
                             continue;
                         }
                         var result = rule.ApplyRule(
-                            new ArraySegment<T[]>(currentSymbols.parameters, symbolIndex, symbolMatch.Length), 
+                            new ArraySegment<T[]>(currentSymbols.parameters, symbolIndex, symbolMatch.Length),
                             randomProvider,
                             globalParameters);// todo
                         if (result != null)

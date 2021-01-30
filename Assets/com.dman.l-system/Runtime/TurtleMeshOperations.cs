@@ -27,7 +27,7 @@ namespace Dman.LSystem
                 newDraft.Move(Vector3.right * (-bounds.center.x + bounds.size.x / 2));
                 newDraft.Scale(meshKey.IndividualScale);
 
-                var transformPostMesh = meshKey.AlsoMove ? 
+                var transformPostMesh = meshKey.AlsoMove ?
                       Matrix4x4.Translate(new Vector3(bounds.size.x * meshKey.IndividualScale.x, 0, 0))
                     : Matrix4x4.identity;
                 yield return new TurtleMeshOperator(meshKey.Character, transformPostMesh, newDraft);

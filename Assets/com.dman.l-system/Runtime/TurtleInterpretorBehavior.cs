@@ -1,6 +1,4 @@
-﻿using ProceduralToolkit;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using UnityEngine;
 
@@ -49,7 +47,8 @@ namespace Dman.LSystem
                 lastUpdate = Time.time;
                 UpdateMeshAndSystem();
                 currentUpdates++;
-            }else if (currentUpdates >= maxUpdates && Time.time > lastUpdate + timeBeforeRestart)
+            }
+            else if (currentUpdates >= maxUpdates && Time.time > lastUpdate + timeBeforeRestart)
             {
                 lastUpdate = Time.time;
                 currentUpdates = 2;
@@ -57,7 +56,7 @@ namespace Dman.LSystem
                 if (system.systemValid)
                 {
                     system.StepSystem();
-                    this.UpdateMeshAndSystem();
+                    UpdateMeshAndSystem();
                 }
             }
         }
@@ -69,16 +68,16 @@ namespace Dman.LSystem
 
         private void UpdateMeshAndSystem()
         {
-            if(!system.systemValid)
+            if (!system.systemValid)
             {
-                this.TriggerSimulationRestart();
+                TriggerSimulationRestart();
                 return;
             }
             var output = turtle.CompileStringToMesh(system.currentState);
             GetComponent<MeshFilter>().mesh = output;
             if (!system.StepSystem())
             {
-                this.TriggerSimulationRestart();
+                TriggerSimulationRestart();
             }
         }
     }

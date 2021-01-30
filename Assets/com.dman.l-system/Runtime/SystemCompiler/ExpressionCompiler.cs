@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dman.LSystem.SystemCompiler
 {
@@ -16,7 +14,7 @@ namespace Dman.LSystem.SystemCompiler
         }
         public ExpressionCompiler(params string[] doubleParams)
         {
-            this.parameters = doubleParams.ToDictionary(x => x, x => Expression.Parameter(typeof(double), x));
+            parameters = doubleParams.ToDictionary(x => x, x => Expression.Parameter(typeof(double), x));
         }
 
         public static Delegate CompileExpressionToDelegateWithParameters(string expressionString, string[] namedNumericParameters)
@@ -46,7 +44,8 @@ namespace Dman.LSystem.SystemCompiler
         public TokenExpression GetHeirarchicalExpression(IEnumerable<Token> tokens)
         {
             Token lastReadSample = default;
-            var enumerator = tokens.Select(x => {
+            var enumerator = tokens.Select(x =>
+            {
                 lastReadSample = x;
                 return x;
             }).GetEnumerator();
@@ -75,28 +74,33 @@ namespace Dman.LSystem.SystemCompiler
             {
                 var current = enumerator.Current;
                 var tokenType = current.token;
-                if(tokenType == TokenType.LEFT_PAREN)
+                if (tokenType == TokenType.LEFT_PAREN)
                 {
                     yield return new TokenExpression(
                         ParseToTokenExpressionTillNextParen(enumerator).ToList(),
                         new CompilerContext(current.context, enumerator.Current.context));
-                }else if (expressions.HasFlag(tokenType))
+                }
+                else if (expressions.HasFlag(tokenType))
                 {
-                    if(tokenType == TokenType.CONSTANT)
+                    if (tokenType == TokenType.CONSTANT)
                     {
                         yield return new TokenExpression(Expression.Constant(current.value), current.context);
-                    }else if (tokenType == TokenType.VARIABLE)
+                    }
+                    else if (tokenType == TokenType.VARIABLE)
                     {
-                        if (!this.parameters.TryGetValue(current.name, out var parameterExp)) {
+                        if (!parameters.TryGetValue(current.name, out var parameterExp))
+                        {
 
                             throw current.context.ExceptionHere($"no parameter found for '{current.name}'");
                         }
                         yield return new TokenExpression(parameterExp, current.context);
-                    }else
+                    }
+                    else
                     {
                         throw new Exception($"Invalid Expression Token Type: '{Enum.GetName(typeof(TokenType), tokenType)}'");
                     }
-                }else
+                }
+                else
                 {
                     // the token must be an operator
                     yield return new TokenOperator(current.context)

@@ -1,10 +1,5 @@
-using Dman.LSystem;
 using Dman.LSystem.SystemCompiler;
 using NUnit.Framework;
-using System;
-using System.Text.RegularExpressions;
-using UnityEngine;
-using UnityEngine.TestTools;
 
 public class RuleParserTests
 {
@@ -130,7 +125,8 @@ public class RuleParserTests
         try
         {
             ParsedRule.ParseToRule(ruleString);
-        }catch(SyntaxException e)
+        }
+        catch (SyntaxException e)
         {
             Assert.AreEqual(13, e.errorStartIndex);
             Assert.AreEqual(17, e.ErrorEndIndex);

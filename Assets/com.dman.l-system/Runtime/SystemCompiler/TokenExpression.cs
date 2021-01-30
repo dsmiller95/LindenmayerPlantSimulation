@@ -20,7 +20,7 @@ namespace Dman.LSystem.SystemCompiler
         public Expression compiledExpression;
         public List<TokenTarget> tokenSeries;
 
-        public TokenExpression(Expression expression, CompilerContext context): base(context)
+        public TokenExpression(Expression expression, CompilerContext context) : base(context)
         {
             compiledExpression = expression;
             isTokenSeries = false;
@@ -28,7 +28,7 @@ namespace Dman.LSystem.SystemCompiler
 
         public TokenExpression(List<TokenTarget> series, CompilerContext context) : base(context)
         {
-            if(series.Count == 0)
+            if (series.Count == 0)
             {
                 throw context.ExceptionHere("Empty parentheses are not allowed");
             }
@@ -72,7 +72,7 @@ namespace Dman.LSystem.SystemCompiler
             {
                 var op = tokenSeries[unaryIndex] as TokenOperator;
                 tokenSeries.RemoveAt(unaryIndex);
-                if(tokenSeries.Count <= unaryIndex)
+                if (tokenSeries.Count <= unaryIndex)
                 {
                     throw op.context.ExceptionHere("Stranded Operator");
                 }
@@ -158,7 +158,7 @@ namespace Dman.LSystem.SystemCompiler
     {
         public TokenType type;
 
-        public TokenOperator(CompilerContext context): base(context)
+        public TokenOperator(CompilerContext context) : base(context)
         {
 
         }

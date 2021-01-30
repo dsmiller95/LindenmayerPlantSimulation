@@ -1,7 +1,5 @@
-using Dman.LSystem.SystemRuntime;
 using ProceduralToolkit;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Dman.LSystem
@@ -39,8 +37,8 @@ namespace Dman.LSystem
             public char TargetSymbol { get; private set; }
             public TurtleRotateOperator(Vector3 euler, char symbol, float defaultTheta)
             {
-                this.TargetSymbol = symbol;
-                this.unitEulerRotation = euler;
+                TargetSymbol = symbol;
+                unitEulerRotation = euler;
                 this.defaultTheta = defaultTheta;
             }
 

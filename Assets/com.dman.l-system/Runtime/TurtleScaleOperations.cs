@@ -1,7 +1,5 @@
-using Dman.LSystem.SystemRuntime;
 using ProceduralToolkit;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Dman.LSystem
@@ -23,7 +21,7 @@ namespace Dman.LSystem
             public char TargetSymbol { get; private set; }
             public TurtleScaleOperator(char symbol, Vector3 scale, float defaultScale)
             {
-                this.TargetSymbol = symbol;
+                TargetSymbol = symbol;
                 this.scale = scale;
                 this.defaultScale = defaultScale;
             }

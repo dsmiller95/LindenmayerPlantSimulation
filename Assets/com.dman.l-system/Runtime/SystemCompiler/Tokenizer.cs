@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dman.LSystem.SystemCompiler
 {
@@ -28,11 +24,11 @@ namespace Dman.LSystem.SystemCompiler
             return MergeTwoCharacterSymbols(SeperateToSymbols(tokenString))
                 .Select(seg =>
                 {
-                    if(stringsToTokens.TryGetValue(seg.value, out var operatorToken))
+                    if (stringsToTokens.TryGetValue(seg.value, out var operatorToken))
                     {
                         return new Token(operatorToken, seg.context);
                     }
-                    if(double.TryParse(seg.value, out var doubleConst))
+                    if (double.TryParse(seg.value, out var doubleConst))
                     {
                         return new Token(doubleConst, seg.context);
                     }
@@ -55,11 +51,12 @@ namespace Dman.LSystem.SystemCompiler
                     previousElement = element;
                     continue;
                 }
-                if((previousElement.value == "<" || previousElement.value == ">") && element.value == "=")
+                if ((previousElement.value == "<" || previousElement.value == ">") && element.value == "=")
                 {
                     yield return StringSegment.MergeConsecutive(previousElement, element);
                     previousElement = default;
-                }else
+                }
+                else
                 {
                     yield return previousElement;
                     previousElement = element;
@@ -83,7 +80,7 @@ namespace Dman.LSystem.SystemCompiler
                 indexInString++;
                 if (c == ' ')
                 {
-                    if(buffer != string.Empty) // don't track spaces before the buffer starts getting filled
+                    if (buffer != string.Empty) // don't track spaces before the buffer starts getting filled
                     {
                         skippedSpacesInBuffer++;
                     }

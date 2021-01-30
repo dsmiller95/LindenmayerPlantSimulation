@@ -1,9 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using UnityEngine;
-
 namespace Dman.LSystem.SystemRuntime
 {
     public struct RuleOutcome
@@ -18,7 +12,7 @@ namespace Dman.LSystem.SystemRuntime
             for (int symbolIndex = 0; symbolIndex < replacementSymbols.Length; symbolIndex++)
             {
                 var replacementExpression = replacementSymbols[symbolIndex];
-                
+
                 replacedSymbols[symbolIndex] = replacementExpression.targetSymbol;
                 replacedParams[symbolIndex] = replacementExpression.EvaluateNewParameters(matchedParameters);
             }

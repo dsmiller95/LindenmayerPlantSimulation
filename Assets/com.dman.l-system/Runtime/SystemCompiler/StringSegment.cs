@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dman.LSystem.SystemCompiler
+﻿namespace Dman.LSystem.SystemCompiler
 {
     public struct StringSegment
     {
@@ -14,7 +7,7 @@ namespace Dman.LSystem.SystemCompiler
 
         public StringSegment(string val, CompilerContext context)
         {
-            this.value = val;
+            value = val;
             this.context = context;
         }
 

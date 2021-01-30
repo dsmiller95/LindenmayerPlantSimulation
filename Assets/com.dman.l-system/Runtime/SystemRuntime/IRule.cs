@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime
 {
@@ -22,8 +19,8 @@ namespace Dman.LSystem.SystemRuntime
         ///     Will always be the same length as what is returned from TargetSymbolSeries</param>
         /// <returns></returns>
         public SymbolString<T> ApplyRule(
-            ArraySegment<T[]> symbolParameters, 
-            System.Random random, 
+            ArraySegment<T[]> symbolParameters,
+            System.Random random,
             T[] globalParameters);
     }
 }

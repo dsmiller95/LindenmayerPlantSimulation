@@ -1,4 +1,3 @@
-using Dman.LSystem;
 using Dman.LSystem.SystemCompiler;
 using NUnit.Framework;
 using System.Linq;
@@ -38,7 +37,7 @@ public class TokenizerTests
     public void TokenizeNumericExpressionWithParameters()
     {
         var expressionString = "(2 + value - (x * (2 - .1))/3 >= 3)";
-        var tokens = Tokenizer.Tokenize(expressionString, new string[] {"value", "x"}).ToArray();
+        var tokens = Tokenizer.Tokenize(expressionString, new string[] { "value", "x" }).ToArray();
         Assert.AreEqual(new Token[]
         {
             new Token(TokenType.LEFT_PAREN, new CompilerContext(0, 1)),

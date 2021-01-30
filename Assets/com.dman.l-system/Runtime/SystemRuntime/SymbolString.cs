@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Dman.LSystem.SystemRuntime
 {
@@ -25,7 +23,7 @@ namespace Dman.LSystem.SystemRuntime
                 parameters[i] = match.evaluators.Select(x => (ParamType)x.DynamicInvoke()).ToArray();
             }
         }
-        public SymbolString(int[] symbols): this(symbols, new ParamType[symbols.Length][])
+        public SymbolString(int[] symbols) : this(symbols, new ParamType[symbols.Length][])
         {
         }
         public SymbolString(int[] symbols, ParamType[][] parameters)
@@ -41,7 +39,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 builder.Append((char)symbols[i]);
                 var param = parameters[i];
-                if(param == null || param.Length <= 0)
+                if (param == null || param.Length <= 0)
                 {
                     continue;
                 }
@@ -49,7 +47,7 @@ namespace Dman.LSystem.SystemRuntime
                 for (int j = 0; j < param.Length; j++)
                 {
                     builder.Append(param[j].ToString());
-                    if(j < param.Length - 1)
+                    if (j < param.Length - 1)
                     {
                         builder.Append(", ");
                     }

@@ -1,9 +1,6 @@
 using Dman.LSystem.SystemCompiler;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime
 {
@@ -31,7 +28,7 @@ namespace Dman.LSystem.SystemRuntime
                     probability = 1,
                     replacementSymbols = parsedInfo.replacementSymbols
                 }
-            };  
+            };
         }
         public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules)
         {
@@ -59,8 +56,8 @@ namespace Dman.LSystem.SystemRuntime
             System.Random random,
             double[] globalParameters = null)
         {
-            var orderedMatchedParameters =  new List<object>();
-            if(globalParameters != null)
+            var orderedMatchedParameters = new List<object>();
+            if (globalParameters != null)
             {
                 foreach (var globalParam in globalParameters)
                 {
@@ -71,7 +68,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 var target = _targetSymbolsWithParameters[targetSymbolIndex];
                 var parameter = symbolParameters.Array[symbolParameters.Offset + targetSymbolIndex];
-                if(parameter == null)
+                if (parameter == null)
                 {
                     if (target.namedParameters.Length > 0)
                     {
@@ -79,7 +76,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                     continue;
                 }
-                if(target.namedParameters.Length != parameter.Length)
+                if (target.namedParameters.Length != parameter.Length)
                 {
                     return null;
                 }
@@ -91,7 +88,7 @@ namespace Dman.LSystem.SystemRuntime
 
             var paramArray = orderedMatchedParameters.ToArray();
 
-            if(conditionalChecker != null)
+            if (conditionalChecker != null)
             {
                 var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
                 if (!(invokeResult is bool boolResult))
@@ -114,7 +111,7 @@ namespace Dman.LSystem.SystemRuntime
 
         private RuleOutcome SelectOutcome(System.Random rand)
         {
-            if (this.possibleOutcomes.Length > 1)
+            if (possibleOutcomes.Length > 1)
             {
                 var sample = rand.NextDouble();
                 double currentPartition = 0;

@@ -1,11 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime;
-using Dman.MeshDraftExtensions;
 using ProceduralToolkit;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Dman.LSystem
@@ -43,24 +38,24 @@ namespace Dman.LSystem
             for (int symbolIndex = 0; symbolIndex < symbols.symbols.Length; symbolIndex++)
             {
                 var symbol = symbols.symbols[symbolIndex];
-                if(symbol == branchStartChar)
+                if (symbol == branchStartChar)
                 {
                     stateStack.Push(currentState);
                     continue;
                 }
-                if(symbol == branchEndChar)
+                if (symbol == branchEndChar)
                 {
                     currentState = stateStack.Pop();
                     continue;
                 }
-                if(symbol == meshIndexIncrementChar)
+                if (symbol == meshIndexIncrementChar)
                 {
                     currentState.submeshIndex++;
                     if (resultMeshes.Count < currentState.submeshIndex + 1)
                         resultMeshes.Add(new MeshDraft());
                     continue;
                 }
-                if(operationsByKey.TryGetValue(symbol, out var operation))
+                if (operationsByKey.TryGetValue(symbol, out var operation))
                 {
                     currentState = operation.Operate(
                         currentState,

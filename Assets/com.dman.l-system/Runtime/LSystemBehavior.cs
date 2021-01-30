@@ -1,11 +1,10 @@
 using Dman.LSystem.SystemRuntime;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Dman.LSystem
 {
-    public class LSystemBehavior: MonoBehaviour
+    public class LSystemBehavior : MonoBehaviour
     {
         public LSystemObject systemObject;
 
@@ -15,18 +14,18 @@ namespace Dman.LSystem
         private LSystem<double> currentSystem;
 
         private double[] systemParameters;
-        private Dictionary<string, int> parameterNameToIndex;  
+        private Dictionary<string, int> parameterNameToIndex;
 
         private void Awake()
         {
             currentSystem = systemObject.Compile();
-            this.ExtractParameters();
+            ExtractParameters();
         }
 
         public void Reset()
         {
             currentSystem = systemObject.Compile(Random.Range(int.MinValue, int.MaxValue));
-            this.ExtractParameters();
+            ExtractParameters();
         }
 
         private void ExtractParameters()

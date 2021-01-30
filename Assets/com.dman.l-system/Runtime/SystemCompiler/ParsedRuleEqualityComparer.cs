@@ -7,11 +7,11 @@ namespace Dman.LSystem.SystemCompiler
     {
         public bool Equals(ParsedRule x, ParsedRule y)
         {
-            if(!TargetSymbolsEqual(x.targetSymbols, y.targetSymbols))
+            if (!TargetSymbolsEqual(x.targetSymbols, y.targetSymbols))
             {
                 return false;
             }
-            if(x.conditionalStringDescription != y.conditionalStringDescription)
+            if (x.conditionalStringDescription != y.conditionalStringDescription)
             {
                 return false;
             }
@@ -47,7 +47,7 @@ namespace Dman.LSystem.SystemCompiler
                 var symbol = obj.targetSymbols[i];
                 hashCode ^= symbol.GetHashCode();
             }
-            if(obj.conditionalStringDescription != null)
+            if (obj.conditionalStringDescription != null)
             {
                 hashCode ^= obj.conditionalStringDescription.GetHashCode();
             }

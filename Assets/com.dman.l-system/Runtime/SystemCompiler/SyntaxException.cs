@@ -27,15 +27,15 @@
 
         public void RecontextualizeIndex(int indexOfSourceInTarget, string newRuleText = "")
         {
-            this.errorStartIndex += indexOfSourceInTarget;
-            this.ruleText = newRuleText;
+            errorStartIndex += indexOfSourceInTarget;
+            ruleText = newRuleText;
         }
 
         public override string Message
         {
             get
             {
-                if(errorStartIndex == ruleText.Length)
+                if (errorStartIndex == ruleText.Length)
                 {
                     // end of stream error
                     return ruleText + " : " + errorDescription;
