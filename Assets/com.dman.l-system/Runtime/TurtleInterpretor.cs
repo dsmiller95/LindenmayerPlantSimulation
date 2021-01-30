@@ -12,31 +12,27 @@ namespace Dman.LSystem
 {
     public class TurtleInterpretor
     {
-        private IDictionary<int, MeshDraft> draftsByKey;
-        /// <summary>
-        /// keys to use to apply transforms to the turtle's position
-        ///     if a key is also contained in the drafts dictionary, the transformation is
-        ///     applied after the draft is placed.
-        /// </summary>
-        private IDictionary<int, Matrix4x4> transformationByKey;
+        //private IDictionary<int, MeshDraft> draftsByKey;
+        ///// <summary>
+        ///// keys to use to apply transforms to the turtle's position
+        /////     if a key is also contained in the drafts dictionary, the transformation is
+        /////     applied after the draft is placed.
+        ///// </summary>
+        //private IDictionary<int, Matrix4x4> transformationByKey;
+
+        private IDictionary<int, ITurtleOperator> operationsByKey;
+
         public int meshIndexIncrementChar = '`';
         public int branchStartChar = '[';
         public int branchEndChar = ']';
         private Matrix4x4 rootTransform;
 
-        public TurtleInterpretor(IDictionary<int, MeshDraft> draftsByKey, IDictionary<int, Matrix4x4> transformationsByKey) : this(draftsByKey, transformationsByKey, Matrix4x4.identity) { }
+        public TurtleInterpretor(IDictionary<int, ITurtleOperator> operations) : this(operations, Matrix4x4.identity) { }
 
-        public TurtleInterpretor(IDictionary<int, MeshDraft> draftsByKey, IDictionary<int, Matrix4x4> transformationsByKey, Matrix4x4 rootTransform)
+        public TurtleInterpretor(IDictionary<int, ITurtleOperator> operations, Matrix4x4 rootTransform)
         {
-            this.draftsByKey = draftsByKey;
-            this.transformationByKey = transformationsByKey;
+            operationsByKey = operations;
             this.rootTransform = rootTransform;
-        }
-
-        struct TurtleState
-        {
-            public Matrix4x4 transformation;
-            public int submeshIndex;
         }
 
         public Mesh CompileStringToMesh(SymbolString<double> symbols)
@@ -72,14 +68,21 @@ namespace Dman.LSystem
                         resultMeshes.Add(new MeshDraft());
                     continue;
                 }
-                if(draftsByKey.TryGetValue(symbol, out var newDraft))
+                if(operationsByKey.TryGetValue(symbol, out var operation))
                 {
-                    resultMeshes[currentState.submeshIndex].AddWithTransform(newDraft, currentState.transformation);
+                    currentState = operation.Operate(
+                        currentState,
+                        symbols.parameters[symbolIndex],
+                        resultMeshes[currentState.submeshIndex]);
                 }
-                if (transformationByKey.TryGetValue(symbol, out var transform))
-                {
-                    currentState.transformation *= transform;
-                }
+                //if(draftsByKey.TryGetValue(symbol, out var newDraft))
+                //{
+                //    resultMeshes[currentState.submeshIndex].AddWithTransform(newDraft, currentState.transformation);
+                //}
+                //if (transformationByKey.TryGetValue(symbol, out var transform))
+                //{
+                //    currentState.transformation *= transform;
+                //}
             }
 
             var resultMeshbulder = new CompoundMeshDraft();

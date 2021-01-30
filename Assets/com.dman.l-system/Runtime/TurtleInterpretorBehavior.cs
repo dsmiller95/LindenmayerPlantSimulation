@@ -7,14 +7,6 @@ using UnityEngine;
 namespace Dman.LSystem
 {
     [Serializable]
-    public struct MeshKey
-    {
-        public char Character;
-        public Mesh MeshRef;
-        public Vector3 IndividualScale;
-    }
-
-    [Serializable]
     public struct TransformKey
     {
         public char Character;
@@ -30,6 +22,9 @@ namespace Dman.LSystem
     {
         public MeshKey[] meshKeys;
         public TransformKey[] transformKeys;
+
+        public TurtleOperationSet[] operationSets;
+
         public float secondsPerUpdate;
         public Vector3 initialScale = Vector3.one;
 
@@ -42,25 +37,9 @@ namespace Dman.LSystem
 
         private void Awake()
         {
-            var transformDict = transformKeys.ToDictionary(x => (int)x.Character, x => Matrix4x4.TRS(x.translation, Quaternion.Euler(x.eulerRotation), x.scale));
-            var draftdict = new Dictionary<int, MeshDraft>();
+            var operatorDictionary = operationSets.SelectMany(x => x.GetOperators()).ToDictionary(x => (int)x.TargetSymbol);
 
-            foreach (var meshKey in meshKeys)
-            {
-                var newDraft = new MeshDraft(meshKey.MeshRef);
-                var bounds = meshKey.MeshRef.bounds;
-                newDraft.Move(Vector3.right * (-bounds.center.x + bounds.size.x / 2));
-                newDraft.Scale(meshKey.IndividualScale);
-
-                draftdict[meshKey.Character] = newDraft;
-                if (!transformDict.ContainsKey(meshKey.Character))
-                {
-                    transformDict[meshKey.Character] = Matrix4x4.Translate(
-                        new Vector3(bounds.size.x * meshKey.IndividualScale.x, 0, 0));
-                }
-            }
-
-            turtle = new TurtleInterpretor(draftdict, transformDict, Matrix4x4.Scale(initialScale));
+            turtle = new TurtleInterpretor(operatorDictionary, Matrix4x4.Scale(initialScale));
             turtle.meshIndexIncrementChar = meshIndexIncrementor;
         }
 

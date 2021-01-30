@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4c04f427737a0147974aaa47b597e91, type: 3}
   m_Name: Field flower
   m_EditorClassIdentifier: 
+  iterations: 7
   axiom: P
   seed: 0
   rules: '
@@ -29,11 +30,12 @@ MonoBehaviour:
 
     E -> ``r
 
-    (P0.7) S -> S
+    (P0.5) S -> S
 
     (P0.2) S -> SFS
 
-    (P0.1)
+    (P0.3)
     S -> SBFS
 
     B -> [//&&L][//^^//////////L]'
+  defaultGlobalParameters: []

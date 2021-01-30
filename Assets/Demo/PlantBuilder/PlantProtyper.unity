@@ -606,12 +606,15 @@ MonoBehaviour:
   - Character: 70
     MeshRef: {fileID: 3557837105413461654, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     IndividualScale: {x: 1.5, y: 0.3, z: 0.3}
+    AlsoMove: 0
   - Character: 108
     MeshRef: {fileID: -5966198621110897880, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     IndividualScale: {x: 1, y: 1, z: 1}
+    AlsoMove: 0
   - Character: 114
     MeshRef: {fileID: 5691666353457927829, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     IndividualScale: {x: 1, y: 1, z: 1}
+    AlsoMove: 0
   transformKeys:
   - Character: 43
     eulerRotation: {x: 0, y: -18, z: 0}
@@ -649,6 +652,10 @@ MonoBehaviour:
     eulerRotation: {x: 0, y: 0, z: 0}
     translation: {x: 0, y: 0, z: 0}
     scale: {x: 1, y: 1, z: 1}
+  operationSets:
+  - {fileID: 11400000, guid: 259a8d9be24511a4e91d12752db6eb8f, type: 2}
+  - {fileID: 11400000, guid: 955a828e76f3281498bf902f8db912e2, type: 2}
+  - {fileID: 11400000, guid: 3a418bd9f015dd44896661013b5a06b8, type: 2}
   secondsPerUpdate: 0.25
   initialScale: {x: 0.3, y: 0.3, z: 0.3}
   meshIndexIncrementor: 96
@@ -730,7 +737,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2cac01e841b46547838c53d27ec710c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  systemObject: {fileID: 11400000, guid: bdb245d78be76664a86c7fd9cc12ec8e, type: 2}
+  systemObject: {fileID: 11400000, guid: 8f0e27735a5c08747b8a9f1171928931, type: 2}
 --- !u!1 &1905895030
 GameObject:
   m_ObjectHideFlags: 0
