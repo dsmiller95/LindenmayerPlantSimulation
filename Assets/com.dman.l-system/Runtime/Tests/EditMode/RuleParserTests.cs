@@ -104,4 +104,19 @@ public class RuleParserTests
         Assert.AreEqual(5, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(4, 10));
         Assert.AreEqual(6, ruleFromString.replacementSymbols[0].evaluators[1].DynamicInvoke(4, 10));
     }
+    [Test]
+    public void ParsesRuleWithGlobalParametersMatch()
+    {
+        var ruleFromString = ParsedRule.ParseToRule("A(x) -> B(x + stretch, stretch)", new string[] { "stretch"});
+
+        Assert.IsNull(ruleFromString.conditionalMatch);
+
+        Assert.AreEqual("A(x)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+
+        Assert.AreEqual('B', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(2, ruleFromString.replacementSymbols[0].evaluators.Length);
+        Assert.AreEqual(12, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(10, 2));
+        Assert.AreEqual(10, ruleFromString.replacementSymbols[0].evaluators[1].DynamicInvoke(10, 2));
+    }
 }

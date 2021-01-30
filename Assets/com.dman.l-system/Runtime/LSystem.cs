@@ -14,7 +14,10 @@ namespace Dman.LSystem
         private IDictionary<int, IList<IRule<T>>> rulesByFirstTargetSymbol;
         private System.Random randomProvider;
 
-        public LSystem(string axiomString, IEnumerable<IRule<T>> rules, int seed) : this(new SymbolString<T>(axiomString), rules, seed)
+        public LSystem(
+            string axiomString,
+            IEnumerable<IRule<T>> rules,
+            int seed) : this(new SymbolString<T>(axiomString), rules, seed)
         {
         }
 
@@ -46,13 +49,15 @@ namespace Dman.LSystem
             }
         }
 
-        public void StepSystem()
+        public void StepSystem(T[] globalParameters = null)
         {
-            var resultString = GenerateNextSymbols().ToList();
+            UnityEngine.Profiling.Profiler.BeginSample("L system step");
+            var resultString = GenerateNextSymbols(globalParameters).ToList();
             currentSymbols = SymbolString<T>.ConcatAll(resultString);
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        public IEnumerable<SymbolString<T>> GenerateNextSymbols()
+        private IEnumerable<SymbolString<T>> GenerateNextSymbols(T[] globalParameters)
         {
             for (int symbolIndex = 0; symbolIndex < currentSymbols.symbols.Length;)
             {
@@ -68,7 +73,10 @@ namespace Dman.LSystem
                         {
                             continue;
                         }
-                        var result = rule.ApplyRule(new ArraySegment<T[]>(currentSymbols.parameters, symbolIndex, symbolMatch.Length), randomProvider);
+                        var result = rule.ApplyRule(
+                            new ArraySegment<T[]>(currentSymbols.parameters, symbolIndex, symbolMatch.Length), 
+                            randomProvider,
+                            globalParameters);// todo
                         if (result != null)
                         {
                             yield return result;

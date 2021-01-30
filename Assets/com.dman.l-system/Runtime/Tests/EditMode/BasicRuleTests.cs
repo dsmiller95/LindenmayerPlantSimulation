@@ -93,4 +93,29 @@ public class BasicRuleTests
         };
         Assert.AreEqual(expectedParameters, replacement.parameters);
     }
+    [Test]
+    public void BasicRuleReplacesParametersAndGlobalParameters()
+    {
+        var globalParameters = new string[] { "global" };
+
+        var ruleFromString = new BasicRule(
+            ParsedRule.ParseToRule("A(x, y) -> B(global + x)C(y)",
+            globalParameters));
+        var paramArray = new double[][]
+        {
+            new double[] {20, 1 }
+        };
+
+        var replacement = ruleFromString.ApplyRule(
+            new ArraySegment<double[]>(paramArray, 0, 1),
+            null,
+            new double[] { 7d });
+        Assert.AreEqual("BC".ToIntArray(), replacement.symbols);
+        var expectedParameters = new double[][]
+        {
+            new double[]{ 27},
+            new double[]{ 1},
+        };
+        Assert.AreEqual(expectedParameters, replacement.parameters);
+    }
 }

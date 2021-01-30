@@ -13,9 +13,11 @@ FA -> FF
 
 A(x, y) -> B(x + y)C(x)
 	parametric
+A(x, y) -> [B(x + y)]//+-&C(x)^
+	parametric, branching, novel characters
 A(x, y) : y > 4 -> B(x)
 	conditional: only apply when y > 4 evaluates to true
-	parametric
+	parametric, conditional
 
 (P0.5) A(x, y) : y < x -> B(x + y)C(x)
 	stochastic, parametric
@@ -32,11 +34,9 @@ A(x) < C > B(y) : x < y -> E(x)
 (P0.5) A(x) < C > B(y) : x < y -> E(x)
 	contextual, parametric, stochastic
 	
-@"(?<all>((<?symbol>\w)(\(?<params>(\w+, )*\w+\))?)+)"
+
+	
+(?:\(P([.0-9]+)\))?\s*((\w(?:\((?:\w+, )*\w+\))?)+)\s*->\s*(.+)
 
 
-parses " A(x, y, variable)B(variable) " into two matches
-@"(?<symbol>\w)\((?<params>(?:\w+, )*\w+)\)"
-
-(\w)(?:\(((?:\w+, )*\w+)\))?
-(?<symbol>\w)(?:\((?<params>(?:\w+, )*\w+)\))?
+(?:\(P(?<probability>[.0-9]+)\))?\s*(?<targetSymbols>{symbolMatchPattern})\s*(?::(?<conditional>.*)\s*)?->\s*(?<replacement>.+)

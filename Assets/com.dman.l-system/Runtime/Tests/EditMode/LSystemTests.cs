@@ -233,4 +233,134 @@ public class LSystemTests
         Assert.AreEqual("A(6)", basicLSystem.currentSymbols.ToString());
     }
 
+
+    [Test]
+    public void LSystemAppliesReplacementBasedOnGlobalParameters()
+    {
+        var globalParameters = new string[] { "global" };
+
+        var basicLSystem = new LSystem<double>("A(1, 1)", ParsedRule.CompileRules(new string[] {
+            "A(x, y) -> A((x + y) - global, x * y + global)",
+        }, globalParameters), 0);
+
+        var defaultGlobalParams = new double[] { 5 };
+
+        Assert.AreEqual("A(1, 1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(-3, 6)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(-2, -13)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(-20, 31)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(6, -615)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(-614, -3685)", basicLSystem.currentSymbols.ToString());
+    }
+
+
+    [Test]
+    public void LSystemChecksContidionalBasedOnGlobalParameters()
+    {
+        var globalParameters = new string[] { "global" };
+
+        var basicLSystem = new LSystem<double>("A(0)", ParsedRule.CompileRules(new string[] {
+            "A(x) : x < global -> A(x + 1)",
+        }, globalParameters), 0);
+
+        var defaultGlobalParams = new double[] { 3 };
+
+        Assert.AreEqual("A(0)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+
+        var nextGlobalParams = new double[] { 4 };
+        basicLSystem.StepSystem(nextGlobalParams);
+        Assert.AreEqual("A(4)", basicLSystem.currentSymbols.ToString());
+    }
+    [Test]
+    public void LSystemSelectsRuleToApplyBasedOnConditional()
+    {
+        var globalParameters = new string[] { "global" };
+
+        var basicLSystem = new LSystem<double>("A(0)", ParsedRule.CompileRules(new string[] {
+            "A(x) : x < global -> A(x + 1)",
+            "A(x) : x >= global -> A(x - 1)",
+        }, globalParameters), 0);
+
+        var defaultGlobalParams = new double[] { 3 };
+
+        Assert.AreEqual("A(0)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+    }
+    [Test]
+    public void LSystemSelectsStochasticRuleToApplyBasedOnConditional()
+    {
+        var globalParameters = new string[] { "global" };
+
+        var basicLSystem = new LSystem<double>("A(0)", ParsedRule.CompileRules(new string[] {
+            "(P0.5) A(x) : x < global -> A(x + 1)",
+            "(P0.5) A(x) : x < global -> A(x + 0.5)",
+            "(P0.5) A(x) : x >= global -> A(x - 1)",
+            "(P0.5) A(x) : x >= global -> A(x - 0.5)",
+        }, globalParameters), 0);
+
+        var defaultGlobalParams = new double[] { 3 };
+
+        Assert.AreEqual("A(0)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(1)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+    }
+    [Test]
+    public void RuleCompilationFailsWhenConflictingRules()
+    {
+        Assert.Throws<System.Exception>(() =>
+        {
+            var compiledRules = ParsedRule.CompileRules(new string[] {
+                "A -> AB",
+                "A -> CA",
+            });
+        });
+    }
 }

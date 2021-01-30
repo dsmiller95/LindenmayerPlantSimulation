@@ -28,7 +28,7 @@ namespace Dman.LSystem
             return replacementSymbols.Aggregate(new StringBuilder(), (agg, curr) => agg.Append(curr.ToString())).ToString();
         }
 
-        public string[] TargetSymbolParameterNames()
+        public IEnumerable<string> TargetSymbolParameterNames()
         {
             var result = new List<string>();
             foreach (var targetSymbol in targetSymbols)
@@ -38,7 +38,7 @@ namespace Dman.LSystem
                     result.AddRange(targetSymbol.namedParameters);
                 }
             }
-            return result.ToArray();
+            return result;
         }
 
         /// <summary>
@@ -47,9 +47,10 @@ namespace Dman.LSystem
         ///   first char is always the target character
         ///   "->" delimits between target char and replacement string
         ///   everything after "->" is the replacement string
+        /// the global parameters will come first in all dynamic handles generated
         /// </summary>
         /// <param name="ruleDef"></param>
-        public static ParsedRule ParseToRule(string ruleString)
+        public static ParsedRule ParseToRule(string ruleString, string[] globalParameters = null)
         {
             var symbolMatchPattern = @"(\w(?:\((?:\w+, )*\w+\))?)+";
 
@@ -70,12 +71,22 @@ namespace Dman.LSystem
             rule.targetSymbols = ParseSymbolMatcher(ruleMatch.Groups["targetSymbols"].Value);
             var replacementSymbolString = ruleMatch.Groups["replacement"].Value;
             var availableParameters = rule.TargetSymbolParameterNames();
-            rule.replacementSymbols = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(replacementSymbolString, availableParameters).ToArray();
+            if(globalParameters != null)
+            {
+                availableParameters = globalParameters.Concat(availableParameters);
+            }
+            var parameterArray = availableParameters.ToArray();
+            rule.replacementSymbols = SymbolReplacementExpressionMatcher.ParseAllSymbolExpressions(
+                replacementSymbolString,
+                parameterArray)
+                .ToArray();
 
             if (ruleMatch.Groups["conditional"].Success)
             {
                 var conditionalExpression = $"({ruleMatch.Groups["conditional"].Value})";
-                rule.conditionalMatch = ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateWithParameters(conditionalExpression, availableParameters);
+                rule.conditionalMatch = ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateWithParameters(
+                    conditionalExpression,
+                    parameterArray);
             }
 
             return rule;
@@ -107,15 +118,16 @@ namespace Dman.LSystem
         }
 
 
-        public static IEnumerable<IRule<double>> CompileRules(IEnumerable<string> ruleStrings)
+        public static IEnumerable<IRule<double>> CompileRules(IEnumerable<string> ruleStrings, string[] globalParameters = null)
         {
-            var parsedRules = ruleStrings.Select(x => ParseToRule(x)).ToArray();
+            var parsedRules = ruleStrings.Select(x => ParseToRule(x, globalParameters)).ToArray();
             var basicRules = parsedRules.Where(r => !(r is ParsedStochasticRule))
                 .Select(x => new BasicRule(x)).ToList();
 
             var stochasticRules = parsedRules.Where(r => r is ParsedStochasticRule)
                 .Select(x => x as ParsedStochasticRule)
-                .GroupBy(x => x.targetSymbols, new ArrayElementEqualityComparer<SingleSymbolMatcher>()) // TODO: be sure that the array values are being compared here
+                .GroupBy(x => x.targetSymbols, new ArrayElementEqualityComparer<SingleSymbolMatcher>())
+                //.GroupBy(x => x, new ParsedRuleEqualityComparer())
                 .Select(group =>
                 {
                     var probabilityDeviation = Mathf.Abs(group.Sum(x => x.probability) - 1);

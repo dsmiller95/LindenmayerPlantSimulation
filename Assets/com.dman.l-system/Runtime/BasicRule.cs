@@ -58,15 +58,25 @@ namespace Dman.LSystem
         /// retrun the symbol string to replace the given symbol with. return null if no match
         /// </summary>
         /// <param name="symbol">the symbol to be replaced</param>
-        /// <param name="parameters">the parameters applied to the symbol. Could be null if no parameters.</param>
+        /// <param name="symbolParameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
-        public SymbolString<double> ApplyRule(System.ArraySegment<double[]> parameters, System.Random random)
+        public SymbolString<double> ApplyRule(
+            System.ArraySegment<double[]> symbolParameters,
+            System.Random random,
+            double[] globalParameters = null)
         {
-            var orderedMatchedParameters = new List<object>();
+            var orderedMatchedParameters =  new List<object>();
+            if(globalParameters != null)
+            {
+                foreach (var globalParam in globalParameters)
+                {
+                    orderedMatchedParameters.Add(globalParam);
+                }
+            }
             for (int targetSymbolIndex = 0; targetSymbolIndex < _targetSymbolsWithParameters.Length; targetSymbolIndex++)
             {
                 var target = _targetSymbolsWithParameters[targetSymbolIndex];
-                var parameter = parameters.Array[parameters.Offset + targetSymbolIndex];
+                var parameter = symbolParameters.Array[symbolParameters.Offset + targetSymbolIndex];
                 if(parameter == null)
                 {
                     if (target.namedParameters.Length > 0)
@@ -98,30 +108,28 @@ namespace Dman.LSystem
             }
 
 
-            RuleOutcome outcome = default;
-            if(this.possibleOutcomes.Length > 1)
+            RuleOutcome outcome = SelectOutcome(random);
+
+            return outcome.GenerateReplacement(paramArray);
+        }
+
+        private RuleOutcome SelectOutcome(System.Random rand)
+        {
+            if (this.possibleOutcomes.Length > 1)
             {
-                var sample = random.NextDouble();
+                var sample = rand.NextDouble();
                 double currentPartition = 0;
                 foreach (var possibleOutcome in possibleOutcomes)
                 {
                     currentPartition += possibleOutcome.probability;
-                    if(sample <= currentPartition)
+                    if (sample <= currentPartition)
                     {
-                        outcome = possibleOutcome;
-                        break;
+                        return possibleOutcome;
                     }
                 }
-                if (outcome.replacementSymbols == null)
-                {
-                    throw new System.Exception("possible outcome probabilities do not sum to 1");
-                }
-            }else
-            {
-                outcome = possibleOutcomes[0];
+                throw new System.Exception("possible outcome probabilities do not sum to 1");
             }
-
-            return outcome.GenerateReplacement(paramArray);
+            return possibleOutcomes[0];
         }
     }
 }

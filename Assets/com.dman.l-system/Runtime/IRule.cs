@@ -21,6 +21,9 @@ namespace Dman.LSystem
         ///     Could be an array of null if no parameters.
         ///     Will always be the same length as what is returned from TargetSymbolSeries</param>
         /// <returns></returns>
-        public SymbolString<T> ApplyRule(ArraySegment<T[]> parameters, System.Random random);
+        public SymbolString<T> ApplyRule(
+            ArraySegment<T[]> symbolParameters, 
+            System.Random random, 
+            T[] globalParameters);
     }
 }
