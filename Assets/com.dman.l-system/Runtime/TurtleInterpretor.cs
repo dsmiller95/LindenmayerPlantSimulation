@@ -12,14 +12,6 @@ namespace Dman.LSystem
 {
     public class TurtleInterpretor
     {
-        //private IDictionary<int, MeshDraft> draftsByKey;
-        ///// <summary>
-        ///// keys to use to apply transforms to the turtle's position
-        /////     if a key is also contained in the drafts dictionary, the transformation is
-        /////     applied after the draft is placed.
-        ///// </summary>
-        //private IDictionary<int, Matrix4x4> transformationByKey;
-
         private IDictionary<int, ITurtleOperator> operationsByKey;
 
         public int meshIndexIncrementChar = '`';
@@ -75,14 +67,6 @@ namespace Dman.LSystem
                         symbols.parameters[symbolIndex],
                         resultMeshes[currentState.submeshIndex]);
                 }
-                //if(draftsByKey.TryGetValue(symbol, out var newDraft))
-                //{
-                //    resultMeshes[currentState.submeshIndex].AddWithTransform(newDraft, currentState.transformation);
-                //}
-                //if (transformationByKey.TryGetValue(symbol, out var transform))
-                //{
-                //    currentState.transformation *= transform;
-                //}
             }
 
             var resultMeshbulder = new CompoundMeshDraft();

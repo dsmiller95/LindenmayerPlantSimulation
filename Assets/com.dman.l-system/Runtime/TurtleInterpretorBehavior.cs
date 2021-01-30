@@ -20,9 +20,6 @@ namespace Dman.LSystem
     [RequireComponent(typeof(LSystemBehavior))]
     public class TurtleInterpretorBehavior : MonoBehaviour
     {
-        public MeshKey[] meshKeys;
-        public TransformKey[] transformKeys;
-
         public TurtleOperationSet[] operationSets;
 
         public float secondsPerUpdate;
@@ -32,7 +29,6 @@ namespace Dman.LSystem
         public float timeBeforeRestart = 5;
 
         private TurtleInterpretor turtle;
-
         private LSystemBehavior system => GetComponent<LSystemBehavior>();
 
         private void Awake()
