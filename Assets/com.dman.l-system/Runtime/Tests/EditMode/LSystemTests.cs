@@ -10,7 +10,7 @@ public class LSystemTests
     {
         var basicLSystem = new LSystem<double>(new SymbolString<double>("B"), new IRule<double>[0], 0);
 
-        Assert.AreEqual("B".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("B", basicLSystem.currentSymbols.ToString());
         Assert.AreEqual(new float[][]{
             new float[0]
             }, basicLSystem.currentSymbols.parameters);
@@ -26,15 +26,15 @@ public class LSystemTests
             },
             0);
 
-        Assert.AreEqual("B".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("B", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("A".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("A", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("AB".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("AB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABA".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("ABA", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ABAAB".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("ABAAB", basicLSystem.currentSymbols.ToString());
     }
 
     [Test]
@@ -90,15 +90,15 @@ public class LSystemTests
             "B -> A"
         }, 0);
 
-        Assert.AreEqual("B".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("B", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("A".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("A", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACB".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("ACB", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACBCA".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("ACBCA", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem();
-        Assert.AreEqual("ACBCACACB".ToIntArray(), basicLSystem.currentSymbols.symbols);
+        Assert.AreEqual("ACBCACACB", basicLSystem.currentSymbols.ToString());
     }
 
     [Test]

@@ -26,7 +26,7 @@ public class BasicRuleTests
         var paramArray = new double[1][];
         paramArray[0] = null;
         var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
-        Assert.AreEqual("AB".ToIntArray(), replacement.symbols);
+        Assert.AreEqual("AB", replacement.ToString());
         var expectedParameters = new double[][]
         {
             new double[0],
@@ -44,14 +44,7 @@ public class BasicRuleTests
             new double[] {20, 1 }
         };
         var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
-        Assert.AreEqual("BCA".ToIntArray(), replacement.symbols);
-        var expectedParameters = new double[][]
-        {
-            new double[]{ 21},
-            new double[]{ 20},
-            new double[]{ 1, 20}
-        };
-        Assert.AreEqual(expectedParameters, replacement.parameters);
+        Assert.AreEqual("B(21)C(20)A(1, 20)", replacement.ToString());
     }
     [Test]
     public void BasicRuleDifferentParametersNoMatch()
@@ -88,12 +81,7 @@ public class BasicRuleTests
         };
         var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
         Assert.IsNotNull(replacement);
-        Assert.AreEqual("A".ToIntArray(), replacement.symbols);
-        var expectedParameters = new double[][]
-        {
-            new double[]{ 7},
-        };
-        Assert.AreEqual(expectedParameters, replacement.parameters);
+        Assert.AreEqual("A(7)", replacement.ToString());
     }
     [Test]
     public void BasicRuleReplacesParametersAndGlobalParameters()
@@ -112,12 +100,6 @@ public class BasicRuleTests
             new ArraySegment<double[]>(paramArray, 0, 1),
             null,
             new double[] { 7d });
-        Assert.AreEqual("BC".ToIntArray(), replacement.symbols);
-        var expectedParameters = new double[][]
-        {
-            new double[]{ 27},
-            new double[]{ 1},
-        };
-        Assert.AreEqual(expectedParameters, replacement.parameters);
+        Assert.AreEqual("B(27)C(1)", replacement.ToString());
     }
 }
