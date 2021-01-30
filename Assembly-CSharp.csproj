@@ -59,7 +59,6 @@
     <Compile Include="Assets\Demo\PlantBuilder\Turntable.cs" />
   </ItemGroup>
   <ItemGroup>
-     <None Include="Assets\com.dman.l-system\rule-grammar.txt" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
@@ -686,10 +685,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="com.dman.LSystem-editor.csproj">
-      <Project>{A8509B69-0896-7D25-9A02-835EA15DFE2F}</Project>
-      <Name>com.dman.LSystem-editor</Name>
-    </ProjectReference>
     <ProjectReference Include="PlantBuilder.csproj">
       <Project>{408F3866-5553-D928-D598-7EDA73C56DD8}</Project>
       <Name>PlantBuilder</Name>

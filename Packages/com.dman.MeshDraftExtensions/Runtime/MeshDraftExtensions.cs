@@ -8,7 +8,6 @@ namespace Dman.MeshDraftExtensions
 {
     public static class MeshDraftExtensions
     {
-
         public static void AddWithTransform(this CompoundMeshDraft self, CompoundMeshDraft compoundDraft, Matrix4x4 geometryTransform)
         {
             foreach (var draft in compoundDraft)
@@ -70,10 +69,6 @@ namespace Dman.MeshDraftExtensions
 
             var vertices = new List<Vector3>(self.vertices.Count * times);
 
-            //if (self.uv.Count != self.vertexCount || self.tangents.Count != self.vertexCount)
-            //{
-            //    Debug.LogError("problem with uv and tangent counts on import");
-            //}
             for (int i = 0; i < times; i++)
             {
                 foreach (var index in self.triangles)
@@ -92,7 +87,6 @@ namespace Dman.MeshDraftExtensions
                 vertices.AddRange(self.vertices.Select(x => x + vectorOffset * i));
             }
 
-            //Debug.Log($"Creating big array this big {self.vertexCount - uv.Count}");
             var extraUVs = new Vector2[vertices.Count - uv.Count];
             uv.AddRange(extraUVs);
             var extraTangents = new Vector4[vertices.Count - tangents.Count];
@@ -109,11 +103,6 @@ namespace Dman.MeshDraftExtensions
             self.normals = normals;
 
             self.vertices = vertices;
-
-            //if(self.uv.Count != self.vertexCount || self.tangents.Count != self.vertexCount)
-            //{
-            //    Debug.LogError("problem with uv and tangent counts");
-            //}
         }
     }
 }

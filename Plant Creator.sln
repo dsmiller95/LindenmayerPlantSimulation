@@ -3,13 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantBuilder", "PlantBuilder.csproj", "{408F3866-5553-D928-D598-7EDA73C56DD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.LSystem-editor", "com.dman.LSystem-editor.csproj", "{A8509B69-0896-7D25-9A02-835EA15DFE2F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.LSystem", "com.dman.LSystem.csproj", "{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplineMesh", "SplineMesh.csproj", "{464D9D06-54BB-0727-018A-41EE4F0542AE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantBuilder.Editor", "PlantBuilder.Editor.csproj", "{D416B3D2-1F38-DEF8-13C1-A420157DA023}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.LSystem", "com.dman.LSystem.csproj", "{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplineMeshEditor", "SplineMeshEditor.csproj", "{C885711F-5180-1D83-A830-02373F016E25}"
 EndProject
@@ -29,10 +27,10 @@ Global
 		{408F3866-5553-D928-D598-7EDA73C56DD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{408F3866-5553-D928-D598-7EDA73C56DD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{408F3866-5553-D928-D598-7EDA73C56DD8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A8509B69-0896-7D25-9A02-835EA15DFE2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8509B69-0896-7D25-9A02-835EA15DFE2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8509B69-0896-7D25-9A02-835EA15DFE2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8509B69-0896-7D25-9A02-835EA15DFE2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{464D9D06-54BB-0727-018A-41EE4F0542AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{464D9D06-54BB-0727-018A-41EE4F0542AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{464D9D06-54BB-0727-018A-41EE4F0542AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -41,10 +39,6 @@ Global
 		{D416B3D2-1F38-DEF8-13C1-A420157DA023}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D416B3D2-1F38-DEF8-13C1-A420157DA023}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D416B3D2-1F38-DEF8-13C1-A420157DA023}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C885711F-5180-1D83-A830-02373F016E25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C885711F-5180-1D83-A830-02373F016E25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C885711F-5180-1D83-A830-02373F016E25}.Release|Any CPU.ActiveCfg = Release|Any CPU
