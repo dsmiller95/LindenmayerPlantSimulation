@@ -7,28 +7,6 @@ using System.Threading.Tasks;
 
 namespace Dman.LSystem.ExpressionCompiler
 {
-    public struct StringSegment
-    {
-        public int originalIndex;
-        public string value;
-
-        public StringSegment(string val, int index)
-        {
-            this.value = val;
-            this.originalIndex = index;
-        }
-
-        public static StringSegment MergeConsecutive(StringSegment first, StringSegment second)
-        {
-            return new StringSegment(first.value + second.value, first.originalIndex);
-        }
-
-        public override string ToString()
-        {
-            return value;
-        }
-    }
-
     public class Tokenizer
     {
         public static IEnumerable<Token> Tokenize(string tokenString, string[] variables = null)
@@ -52,17 +30,18 @@ namespace Dman.LSystem.ExpressionCompiler
                 {
                     if(stringsToTokens.TryGetValue(seg.value, out var operatorToken))
                     {
-                        return new Token(operatorToken, seg.originalIndex);
+                        return new Token(operatorToken, seg.context);
                     }
                     if(double.TryParse(seg.value, out var doubleConst))
                     {
-                        return new Token(doubleConst, seg.originalIndex);
+                        return new Token(doubleConst, seg.context);
                     }
                     if (variables != null && variables.Contains(seg.value))
                     {
-                        return new Token(seg.value, seg.originalIndex);
+                        return new Token(seg.value, seg.context);
                     }
-                    throw new SyntaxException($"Token \"{seg}\" is neither a numeric value, a variable, nor a syntatical token", seg.originalIndex);
+
+                    throw seg.context.ExceptionHere($"Token \"{seg}\" is neither a numeric value, a variable, nor a syntatical token");
                 });
         }
 
@@ -114,9 +93,13 @@ namespace Dman.LSystem.ExpressionCompiler
                 {
                     if (buffer.Length > 0)
                     {
-                        yield return new StringSegment(buffer, indexInString - (buffer.Length + skippedSpacesInBuffer));
+                        yield return new StringSegment(
+                            buffer,
+                            new CompilerContext(
+                                indexInString - (buffer.Length + skippedSpacesInBuffer),
+                                indexInString - skippedSpacesInBuffer));
                     }
-                    yield return new StringSegment("" + c, indexInString);
+                    yield return new StringSegment("" + c, new CompilerContext(indexInString, indexInString + 1));
                     buffer = string.Empty;
                     skippedSpacesInBuffer = 0;
                 }

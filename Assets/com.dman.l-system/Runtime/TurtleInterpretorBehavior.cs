@@ -37,7 +37,6 @@ namespace Dman.LSystem
         public float timeBeforeRestart = 5;
 
         private TurtleInterpretor turtle;
-        private int currentUpdates = 0;
 
         private LSystemBehavior system => GetComponent<LSystemBehavior>();
 
@@ -66,17 +65,13 @@ namespace Dman.LSystem
         }
 
         private float lastUpdate;
+        private int currentUpdates = 0;
         private void Update()
         {
             var maxUpdates = system.systemObject.iterations;
             if (currentUpdates < maxUpdates && Time.time > lastUpdate + secondsPerUpdate)
             {
                 lastUpdate = Time.time;
-                if (!system.systemValid)
-                {
-                    currentUpdates = maxUpdates;
-                    return;
-                }
                 UpdateMeshAndSystem();
                 currentUpdates++;
             }else if (currentUpdates >= maxUpdates && Time.time > lastUpdate + timeBeforeRestart)
@@ -92,15 +87,24 @@ namespace Dman.LSystem
             }
         }
 
+        private void TriggerSimulationRestart()
+        {
+            currentUpdates = system.systemObject.iterations;
+        }
+
         private void UpdateMeshAndSystem()
         {
             if(!system.systemValid)
             {
+                this.TriggerSimulationRestart();
                 return;
             }
             var output = turtle.CompileStringToMesh(system.currentState);
             GetComponent<MeshFilter>().mesh = output;
-            system.StepSystem();
+            if (!system.StepSystem())
+            {
+                this.TriggerSimulationRestart();
+            }
         }
     }
 }

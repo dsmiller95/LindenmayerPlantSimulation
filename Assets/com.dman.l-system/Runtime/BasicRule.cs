@@ -100,7 +100,12 @@ namespace Dman.LSystem
             if(conditionalChecker != null)
             {
                 var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
-                var conditionalResult = (bool)invokeResult;
+                if (!(invokeResult is bool boolResult))
+                {
+                    // TODO: call this out a bit better. All compilation context is lost here
+                    throw new System.Exception($"Conditional expression must evaluate to a boolean");
+                }
+                var conditionalResult = boolResult;
                 if (!conditionalResult)
                 {
                     return null;

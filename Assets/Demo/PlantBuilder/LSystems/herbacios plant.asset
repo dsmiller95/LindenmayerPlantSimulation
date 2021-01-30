@@ -12,25 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4c04f427737a0147974aaa47b597e91, type: 3}
   m_Name: herbacios plant
   m_EditorClassIdentifier: 
-  iterations: 10
+  iterations: 100
   axiom: A(1)
   seed: 0
   rules: '
 
-    A(x) : x < growthStop -> QNA(x + 1)
+    A(x) : x < growthStop -> Q(0)NA(x + 1)
 
-    A(x) : x >= growthStop ->
-    QN
+    A(x) : x >= growthStop
+    -> Q(0)N
 
 
-    Q -> FFF
+    Q(x) : x < segmentGrowth -> FQ(x + 1)F
 
 
     N -> [//&&L][//^^//////////L]
 
-    L -> `l
+    L
+    -> `l
 
 '
   defaultGlobalParameters:
   - name: growthStop
-    defaultValue: 4
+    defaultValue: 4.96
+  - name: segmentGrowth
+    defaultValue: 2.1

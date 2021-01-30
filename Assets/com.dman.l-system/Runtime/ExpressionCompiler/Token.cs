@@ -36,7 +36,7 @@ namespace Dman.LSystem.ExpressionCompiler
         /// </summary>
         public string name;
 
-        public int originalStringIndex;
+        public CompilerContext context;
 
         public static readonly Dictionary<TokenType, int> OPERATOR_PRECIDENCE = new Dictionary<TokenType, int>
         {
@@ -51,47 +51,53 @@ namespace Dman.LSystem.ExpressionCompiler
             {TokenType.LESS_THAN_OR_EQ, 3 },
         };
 
-        public Token(double constantValue, int originalIndex)
+        public Token(double constantValue, CompilerContext context)
         {
             token = TokenType.CONSTANT;
             value = constantValue;
 
             name = default;
 
-            originalStringIndex = originalIndex;
+            this.context = context;
         }
 
-        public Token(TokenType type, int originalIndex)
+        public Token(TokenType type, CompilerContext context)
         {
             token = type;
 
             value = default;
             name = default;
 
-            originalStringIndex = originalIndex;
+            this.context = context;
         }
 
-        public Token(string variableName, int originalIndex)
+        public Token(string variableName, CompilerContext context)
         {
             token = TokenType.VARIABLE;
             name = variableName;
 
             value = default;
 
-            originalStringIndex = originalIndex;
+            this.context = context;
         }
 
         public override string ToString()
         {
+            string symbolText;
             if (token == TokenType.VARIABLE)
             {
-                return $"var \"{name}\" : {originalStringIndex}";
+                symbolText = $"var \"{name}\"";
             }
-            if (token == TokenType.CONSTANT)
+            else if (token == TokenType.CONSTANT)
             {
-                return $"const {value:F2} : {originalStringIndex}";
+                symbolText = $"const {value:F2}";
             }
-            return $"{Enum.GetName(typeof(TokenType), token)} : {originalStringIndex}";
+            else
+            {
+                symbolText = Enum.GetName(typeof(TokenType), token);
+            }
+
+            return symbolText + $" : {context}";
         }
     }
 }

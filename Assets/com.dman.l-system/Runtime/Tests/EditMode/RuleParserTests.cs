@@ -125,15 +125,16 @@ public class RuleParserTests
     [Test]
     public void RuleWithMissingParameterThrowsMeaningfulException()
     {
-        var ruleString = "A(x) -> B(x, y)";
+        var ruleString = "A(x) -> B(x, yeet)";
         try
         {
             ParsedRule.ParseToRule(ruleString);
         }catch(SyntaxException e)
         {
             Assert.AreEqual(13, e.errorStartIndex);
+            Assert.AreEqual(17, e.ErrorEndIndex);
             Assert.AreEqual(ruleString, e.ruleText);
-            Assert.IsTrue(e.Message.Contains("\"y\""), "Should contain the missing parameter name");
+            Assert.IsTrue(e.Message.Contains("\"yeet\""), "Should contain the missing parameter name");
         }
     }
     [Test]
@@ -147,6 +148,7 @@ public class RuleParserTests
         catch (SyntaxException e)
         {
             Assert.AreEqual(0, e.errorStartIndex);
+            Assert.AreEqual(ruleString.Length, e.errorLength);
             Assert.AreEqual(ruleString, e.ruleText);
         }
     }

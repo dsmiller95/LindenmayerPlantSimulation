@@ -649,11 +649,10 @@ MonoBehaviour:
     eulerRotation: {x: 0, y: 0, z: 0}
     translation: {x: 0, y: 0, z: 0}
     scale: {x: 1, y: 1, z: 1}
-  secondsPerUpdate: 0.5
-  maxUpdates: 6
+  secondsPerUpdate: 0.25
   initialScale: {x: 0.3, y: 0.3, z: 0.3}
   meshIndexIncrementor: 96
-  timeBeforeRestart: 2
+  timeBeforeRestart: 1
 --- !u!4 &1450058841
 Transform:
   m_ObjectHideFlags: 0

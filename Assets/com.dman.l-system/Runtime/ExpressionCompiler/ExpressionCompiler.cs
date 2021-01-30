@@ -59,8 +59,7 @@ namespace Dman.LSystem.ExpressionCompiler
             var internalExpressionList = ParseToTokenExpressionTillNextParen(enumerator).ToList();
             return new TokenExpression(
                 internalExpressionList,
-                firstToken.originalStringIndex,
-                lastReadSample.originalStringIndex);
+                new CompilerContext(firstToken.context, lastReadSample.context));
         }
 
         private TokenType expressions = TokenType.CONSTANT | TokenType.VARIABLE;
@@ -80,19 +79,19 @@ namespace Dman.LSystem.ExpressionCompiler
                 {
                     yield return new TokenExpression(
                         ParseToTokenExpressionTillNextParen(enumerator).ToList(),
-                        current.originalStringIndex,
-                        enumerator.Current.originalStringIndex);
+                        new CompilerContext(current.context, enumerator.Current.context));
                 }else if (expressions.HasFlag(tokenType))
                 {
                     if(tokenType == TokenType.CONSTANT)
                     {
-                        yield return new TokenExpression(Expression.Constant(current.value), current.originalStringIndex);
+                        yield return new TokenExpression(Expression.Constant(current.value), current.context);
                     }else if (tokenType == TokenType.VARIABLE)
                     {
                         if (!this.parameters.TryGetValue(current.name, out var parameterExp)) {
-                            throw new SyntaxException($"no parameter found for '{current.name}'", current.originalStringIndex);
+
+                            throw current.context.ExceptionHere($"no parameter found for '{current.name}'");
                         }
-                        yield return new TokenExpression(parameterExp, current.originalStringIndex);
+                        yield return new TokenExpression(parameterExp, current.context);
                     }else
                     {
                         throw new Exception($"Invalid Expression Token Type: '{Enum.GetName(typeof(TokenType), tokenType)}'");
@@ -100,7 +99,7 @@ namespace Dman.LSystem.ExpressionCompiler
                 }else
                 {
                     // the token must be an operator
-                    yield return new TokenOperator(current.originalStringIndex)
+                    yield return new TokenOperator(current.context)
                     {
                         type = tokenType,
                     };

@@ -7,20 +7,10 @@ namespace Dman.LSystem.ExpressionCompiler
 {
     public abstract class TokenTarget
     {
-        public int originalStringIndex;
-        public int originalStringEndIndex;
-        protected TokenTarget(int originalIndex) : this(originalIndex, originalIndex + 1)
+        public CompilerContext context;
+        protected TokenTarget(CompilerContext context)
         {
-        }
-        protected TokenTarget(int originalIndex, int endIndex)
-        {
-            this.originalStringIndex = originalIndex;
-            this.originalStringEndIndex = endIndex;
-        }
-
-        public SyntaxException ExceptionHere(string message)
-        {
-            return new SyntaxException(message, originalStringIndex, originalStringEndIndex - originalStringIndex);
+            this.context = context;
         }
     }
 
@@ -30,17 +20,17 @@ namespace Dman.LSystem.ExpressionCompiler
         public Expression compiledExpression;
         public List<TokenTarget> tokenSeries;
 
-        public TokenExpression(Expression expression, int index): base(index)
+        public TokenExpression(Expression expression, CompilerContext context): base(context)
         {
             compiledExpression = expression;
             isTokenSeries = false;
         }
 
-        public TokenExpression(List<TokenTarget> series, int index, int endIndex): base(index, endIndex)
+        public TokenExpression(List<TokenTarget> series, CompilerContext context) : base(context)
         {
             if(series.Count == 0)
             {
-                throw new SyntaxException("Empty parentheses are not allowed", index, (endIndex + 1) - index);
+                throw context.ExceptionHere("Empty parentheses are not allowed");
             }
 
             tokenSeries = series;
@@ -68,7 +58,7 @@ namespace Dman.LSystem.ExpressionCompiler
                     }
                     else if (totalPrecedingOperators > 2)
                     {
-                        throw tokenSeries[i].ExceptionHere(
+                        throw tokenSeries[i].context.ExceptionHere(
                             $"{totalPrecedingOperators} consecutive operators detected");
                     }
                 }
@@ -84,17 +74,17 @@ namespace Dman.LSystem.ExpressionCompiler
                 tokenSeries.RemoveAt(unaryIndex);
                 if(tokenSeries.Count <= unaryIndex)
                 {
-                    throw op.ExceptionHere("Stranded Operator");
+                    throw op.context.ExceptionHere("Stranded Operator");
                 }
                 var value = tokenSeries[unaryIndex] as TokenExpression;
                 var valuesExpression = value.CompileSelfToExpression();
                 switch (op.type)
                 {
                     case TokenType.SUBTRACT:
-                        tokenSeries[unaryIndex] = new TokenExpression(Expression.NegateChecked(valuesExpression), op.originalStringIndex);
+                        tokenSeries[unaryIndex] = new TokenExpression(Expression.NegateChecked(valuesExpression), op.context);
                         break;
                     default:
-                        throw op.ExceptionHere($"Unsupported unary operator: {Enum.GetName(typeof(TokenType), op.type)}");
+                        throw op.context.ExceptionHere($"Unsupported unary operator: {Enum.GetName(typeof(TokenType), op.type)}");
                 }
             }
 
@@ -122,7 +112,7 @@ namespace Dman.LSystem.ExpressionCompiler
                         firstVal.CompileSelfToExpression(),
                         op.type,
                         secondVal.CompileSelfToExpression()),
-                    firstVal.originalStringIndex);
+                    firstVal.context);
                 tokenLinkedList.Remove(firstVal);
                 operatorNode.Value = newVal;
                 tokenLinkedList.Remove(secondVal);
@@ -168,7 +158,7 @@ namespace Dman.LSystem.ExpressionCompiler
     {
         public TokenType type;
 
-        public TokenOperator(int index): base(index)
+        public TokenOperator(CompilerContext context): base(context)
         {
 
         }
