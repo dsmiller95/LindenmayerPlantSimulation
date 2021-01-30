@@ -10,6 +10,10 @@ namespace Dman.LSystem
             {
                 return false;
             }
+            if(x.conditionalStringDescription != y.conditionalStringDescription)
+            {
+                return false;
+            }
 
             return true;
         }
@@ -26,7 +30,7 @@ namespace Dman.LSystem
             }
             for (int i = 0; i < x.Length; i++)
             {
-                if (!x.Equals(y))
+                if (!x[i].Equals(y[i]))
                 {
                     return false;
                 }
@@ -41,6 +45,10 @@ namespace Dman.LSystem
             {
                 var symbol = obj.targetSymbols[i];
                 hashCode ^= symbol.GetHashCode();
+            }
+            if(obj.conditionalStringDescription != null)
+            {
+                hashCode ^= obj.conditionalStringDescription.GetHashCode();
             }
             return hashCode;
         }

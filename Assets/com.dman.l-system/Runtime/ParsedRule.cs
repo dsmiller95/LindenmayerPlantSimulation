@@ -1,4 +1,3 @@
-using Dman.LSystem.ExpressionCompiler;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,6 +17,7 @@ namespace Dman.LSystem
         public SymbolReplacementExpressionMatcher[] replacementSymbols;
 
         public System.Delegate conditionalMatch;
+        public string conditionalStringDescription;
 
         public string TargetSymbolString()
         {
@@ -26,6 +26,11 @@ namespace Dman.LSystem
         public string ReplacementSymbolString()
         {
             return replacementSymbols.Aggregate(new StringBuilder(), (agg, curr) => agg.Append(curr.ToString())).ToString();
+        }
+
+        public override string ToString()
+        {
+            return $"{TargetSymbolString()} -> {ReplacementSymbolString()}";
         }
 
         public IEnumerable<string> TargetSymbolParameterNames()
@@ -39,6 +44,15 @@ namespace Dman.LSystem
                 }
             }
             return result;
+        }
+
+        private void SetConditional(string conditionalExpression, string[] validParameters)
+        {
+            var compiledResult = ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateAndDescriptionWithParameters(
+                $"({conditionalExpression})",
+                validParameters);
+            conditionalMatch = compiledResult.Item1;
+            conditionalStringDescription = compiledResult.Item2;
         }
 
         /// <summary>
@@ -71,7 +85,7 @@ namespace Dman.LSystem
             rule.targetSymbols = ParseSymbolMatcher(ruleMatch.Groups["targetSymbols"].Value);
             var replacementSymbolString = ruleMatch.Groups["replacement"].Value;
             var availableParameters = rule.TargetSymbolParameterNames();
-            if(globalParameters != null)
+            if (globalParameters != null)
             {
                 availableParameters = globalParameters.Concat(availableParameters);
             }
@@ -83,10 +97,7 @@ namespace Dman.LSystem
 
             if (ruleMatch.Groups["conditional"].Success)
             {
-                var conditionalExpression = $"({ruleMatch.Groups["conditional"].Value})";
-                rule.conditionalMatch = ExpressionCompiler.ExpressionCompiler.CompileExpressionToDelegateWithParameters(
-                    conditionalExpression,
-                    parameterArray);
+                rule.SetConditional(ruleMatch.Groups["conditional"].Value, parameterArray);
             }
 
             return rule;
@@ -124,17 +135,39 @@ namespace Dman.LSystem
             var basicRules = parsedRules.Where(r => !(r is ParsedStochasticRule))
                 .Select(x => new BasicRule(x)).ToList();
 
+            IEqualityComparer<ParsedRule> ruleComparer = new ParsedRuleEqualityComparer();
+#if UNITY_EDITOR
+            for (int i = 0; i < parsedRules.Length; i++)
+            {
+                if (parsedRules[i] is ParsedStochasticRule)
+                {
+                    continue;
+                }
+                for (int j = i + 1; j < parsedRules.Length; j++)
+                {
+                    if (parsedRules[j] is ParsedStochasticRule)
+                    {
+                        continue;
+                    }
+                    if (ruleComparer.Equals(parsedRules[i], parsedRules[j]))
+                    {
+                        throw new System.Exception($"Cannot have two non-stochastic rules matching the same symbols. matching rules: {parsedRules[i]} {parsedRules[j]}");
+                    }
+                }
+            }
+#endif
+
             var stochasticRules = parsedRules.Where(r => r is ParsedStochasticRule)
                 .Select(x => x as ParsedStochasticRule)
-                .GroupBy(x => x.targetSymbols, new ArrayElementEqualityComparer<SingleSymbolMatcher>())
-                //.GroupBy(x => x, new ParsedRuleEqualityComparer())
+                //.GroupBy(x => x.targetSymbols, new ArrayElementEqualityComparer<SingleSymbolMatcher>())
+                .GroupBy(x => x, ruleComparer)
                 .Select(group =>
                 {
                     var probabilityDeviation = Mathf.Abs(group.Sum(x => x.probability) - 1);
                     if (probabilityDeviation > 1e-30)
                     {
-                        throw new System.Exception($"Error: group for {group.Key.Aggregate(new StringBuilder(), (agg, curr) => agg.Append(curr.ToString()))}"
-                            + " has probability {probabilityDeviation} away from 1");
+                        throw new System.Exception($"Error: group for {group.Key.targetSymbols.Aggregate(new StringBuilder(), (agg, curr) => agg.Append(curr.ToString()))}"
+                            + $" has probability {probabilityDeviation} away from 1");
                     }
                     return new BasicRule(group);
                 }).ToList();

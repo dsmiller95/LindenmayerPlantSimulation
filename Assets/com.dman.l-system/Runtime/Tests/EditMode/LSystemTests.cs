@@ -330,27 +330,27 @@ public class LSystemTests
 
         Assert.AreEqual("A(0)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
+        Assert.AreEqual("A(0.5)", basicLSystem.currentSymbols.ToString());
+        basicLSystem.StepSystem(defaultGlobalParams);
         Assert.AreEqual("A(1)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
-        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
-        basicLSystem.StepSystem(defaultGlobalParams);
-        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        Assert.AreEqual("A(1.5)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
         Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
         Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
-        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        Assert.AreEqual("A(2.5)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
         Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
         Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
-        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        Assert.AreEqual("A(2.5)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
-        Assert.AreEqual("A(2)", basicLSystem.currentSymbols.ToString());
+        Assert.AreEqual("A(3.5)", basicLSystem.currentSymbols.ToString());
         basicLSystem.StepSystem(defaultGlobalParams);
-        Assert.AreEqual("A(3)", basicLSystem.currentSymbols.ToString());
+        Assert.AreEqual("A(2.5)", basicLSystem.currentSymbols.ToString());
     }
     [Test]
     public void RuleCompilationFailsWhenConflictingRules()

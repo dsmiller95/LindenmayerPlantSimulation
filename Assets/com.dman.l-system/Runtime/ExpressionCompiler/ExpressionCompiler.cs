@@ -27,6 +27,14 @@ namespace Dman.LSystem.ExpressionCompiler
             var lambdaExpr = Expression.Lambda(expression, compiler.parameters.Values.ToList());
             return lambdaExpr.Compile();
         }
+        public static (Delegate, string) CompileExpressionToDelegateAndDescriptionWithParameters(string expressionString, string[] namedNumericParameters)
+        {
+            var compiler = new ExpressionCompiler(namedNumericParameters);
+            var expression = compiler.CompileToExpression(expressionString);
+            // TODO: does this preserve parameter ordering?
+            var lambdaExpr = Expression.Lambda(expression, compiler.parameters.Values.ToList());
+            return (lambdaExpr.Compile(), expression.ToString());
+        }
 
         public Expression CompileToExpression(string expressionString)
         {
