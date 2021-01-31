@@ -1,16 +1,26 @@
-# L-System 0.1
+# com.dman.l-system 0.1.2
 
 [![openupm](https://img.shields.io/npm/v/com.dman.l-system?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.dman.l-system/)
 
-An attempt to implement most of the features present in L-systems described by 'The Algorithmic Beauty Of Plants' http://algorithmicbotany.org/papers/abop/abop.pdf
+An attempt to implement most of the features present in L-systems described by ['The Algorithmic Beauty Of Plants'](http://algorithmicbotany.org/papers/abop/abop.pdf). Recommended reading: chapters 1.1, 1.2, 1.3, and 1.5 for the basics of L-Systems. Read 1.7 and 1.10 for details about stochastic and parametric rules, the behavior of rules in this implementation should mirror how they are described in those chapters with some [syntactical differences](#supported-rule-examples).
 
-For examples of usage, look at the source project in this folder: https://github.com/dsmiller95/plantbuilder/tree/master/Assets/Demo/PlantBuilder/LSystems
+## Installation
 
-## Field Flower
+Install via [openupm](https://openupm.com/) :
+
+```
+npm install -g openupm-cli
+cd YOUR_UNITY_PROJECT_FOLDER
+openupm add com.dman.l-system
+```
+
+To look at examples, clone the [source repo](https://github.com/dsmiller95/plantbuilder) and look in `Assets/Demo/PlantBuilder/LSystems` for the configuration.
+
+## [Example Showcase](#example-showcase)
 
 ![flower generation gif](../../DemoPhotos/field-flower-system.gif)
 
-## System Configuration
+## [System Configuration](#system-configuration)
 
 To build a new system from scratch, follow this template:
 
@@ -31,9 +41,9 @@ To build a new system from scratch, follow this template:
 
 4. Edit the L-System scriptable object during play mode. The system will automatically recompile every iteration, allowing for live editing.
 
-## Turtle Control
+## [Turtle Control](#turtle-control)
 
-Turtle Operation scriptable objects are used to define how the Turtle interprets your L-System's output string
+Turtle Operation scriptable objects are used to define how the Turtle interprets your L-System's output string.
 
 ### Rotate Operations
 
@@ -61,7 +71,7 @@ In this example, F is used as the most basic stem unit. In the system this confi
 
 Defines a single character to be used to scale the turtle's current transformation. This will reduce the scale of everything done by the turtle, including the size of meshes as well as the distance traveled when translating the turtle.
 
-## Supported Rule Examples
+## [Supported Rule Examples](#supported-rule-examples)
 
 Currently this package has support for stochastic and parametric rules. A list of examples of the current and future grammar can be found in [rule-grammer](rule-grammer.txt). Not all of the examples in that file will work, consult the following list for what syntax is currently supported
 
@@ -116,13 +126,13 @@ A(age) : age < 5 -> A(age + 1)
 
 ---
 
-## Extension
+## [Extension](#extension)
 
 The turtle interpreter is set up to be extensible. If you want to build your own operations on the currently available turtle state parameters, implement the `TurtleOperationSet<TurtleState>` abstract class, and create an instance of your new scriptable object. I recommend looking at [TurtleScaleOperations](Runtime/TurtleScaleOperations.cs) as the simplest example of an implementation.
 
 If you need additional properties in the turtle state, you should re-implement the [TurtleInterpreterBehavior](Runtime/TurtleInterpreterBehavior.cs), using a different generic parameter for the TurtleInterpreter instance, and define your own set of turtle operators to operate on your new state struct.
 
-## Parameterization
+## [Parameterization](#parameterization)
 
 Parameters for each rule can be defined in two places. All of the strings captured between the parenthesis in the left hand side of the rule will be treated as parameters, and that rule will not match unless the matching symbol has the exact number of parameters as defined in that section. In addition, the L-system will allow for global parameters to be named and defined. The global parameters can be used in the replacement rules and conditionals of every rule of that L-system as if they were a matched parameter.
 
@@ -132,33 +142,27 @@ Example of a valid L-System using global parameters:
 
 ### Supported expression operations
 
-Default operations, same as their definition in C#:
+These are the operators you can use inside expressions to evaluate parameter values between parentheses, in order of precedence. When not specified, they function the same as their C# counterparts.
 
 ```
-x + y, x - y, x * y, x / y, x % y
-x > y, x < y, x >= y, x <= y, x == y, x != y
-x && y, x || y
-```
-
-Unary operations: `-x, !x`
-
-And an exponent operator: `x^y`
-
-This is a list of all operators, in groups based on operator precedence. The order of operations is exactly the same as in the C# language, with the exception of the new exponent operator. The first items in the list are evaluated first.
-
-```
+Unary operators:
 -x, !x
-x*y, x/y, x%y
-x^y
-x+y, x-y
-x>y, x<y, x>=y, x<=y
-x==y, x!=y
-x&&y
-x||y
 
+Math operators:
+x * y, x / y, x % y
+x ^ y Exponent
+x + y, x - y
+
+Comparisons:
+x > y, x < y, x >= y, x <= y
+x == y, x != y
+
+Boolean logic:
+x && y
+x || y
 ```
 
-## Limitations
+## [Limitations](#limitations)
 
 - Does not support contextual matches, E.X. `C < A > B -> X`
 - Stochastic probability cannot be parameterized
