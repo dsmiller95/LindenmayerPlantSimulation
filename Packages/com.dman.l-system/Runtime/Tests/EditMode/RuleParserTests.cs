@@ -28,6 +28,30 @@ public class RuleParserTests
         Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
     }
     [Test]
+    public void ParsedRuleProbability()
+    {
+        var ruleFromString = ParsedRule.ParseToRule("P(0.5) A -> AB");
+
+        Assert.AreEqual("A", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
+
+        Assert.IsAssignableFrom<ParsedStochasticRule>(ruleFromString);
+        var stochasticRule = ruleFromString as ParsedStochasticRule;
+        Assert.AreEqual(0.5, stochasticRule.probability);
+    }
+    [Test]
+    public void ParsedRuleProbabilityFromExpression()
+    {
+        var ruleFromString = ParsedRule.ParseToRule("P(0.5 - 0.3) A -> AB");
+
+        Assert.AreEqual("A", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
+
+        Assert.IsAssignableFrom<ParsedStochasticRule>(ruleFromString);
+        var stochasticRule = ruleFromString as ParsedStochasticRule;
+        Assert.AreEqual(0.2, stochasticRule.probability);
+    }
+    [Test]
     public void ParsesRuleWithInputParameters()
     {
         var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B");
@@ -118,6 +142,8 @@ public class RuleParserTests
         Assert.AreEqual(12, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(10, 2));
         Assert.AreEqual(10, ruleFromString.replacementSymbols[0].evaluators[1].DynamicInvoke(10, 2));
     }
+
+    #region Meaningful Exceptions
     [Test]
     public void RuleWithMissingParameterThrowsMeaningfulException()
     {
@@ -251,4 +277,5 @@ public class RuleParserTests
             Assert.AreEqual(ruleString, e.ruleText);
         }
     }
+    #endregion
 }

@@ -31,10 +31,10 @@ namespace Dman.LSystem
         private void ExtractParameters()
         {
             parameterNameToIndex = new Dictionary<string, int>();
-            systemParameters = new double[systemObject.defaultGlobalParameters.Length];
-            for (int i = 0; i < systemObject.defaultGlobalParameters.Length; i++)
+            systemParameters = new double[systemObject.defaultGlobalRuntimeParameters.Length];
+            for (int i = 0; i < systemObject.defaultGlobalRuntimeParameters.Length; i++)
             {
-                var globalParam = systemObject.defaultGlobalParameters[i];
+                var globalParam = systemObject.defaultGlobalRuntimeParameters[i];
                 systemParameters[i] = globalParam.defaultValue;
                 parameterNameToIndex[globalParam.name] = i;
             }

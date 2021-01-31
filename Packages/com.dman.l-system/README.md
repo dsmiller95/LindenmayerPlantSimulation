@@ -96,8 +96,8 @@ AB -> B
 40% chance of replacing `F` with `FF`, and 60% chance to do nothing
 
 ```
-(P0.4) F -> FF
-(P0.6) F -> F
+P(0.4) F -> FF
+P(1 - 0.4) F -> F
 ```
 
 ---
@@ -134,11 +134,25 @@ If you need additional properties in the turtle state, you should re-implement t
 
 ## [Parameterization](#parameterization)
 
-Parameters for each rule can be defined in two places. All of the strings captured between the parenthesis in the left hand side of the rule will be treated as parameters, and that rule will not match unless the matching symbol has the exact number of parameters as defined in that section. In addition, the L-system will allow for global parameters to be named and defined. The global parameters can be used in the replacement rules and conditionals of every rule of that L-system as if they were a matched parameter.
+Parameters for each rule can be defined in three ways: as Rule-specific Parameters, as Global Runtime Parameters, and as Global Compile Time Parameters.
 
-Example of a valid L-System using global parameters:
+### Runtime parameters
 
-![mesh operations example](../../DemoPhotos/global-parameters-example.png)
+Rule-specific Parameters are the symbols between parentheses on the left hand side of the rule declaration. Each rule will not match against a string unless the symbol has the exact number of parameters as defined in the rule matcher. For example, `A(x, y) -> B(x)` will match against `A(1, 2)`, but not against `A(4)`, `A(4, 2, 1)`, or `A`.
+
+The Global Runtime Parameters are passed in every time the L-System steps, and can be used in all the same contexts that Rule-specific Parameters can be used. The only difference is that they are not part of the rule's matching pattern. These can be used to pass information into the system that will change as the system grows.
+
+### Compile time parameters
+
+Global Compile Time Parameters should be used to pass in parameters that will not change throughout the whole life of the L-system, and function similarly to [C++ #define directives](http://www.cplusplus.com/doc/tutorial/preprocessor/). Compile time parameters are ideal to modify the stochastic probability of rules, the following example uses them in this way. No other parameters can be used in the probability expression, since the probability must be known at compile-time.
+
+Since these are simple string replacements, they could also be used to modify the structure and behavior of the system! They could define new replacement patterns or even whole rules which get placed into the system at compile time.
+
+### Example
+
+Example of each parameter type defined in an L-System object editor. Coloring has beed added to indicate the parameter type: Rule-specific Parameters are red, Global Runtime Parameters are blue, and Global Compile Time Parameters are green.
+
+![mesh operations example](../../DemoPhotos/parameter-examples.png)
 
 ### Supported expression operations
 
@@ -165,4 +179,3 @@ x || y
 ## [Limitations](#limitations)
 
 - Does not support contextual matches, E.X. `C < A > B -> X`
-- Stochastic probability cannot be parameterized

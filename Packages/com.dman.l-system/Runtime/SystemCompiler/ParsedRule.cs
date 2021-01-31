@@ -9,7 +9,7 @@ namespace Dman.LSystem.SystemCompiler
 {
     public class ParsedStochasticRule : ParsedRule
     {
-        public float probability;
+        public double probability;
     }
 
     public class ParsedRule
@@ -77,14 +77,25 @@ namespace Dman.LSystem.SystemCompiler
         {
             var symbolMatchPattern = @"(\w(?:\((?:\w+, )*\w+\))?)+";
 
-            var ruleMatch = Regex.Match(ruleString.Trim(), @$"(?:\(P(?<probability>[.0-9]+)\))?\s*(?<targetSymbols>{symbolMatchPattern})\s*(?::(?<conditional>.*)\s*)?->\s*(?<replacement>.+)");
+            var ruleMatch = Regex.Match(ruleString.Trim(), @$"(?:P(?<probability>\(.+\)))?\s*(?<targetSymbols>{symbolMatchPattern})\s*(?::(?<conditional>.*)\s*)?->\s*(?<replacement>.+)");
             ParsedRule rule;
-            if (ruleMatch.Groups["probability"].Success)
+            var probabilityMatch = ruleMatch.Groups["probability"];
+            if (probabilityMatch.Success)
             {
-                rule = new ParsedStochasticRule
+                var probabilityExpression = probabilityMatch.Value;
+                try
                 {
-                    probability = float.Parse(ruleMatch.Groups["probability"].Value)
-                };
+                    var compiledProbabilityExpression = ExpressionCompiler.CompileExpressionToDelegateWithParameters(probabilityExpression);
+                    rule = new ParsedStochasticRule
+                    {
+                        probability = (double)compiledProbabilityExpression.DynamicInvoke()
+                    };
+                }
+                catch (SyntaxException e)
+                {
+                    e.RecontextualizeIndex(probabilityMatch.Index, ruleString);
+                    throw;
+                }
             }
             else
             {
@@ -174,11 +185,10 @@ namespace Dman.LSystem.SystemCompiler
 
             var stochasticRules = parsedRules.Where(r => r is ParsedStochasticRule)
                 .Select(x => x as ParsedStochasticRule)
-                //.GroupBy(x => x.targetSymbols, new ArrayElementEqualityComparer<SingleSymbolMatcher>())
                 .GroupBy(x => x, ruleComparer)
                 .Select(group =>
                 {
-                    var probabilityDeviation = Mathf.Abs(group.Sum(x => x.probability) - 1);
+                    var probabilityDeviation = System.Math.Abs(group.Sum(x => x.probability) - 1);
                     if (probabilityDeviation > 1e-30)
                     {
                         throw new System.Exception($"Error: group for {group.Key.targetSymbols.Aggregate(new StringBuilder(), (agg, curr) => agg.Append(curr.ToString()))}"

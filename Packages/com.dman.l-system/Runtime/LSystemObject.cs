@@ -5,12 +5,18 @@ using UnityEngine;
 namespace Dman.LSystem
 {
     [System.Serializable]
-    public struct GlobalParameterAndDefault
+    public struct ParameterAndDefault
     {
         public string name;
         public double defaultValue;
     }
 
+    [System.Serializable]
+    public struct DefineDirectives
+    {
+        public string name;
+        public string replacement;
+    }
     [CreateAssetMenu(fileName = "LSystem", menuName = "LSystem/SystemDefinition")]
     public class LSystemObject : ScriptableObject
     {
@@ -21,20 +27,27 @@ namespace Dman.LSystem
         [Multiline(30)]
         public string rules;
 
-        public GlobalParameterAndDefault[] defaultGlobalParameters;
+        public ParameterAndDefault[] defaultGlobalRuntimeParameters;
+        public DefineDirectives[] defaultGlobalCompileTimeParameters;
 
         public LSystem<double> Compile(int? seedOverride = null)
         {
             try
             {
-                var ruleLines = rules.Split('\n')
-                                .Select(x => x.Trim())
-                                .Where(x => !string.IsNullOrEmpty(x));
+                var rulesPostReplacement = rules;
+                foreach (var replacement in defaultGlobalCompileTimeParameters)
+                {
+                    rulesPostReplacement = rulesPostReplacement.Replace(replacement.name, replacement.replacement);
+                }
+                var ruleLines = rulesPostReplacement
+                    .Split('\n')
+                    .Select(x => x.Trim())
+                    .Where(x => !string.IsNullOrEmpty(x));
                 return LSystemBuilder.DoubleSystem(
                     axiom,
                     ruleLines,
                     seedOverride ?? seed,
-                    defaultGlobalParameters.Select(x => x.name).ToArray());
+                    defaultGlobalRuntimeParameters.Select(x => x.name).ToArray());
             }
             catch (System.Exception e)
             {

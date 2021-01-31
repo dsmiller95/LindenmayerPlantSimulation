@@ -2,7 +2,7 @@ namespace Dman.LSystem.SystemRuntime
 {
     public struct RuleOutcome
     {
-        public float probability;
+        public double probability;
         public ReplacementSymbolGenerator[] replacementSymbols;
 
         public SymbolString<double> GenerateReplacement(object[] matchedParameters)

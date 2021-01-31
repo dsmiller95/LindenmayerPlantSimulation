@@ -105,8 +105,8 @@ public class LSystemTests
     {
         var basicLSystem = LSystemBuilder.DoubleSystem("C", new string[] {
             "A -> AC",
-            "(P0.5) C -> A",
-            "(P0.5) C -> AB"
+            "P(0.5) C -> A",
+            "P(0.5) C -> AB"
         }, 0);
 
         Assert.AreEqual("C", basicLSystem.currentSymbols.ToString());
@@ -126,8 +126,8 @@ public class LSystemTests
     {
         var basicLSystem = LSystemBuilder.DoubleSystem("C", new string[] {
             "A -> AC",
-            "(P0.9) C -> A",
-            "(P0.1) C -> AB"
+            "P(0.9) C -> A",
+            "P(0.1) C -> AB"
         }, 0);
 
         Assert.AreEqual("C", basicLSystem.currentSymbols.ToString());
@@ -324,10 +324,10 @@ public class LSystemTests
         var globalParameters = new string[] { "global" };
 
         var basicLSystem = LSystemBuilder.DoubleSystem("A(0)", new string[] {
-            "(P0.5) A(x) : x < global -> A(x + 1)",
-            "(P0.5) A(x) : x < global -> A(x + 0.5)",
-            "(P0.5) A(x) : x >= global -> A(x - 1)",
-            "(P0.5) A(x) : x >= global -> A(x - 0.5)",
+            "P(0.5) A(x) : x < global -> A(x + 1)",
+            "P(0.5) A(x) : x < global -> A(x + 0.5)",
+            "P(0.5) A(x) : x >= global -> A(x - 1)",
+            "P(0.5) A(x) : x >= global -> A(x - 0.5)",
         }, 0, globalParameters);
 
         var defaultGlobalParams = new double[] { 3 };

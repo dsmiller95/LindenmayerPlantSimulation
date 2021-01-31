@@ -17,11 +17,10 @@ namespace Dman.LSystem.SystemCompiler
             parameters = doubleParams.ToDictionary(x => x, x => Expression.Parameter(typeof(double), x));
         }
 
-        public static Delegate CompileExpressionToDelegateWithParameters(string expressionString, string[] namedNumericParameters)
+        public static Delegate CompileExpressionToDelegateWithParameters(string expressionString, string[] namedNumericParameters = null)
         {
-            var compiler = new ExpressionCompiler(namedNumericParameters);
+            var compiler = new ExpressionCompiler(namedNumericParameters ?? new string[0]);
             var expression = compiler.CompileToExpression(expressionString);
-            // TODO: does this preserve parameter ordering?
             var lambdaExpr = Expression.Lambda(expression, compiler.parameters.Values.ToList());
             return lambdaExpr.Compile();
         }
@@ -29,7 +28,6 @@ namespace Dman.LSystem.SystemCompiler
         {
             var compiler = new ExpressionCompiler(namedNumericParameters);
             var expression = compiler.CompileToExpression(expressionString);
-            // TODO: does this preserve parameter ordering?
             var lambdaExpr = Expression.Lambda(expression, compiler.parameters.Values.ToList());
             return (lambdaExpr.Compile(), expression.ToString());
         }

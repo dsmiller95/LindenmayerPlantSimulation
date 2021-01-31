@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.3] - 2021-01-31
+
+Stochastic probability parameterization
+
+### Added
+
+- compile time replacement directives
+- expression compilation inside the probability declaration
+
 ## [0.1.2] - 2021-01-30
 
 Parametric expression evaluator additions

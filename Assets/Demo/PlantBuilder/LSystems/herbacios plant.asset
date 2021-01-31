@@ -15,12 +15,10 @@ MonoBehaviour:
   iterations: 30
   axiom: A(1)
   seed: 0
-  rules: '
+  rules: 'A(x) : x < growthStop -> Q(x)NI(growthStop - x + 3)A(x + 1)
 
-    A(x) : x < growthStop -> Q(x)NI(growthStop - x + 3)A(x + 1)
-
-    A(x)
-    : x == growthStop -> Q(x)N
+    A(x) :
+    x == growthStop -> Q(x)N
 
 
     Q(x) : x < segmentGrowth -> FQ(x + 1)F
@@ -30,19 +28,23 @@ MonoBehaviour:
     -> [&&S(x)][/(180)&&S(x)]
 
 
-    (P0.7) S(x) : x > 0  -> F^(x * 3)S(x - 1)
+    P(curveFactor) S(x) : x > 0  -> F^(x * 3)S(x
+    - 1)
 
-    (P0.3)
-    S(x) : x > 0  -> FNS(x - 1)
+    P(1 - curveFactor) S(x) : x > 0  -> FNS(x - 1)
 
 
     N -> [//&&L][//^^//////////L]
 
-    L -> `l
+    L
+    -> `l
 
 '
-  defaultGlobalParameters:
+  defaultGlobalRuntimeParameters:
   - name: growthStop
     defaultValue: 5
   - name: segmentGrowth
     defaultValue: 6
+  defaultGlobalCompileTimeParameters:
+  - name: curveFactor
+    replacement: .7
