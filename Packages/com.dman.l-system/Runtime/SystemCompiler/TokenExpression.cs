@@ -30,7 +30,7 @@ namespace Dman.LSystem.SystemCompiler
         {
             if (series.Count == 0)
             {
-                throw context.ExceptionHere("Empty parentheses are not allowed");
+                throw context.ExceptionHere("Empty expression is not allowed");
             }
 
             tokenSeries = series;
