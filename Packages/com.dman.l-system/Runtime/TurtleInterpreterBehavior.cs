@@ -4,21 +4,12 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
-    [Serializable]
-    public struct TransformKey
-    {
-        public char Character;
-        public Vector3 eulerRotation;
-        public Vector3 translation;
-        public Vector3 scale;
-    }
-
     [RequireComponent(typeof(MeshFilter))]
     [RequireComponent(typeof(MeshRenderer))]
     [RequireComponent(typeof(LSystemBehavior))]
-    public class TurtleInterpretorBehavior : MonoBehaviour
+    public class TurtleInterpreterBehavior : MonoBehaviour
     {
-        public TurtleOperationSet[] operationSets;
+        public TurtleOperationSet<TurtleState>[] operationSets;
 
         public float secondsPerUpdate;
         public Vector3 initialScale = Vector3.one;
@@ -26,14 +17,19 @@ namespace Dman.LSystem
         public char meshIndexIncrementor = '`';
         public float timeBeforeRestart = 5;
 
-        private TurtleInterpretor turtle;
+        private TurtleInterpretor<TurtleState> turtle;
         private LSystemBehavior system => GetComponent<LSystemBehavior>();
 
         private void Awake()
         {
             var operatorDictionary = operationSets.SelectMany(x => x.GetOperators()).ToDictionary(x => (int)x.TargetSymbol);
 
-            turtle = new TurtleInterpretor(operatorDictionary, Matrix4x4.Scale(initialScale));
+            turtle = new TurtleInterpretor<TurtleState>(
+                operatorDictionary,
+                new TurtleState
+                {
+                    transformation = Matrix4x4.Scale(initialScale)
+                });
             turtle.meshIndexIncrementChar = meshIndexIncrementor;
         }
 

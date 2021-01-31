@@ -5,21 +5,20 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
-    public class TurtleInterpretor
+    public class TurtleInterpretor<T> where T: struct
     {
-        private IDictionary<int, ITurtleOperator> operationsByKey;
+        private IDictionary<int, ITurtleOperator<T>> operationsByKey;
 
         public int meshIndexIncrementChar = '`';
         public int branchStartChar = '[';
         public int branchEndChar = ']';
-        private Matrix4x4 rootTransform;
+        
+        private T defaultState;
 
-        public TurtleInterpretor(IDictionary<int, ITurtleOperator> operations) : this(operations, Matrix4x4.identity) { }
-
-        public TurtleInterpretor(IDictionary<int, ITurtleOperator> operations, Matrix4x4 rootTransform)
+        public TurtleInterpretor(IDictionary<int, ITurtleOperator<T>> operations, T defaultState)
         {
             operationsByKey = operations;
-            this.rootTransform = rootTransform;
+            this.defaultState = defaultState;
         }
 
         public Mesh CompileStringToMesh(SymbolString<double> symbols)
@@ -27,13 +26,9 @@ namespace Dman.LSystem
             var resultMeshes = new List<MeshDraft>();
             resultMeshes.Add(new MeshDraft());
 
-            var currentState = new TurtleState
-            {
-                transformation = rootTransform,
-                submeshIndex = 0
-            };
+            var currentState = new TurtleMeshState<T>(defaultState);
 
-            var stateStack = new Stack<TurtleState>();
+            var stateStack = new Stack<TurtleMeshState<T>>();
 
             for (int symbolIndex = 0; symbolIndex < symbols.symbols.Length; symbolIndex++)
             {
@@ -57,8 +52,8 @@ namespace Dman.LSystem
                 }
                 if (operationsByKey.TryGetValue(symbol, out var operation))
                 {
-                    currentState = operation.Operate(
-                        currentState,
+                    currentState.turtleBaseState = operation.Operate(
+                        currentState.turtleBaseState,
                         symbols.parameters[symbolIndex],
                         resultMeshes[currentState.submeshIndex]);
                 }

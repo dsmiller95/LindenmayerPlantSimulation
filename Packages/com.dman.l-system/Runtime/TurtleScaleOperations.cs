@@ -5,16 +5,16 @@ using UnityEngine;
 namespace Dman.LSystem
 {
     [CreateAssetMenu(fileName = "TurtleScaleOperations", menuName = "LSystem/TurtleScaleOperations")]
-    public class TurtleScaleOperations : TurtleOperationSet
+    public class TurtleScaleOperations : TurtleOperationSet<TurtleState>
     {
         public char scaleOperator = '!';
         public float defaultScaleAmount = 0.9f;
-        public override IEnumerable<ITurtleOperator> GetOperators()
+        public override IEnumerable<ITurtleOperator<TurtleState>> GetOperators()
         {
             yield return new TurtleScaleOperator(scaleOperator, Vector3.one, defaultScaleAmount);
         }
 
-        class TurtleScaleOperator : ITurtleOperator
+        class TurtleScaleOperator : ITurtleOperator<TurtleState>
         {
             private Vector3 scale;
             private float defaultScale;

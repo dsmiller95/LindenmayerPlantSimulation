@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
-    public interface ITurtleOperator
+    public interface ITurtleOperator<T>
     {
         char TargetSymbol { get; }
-        TurtleState Operate(TurtleState initialState, double[] parameters, MeshDraft targetDraft);
+        T Operate(T initialState, double[] parameters, MeshDraft targetDraft);
     }
 
-    public abstract class TurtleOperationSet : ScriptableObject
+    public abstract class TurtleOperationSet<T> : ScriptableObject
     {
-        public abstract IEnumerable<ITurtleOperator> GetOperators();
+        public abstract IEnumerable<ITurtleOperator<T>> GetOperators();
     }
 }

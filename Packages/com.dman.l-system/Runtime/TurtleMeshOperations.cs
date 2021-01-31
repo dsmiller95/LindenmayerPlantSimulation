@@ -14,11 +14,11 @@ namespace Dman.LSystem
         public bool AlsoMove;
     }
     [CreateAssetMenu(fileName = "TurtleMeshOperations", menuName = "LSystem/TurtleMeshOperations")]
-    public class TurtleMeshOperations : TurtleOperationSet
+    public class TurtleMeshOperations : TurtleOperationSet<TurtleState>
     {
         public MeshKey[] meshKeys;
 
-        public override IEnumerable<ITurtleOperator> GetOperators()
+        public override IEnumerable<ITurtleOperator<TurtleState>> GetOperators()
         {
             foreach (var meshKey in meshKeys)
             {
@@ -34,7 +34,7 @@ namespace Dman.LSystem
             }
         }
 
-        class TurtleMeshOperator : ITurtleOperator
+        class TurtleMeshOperator : ITurtleOperator<TurtleState>
         {
             private MeshDraft generatedMesh;
             private Matrix4x4 transformPostMesh;

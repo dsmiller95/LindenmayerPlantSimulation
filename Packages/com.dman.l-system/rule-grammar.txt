@@ -33,10 +33,3 @@ A(x) < C > B(y) : x < y -> E(x)
 	
 (P0.5) A(x) < C > B(y) : x < y -> E(x)
 	contextual, parametric, stochastic
-	
-
-	
-(?:\(P([.0-9]+)\))?\s*((\w(?:\((?:\w+, )*\w+\))?)+)\s*->\s*(.+)
-
-
-(?:\(P(?<probability>[.0-9]+)\))?\s*(?<targetSymbols>{symbolMatchPattern})\s*(?::(?<conditional>.*)\s*)?->\s*(?<replacement>.+)

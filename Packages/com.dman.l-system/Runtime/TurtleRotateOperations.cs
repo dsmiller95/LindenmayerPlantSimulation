@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Dman.LSystem
 {
     [CreateAssetMenu(fileName = "TurtleRotateOperations", menuName = "LSystem/TurtleRotateOperations")]
-    public class TurtleRotateOperations : TurtleOperationSet
+    public class TurtleRotateOperations : TurtleOperationSet<TurtleState>
     {
         public char rollLeft = '/';
         public char rollRight = '\\';
@@ -18,7 +18,7 @@ namespace Dman.LSystem
         public char tiltUp = '^';
         public char tiltDown = '&';
         public float defaultTiltTheta = 18;
-        public override IEnumerable<ITurtleOperator> GetOperators()
+        public override IEnumerable<ITurtleOperator<TurtleState>> GetOperators()
         {
             yield return new TurtleRotateOperator(Vector3.right, rollRight, defaultRollTheta);
             yield return new TurtleRotateOperator(Vector3.left, rollLeft, defaultRollTheta);
@@ -30,7 +30,7 @@ namespace Dman.LSystem
             yield return new TurtleRotateOperator(Vector3.back, tiltDown, defaultTiltTheta);
         }
 
-        class TurtleRotateOperator : ITurtleOperator
+        class TurtleRotateOperator : ITurtleOperator<TurtleState>
         {
             private Vector3 unitEulerRotation;
             private float defaultTheta;
