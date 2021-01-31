@@ -130,6 +130,34 @@ Example of a valid L-System using global parameters:
 
 ![mesh operations example](../../DemoPhotos/global-parameters-example.png)
 
+### Supported expression operations
+
+Default operations, same as their definition in C#:
+
+```
+x + y, x - y, x * y, x / y, x % y
+x > y, x < y, x >= y, x <= y, x == y, x != y
+x && y, x || y
+```
+
+Unary operations: `-x, !x`
+
+And an exponent operator: `x^y`
+
+This is a list of all operators, in groups based on operator precedence. The order of operations is exactly the same as in the C# language, with the exception of the new exponent operator. The first items in the list are evaluated first.
+
+```
+-x, !x
+x*y, x/y, x%y
+x^y
+x+y, x-y
+x>y, x<y, x>=y, x<=y
+x==y, x!=y
+x&&y
+x||y
+
+```
+
 ## Limitations
 
 - Does not support contextual matches, E.X. `C < A > B -> X`

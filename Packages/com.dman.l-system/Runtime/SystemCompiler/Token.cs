@@ -7,21 +7,29 @@ namespace Dman.LSystem.SystemCompiler
     public enum TokenType
     {
         NONE = 0,
+
         MULTIPLY = 1 << 0,
         DIVIDE = 1 << 1,
         ADD = 1 << 2,
         SUBTRACT = 1 << 3,
-        EXPONENT = 1 << 4,
-        GREATER_THAN = 1 << 5,
-        LESS_THAN = 1 << 6,
-        GREATER_THAN_OR_EQ = 1 << 7,
-        LESS_THAN_OR_EQ = 1 << 8,
+        REMAINDER = 1 << 4,
+        EXPONENT = 1 << 5,
 
+        GREATER_THAN = 1 << 6,
+        LESS_THAN = 1 << 7,
+        GREATER_THAN_OR_EQ = 1 << 8,
+        LESS_THAN_OR_EQ = 1 << 9,
+        EQUAL = 1 << 10,
+        NOT_EQUAL = 1 << 11,
 
-        LEFT_PAREN = 1 << 9,
-        RIGHT_PAREN = 1 << 10,
-        CONSTANT = 1 << 11,
-        VARIABLE = 1 << 12
+        BOOLEAN_AND = 1 << 12,
+        BOOLEAN_OR = 1 << 13,
+        BOOLEAN_NOT = 1 << 14,
+
+        LEFT_PAREN = 1 << 15,
+        RIGHT_PAREN = 1 << 16,
+        CONSTANT = 1 << 17,
+        VARIABLE = 1 << 18
     }
 
     public struct Token
@@ -42,6 +50,7 @@ namespace Dman.LSystem.SystemCompiler
         {
             {TokenType.MULTIPLY, 0 },
             {TokenType.DIVIDE, 0 },
+            {TokenType.REMAINDER, 0 },
             {TokenType.EXPONENT, 1 },
             {TokenType.ADD, 2 },
             {TokenType.SUBTRACT, 2 },
@@ -49,6 +58,10 @@ namespace Dman.LSystem.SystemCompiler
             {TokenType.LESS_THAN, 3 },
             {TokenType.GREATER_THAN_OR_EQ, 3 },
             {TokenType.LESS_THAN_OR_EQ, 3 },
+            {TokenType.EQUAL, 4 },
+            {TokenType.NOT_EQUAL, 4 },
+            {TokenType.BOOLEAN_AND, 5 },
+            {TokenType.BOOLEAN_OR, 6 },
         };
 
         public Token(double constantValue, CompilerContext context)

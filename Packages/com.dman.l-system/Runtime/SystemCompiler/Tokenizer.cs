@@ -5,23 +5,47 @@ namespace Dman.LSystem.SystemCompiler
 {
     public class Tokenizer
     {
-        public static IEnumerable<Token> Tokenize(string tokenString, string[] variables = null)
-        {
-            var stringsToTokens = new Dictionary<string, TokenType>{
-                { "+", TokenType.ADD},
-                { "-", TokenType.SUBTRACT},
+        private static Dictionary<string, TokenType> stringsToTokens = new Dictionary<string, TokenType>{
                 { "*", TokenType.MULTIPLY},
                 { "/", TokenType.DIVIDE},
+                { "+", TokenType.ADD},
+                { "-", TokenType.SUBTRACT},
+                { "%", TokenType.REMAINDER},
                 { "^", TokenType.EXPONENT},
+
                 { ">", TokenType.GREATER_THAN},
-                { ">=", TokenType.GREATER_THAN_OR_EQ},
                 { "<", TokenType.LESS_THAN},
+                { ">=", TokenType.GREATER_THAN_OR_EQ},
                 { "<=", TokenType.LESS_THAN_OR_EQ},
+                { "==", TokenType.EQUAL},
+                { "!=", TokenType.NOT_EQUAL},
+
+                { "&&", TokenType.BOOLEAN_AND},
+                { "||", TokenType.BOOLEAN_OR},
+                { "!", TokenType.BOOLEAN_NOT},
+
                 { "(", TokenType.LEFT_PAREN},
                 { ")", TokenType.RIGHT_PAREN}
                 };
+        private static HashSet<string> twoCharacterTokens = new HashSet<string>
+        {
+            ">=", "<=", "==", "!=",
+            "&&", "||"
+        };
 
-            return MergeTwoCharacterSymbols(SeperateToSymbols(tokenString))
+        private static HashSet<char> delimiters = new HashSet<char>
+        {
+            '(', ')',
+            '*', '/', '%',
+            '^',
+            '+', '-',
+            '>', '<', '=', '!',
+            '&', '|'
+        };
+
+        public static IEnumerable<Token> Tokenize(string tokenString, string[] variables = null)
+        {
+            return MergeTwoCharacterSymbols(SeperateToSymbols(tokenString), twoCharacterTokens)
                 .Select(seg =>
                 {
                     if (stringsToTokens.TryGetValue(seg.value, out var operatorToken))
@@ -41,7 +65,9 @@ namespace Dman.LSystem.SystemCompiler
                 });
         }
 
-        public static IEnumerable<StringSegment> MergeTwoCharacterSymbols(IEnumerable<StringSegment> input)
+        public static IEnumerable<StringSegment> MergeTwoCharacterSymbols(
+            IEnumerable<StringSegment> input,
+            HashSet<string> twoCharSymbols)
         {
             StringSegment previousElement = default;
             foreach (var element in input)
@@ -51,9 +77,10 @@ namespace Dman.LSystem.SystemCompiler
                     previousElement = element;
                     continue;
                 }
-                if ((previousElement.value == "<" || previousElement.value == ">") && element.value == "=")
+                var twoCharSymbol = StringSegment.MergeConsecutive(previousElement, element);
+                if (twoCharSymbols.Contains(twoCharSymbol.value))
                 {
-                    yield return StringSegment.MergeConsecutive(previousElement, element);
+                    yield return twoCharSymbol;
                     previousElement = default;
                 }
                 else
@@ -70,7 +97,6 @@ namespace Dman.LSystem.SystemCompiler
 
         public static IEnumerable<StringSegment> SeperateToSymbols(string tokenString)
         {
-            var delimiters = new[] { '(', '+', '-', '*', '/', '^', '>', '<', '=', ')' };
             var buffer = string.Empty;
             var skippedSpacesInBuffer = 0;
             int indexInString = -1;

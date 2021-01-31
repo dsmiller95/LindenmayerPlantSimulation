@@ -40,7 +40,10 @@
                     // end of stream error
                     return ruleText + " : " + errorDescription;
                 }
-
+                if(string.IsNullOrEmpty(ruleText))
+                {
+                    return errorDescription;
+                }
                 var prefix = ruleText.Substring(0, errorStartIndex);
                 var errorRule = $"<color=red>{ruleText.Substring(errorStartIndex, errorLength)}</color>";
                 var suffix = ruleText.Substring(ErrorEndIndex, ruleText.Length - ErrorEndIndex);

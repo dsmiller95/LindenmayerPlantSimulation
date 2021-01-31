@@ -17,10 +17,10 @@ MonoBehaviour:
   seed: 0
   rules: '
 
-    A(x) : x < growthStop -> Q(0)NA(x + 1)
+    A(x) : x < growthStop -> Q(x)NA(x + 1)
 
-    A(x) : x >= growthStop
-    -> Q(0)N
+    A(x) : x == growthStop
+    -> Q(x)N
 
 
     Q(x) : x < segmentGrowth -> FQ(x + 1)F
@@ -34,6 +34,6 @@ MonoBehaviour:
 '
   defaultGlobalParameters:
   - name: growthStop
-    defaultValue: 4.96
+    defaultValue: 5
   - name: segmentGrowth
-    defaultValue: 2.1
+    defaultValue: 6

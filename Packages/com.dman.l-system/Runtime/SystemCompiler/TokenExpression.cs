@@ -83,6 +83,10 @@ namespace Dman.LSystem.SystemCompiler
                     case TokenType.SUBTRACT:
                         tokenSeries[unaryIndex] = new TokenExpression(Expression.NegateChecked(valuesExpression), op.context);
                         break;
+                    case TokenType.BOOLEAN_NOT:
+                        tokenSeries[unaryIndex] = new TokenExpression(Expression.Not(valuesExpression), op.context);
+                        break;
+
                     default:
                         throw op.context.ExceptionHere($"Unsupported unary operator: {Enum.GetName(typeof(TokenType), op.type)}");
                 }
@@ -134,12 +138,15 @@ namespace Dman.LSystem.SystemCompiler
                     return Expression.MultiplyChecked(a, b);
                 case TokenType.DIVIDE:
                     return Expression.Divide(a, b);
+                case TokenType.REMAINDER:
+                    return Expression.Modulo(a, b);
+                case TokenType.EXPONENT:
+                    return Expression.Power(a, b);
                 case TokenType.ADD:
                     return Expression.AddChecked(a, b);
                 case TokenType.SUBTRACT:
                     return Expression.SubtractChecked(a, b);
-                case TokenType.EXPONENT:
-                    return Expression.Power(a, b);
+
                 case TokenType.GREATER_THAN:
                     return Expression.GreaterThan(a, b);
                 case TokenType.LESS_THAN:
@@ -148,8 +155,18 @@ namespace Dman.LSystem.SystemCompiler
                     return Expression.GreaterThanOrEqual(a, b);
                 case TokenType.LESS_THAN_OR_EQ:
                     return Expression.LessThanOrEqual(a, b);
+
+                case TokenType.EQUAL:
+                    return Expression.Equal(a, b);
+                case TokenType.NOT_EQUAL:
+                    return Expression.NotEqual(a, b);
+
+                case TokenType.BOOLEAN_AND:
+                    return Expression.AndAlso(a, b);
+                case TokenType.BOOLEAN_OR:
+                    return Expression.OrElse(a, b);
                 default:
-                    throw op.context.ExceptionHere($"Invalid binary operator symbol: {Enum.GetName(typeof(TokenType), op)}");
+                    throw op.context.ExceptionHere($"Invalid binary operator symbol: {Enum.GetName(typeof(TokenType), op.type)}");
             }
         }
     }

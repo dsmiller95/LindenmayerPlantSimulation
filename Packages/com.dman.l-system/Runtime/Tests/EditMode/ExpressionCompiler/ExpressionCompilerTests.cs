@@ -83,4 +83,19 @@ public class ExpressionCompilerTests
         Assert.AreEqual(Math.Sqrt(2) + 10, (double)compiledExpression.DynamicInvoke(0.5d, 10d));
         Assert.AreEqual((1 << 10), (double)compiledExpression.DynamicInvoke(10d, 0d));
     }
+    [Test]
+    public void CompilesExpressionWithEveryOperator()
+    {
+        var expressionString = "(2 * -3 < 4^2 && 3 % 5 > 4 - 2 || !(8 / 3 <= 2 + 1.9 && 2 >= 3) && 3 == 3 && 2 != 3)";
+
+        var parameters = new Dictionary<string, ParameterExpression>();
+        var expressionCompiler = new ExpressionCompiler(parameters);
+        var expression = expressionCompiler.CompileToExpression(expressionString);
+
+        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
+        var compiledExpression = le.Compile();
+        var result = compiledExpression.DynamicInvoke();
+        Assert.IsAssignableFrom<bool>(result);
+        Assert.AreEqual(true, (bool)result);
+    }
 }
