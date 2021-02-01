@@ -18,7 +18,7 @@ To look at examples, clone the [source repo](https://github.com/dsmiller95/plant
 
 ## [Example Showcase](#example-showcase)
 
-[Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/Field%20flower.asset): from [The Algorithmic Beauty Of Plants](http://algorithmicbotany.org/papers/abop/abop.pdf), page 27
+[Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/Field%20flower.asset): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
 
 ![flower generation gif](../../DemoPhotos/field-flower-system.gif)
 
