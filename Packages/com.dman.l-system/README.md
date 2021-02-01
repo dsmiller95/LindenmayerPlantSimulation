@@ -2,7 +2,7 @@
 
 [![openupm](https://img.shields.io/npm/v/com.dman.l-system?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.dman.l-system/)
 
-An attempt to implement most of the features present in L-systems described by ['The Algorithmic Beauty Of Plants'](http://algorithmicbotany.org/papers/abop/abop.pdf). Recommended reading: chapters 1.1, 1.2, 1.3, and 1.5 for the basics of L-Systems. Read 1.7 and 1.10 for details about stochastic and parametric rules, the behavior of rules in this implementation should mirror how they are described in those chapters with some [syntactical differences](#supported-rule-examples).
+An attempt to implement most of the features present in L-systems described by ['The Algorithmic Beauty Of Plants'](http://algorithmicbotany.org/papers/abop/abop.pdf). If you are not familiar with L-Systems, read chapters 1.1, 1.2, 1.3, and 1.5 for the basics. Read 1.7 and 1.10 for details about stochastic and parametric rules, the behavior of rules in this implementation should mirror how they are described in those chapters with some [syntactical differences](#supported-rule-examples).
 
 ## Installation
 
@@ -18,7 +18,13 @@ To look at examples, clone the [source repo](https://github.com/dsmiller95/plant
 
 ## [Example Showcase](#example-showcase)
 
+[Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/Field%20flower.asset): from [The Algorithmic Beauty Of Plants](http://algorithmicbotany.org/papers/abop/abop.pdf), page 27
+
 ![flower generation gif](../../DemoPhotos/field-flower-system.gif)
+
+[Herbaceous Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceous%20plant.asset)
+
+![herbaceous plant gif](../../DemoPhotos/herbaceous-plant.gif)
 
 ## [System Configuration](#system-configuration)
 
@@ -60,6 +66,8 @@ For example, `++` will rotate the turtle right by 36 degrees. `^(30)/(10)` will 
 Mesh operations are used to add elements to the output mesh, they are the only way to render output into the mesh. Since the Turtle's "forward" direction is always along the x-axis, the Meshes should align along that axis as well. The character is used to match the mesh to a character in the l-system string. The individual scale is a utility to scale the size of the mesh before it is added to the mesh, in the following example its used to make a cylinder of diameter 1 and depth 1 into a thinner, longer cylinder.
 
 "Also Move" instructs the turtle to also change its position in addition to placing the mesh, based on the length of the mesh along the x-axis. If left unchecked, then the turtle will not advance forward and will place the mesh without moving at all.
+
+"Parameter scale" is an option which will tell the turtle to scale the mesh by the "Scale Per Parameter" vector multiplied by the first parameter passed into the matching symbol. This can be used to simulate simple growth of plant components by just making them bigger based on something like their age
 
 Example configuration:
 

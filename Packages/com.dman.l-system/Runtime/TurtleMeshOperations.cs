@@ -11,6 +11,10 @@ namespace Dman.LSystem
         public char Character;
         public Mesh MeshRef;
         public Vector3 IndividualScale;
+
+        public bool ParameterScale;
+        public Vector3 ScalePerParameter;
+
         public bool AlsoMove;
     }
     [CreateAssetMenu(fileName = "TurtleMeshOperations", menuName = "LSystem/TurtleMeshOperations")]
@@ -30,7 +34,12 @@ namespace Dman.LSystem
                 var transformPostMesh = meshKey.AlsoMove ?
                       Matrix4x4.Translate(new Vector3(bounds.size.x * meshKey.IndividualScale.x, 0, 0))
                     : Matrix4x4.identity;
-                yield return new TurtleMeshOperator(meshKey.Character, transformPostMesh, newDraft);
+                yield return new TurtleMeshOperator(
+                    meshKey.Character,
+                    transformPostMesh,
+                    newDraft,
+                    meshKey.ParameterScale,
+                    meshKey.ScalePerParameter);
             }
         }
 
@@ -38,17 +47,32 @@ namespace Dman.LSystem
         {
             private MeshDraft generatedMesh;
             private Matrix4x4 transformPostMesh;
+            private bool scaling;
+            private Vector3 scalePerParameter;
             public char TargetSymbol { get; private set; }
-            public TurtleMeshOperator(char symbol, Matrix4x4 transform, MeshDraft generatedMesh)
+            public TurtleMeshOperator(
+                char symbol,
+                Matrix4x4 transform,
+                MeshDraft generatedMesh,
+                bool scaling,
+                Vector3 scalePerParameter)
             {
                 TargetSymbol = symbol;
                 transformPostMesh = transform;
                 this.generatedMesh = generatedMesh;
+                this.scalePerParameter = scalePerParameter;
+                this.scaling = scaling;
             }
 
             public TurtleState Operate(TurtleState initialState, double[] parameters, MeshDraft targetDraft)
             {
-                targetDraft.AddWithTransform(generatedMesh, initialState.transformation);
+                var meshScale = initialState.transformation;
+                if (scaling && parameters.Length >= 1)
+                {
+                    meshScale *= Matrix4x4.Scale(scalePerParameter * (float)parameters[0]);
+                }
+
+                targetDraft.AddWithTransform(generatedMesh, meshScale);
                 initialState.transformation *= transformPostMesh;
                 return initialState;
             }

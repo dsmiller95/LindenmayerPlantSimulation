@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4c04f427737a0147974aaa47b597e91, type: 3}
+  m_Name: herbaceous plant
+  m_EditorClassIdentifier: 
+  iterations: 30
+  axiom: S(0)
+  seed: 0
+  rules: 'S(x) : x == 0 -> FS(x + 1)N
+
+    S(x) : x < shootHeight && x > 0-> FS(x+1)
+
+    S(x)
+    : x == shootHeight -> T(0)
+
+
+    T(x) : x < terminalBudGrowth -> I(internodeHeight)[&(75)B(x)][\(180)&(75)B(x)]\(90)T(x
+    + 1)
+
+
+    P(0.4) B(x) -> [^V(3)]R(x)
+
+    P(0.6) B(x) -> [^V(3)]P(leavesPerPetiole)
+
+
+    V(x)
+    :x > 0 -> ^(7)FV(x - 1)
+
+
+    P(0.5) V(x) : x == 0 -> [``K(0)]
+
+    P(0.5) V(x)
+    : x == 0-> []
+
+
+    P(0.6) R(x) : x < branchLength -> [+(75)\(180)B(x)][\(180)+(75)\(180)B(x)]I(internodeHeight)R(x
+    + 1)
+
+    P(0.4) R(x) : x < branchLength -> I(internodeHeight)R(x + 1)
+
+    R(x)
+    : x == branchLength -> P(leavesPerPetiole)
+
+
+    P(x) : x >= 2 -> I(1)[O((x -
+    1) / 2, -40)]L[O((x - 1) / 2, 40)]
+
+    P(x) : x > 0 -> L
+
+    O(x, t) : x >
+    0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
+
+
+    I(x) : x > 0 ->
+    FI(x - 1)F
+
+
+    A(x) : x < growthStop -> Q(x)NI(growthStop - x + 3)A(x + 1)
+
+    A(x)
+    : x == growthStop -> Q(x)N
+
+
+    Q(x) : x < segmentGrowth -> FQ(x + 1)F
+
+
+    N
+    -> leafExpression
+
+    L -> [`l(1, leafAge)]
+
+    L(x) -> [`l(1, x)]
+
+    l(x,
+    y) : x < y -> l(x + 1, y)
+
+    K(x) : x < flowerAge -> K(x + 1)'
+  defaultGlobalRuntimeParameters:
+  - name: growthStop
+    defaultValue: 5
+  - name: segmentGrowth
+    defaultValue: 6
+  - name: terminalBudGrowth
+    defaultValue: 6
+  - name: shootHeight
+    defaultValue: 3
+  - name: internodeHeight
+    defaultValue: 3
+  - name: branchLength
+    defaultValue: 3
+  - name: leafAge
+    defaultValue: 3
+  - name: leavesPerPetiole
+    defaultValue: 7
+  - name: flowerAge
+    defaultValue: 3
+  defaultGlobalCompileTimeParameters:
+  - name: curveFactor
+    replacement: .7
+  - name: leafExpression
+    replacement: '[&&L][/(180)&&L]'

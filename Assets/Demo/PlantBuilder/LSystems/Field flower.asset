@@ -30,12 +30,13 @@ MonoBehaviour:
 
     E -> ``r
 
-    (P0.6) S -> S
+    P(0.6) S -> S
 
-    (P0.2) S -> SFS
+    P(0.2) S -> SFS
 
-    (P0.2)
+    P(0.2)
     S -> SBFS
 
     B -> [//&&L][//^^//////////L]'
-  defaultGlobalParameters: []
+  defaultGlobalRuntimeParameters: []
+  defaultGlobalCompileTimeParameters: []

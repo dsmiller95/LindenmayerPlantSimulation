@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4] - 2021-01-31
+
+Turtle scale operation
+
+### Added
+
+- Option to tell the turtle to scale the mesh to add based on an input parameter
+
 ## [0.1.3] - 2021-01-31
 
 Stochastic probability parameterization
