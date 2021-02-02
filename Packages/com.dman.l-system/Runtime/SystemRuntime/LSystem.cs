@@ -8,13 +8,11 @@ namespace Dman.LSystem.SystemRuntime
     public static class LSystemBuilder
     {
         public static LSystem<double> DoubleSystem(
-           string axiomString,
            IEnumerable<string> rules,
            int seed,
            string[] globalParameters = null)
         {
             return new LSystem<double>(
-                new SymbolString<double>(axiomString),
                 ParsedRule.CompileRules(
                         rules,
                         globalParameters
@@ -39,12 +37,10 @@ namespace Dman.LSystem.SystemRuntime
 
 
         public LSystem(
-            SymbolString<T> axiomString,
             IEnumerable<IRule<T>> rules,
             int seed,
             int expectedGlobalParameters = 0)
         {
-            currentSymbols = axiomString;
             randomProvider = new System.Random(seed);
             GlobalParameters = expectedGlobalParameters;
 
@@ -66,13 +62,12 @@ namespace Dman.LSystem.SystemRuntime
             }
         }
 
-        public void RestartSystem(string axiomString, int seed)
+        public void RestartSystem(int seed)
         {
-            currentSymbols = new SymbolString<T>(axiomString);
             randomProvider = new System.Random(seed);
         }
 
-        public void StepSystem(T[] globalParameters = null)
+        public SymbolString<T> StepSystem(SymbolString<T> initialState, T[] globalParameters = null)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
             var globalParamSize = globalParameters?.Length ?? 0;
@@ -81,29 +76,30 @@ namespace Dman.LSystem.SystemRuntime
                 throw new Exception($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
 
-            var resultString = GenerateNextSymbols(globalParameters).ToList();
-            currentSymbols = SymbolString<T>.ConcatAll(resultString);
+            var resultString = GenerateNextSymbols(initialState, globalParameters).ToList();
+            var resultSymbols = SymbolString<T>.ConcatAll(resultString);
             UnityEngine.Profiling.Profiler.EndSample();
+            return resultSymbols;
         }
 
-        private IEnumerable<SymbolString<T>> GenerateNextSymbols(T[] globalParameters)
+        private IEnumerable<SymbolString<T>> GenerateNextSymbols(SymbolString<T> initialState, T[] globalParameters)
         {
-            for (int symbolIndex = 0; symbolIndex < currentSymbols.symbols.Length;)
+            for (int symbolIndex = 0; symbolIndex < initialState.symbols.Length;)
             {
-                var symbol = currentSymbols.symbols[symbolIndex];
-                var parameters = currentSymbols.parameters[symbolIndex];
+                var symbol = initialState.symbols[symbolIndex];
+                var parameters = initialState.parameters[symbolIndex];
                 var ruleApplied = false;
                 if (rulesByFirstTargetSymbol.TryGetValue(symbol, out var ruleList) && ruleList != null && ruleList.Count > 0)
                 {
                     foreach (var rule in ruleList)
                     {
                         var symbolMatch = rule.TargetSymbolSeries;
-                        if (!MatchesSymbolStringAfterFirst(currentSymbols.symbols, symbolMatch, symbolIndex))
+                        if (!MatchesSymbolStringAfterFirst(initialState.symbols, symbolMatch, symbolIndex))
                         {
                             continue;
                         }
                         var result = rule.ApplyRule(
-                            new ArraySegment<T[]>(currentSymbols.parameters, symbolIndex, symbolMatch.Length),
+                            new ArraySegment<T[]>(initialState.parameters, symbolIndex, symbolMatch.Length),
                             randomProvider,
                             globalParameters);// todo
                         if (result != null)

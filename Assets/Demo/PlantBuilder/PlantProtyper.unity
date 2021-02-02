@@ -583,6 +583,7 @@ GameObject:
   - component: {fileID: 1450058842}
   - component: {fileID: 1450058844}
   - component: {fileID: 1450058840}
+  - component: {fileID: 1450058845}
   m_Layer: 0
   m_Name: turtle string reader
   m_TagString: Untagged
@@ -606,10 +607,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 259a8d9be24511a4e91d12752db6eb8f, type: 2}
   - {fileID: 11400000, guid: 955a828e76f3281498bf902f8db912e2, type: 2}
   - {fileID: 11400000, guid: 3a418bd9f015dd44896661013b5a06b8, type: 2}
-  secondsPerUpdate: 0.6
   initialScale: {x: 0.3, y: 0.3, z: 0.3}
   meshIndexIncrementor: 96
-  timeBeforeRestart: 1
 --- !u!4 &1450058841
 Transform:
   m_ObjectHideFlags: 0
@@ -687,7 +686,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2cac01e841b46547838c53d27ec710c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  systemObject: {fileID: 11400000, guid: bdb245d78be76664a86c7fd9cc12ec8e, type: 2}
+  systemObject: {fileID: 378491273550888993, guid: 8f4195aee96ba0c46aa03c56c5065f59, type: 3}
+--- !u!114 &1450058845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1450058839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 225dd6c446b6afb4fb0e023aae1f0509, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  secondsPerUpdate: 0.2
+  timeBeforeRestart: 3
 --- !u!1 &1905895030
 GameObject:
   m_ObjectHideFlags: 0

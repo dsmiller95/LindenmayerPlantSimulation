@@ -1,0 +1,52 @@
+#axiom S(0)
+#iterations 30
+
+#runtime growthStop 5
+#runtime segmentGrowth 6
+#runtime terminalBudGrowth 6
+#runtime shootHeight 3
+#runtime internodeHeight 3
+#runtime branchLength 3
+#runtime leafAge 3
+#runtime leavesPerPetiole 7
+#runtime flowerAge 3
+
+#define leafExpression [&&L][/(180)&&L]
+
+## some comment!
+
+
+S(x) : x == 0 -> FS(x + 1)N
+S(x) : x < shootHeight && x > 0-> FS(x+1)
+S(x) : x == shootHeight -> T(0)
+
+T(x) : x < terminalBudGrowth -> I(internodeHeight)[&(75)B(x)][\(180)&(75)B(x)]\(90)T(x + 1)
+
+P(0.4) B(x) -> [^V(3)]R(x)
+P(0.6) B(x) -> [^V(3)]P(leavesPerPetiole)
+
+V(x) :x > 0 -> ^(7)FV(x - 1)
+
+P(0.5) V(x) : x == 0 -> [``K(0)]
+P(0.5) V(x) : x == 0-> []
+
+P(0.6) R(x) : x < branchLength -> [+(75)\(180)B(x)][\(180)+(75)\(180)B(x)]I(internodeHeight)R(x + 1)
+P(0.4) R(x) : x < branchLength -> I(internodeHeight)R(x + 1)
+R(x) : x == branchLength -> P(leavesPerPetiole)
+
+P(x) : x >= 2 -> I(1)[O((x - 1) / 2, -40)]L[O((x - 1) / 2, 40)]
+P(x) : x > 0 -> L
+O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
+
+I(x) : x > 0 -> FI(x - 1)F
+
+A(x) : x < growthStop -> Q(x)NI(growthStop - x + 3)A(x + 1)
+A(x) : x == growthStop -> Q(x)N
+
+Q(x) : x < segmentGrowth -> FQ(x + 1)F
+
+N -> leafExpression
+L -> [`l(1, leafAge)]
+L(x) -> [`l(1, x)]
+l(x, y) : x < y -> l(x + 1, y)
+K(x) : x < flowerAge -> K(x + 1)

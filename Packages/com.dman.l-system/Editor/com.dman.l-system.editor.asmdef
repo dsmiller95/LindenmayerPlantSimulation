@@ -1,0 +1,16 @@
+{
+    "name": "com.dman.l-system.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:808c07051cb3a39498de49e96a1c8ec4"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

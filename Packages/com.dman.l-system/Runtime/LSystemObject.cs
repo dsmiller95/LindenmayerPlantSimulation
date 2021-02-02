@@ -1,5 +1,11 @@
+using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEngine;
 
 namespace Dman.LSystem
@@ -27,8 +33,12 @@ namespace Dman.LSystem
         [Multiline(30)]
         public string rules;
 
-        public ParameterAndDefault[] defaultGlobalRuntimeParameters;
-        public DefineDirectives[] defaultGlobalCompileTimeParameters;
+        public List<ParameterAndDefault> defaultGlobalRuntimeParameters;
+        public List<DefineDirectives> defaultGlobalCompileTimeParameters;
+
+        private void Awake()
+        {
+        }
 
         public LSystem<double> Compile(int? seedOverride = null)
         {
@@ -44,7 +54,6 @@ namespace Dman.LSystem
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrEmpty(x));
                 return LSystemBuilder.DoubleSystem(
-                    axiom,
                     ruleLines,
                     seedOverride ?? seed,
                     defaultGlobalRuntimeParameters.Select(x => x.name).ToArray());
@@ -53,6 +62,109 @@ namespace Dman.LSystem
             {
                 Debug.LogException(e);
                 return null;
+            }
+        }
+
+
+        public void TriggerReloadFromFile()
+        {
+#if UNITY_EDITOR
+            var assetPath = AssetDatabase.GetAssetPath(this);
+            if (!string.IsNullOrWhiteSpace(assetPath))
+            {
+                var lSystemCode = File.ReadAllText(assetPath);
+                this.ParseRulesFromCode(lSystemCode);
+            }
+#endif
+        }
+
+        public void ParseRulesFromCode(string fullCode)
+        {
+            defaultGlobalRuntimeParameters = new List<ParameterAndDefault>();
+            defaultGlobalCompileTimeParameters = new List<DefineDirectives>();
+            var ruleLines = fullCode.Split('\n');
+            var outputRules = new StringBuilder();
+
+            foreach (var inputLine in ruleLines.Where(x => !string.IsNullOrEmpty(x)))
+            {
+                if (inputLine[0] == '#')
+                {
+                    try
+                    {
+                        ParseDirective(inputLine.Substring(1));
+                    }
+                    catch (SyntaxException e)
+                    {
+                        e.RecontextualizeIndex(1, inputLine);
+                        Debug.LogException(e);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(inputLine))
+                {
+                    outputRules.AppendLine(inputLine);
+                }
+            }
+
+            rules = outputRules.ToString();
+        }
+
+
+        private  void ParseDirective(string directiveText)
+        {
+            var dirParams = Regex.Matches(directiveText, @"(?<param>[^ ]+)\s+");
+            if (!dirParams[0].Success)
+            {
+                throw new SyntaxException($"missing directive after hash", -1, 1);
+            }
+            if (!dirParams[1].Success)
+            {
+                throw new SyntaxException($"missing directive parameter", dirParams[0]);
+            }
+
+            switch (dirParams[0].Groups["param"].Value)
+            {
+                case "axiom":
+                    axiom = dirParams[1].Groups["param"].Value;
+                    return;
+                case "iterations":
+                    if (!int.TryParse(dirParams[1].Groups["param"].Value, out int iterations))
+                    {
+                        throw new SyntaxException($"iterations must be an integer", dirParams[1]);
+                    }
+                    this.iterations = iterations;
+                    return;
+                case "runtime":
+                    if (!dirParams[2].Success)
+                    {
+                        throw new SyntaxException($"runtime directive requires 2 parameters", dirParams[0]);
+                    }
+                    if (!int.TryParse(dirParams[2].Groups["param"].Value, out int runtimeDefault))
+                    {
+                        throw new SyntaxException($"runtime parameter must default to a number", dirParams[2]);
+                    }
+                    defaultGlobalRuntimeParameters.Add(new ParameterAndDefault
+                    {
+                        name = dirParams[1].Groups["param"].Value,
+                        defaultValue = runtimeDefault
+                    });
+                    return;
+                case "define":
+                    if (!dirParams[2].Success)
+                    {
+                        throw new SyntaxException($"define directive requires 2 parameters", dirParams[0]);
+                    }
+                    defaultGlobalCompileTimeParameters.Add(new DefineDirectives
+                    {
+                        name = dirParams[1].Groups["param"].Value,
+                        replacement = dirParams[2].Groups["param"].Value
+                    });
+                    return;
+                case "#":
+                    return;
+                default:
+                    throw new SyntaxException(
+                        $"unrecognized directive name \"{dirParams[0].Groups["param"].Value}\"",
+                        dirParams[0]);
             }
         }
     }

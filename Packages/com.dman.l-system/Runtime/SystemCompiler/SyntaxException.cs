@@ -1,4 +1,6 @@
-﻿namespace Dman.LSystem.SystemCompiler
+﻿using System.Text.RegularExpressions;
+
+namespace Dman.LSystem.SystemCompiler
 {
     public class SyntaxException : System.Exception
     {
@@ -21,8 +23,18 @@
         {
             this.ruleText = ruleText;
             errorStartIndex = startIndex;
-            errorDescription = description;
             this.errorLength = errorLength;
+            errorDescription = description;
+        }
+        public SyntaxException(
+            string description,
+            Capture regexCapture,
+            string ruleText = "") : base()
+        {
+            this.ruleText = ruleText;
+            errorStartIndex = regexCapture.Index;
+            this.errorLength = regexCapture.Length;
+            errorDescription = description;
         }
 
         public void RecontextualizeIndex(int indexOfSourceInTarget, string newRuleText = "")

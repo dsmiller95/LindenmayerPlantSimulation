@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.MeshDraftExtensions", "com.dman.MeshDraftExtensions.csproj", "{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.l-system.editor", "com.dman.l-system.editor.csproj", "{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.LSystem.Tests", "com.dman.LSystem.Tests.csproj", "{0BFD8670-BC4C-D0CB-2293-13DDBB870A08}"
 EndProject
 Global
@@ -51,6 +53,10 @@ Global
 		{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0BFD8670-BC4C-D0CB-2293-13DDBB870A08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0BFD8670-BC4C-D0CB-2293-13DDBB870A08}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BFD8670-BC4C-D0CB-2293-13DDBB870A08}.Release|Any CPU.ActiveCfg = Release|Any CPU

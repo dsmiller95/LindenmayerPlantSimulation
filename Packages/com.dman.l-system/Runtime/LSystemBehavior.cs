@@ -8,10 +8,11 @@ namespace Dman.LSystem
     {
         public LSystemObject systemObject;
 
-        public SymbolString<double> currentState => currentSystem?.currentSymbols;
+        public SymbolString<double> CurrentState => currentState;
         public bool systemValid => currentSystem != null;
 
         private LSystem<double> currentSystem;
+        private SymbolString<double> currentState;
 
         private double[] systemParameters;
         private Dictionary<string, int> parameterNameToIndex;
@@ -19,20 +20,29 @@ namespace Dman.LSystem
         private void Awake()
         {
             currentSystem = systemObject.Compile();
+            currentState = new SymbolString<double>(systemObject.axiom);
             ExtractParameters();
         }
 
-        public void Reset()
+        public void Recompile()
         {
             currentSystem = systemObject.Compile(Random.Range(int.MinValue, int.MaxValue));
+            currentState = new SymbolString<double>(systemObject.axiom);
             ExtractParameters();
+        }
+
+        public void ResetState()
+        {
+            lastState = "";
+            currentSystem?.RestartSystem(systemObject.seed);
+            currentState = new SymbolString<double>(systemObject.axiom);
         }
 
         private void ExtractParameters()
         {
             parameterNameToIndex = new Dictionary<string, int>();
-            systemParameters = new double[systemObject.defaultGlobalRuntimeParameters.Length];
-            for (int i = 0; i < systemObject.defaultGlobalRuntimeParameters.Length; i++)
+            systemParameters = new double[systemObject.defaultGlobalRuntimeParameters.Count];
+            for (int i = 0; i < systemObject.defaultGlobalRuntimeParameters.Count; i++)
             {
                 var globalParam = systemObject.defaultGlobalRuntimeParameters[i];
                 systemParameters[i] = globalParam.defaultValue;
@@ -50,7 +60,7 @@ namespace Dman.LSystem
         {
             try
             {
-                currentSystem?.StepSystem(systemParameters);
+                currentState = currentSystem?.StepSystem(currentState, systemParameters);
             }
             catch (System.Exception e)
             {
