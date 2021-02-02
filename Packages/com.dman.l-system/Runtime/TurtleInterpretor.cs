@@ -23,6 +23,7 @@ namespace Dman.LSystem
 
         public Mesh CompileStringToMesh(SymbolString<double> symbols)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("Turtle interpretation");
             var resultMeshes = new List<MeshDraft>();
             resultMeshes.Add(new MeshDraft());
 
@@ -59,12 +60,17 @@ namespace Dman.LSystem
                 }
             }
 
+            UnityEngine.Profiling.Profiler.BeginSample("Mesh construction");
             var resultMeshbulder = new CompoundMeshDraft();
             foreach (var meshOutput in resultMeshes)
             {
                 resultMeshbulder.Add(meshOutput);
             }
-            return resultMeshbulder.ToMeshWithSubMeshes();
+            var resultMesh = resultMeshbulder.ToMeshWithSubMeshes();
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            return resultMesh;
         }
     }
 }

@@ -963,7 +963,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   secondsPerUpdate: 0.2
-  timeBeforeRestart: 3
+  timeBeforeRestart: 3.3333333
   systemObject: {fileID: 378491273550888993, guid: 8f4195aee96ba0c46aa03c56c5065f59, type: 3}
 --- !u!4 &2023392570
 Transform:

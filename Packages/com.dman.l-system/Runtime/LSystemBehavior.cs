@@ -25,6 +25,7 @@ namespace Dman.LSystem
 
         private void Awake()
         {
+            lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
             systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
             totalSteps = 0;
         }
@@ -39,7 +40,8 @@ namespace Dman.LSystem
             lastState = null;
             totalSteps = 0;
             lastUpdateChanged = true;
-            systemState = new DefaultLSystemState(systemObject.axiom, systemObject.seed);
+            lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
+            systemState = new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
             ExtractParameters();
             OnSystemStateUpdated?.Invoke();
         }
@@ -49,6 +51,7 @@ namespace Dman.LSystem
             lastState = null;
             totalSteps = 0;
             lastUpdateChanged = true;
+            lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
             systemState = new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
             OnSystemStateUpdated?.Invoke();
         }
@@ -87,7 +90,7 @@ namespace Dman.LSystem
             lastUpdateChanged = !(lastState?.Equals(CurrentState) ?? false);
             lastState = CurrentState;
             totalSteps++;
-            lastUpdateTime = Time.time;
+            lastUpdateTime = Time.time + UnityEngine.Random.Range(0, 0.1f);
         }
     }
 }

@@ -689,9 +689,9 @@
       <Project>{408F3866-5553-D928-D598-7EDA73C56DD8}</Project>
       <Name>PlantBuilder</Name>
     </ProjectReference>
-    <ProjectReference Include="com.dman.MeshDraftExtensions.csproj">
-      <Project>{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}</Project>
-      <Name>com.dman.MeshDraftExtensions</Name>
+    <ProjectReference Include="com.dman.l-system.editor.csproj">
+      <Project>{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}</Project>
+      <Name>com.dman.l-system.editor</Name>
     </ProjectReference>
     <ProjectReference Include="SplineMeshEditor.csproj">
       <Project>{C885711F-5180-1D83-A830-02373F016E25}</Project>
@@ -701,17 +701,17 @@
       <Project>{D416B3D2-1F38-DEF8-13C1-A420157DA023}</Project>
       <Name>PlantBuilder.Editor</Name>
     </ProjectReference>
-    <ProjectReference Include="SplineMesh.csproj">
-      <Project>{464D9D06-54BB-0727-018A-41EE4F0542AE}</Project>
-      <Name>SplineMesh</Name>
-    </ProjectReference>
-    <ProjectReference Include="com.dman.l-system.editor.csproj">
-      <Project>{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}</Project>
-      <Name>com.dman.l-system.editor</Name>
+    <ProjectReference Include="com.dman.MeshDraftExtensions.csproj">
+      <Project>{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}</Project>
+      <Name>com.dman.MeshDraftExtensions</Name>
     </ProjectReference>
     <ProjectReference Include="com.dman.LSystem.csproj">
       <Project>{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}</Project>
       <Name>com.dman.LSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="SplineMesh.csproj">
+      <Project>{464D9D06-54BB-0727-018A-41EE4F0542AE}</Project>
+      <Name>SplineMesh</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
