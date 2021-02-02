@@ -9,20 +9,18 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
-    [RequireComponent(typeof(TurtleInterpreterBehavior))]
-    [RequireComponent(typeof(LSystemBehavior))]
     public class LSystemDeveloper : MonoBehaviour
     {
-        public float secondsPerUpdate;
+        public float secondsPerUpdate = 0.25f;
         public float timeBeforeRestart = 5;
-        private LSystemBehavior System => GetComponent<LSystemBehavior>();
-        private TurtleInterpreterBehavior Turtle => GetComponent<TurtleInterpreterBehavior>();
+
+        public LSystemObject systemObject;
 
         private FileSystemWatcher lSystemAssetWatcher;
 
         private void Awake()
         {
-            var assetPath = AssetDatabase.GetAssetPath(System.systemObject);
+            var assetPath = AssetDatabase.GetAssetPath(systemObject);
             var directoryName = Path.GetDirectoryName(assetPath);
             var fileName = Path.GetFileName(assetPath);
 
@@ -34,6 +32,11 @@ namespace Dman.LSystem
             lSystemAssetWatcher.EnableRaisingEvents = true;
         }
 
+        private void Start()
+        {
+            systemObject.Compile();
+        }
+
         private bool recompileTriggered = false;
         private void AssetUpdated(object sender, FileSystemEventArgs e)
         {
@@ -42,10 +45,8 @@ namespace Dman.LSystem
         }
         private void DoRecompile()
         {
-            System.systemObject.TriggerReloadFromFile();
-            System.Recompile();
-            FinishSimulationStepping();
-            lastUpdate = 0;
+            systemObject.TriggerReloadFromFile();
+            systemObject.Compile();
         }
 
         private void OnDestroy()
@@ -53,8 +54,6 @@ namespace Dman.LSystem
             lSystemAssetWatcher.Dispose();
         }
  
-        private float lastUpdate;
-        private int currentUpdates = 0;
         private void Update()
         {
             if (recompileTriggered)
@@ -62,37 +61,23 @@ namespace Dman.LSystem
                 recompileTriggered = false;
                 this.DoRecompile();
             }
-            var maxUpdates = System.systemObject.iterations;
-            if (currentUpdates < maxUpdates && Time.time > lastUpdate + secondsPerUpdate)
-            {
-                lastUpdate = Time.time;
-                UpdateMeshAndSystem();
-                currentUpdates++;
-            }
-            else if (currentUpdates >= maxUpdates && Time.time > lastUpdate + timeBeforeRestart)
-            {
-                lastUpdate = Time.time;
-                currentUpdates = 0;
-                System.ResetState();
-            }
-        }
+            var maxUpdates = systemObject.iterations;
 
-        private void FinishSimulationStepping()
-        {
-            currentUpdates = System.systemObject.iterations;
-        }
-
-        private void UpdateMeshAndSystem()
-        {
-            if (!System.systemValid)
+            foreach (var system in GetComponentsInChildren<LSystemBehavior>())
             {
-                FinishSimulationStepping();
-                return;
-            }
-            Turtle.InterpretSymbols(System.CurrentState);
-            if (!System.StepSystem())
-            {
-                FinishSimulationStepping();
+                if (system.lastUpdateChanged
+                    && system.totalSteps < maxUpdates 
+                    && Time.time > system.lastUpdateTime + secondsPerUpdate)
+                {
+                    system.StepSystem();
+                }
+                else if (
+                    (!system.lastUpdateChanged
+                    || system.totalSteps >= maxUpdates)
+                    && Time.time > system.lastUpdateTime + timeBeforeRestart)
+                {
+                    system.ResetState();
+                }
             }
         }
     }

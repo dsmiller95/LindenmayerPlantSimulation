@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public class SymbolString<ParamType>
+    public class SymbolString<ParamType>: System.IEquatable<SymbolString<ParamType>>
     {
         public int[] symbols;
         public ParamType[][] parameters;
@@ -76,6 +76,54 @@ namespace Dman.LSystem.SystemRuntime
                 currentIndex += symbolString.symbols.Length;
             }
             return new SymbolString<ParamType>(newSymbols, newParameters);
+        }
+
+
+
+        public bool Equals(SymbolString<ParamType> other)
+        {
+            if(other == null)
+            {
+                return false;
+            }
+            if(other.symbols.Length != symbols.Length)
+            {
+                return false;
+            }
+            var paramTypeComparer = EqualityComparer<ParamType>.Default;
+            for (int i = 0; i < symbols.Length; i++)
+            {
+                if(other.symbols[i] != symbols[i])
+                {
+                    return false;
+                }
+                if(other.parameters[i].Length != parameters[i].Length)
+                {
+                    return false;
+                }
+                for (int j = 0; j < parameters[i].Length; j++)
+                {
+                    if(!paramTypeComparer.Equals(other.parameters[i][j], parameters[i][j]))
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj is SymbolString<ParamType> other)
+            {
+                return Equals(other);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return symbols.Length.GetHashCode();
         }
     }
 }

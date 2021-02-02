@@ -1,4 +1,5 @@
 using Dman.LSystem.SystemRuntime;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,34 +9,48 @@ namespace Dman.LSystem
     {
         public LSystemObject systemObject;
 
-        public SymbolString<double> CurrentState => currentState;
-        public bool systemValid => currentSystem != null;
+        public DefaultLSystemState systemState;
 
-        private LSystem<double> currentSystem;
-        private SymbolString<double> currentState;
+        public SymbolString<double> CurrentState => systemState.currentSymbols;
+
+        public event Action OnSystemStateUpdated;
 
         private double[] systemParameters;
         private Dictionary<string, int> parameterNameToIndex;
 
+        private SymbolString<double> lastState;
+        public bool lastUpdateChanged { get; private set; }
+        public float lastUpdateTime { get; private set; }
+        public int totalSteps { get; private set; }
+
         private void Awake()
         {
-            currentSystem = systemObject.Compile();
-            currentState = new SymbolString<double>(systemObject.axiom);
-            ExtractParameters();
+            systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
+            totalSteps = 0;
         }
 
-        public void Recompile()
+        private void OnDestroy()
         {
-            currentSystem = systemObject.Compile(Random.Range(int.MinValue, int.MaxValue));
-            currentState = new SymbolString<double>(systemObject.axiom);
+            systemObject.OnSystemUpdated -= OnSystemObjectRecompiled;
+        }
+
+        private void OnSystemObjectRecompiled()
+        {
+            lastState = null;
+            totalSteps = 0;
+            lastUpdateChanged = true;
+            systemState = new DefaultLSystemState(systemObject.axiom, systemObject.seed);
             ExtractParameters();
+            OnSystemStateUpdated?.Invoke();
         }
 
         public void ResetState()
         {
-            lastState = "";
-            currentSystem?.RestartSystem(systemObject.seed);
-            currentState = new SymbolString<double>(systemObject.axiom);
+            lastState = null;
+            totalSteps = 0;
+            lastUpdateChanged = true;
+            systemState = new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+            OnSystemStateUpdated?.Invoke();
         }
 
         private void ExtractParameters()
@@ -50,30 +65,29 @@ namespace Dman.LSystem
             }
         }
 
-        private string lastState;
 
         /// <summary>
         /// step the Lsystem forward one tick
         /// </summary>
         /// <returns>true if the state changed. false otherwise</returns>
-        public bool StepSystem()
+        public void StepSystem()
         {
             try
             {
-                currentState = currentSystem?.StepSystem(currentState, systemParameters);
+                systemObject.compiledSystem?.StepSystem(systemState, systemParameters);
             }
             catch (System.Exception e)
             {
+                lastUpdateChanged = false;
                 Debug.LogException(e);
-                return false;
+                return;
             }
+            OnSystemStateUpdated?.Invoke();
 
-            var currentStringState = currentState?.ToString();
-            Debug.Log(currentStringState);
-
-            bool changed = currentStringState != lastState;
-            lastState = currentStringState;
-            return changed;
+            lastUpdateChanged = !(lastState?.Equals(CurrentState) ?? false);
+            lastState = CurrentState;
+            totalSteps++;
+            lastUpdateTime = Time.time;
         }
     }
 }

@@ -7,6 +7,7 @@ namespace Dman.LSystem
 {
     [RequireComponent(typeof(MeshFilter))]
     [RequireComponent(typeof(MeshRenderer))]
+    [RequireComponent(typeof(LSystemBehavior))]
     public class TurtleInterpreterBehavior : MonoBehaviour
     {
         public TurtleOperationSet<TurtleState>[] operationSets;
@@ -14,6 +15,7 @@ namespace Dman.LSystem
         public char meshIndexIncrementor = '`';
 
         private TurtleInterpretor<TurtleState> turtle;
+        private LSystemBehavior System => GetComponent<LSystemBehavior>();
 
         private void Awake()
         {
@@ -26,6 +28,18 @@ namespace Dman.LSystem
                     transformation = Matrix4x4.Scale(initialScale)
                 });
             turtle.meshIndexIncrementChar = meshIndexIncrementor;
+
+            System.OnSystemStateUpdated += OnSystemStateUpdated;
+        }
+
+        private void OnDestroy()
+        {
+            System.OnSystemStateUpdated -= OnSystemStateUpdated;
+        }
+
+        private void OnSystemStateUpdated()
+        {
+            this.InterpretSymbols(System.CurrentState);
         }
 
         public void InterpretSymbols(SymbolString<double> symbols)

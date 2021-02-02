@@ -1,5 +1,6 @@
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,11 +37,15 @@ namespace Dman.LSystem
         public List<ParameterAndDefault> defaultGlobalRuntimeParameters;
         public List<DefineDirectives> defaultGlobalCompileTimeParameters;
 
+        public LSystem<double> compiledSystem { get; private set; }
+
         private void Awake()
         {
         }
 
-        public LSystem<double> Compile(int? seedOverride = null)
+        public event Action OnSystemUpdated;
+
+        public void Compile()
         {
             try
             {
@@ -53,16 +58,15 @@ namespace Dman.LSystem
                     .Split('\n')
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrEmpty(x));
-                return LSystemBuilder.DoubleSystem(
+                compiledSystem = LSystemBuilder.DoubleSystem(
                     ruleLines,
-                    seedOverride ?? seed,
                     defaultGlobalRuntimeParameters.Select(x => x.name).ToArray());
             }
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                return null;
             }
+            OnSystemUpdated?.Invoke();
         }
 
 
@@ -73,7 +77,7 @@ namespace Dman.LSystem
             if (!string.IsNullOrWhiteSpace(assetPath))
             {
                 var lSystemCode = File.ReadAllText(assetPath);
-                this.ParseRulesFromCode(lSystemCode);
+                ParseRulesFromCode(lSystemCode);
             }
 #endif
         }
@@ -109,7 +113,7 @@ namespace Dman.LSystem
         }
 
 
-        private  void ParseDirective(string directiveText)
+        private void ParseDirective(string directiveText)
         {
             var dirParams = Regex.Matches(directiveText, @"(?<param>[^ ]+)\s+");
             if (!dirParams[0].Success)
