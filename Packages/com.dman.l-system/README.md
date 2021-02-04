@@ -1,4 +1,4 @@
-# com.dman.l-system 0.1.2
+# com.dman.l-system
 
 [![openupm](https://img.shields.io/npm/v/com.dman.l-system?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.dman.l-system/)
 
