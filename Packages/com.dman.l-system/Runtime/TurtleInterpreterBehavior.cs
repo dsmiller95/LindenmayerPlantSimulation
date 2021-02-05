@@ -44,8 +44,11 @@ namespace Dman.LSystem
 
         public void InterpretSymbols(SymbolString<double> symbols)
         {
-            var output = turtle.CompileStringToMesh(symbols);
-            GetComponent<MeshFilter>().mesh = output;
+            var meshfilter = GetComponent<MeshFilter>();
+            var targetMesh = meshfilter.mesh;
+
+            // Ref is unecessary in the backing API here, which is why we're not re-assigning back from it here
+            turtle.CompileStringToMesh(symbols, ref targetMesh);
         }
     }
 }

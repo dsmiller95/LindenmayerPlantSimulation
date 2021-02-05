@@ -97,7 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2cac01e841b46547838c53d27ec710c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  systemObject: {fileID: 378491273550888993, guid: 8f4195aee96ba0c46aa03c56c5065f59, type: 3}
+  systemObject: {fileID: 0}
 --- !u!114 &9089396036891669027
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,7 +127,7 @@ GameObject:
   - component: {fileID: 9089396037661369505}
   - component: {fileID: 9089396037661369506}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: L-System turntable
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -160,4 +160,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1772d52094d8f7409d5fe343cce576b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 60
+  rotationSpeed: 40

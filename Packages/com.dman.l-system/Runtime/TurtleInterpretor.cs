@@ -21,7 +21,7 @@ namespace Dman.LSystem
             this.defaultState = defaultState;
         }
 
-        public Mesh CompileStringToMesh(SymbolString<double> symbols)
+        public void CompileStringToMesh(SymbolString<double> symbols, ref Mesh targetMesh)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle interpretation");
             var resultMeshes = new List<MeshDraft>();
@@ -66,11 +66,10 @@ namespace Dman.LSystem
             {
                 resultMeshbulder.Add(meshOutput);
             }
-            var resultMesh = resultMeshbulder.ToMeshWithSubMeshes();
+            resultMeshbulder.ToMeshWithSubMeshes(ref targetMesh);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.EndSample();
-            return resultMesh;
         }
     }
 }

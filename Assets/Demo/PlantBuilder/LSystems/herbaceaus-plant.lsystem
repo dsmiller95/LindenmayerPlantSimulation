@@ -12,8 +12,9 @@
 #runtime flowerAge 3
 
 #define leafExpression [&&L][/(180)&&L]
-#define mainStemBranchingFactor 0.2
+#define budBranchChanceFactor 0.2
 #define shootStemBranchingFactor 0.3
+#define flowerIncrementFailureChance 0.2
 
 
 ## S is the Shoot symbol
@@ -22,20 +23,19 @@ S(x) : x < shootHeight && x > 0-> FS(x+1)
 S(x) : x == shootHeight -> T(0)
 
 ## T is the terminal bud
-T(x) : x < terminalBudGrowth -> I(internodeHeight)[&(75)B(x)][\(180)&(75)B(x)]\(90)T(x + 1)
+T(x) : x < terminalBudGrowth -> I(internodeHeight)[&(75)B(x + 1)][\(180)&(75)B(x + 1)]\(90)T(x + 1)
 
-## B randomly chooses what it will become
-P(mainStemBranchingFactor) B(x) -> [^V(3)]R(x)
-P(1 - mainStemBranchingFactor) B(x) -> [^V(3)]P(leavesPerPetiole)
+## B is a bud, and randomly chooses what it will become
+P(budBranchChanceFactor) B(x) -> [^V(3)]R(x)
+P(1 - budBranchChanceFactor) B(x) -> [^V(3)]P(leavesPerPetiole)
 
 ## V is a flowering bud
-V(x) : x > 0 -> ^(7)FV(x - 1)
-
-P(0.5) V(x) : x == 0 -> [``K(0)]
-P(0.5) V(x) : x == 0-> []
+P(1 - flowerIncrementFailureChance) V(x) : x > 0 -> ^(7)FV(x - 1)
+P(flowerIncrementFailureChance) V(x) : x > 0 -> []
+V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
-P(shootStemBranchingFactor) R(x) : x < branchLength -> [-(75)^(20)B(x)][+(75)^(20)B(x)]I(internodeHeight)R(x + 1)
+P(shootStemBranchingFactor) R(x) : x < branchLength -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
 P(1 - shootStemBranchingFactor) R(x) : x < branchLength -> I(internodeHeight)R(x + 1)
 R(x) : x == branchLength -> P(leavesPerPetiole)
 
@@ -52,7 +52,7 @@ A(x) : x == growthStop -> Q(x)N
 Q(x) : x < segmentGrowth -> FQ(x + 1)F
 
 N -> leafExpression
-L -> [`l(1, leafAge)]
-L(x) -> [`l(1, x)]
+L -> [`!(1, 0.5, 0.5)l(1, leafAge)]
+L(x) -> [`!(1, 0.5, 0.5)l(1, x)]
 l(x, y) : x < y -> l(x + 1, y)
 K(x) : x < flowerAge -> K(x + 1)

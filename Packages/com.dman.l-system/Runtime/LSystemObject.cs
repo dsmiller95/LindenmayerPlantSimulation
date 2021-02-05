@@ -24,7 +24,6 @@ namespace Dman.LSystem
         public string name;
         public string replacement;
     }
-    [CreateAssetMenu(fileName = "LSystem", menuName = "LSystem/SystemDefinition")]
     public class LSystemObject : ScriptableObject
     {
         public int iterations = 7;
@@ -47,6 +46,7 @@ namespace Dman.LSystem
 
         public void Compile()
         {
+            UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
             try
             {
                 var rulesPostReplacement = rules;
@@ -66,6 +66,7 @@ namespace Dman.LSystem
             {
                 Debug.LogException(e);
             }
+            UnityEngine.Profiling.Profiler.EndSample();
             OnSystemUpdated?.Invoke();
         }
 
@@ -120,7 +121,7 @@ namespace Dman.LSystem
             {
                 throw new SyntaxException($"missing directive after hash", -1, 1);
             }
-            if (!dirParams[1].Success)
+            if (dirParams.Count < 2)
             {
                 throw new SyntaxException($"missing directive parameter", dirParams[0]);
             }
@@ -138,7 +139,7 @@ namespace Dman.LSystem
                     this.iterations = iterations;
                     return;
                 case "runtime":
-                    if (!dirParams[2].Success)
+                    if (dirParams.Count < 3)
                     {
                         throw new SyntaxException($"runtime directive requires 2 parameters", dirParams[0]);
                     }
@@ -153,7 +154,7 @@ namespace Dman.LSystem
                     });
                     return;
                 case "define":
-                    if (!dirParams[2].Success)
+                    if (dirParams.Count < 3)
                     {
                         throw new SyntaxException($"define directive requires 2 parameters", dirParams[0]);
                     }

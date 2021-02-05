@@ -30,6 +30,11 @@ namespace Dman.LSystem
 
             lSystemAssetWatcher.NotifyFilter = NotifyFilters.LastWrite;
             lSystemAssetWatcher.EnableRaisingEvents = true;
+
+            foreach (var system in GetComponentsInChildren<LSystemBehavior>())
+            {
+                system.SetSystem(systemObject);
+            }
         }
 
         private void Start()

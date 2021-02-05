@@ -1,0 +1,14 @@
+#axiom P
+#iterations 5
+
+
+P -> I+[P+Y]--//[--L]I[++L]-[PY]++P
+I -> FSWFS
+L -> `l
+Y -> [QE]
+Q -> FFF
+E -> ``K
+P(0.6) S -> S
+P(0.2) S -> SFS
+P(0.2) S -> SWFS
+W -> [//&&L][//^^//////////L]

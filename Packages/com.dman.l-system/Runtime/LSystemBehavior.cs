@@ -23,16 +23,42 @@ namespace Dman.LSystem
         public float lastUpdateTime { get; private set; }
         public int totalSteps { get; private set; }
 
+        public void SetSystem(LSystemObject newSystemObject)
+        {
+            if (systemObject != null)
+            {
+                systemObject.OnSystemUpdated -= OnSystemObjectRecompiled;
+            }
+            systemObject = newSystemObject;
+            systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
+        }
+
+        public void ResetState()
+        {
+            lastState = null;
+            totalSteps = 0;
+            lastUpdateChanged = true;
+            lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
+            systemState = new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+            OnSystemStateUpdated?.Invoke();
+        }
+
         private void Awake()
         {
             lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
-            systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
+            if (systemObject != null)
+            {
+                systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
+            }
             totalSteps = 0;
         }
 
         private void OnDestroy()
         {
-            systemObject.OnSystemUpdated -= OnSystemObjectRecompiled;
+            if (systemObject != null)
+            {
+                systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
+            }
         }
 
         private void OnSystemObjectRecompiled()
@@ -43,16 +69,6 @@ namespace Dman.LSystem
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
             systemState = new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
             ExtractParameters();
-            OnSystemStateUpdated?.Invoke();
-        }
-
-        public void ResetState()
-        {
-            lastState = null;
-            totalSteps = 0;
-            lastUpdateChanged = true;
-            lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
-            systemState = new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
             OnSystemStateUpdated?.Invoke();
         }
 

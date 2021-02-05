@@ -7,6 +7,9 @@ namespace Dman.LSystem
     [CreateAssetMenu(fileName = "TurtleScaleOperations", menuName = "LSystem/TurtleScaleOperations")]
     public class TurtleScaleOperations : TurtleOperationSet<TurtleState>
     {
+        [Header("!(x, y, z): Scale by the vector <x, y, z>")]
+        [Header("!(x): scale all axises by x")]
+        [Header("!: scale by default scale amount")]
         public char scaleOperator = '!';
         public float defaultScaleAmount = 0.9f;
         public override IEnumerable<ITurtleOperator<TurtleState>> GetOperators()
@@ -28,11 +31,23 @@ namespace Dman.LSystem
 
             public TurtleState Operate(TurtleState initialState, double[] parameters, MeshDraft targetDraft)
             {
-                if (parameters.Length != 1 || !(parameters[0] is double scaleAmount))
+                if (parameters.Length == 0)
                 {
-                    scaleAmount = defaultScale;
+                    initialState.transformation *= Matrix4x4.Scale((float)defaultScale * scale);
                 }
-                initialState.transformation *= Matrix4x4.Scale((float)scaleAmount * scale);
+                else
+                if (parameters.Length == 1)
+                {
+                    initialState.transformation *= Matrix4x4.Scale((float)parameters[0] * scale);
+                }
+                else
+                if (parameters.Length == 3)
+                {
+                    initialState.transformation *= Matrix4x4.Scale(new Vector3((float)parameters[0], (float)parameters[1], (float) parameters[2]));
+                }else
+                {
+                    Debug.LogError($"Invalid scale parameter length: {parameters.Length}");
+                }
                 return initialState;
             }
         }
