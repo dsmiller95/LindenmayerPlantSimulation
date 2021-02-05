@@ -12,6 +12,7 @@ An attempt to implement most of the features present in L-systems described by [
 - [L-System Language](#l-system-language)
   - [Rule examples](#rule-examples)
   - [Parameterization](#parameterization)
+  - [Limitations](#limitations)
 
 ## [Installation](#installation)
 
@@ -41,7 +42,7 @@ To build a new system from scratch, follow this template:
 
 1. Create a new .lsystem text file
 
-   - Fill in the #axiom, #iteration, and some list of rules
+   - Fill in the `#axiom`, `#iteration`, and some list of rules
 
 2. Create the [turtle operations scriptable objects](#turtle-control)
 
@@ -86,9 +87,9 @@ Defines a single character to be used to scale the turtle's current transformati
 
 ## [Extension](#extension)
 
-The turtle interpreter is set up to be extensible. If you want to build your own operations on the currently available turtle state parameters, implement the `TurtleOperationSet<TurtleState>` abstract class, and create an instance of your new scriptable object. I recommend looking at [TurtleScaleOperations](Runtime/TurtleScaleOperations.cs) as the simplest example of an implementation.
+The turtle interpreter is set up to be extensible. If you want to build your own operations on the currently available turtle state parameters, implement the `TurtleOperationSet<TurtleState>` abstract class, and create an instance of your new scriptable object. I recommend looking at [TurtleScaleOperations](Runtime/UnityObjects/TurtleScaleOperations.cs) as the simplest example of an implementation.
 
-If you need additional properties in the turtle state, you should re-implement the [TurtleInterpreterBehavior](Runtime/TurtleInterpreterBehavior.cs), using a different generic parameter for the TurtleInterpreter instance, and define your own set of turtle operators to operate on your new state struct.
+If you need additional properties in the turtle state, you should re-implement the [TurtleInterpreterBehavior](Runtime/UnityObjects/TurtleInterpreterBehavior.cs), using a different generic parameter for the TurtleInterpreter instance, and define your own set of turtle operators to operate on your new state struct.
 
 # [L System Language](#l-system-language)
 
@@ -103,7 +104,7 @@ There are x types of directives. parameters to the directives are parsed based o
 
 ## [Rule Examples](#rule-examples)
 
-Currently this package has support for stochastic and parametric Rules. A list of examples of the current and future grammar can be found in [rule-grammer](rule-grammer.txt). Not all of the examples in that file will work, consult the following list for currently supported syntax.
+Currently this package has support for stochastic and parametric Rules. A list of examples of the current and future grammar can be found in [rule-grammar](rule-grammar.txt). Not all of the examples in that file will work, consult the following list for currently supported syntax.
 
 Examples of currently valid rules:
 
