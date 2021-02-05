@@ -1,6 +1,6 @@
 ﻿namespace Dman.LSystem.SystemCompiler
 {
-    public struct CompilerContext
+    internal struct CompilerContext
     {
         public int originalIndex;
         public int originalEndIndex;

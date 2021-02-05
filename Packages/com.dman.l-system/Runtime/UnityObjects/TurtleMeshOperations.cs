@@ -3,7 +3,7 @@ using ProceduralToolkit;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.UnityObjects
 {
     [System.Serializable]
     public struct MeshKey

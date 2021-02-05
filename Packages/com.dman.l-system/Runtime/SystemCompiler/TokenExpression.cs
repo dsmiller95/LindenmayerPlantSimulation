@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace Dman.LSystem.SystemCompiler
 {
-    public abstract class TokenTarget
+    internal abstract class TokenTarget
     {
         public CompilerContext context;
         protected TokenTarget(CompilerContext context)
@@ -14,7 +14,7 @@ namespace Dman.LSystem.SystemCompiler
         }
     }
 
-    public class TokenExpression : TokenTarget
+    internal class TokenExpression : TokenTarget
     {
         public bool isTokenSeries;
         public Expression compiledExpression;
@@ -171,7 +171,7 @@ namespace Dman.LSystem.SystemCompiler
         }
     }
 
-    public class TokenOperator : TokenTarget
+    internal class TokenOperator : TokenTarget
     {
         public TokenType type;
 

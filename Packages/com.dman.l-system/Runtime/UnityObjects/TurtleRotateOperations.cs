@@ -2,7 +2,7 @@ using ProceduralToolkit;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.UnityObjects
 {
     [CreateAssetMenu(fileName = "TurtleRotateOperations", menuName = "LSystem/TurtleRotateOperations")]
     public class TurtleRotateOperations : TurtleOperationSet<TurtleState>

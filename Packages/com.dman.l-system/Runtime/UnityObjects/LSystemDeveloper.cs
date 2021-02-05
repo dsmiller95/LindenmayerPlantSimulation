@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.UnityObjects
 {
+    /// <summary>
+    /// Used to assist with developing an L-system. will watch the l-system file and live-reload when changes are detected
+    /// </summary>
     public class LSystemDeveloper : MonoBehaviour
     {
         public float secondsPerUpdate = 0.25f;
         public float timeBeforeRestart = 5;
 
+        /// <summary>
+        /// the system object to compile
+        /// </summary>
         public LSystemObject systemObject;
 
         private FileSystemWatcher lSystemAssetWatcher;
@@ -46,7 +47,7 @@ namespace Dman.LSystem
         private void AssetUpdated(object sender, FileSystemEventArgs e)
         {
             Debug.Log("updated");
-            this.recompileTriggered = true;
+            recompileTriggered = true;
         }
         private void DoRecompile()
         {
@@ -58,20 +59,20 @@ namespace Dman.LSystem
         {
             lSystemAssetWatcher.Dispose();
         }
- 
+
         private void Update()
         {
             if (recompileTriggered)
             {
                 recompileTriggered = false;
-                this.DoRecompile();
+                DoRecompile();
             }
             var maxUpdates = systemObject.iterations;
 
             foreach (var system in GetComponentsInChildren<LSystemBehavior>())
             {
                 if (system.lastUpdateChanged
-                    && system.totalSteps < maxUpdates 
+                    && system.totalSteps < maxUpdates
                     && Time.time > system.lastUpdateTime + secondsPerUpdate)
                 {
                     system.StepSystem();

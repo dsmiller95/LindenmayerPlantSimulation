@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public static class InputSymbolParser
+    internal static class InputSymbolParser
     {
         /// <summary>
         /// parses strings in the format of "B(x, y)E(x)B" . extracts the symbols, and the names of the parameters in the inputs

@@ -1,12 +1,20 @@
 using Dman.LSystem.SystemCompiler;
+using Dman.LSystem.SystemRuntime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Dman.LSystem.SystemRuntime
+namespace Dman.LSystem
 {
     public static class LSystemBuilder
     {
+        /// <summary>
+        /// Compile a new L-system from rule text
+        /// </summary>
+        /// <param name="rules">a list of all of the rules in this L-System</param>
+        /// <param name="globalParameters">A list of global parameters.
+        ///     The returned LSystem will require a double[] of the same length be passed in to the step function</param>
+        /// <returns></returns>
         public static LSystem<double> DoubleSystem(
            IEnumerable<string> rules,
            string[] globalParameters = null)
@@ -44,6 +52,9 @@ namespace Dman.LSystem.SystemRuntime
         /// </summary>
         private IDictionary<int, IList<IRule<T>>> rulesByFirstTargetSymbol;
 
+        /// <summary>
+        /// The number of global runtime parameters
+        /// </summary>
         public int GlobalParameters { get; private set; }
 
 
@@ -71,6 +82,11 @@ namespace Dman.LSystem.SystemRuntime
             }
         }
 
+        /// <summary>
+        /// Step the given <paramref name="systemState"/>, writing the new state in-place
+        /// </summary>
+        /// <param name="systemState">The entire state of the L-system</param>
+        /// <param name="globalParameters">The global parameters, if any</param>
         public void StepSystem(LSystemState<T> systemState, T[] globalParameters = null)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L system step");

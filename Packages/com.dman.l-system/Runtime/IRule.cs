@@ -1,6 +1,7 @@
+using Dman.LSystem.SystemRuntime;
 using System;
 
-namespace Dman.LSystem.SystemRuntime
+namespace Dman.LSystem
 {
     public interface IRule<T>
     {

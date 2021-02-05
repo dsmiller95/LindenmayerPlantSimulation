@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
-    public class TurtleInterpretor<T> where T: struct
+    public class TurtleInterpretor<T> where T : struct
     {
         private IDictionary<int, ITurtleOperator<T>> operationsByKey;
 
-        public int meshIndexIncrementChar = '`';
+        public int submeshIndexIncrementChar = '`';
         public int branchStartChar = '[';
         public int branchEndChar = ']';
-        
+
         private T defaultState;
 
         public TurtleInterpretor(IDictionary<int, ITurtleOperator<T>> operations, T defaultState)
@@ -21,6 +21,11 @@ namespace Dman.LSystem
             this.defaultState = defaultState;
         }
 
+        /// <summary>
+        /// Compile the given symbols into a mesh, using the operations defined in this turtle instance
+        /// </summary>
+        /// <param name="symbols"></param>
+        /// <param name="targetMesh"></param>
         public void CompileStringToMesh(SymbolString<double> symbols, ref Mesh targetMesh)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle interpretation");
@@ -44,7 +49,7 @@ namespace Dman.LSystem
                     currentState = stateStack.Pop();
                     continue;
                 }
-                if (symbol == meshIndexIncrementChar)
+                if (symbol == submeshIndexIncrementChar)
                 {
                     currentState.submeshIndex++;
                     if (resultMeshes.Count < currentState.submeshIndex + 1)

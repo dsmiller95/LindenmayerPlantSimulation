@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public class BasicRule : IRule<double>
+    internal class BasicRule : IRule<double>
     {
         /// <summary>
         /// the symbol which this rule will replace. Apply rule will only ever be called with this symbol.

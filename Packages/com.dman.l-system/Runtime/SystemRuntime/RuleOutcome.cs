@@ -1,6 +1,6 @@
 namespace Dman.LSystem.SystemRuntime
 {
-    public struct RuleOutcome
+    internal struct RuleOutcome
     {
         public double probability;
         public ReplacementSymbolGenerator[] replacementSymbols;

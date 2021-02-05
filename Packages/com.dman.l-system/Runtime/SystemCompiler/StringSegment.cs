@@ -1,6 +1,6 @@
 ﻿namespace Dman.LSystem.SystemCompiler
 {
-    public struct StringSegment
+    internal struct StringSegment
     {
         public CompilerContext context;
         public string value;

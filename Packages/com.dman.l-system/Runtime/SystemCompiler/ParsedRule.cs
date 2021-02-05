@@ -7,12 +7,12 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemCompiler
 {
-    public class ParsedStochasticRule : ParsedRule
+    internal class ParsedStochasticRule : ParsedRule
     {
         public double probability;
     }
 
-    public class ParsedRule
+    internal class ParsedRule
     {
         public InputSymbol[] targetSymbols;
         public ReplacementSymbolGenerator[] replacementSymbols;

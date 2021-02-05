@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.UnityObjects
 {
     [System.Serializable]
     public struct ParameterAndDefault
@@ -38,13 +38,16 @@ namespace Dman.LSystem
 
         public LSystem<double> compiledSystem { get; private set; }
 
-        private void Awake()
-        {
-        }
-
+        /// <summary>
+        /// Emits whenever the system is compiled
+        /// </summary>
         public event Action OnSystemUpdated;
 
-        public void Compile()
+        /// <summary>
+        /// Compile this L-system into the <see cref="compiledSystem"/> property
+        /// </summary>
+        /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
+        public void Compile(Dictionary<string, string> globalCompileTimeOverrides = null)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
             try
@@ -52,7 +55,12 @@ namespace Dman.LSystem
                 var rulesPostReplacement = rules;
                 foreach (var replacement in defaultGlobalCompileTimeParameters)
                 {
-                    rulesPostReplacement = rulesPostReplacement.Replace(replacement.name, replacement.replacement);
+                    var replacementString = replacement.replacement;
+                    if(globalCompileTimeOverrides != null && globalCompileTimeOverrides.TryGetValue(replacement.name, out var overrideValue))
+                    {
+                        replacementString = overrideValue;
+                    }
+                    rulesPostReplacement = rulesPostReplacement.Replace(replacement.name, replacementString);
                 }
                 var ruleLines = rulesPostReplacement
                     .Split('\n')
@@ -70,7 +78,10 @@ namespace Dman.LSystem
             OnSystemUpdated?.Invoke();
         }
 
-
+        /// <summary>
+        /// Reload this asset from the .lsystem file assocated with it
+        /// NO-op if not in editor mode
+        /// </summary>
         public void TriggerReloadFromFile()
         {
 #if UNITY_EDITOR
@@ -83,6 +94,10 @@ namespace Dman.LSystem
 #endif
         }
 
+        /// <summary>
+        /// Parse a whole code file into this object. does not compile the system. 
+        /// </summary>
+        /// <param name="fullCode">the entire .lsystem file</param>
         public void ParseRulesFromCode(string fullCode)
         {
             defaultGlobalRuntimeParameters = new List<ParameterAndDefault>();

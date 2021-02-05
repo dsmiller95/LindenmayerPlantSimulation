@@ -18,11 +18,11 @@ To look at examples, clone the [source repo](https://github.com/dsmiller95/plant
 
 ## [Example Showcase](#example-showcase)
 
-[Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/Field%20flower.asset): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
+[Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
 
 ![flower generation gif](../../DemoPhotos/field-flower-system.gif)
 
-[Herbaceous Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceous%20plant.asset)
+[Herbaceous Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceaus-plant.lsystem)
 
 ![herbaceous plant gif](../../DemoPhotos/herbaceous-plant.gif)
 

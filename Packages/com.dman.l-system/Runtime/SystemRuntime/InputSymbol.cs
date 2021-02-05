@@ -6,7 +6,7 @@ namespace Dman.LSystem.SystemRuntime
     /// <summary>
     /// represents a single target matcher. Used to match input symbols and input parameters
     /// </summary>
-    public class InputSymbol : System.IEquatable<InputSymbol>
+    internal class InputSymbol : System.IEquatable<InputSymbol>
     {
         public int targetSymbol;
         public string[] namedParameters;

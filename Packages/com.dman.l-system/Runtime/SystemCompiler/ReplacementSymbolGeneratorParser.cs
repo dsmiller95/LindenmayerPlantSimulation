@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 namespace Dman.LSystem.SystemRuntime
 {
-    public static class ReplacementSymbolGeneratorParser
+    internal static class ReplacementSymbolGeneratorParser
     {
         public static IEnumerable<ReplacementSymbolGenerator> ParseReplacementSymbolGenerators(string allsymbols, string[] validParameters)
         {

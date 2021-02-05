@@ -32,7 +32,7 @@ namespace Dman.LSystem.SystemCompiler
         VARIABLE = 1 << 18
     }
 
-    public struct Token
+    internal struct Token
     {
         public TokenType token;
         /// <summary>

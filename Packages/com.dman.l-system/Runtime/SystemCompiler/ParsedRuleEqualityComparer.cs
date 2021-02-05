@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Dman.LSystem.SystemCompiler
 {
-    public class ParsedRuleEqualityComparer : IEqualityComparer<ParsedRule>
+    internal class ParsedRuleEqualityComparer : IEqualityComparer<ParsedRule>
     {
         public bool Equals(ParsedRule x, ParsedRule y)
         {

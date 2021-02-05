@@ -1,13 +1,7 @@
-using Dman.LSystem;
-using System.Collections;
-using System.Collections.Generic;
+using Dman.LSystem.UnityObjects;
+using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEngine;
-using System.IO;
-using System.Text;
-using Dman.LSystem.SystemCompiler;
-using System.Text.RegularExpressions;
-using System.Linq;
 
 [ScriptedImporter(1, "lsystem")]
 public class LSystemAssetImporter : ScriptedImporter

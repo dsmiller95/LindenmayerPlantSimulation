@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Dman.LSystem.SystemCompiler
 {
-    public class Tokenizer
+    internal class Tokenizer
     {
         private static Dictionary<string, TokenType> stringsToTokens = new Dictionary<string, TokenType>{
                 { "*", TokenType.MULTIPLY},

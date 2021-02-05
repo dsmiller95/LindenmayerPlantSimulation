@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace Dman.LSystem.SystemCompiler
 {
-    public class ExpressionCompiler
+    internal class ExpressionCompiler
     {
         public IDictionary<string, ParameterExpression> parameters;
         public ExpressionCompiler(Dictionary<string, ParameterExpression> parameters)
