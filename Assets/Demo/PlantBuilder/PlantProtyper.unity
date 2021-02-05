@@ -1946,11 +1946,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2023392568}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 225dd6c446b6afb4fb0e023aae1f0509, type: 3}
+  m_Script: {fileID: 11500000, guid: 78755203f1cf4e742b0faa6bb03bf6f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  secondsPerUpdate: 0.5
-  timeBeforeRestart: 3.3333333
+  secondsPerUpdate: 0.25
+  timeBeforeRestart: 5
   systemObject: {fileID: 378491273550888993, guid: 8f4195aee96ba0c46aa03c56c5065f59, type: 3}
 --- !u!4 &2023392570
 Transform:
