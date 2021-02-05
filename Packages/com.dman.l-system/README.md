@@ -1,11 +1,10 @@
-# com.dman.l-system
+# L System
 
 [![openupm](https://img.shields.io/npm/v/com.dman.l-system?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.dman.l-system/)
 
 An attempt to implement most of the features present in L-systems described by ['The Algorithmic Beauty Of Plants'](http://algorithmicbotany.org/papers/abop/abop.pdf). If you are not familiar with L-Systems, read chapters 1.1, 1.2, 1.3, and 1.5 for the basics. Read 1.7 and 1.10 for details about stochastic and parametric rules, the behavior of rules in this implementation should mirror how they are described in those chapters with some [syntactical differences](#rule-examples).
 
 - [Installation](#installation)
-- [Examples](#example-showcase)
 - [System configuration](#system-configuration)
   - [Turtle interpretation](#turtle-control)
   - [Extension](#extension)
@@ -13,6 +12,7 @@ An attempt to implement most of the features present in L-systems described by [
   - [Rule examples](#rule-examples)
   - [Parameterization](#parameterization)
   - [Limitations](#limitations)
+- [Examples](#example-showcase)
 
 ## [Installation](#installation)
 
@@ -25,16 +25,6 @@ openupm add com.dman.l-system
 ```
 
 To look at examples, clone the [source repo](https://github.com/dsmiller95/plantbuilder) and look in `Assets/Demo/PlantBuilder/LSystems` for the configuration.
-
-## [Example Showcase](#example-showcase)
-
-[Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
-
-![flower generation gif](../../DemoPhotos/field-flower-system.gif)
-
-[Herbaceous Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceous-plant.lsystem)
-
-![herbaceous plant gif](../../DemoPhotos/herbaceous-plant.gif)
 
 # [System Configuration](#system-configuration)
 
@@ -203,3 +193,13 @@ x || y
 ## [Limitations](#limitations)
 
 - Does not support contextual matches, E.X. `C < A > B -> X`
+
+# [Example Showcase](#example-showcase)
+
+[Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
+
+![flower generation gif](../../DemoPhotos/field-flower-system.gif)
+
+[Herbaceous Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceous-plant.lsystem)
+
+![herbaceous plant gif](../../DemoPhotos/herbaceous-plant.gif)
