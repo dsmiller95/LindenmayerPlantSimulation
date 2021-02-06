@@ -47,7 +47,25 @@ namespace Dman.LSystem.UnityObjects
         /// Compile this L-system into the <see cref="compiledSystem"/> property
         /// </summary>
         /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
-        public void Compile(Dictionary<string, string> globalCompileTimeOverrides = null)
+        public void CompileToCached(Dictionary<string, string> globalCompileTimeOverrides = null)
+        {
+            var newSystem = this.CompileSystem(globalCompileTimeOverrides);
+            if(newSystem != null)
+            {
+                compiledSystem = newSystem;
+            }
+        }
+
+        /// <summary>
+        /// Compile this L-system and return the result, not caching it into this object
+        /// </summary>
+        /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
+        public LSystem<double> CompileWithParameters(Dictionary<string, string> globalCompileTimeOverrides)
+        {
+            return this.CompileSystem(globalCompileTimeOverrides);
+        }
+
+        private LSystem<double> CompileSystem(Dictionary<string, string> globalCompileTimeOverrides)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
             try
@@ -56,7 +74,7 @@ namespace Dman.LSystem.UnityObjects
                 foreach (var replacement in defaultGlobalCompileTimeParameters)
                 {
                     var replacementString = replacement.replacement;
-                    if(globalCompileTimeOverrides != null && globalCompileTimeOverrides.TryGetValue(replacement.name, out var overrideValue))
+                    if (globalCompileTimeOverrides != null && globalCompileTimeOverrides.TryGetValue(replacement.name, out var overrideValue))
                     {
                         replacementString = overrideValue;
                     }
@@ -66,7 +84,7 @@ namespace Dman.LSystem.UnityObjects
                     .Split('\n')
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrEmpty(x));
-                compiledSystem = LSystemBuilder.DoubleSystem(
+                return LSystemBuilder.DoubleSystem(
                     ruleLines,
                     defaultGlobalRuntimeParameters.Select(x => x.name).ToArray());
             }
@@ -74,8 +92,12 @@ namespace Dman.LSystem.UnityObjects
             {
                 Debug.LogException(e);
             }
-            UnityEngine.Profiling.Profiler.EndSample();
-            OnSystemUpdated?.Invoke();
+            finally
+            {
+                UnityEngine.Profiling.Profiler.EndSample();
+                OnSystemUpdated?.Invoke();
+            }
+            return null;
         }
 
         /// <summary>

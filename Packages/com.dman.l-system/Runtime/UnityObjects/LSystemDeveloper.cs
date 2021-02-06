@@ -40,7 +40,7 @@ namespace Dman.LSystem.UnityObjects
 
         private void Start()
         {
-            systemObject.Compile();
+            systemObject.CompileToCached();
         }
 
         private bool recompileTriggered = false;
@@ -52,7 +52,7 @@ namespace Dman.LSystem.UnityObjects
         private void DoRecompile()
         {
             systemObject.TriggerReloadFromFile();
-            systemObject.Compile();
+            systemObject.CompileToCached();
         }
 
         private void OnDestroy()

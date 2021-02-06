@@ -54,17 +54,26 @@ namespace Dman.LSystem.UnityObjects
                 });
             turtle.submeshIndexIncrementChar = submeshIndexIncrementor;
 
-            System.OnSystemStateUpdated += OnSystemStateUpdated;
+            if(System != null)
+            {
+                System.OnSystemStateUpdated += OnSystemStateUpdated;
+            }
         }
 
         private void OnDestroy()
         {
-            System.OnSystemStateUpdated -= OnSystemStateUpdated;
+            if (System != null)
+            {
+                System.OnSystemStateUpdated += OnSystemStateUpdated;
+            }
         }
 
         private void OnSystemStateUpdated()
         {
-            this.InterpretSymbols(System.CurrentState);
+            if (System != null)
+            {
+                this.InterpretSymbols(System.CurrentState);
+            }
         }
 
     }
