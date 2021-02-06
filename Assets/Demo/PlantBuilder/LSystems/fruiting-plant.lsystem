@@ -1,21 +1,19 @@
 #axiom S(0)
 #iterations 40
 
-#runtime growthStop 5
-#runtime segmentGrowth 6
-#runtime terminalBudGrowth 6
-#runtime shootHeight 5
-#runtime internodeHeight 6
-#runtime branchLength 3
-#runtime leafAge 3
-#runtime leavesPerPetiole 3
-#runtime petioleLeafAngularDist 110
-#runtime flowerAge 3
+#define terminalBudGrowth 6
+#define shootHeight 5
+#define internodeHeight 6
+#define branchInternodes 3
+#define leafAge 3
+#define leavesPerPetiole 3
+#define petioleLeafAngularDist 110
+#define flowerAge 3
 
 #define leafExpression [&&L][/(180)&&L]
 #define budBranchChanceFactor 0.4
 #define shootStemBranchingFactor 0.5
-#define flowerIncrementFailureChance 0.2
+#define flowerFailureChance 0.7
 
 
 ## S is the Shoot symbol
@@ -32,12 +30,13 @@ T(x) : x == terminalBudGrowth -> []
 #define flowerStalkLength 6
 
 ## B is a bud off the main stem, and randomly chooses what it will become
-P(budBranchChanceFactor) B(x) -> [^V(flowerStalkLength)]R(x, 0)
-P(1 - budBranchChanceFactor) B(x) -> [^(10)V(flowerStalkLength)]P(leavesPerPetiole)
+P(budBranchChanceFactor) B(x) -> [^(50)V]R(x, 0)
+P(1 - budBranchChanceFactor) B(x) -> [^(50)V]P(leavesPerPetiole)
 
 ## V is a flowering bud
-P(1 - flowerIncrementFailureChance) V(x) : x > 0 -> $(0.1)FV(x - 1)
-P(flowerIncrementFailureChance) V(x) : x > 0 -> []
+P(flowerFailureChance) V -> []
+P(1 - flowerFailureChance) V -> V(flowerStalkLength)
+V(x) : x > 0 -> $(0.1)FV(x - 1)
 V(x) : x <= 0 -> [``C(x)K(0)]
 
 #define timeToFruit 4
@@ -50,29 +49,26 @@ C(x)K(y) : x >= timeToFruit -> D(0)
 ## D is a fruiting body
 D(x) : x < fruiteSize -> D(x + 1)
 
-## R is a side branch terminal node
-P(shootStemBranchingFactor) R(x, y) : x < branchLength && y >= internodeHeight -> [-(75)^(20)N(x + 1)][+(75)^(20)N(x + 1)]R(x + 1, 0)
-P(1 - shootStemBranchingFactor) R(x, y) : x < branchLength && y >= internodeHeight -> R(x + 1, 0)
-R(x, y) : x >= branchLength && y >= internodeHeight -> P(leavesPerPetiole)
+## R is a side branch terminal node.
+P(shootStemBranchingFactor) R(x, y) : x < branchInternodes && y >= internodeHeight -> [-(75)^(20)N(x + 1)][+(75)^(20)N(x + 1)]R(x + 1, 0)
+P(1 - shootStemBranchingFactor) R(x, y) : x < branchInternodes && y >= internodeHeight -> R(x + 1, 0)
+R(x, y) : x >= branchInternodes && y >= internodeHeight -> petiole(leavesPerPetiole)
 
-## rotate relative to self
-## R(x, y) : y < internodeHeight -> &(3)FR(x, y + 1)
 ## rotate relative to world
 R(x, y) : y < internodeHeight -> $(0.02)FR(x, y + 1)
 
 ## N is a bud off the branch stem, and randomly chooses what it will become
-P(budBranchChanceFactor) N(x) -> [^V(3)]P(leavesPerPetiole)
-P(1 - budBranchChanceFactor) N(x) -> [^V(3)]FL
+P(budBranchChanceFactor) N(x) -> [^V]petiole(leavesPerPetiole)
+P(1 - budBranchChanceFactor) N(x) -> [^V]FL
 
 ## P is the petiole, x is number of leaves
-P(x) : x >= 2 -> I(1)[O((x - 1) / 2, -petioleLeafAngularDist)]L[O((x - 1) / 2, petioleLeafAngularDist)]
-P(x) : x > 0 -> L
+#define petiole( P(
+petiole(x) : x >= 2 -> I(3)[O((x - 1) / 2, -petioleLeafAngularDist)]L[O((x - 1) / 2, petioleLeafAngularDist)]
+petiole(x) : x > 0 -> L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
-I(x) : x > 0 -> I(x - 1)F
-
-Q(x) : x < segmentGrowth -> FQ(x + 1)F
+I(x) : x > 0 -> I(x - 1)$(0.005)F
 
 ## organs
 N -> leafExpression

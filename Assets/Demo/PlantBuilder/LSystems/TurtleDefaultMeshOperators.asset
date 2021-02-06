@@ -59,5 +59,5 @@ MonoBehaviour:
     MeshRef: {fileID: -1692108017345405815, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     IndividualScale: {x: 1, y: 1, z: 1}
     ParameterScale: 1
-    ScalePerParameter: {x: 1, y: 1, z: 1}
+    ScalePerParameter: {x: 0.7, y: 0.7, z: 0.7}
     AlsoMove: 0
