@@ -35,8 +35,11 @@ namespace Dman.LSystem.UnityObjects
             var meshfilter = GetComponent<MeshFilter>();
             var targetMesh = meshfilter.mesh;
 
+            var meshRenderer = GetComponent<MeshRenderer>();
+            
+
             // Ref is unecessary in the backing API here, which is why we're not re-assigning back from it here
-            turtle.CompileStringToMesh(symbols, ref targetMesh);
+            turtle.CompileStringToMesh(symbols, ref targetMesh, meshRenderer.materials.Length);
         }
 
         private void Awake()

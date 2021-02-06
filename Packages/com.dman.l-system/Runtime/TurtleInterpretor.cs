@@ -26,11 +26,15 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="symbols"></param>
         /// <param name="targetMesh"></param>
-        public void CompileStringToMesh(SymbolString<double> symbols, ref Mesh targetMesh)
+        public void CompileStringToMesh(SymbolString<double> symbols, ref Mesh targetMesh, int targetSubmeshCount = -1)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle interpretation");
             var resultMeshes = new List<MeshDraft>();
-            resultMeshes.Add(new MeshDraft());
+            targetSubmeshCount = Mathf.Max(targetSubmeshCount, 1);
+            for (int i = 0; i < targetSubmeshCount; i++)
+            {
+                resultMeshes.Add(new MeshDraft());
+            }
 
             var currentState = new TurtleMeshState<T>(defaultState);
 
