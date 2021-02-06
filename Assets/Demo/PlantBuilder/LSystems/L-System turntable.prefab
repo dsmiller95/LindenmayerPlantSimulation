@@ -114,8 +114,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 259a8d9be24511a4e91d12752db6eb8f, type: 2}
   - {fileID: 11400000, guid: 955a828e76f3281498bf902f8db912e2, type: 2}
   - {fileID: 11400000, guid: 3a418bd9f015dd44896661013b5a06b8, type: 2}
+  - {fileID: 11400000, guid: f0df8a941df89244e90f702c402ca60d, type: 2}
   initialScale: {x: 0.3, y: 0.3, z: 0.3}
-  meshIndexIncrementor: 96
+  submeshIndexIncrementor: 96
 --- !u!1 &9089396037661369507
 GameObject:
   m_ObjectHideFlags: 0

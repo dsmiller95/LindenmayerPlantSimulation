@@ -29,12 +29,14 @@ T(x) : x < terminalBudGrowth && x >= 0 -> I(internodeHeight)[&(60)B(x + 1)][\(18
 T(x) : x == terminalBudGrowth -> []
 
 
+#define flowerStalkLength 6
+
 ## B is a bud off the main stem, and randomly chooses what it will become
-P(budBranchChanceFactor) B(x) -> [^V(3)]R(x, 0)
-P(1 - budBranchChanceFactor) B(x) -> [^V(3)]P(leavesPerPetiole)
+P(budBranchChanceFactor) B(x) -> [^V(flowerStalkLength)]R(x, 0)
+P(1 - budBranchChanceFactor) B(x) -> [^(10)V(flowerStalkLength)]P(leavesPerPetiole)
 
 ## V is a flowering bud
-P(1 - flowerIncrementFailureChance) V(x) : x > 0 -> ^(7)FV(x - 1)
+P(1 - flowerIncrementFailureChance) V(x) : x > 0 -> $(0.1)FV(x - 1)
 P(flowerIncrementFailureChance) V(x) : x > 0 -> []
 V(x) : x <= 0 -> [``C(x)K(0)]
 
@@ -53,7 +55,10 @@ P(shootStemBranchingFactor) R(x, y) : x < branchLength && y >= internodeHeight -
 P(1 - shootStemBranchingFactor) R(x, y) : x < branchLength && y >= internodeHeight -> R(x + 1, 0)
 R(x, y) : x >= branchLength && y >= internodeHeight -> P(leavesPerPetiole)
 
-R(x, y) : y < internodeHeight -> &(3)FR(x, y + 1)
+## rotate relative to self
+## R(x, y) : y < internodeHeight -> &(3)FR(x, y + 1)
+## rotate relative to world
+R(x, y) : y < internodeHeight -> $(0.02)FR(x, y + 1)
 
 ## N is a bud off the branch stem, and randomly chooses what it will become
 P(budBranchChanceFactor) N(x) -> [^V(3)]P(leavesPerPetiole)

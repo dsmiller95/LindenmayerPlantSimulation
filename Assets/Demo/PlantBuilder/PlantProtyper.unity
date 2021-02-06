@@ -1951,7 +1951,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   secondsPerUpdate: 0.25
   timeBeforeRestart: 5
-  systemObject: {fileID: 378491273550888993, guid: 8f4195aee96ba0c46aa03c56c5065f59, type: 3}
+  systemObject: {fileID: 378491273550888993, guid: bc61066174425fa4aa2856c9e1f0e252, type: 3}
 --- !u!4 &2023392570
 Transform:
   m_ObjectHideFlags: 0
