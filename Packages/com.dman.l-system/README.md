@@ -49,7 +49,7 @@ Turtle Operation scriptable objects are used to define how the Turtle interprets
 
 ### Rotate Operations
 
-Rotate operations are used to turn, tilt, and roll the turtle. In essence these just apply euler rotations to the turtle, allowing it to turn in place. The Default Theta is the amount of turn to apply in degrees when the target symbol has no parameter. If the target symbol has one parameter defined, the turtle will instead rotate by that amount.
+Rotate operations are used to turn, tilt, and roll the turtle, and imitate the behavior defined in (page 19 of Algorithmic Beauty of Plants)[http://algorithmicbotany.org/papers/abop/abop.pdf#page=31]. In essence these just apply euler rotations to the turtle, allowing it to turn in place. The Default Theta is the amount of turn to apply in degrees when the target symbol has no parameter. If the target symbol has one parameter defined, the turtle will instead rotate by that amount.
 
 Example configuration:
 
@@ -74,6 +74,10 @@ In this example, `F` is used as the most basic stem unit. In the [herbaceous pla
 ### Scale Operation
 
 Defines a single character to be used to scale the turtle's current transformation. This will multiply the scale of everything done by the turtle, such as the size of meshes and as the distance traveled when translating the turtle. The character can also be parameterized in three ways:`!` will scale by the default configured scale in the scriptable object, `!(x)` will scale every dimension by x exactly, and `!(x, y, z)` will scale by the vector <x, y, z>
+
+### Bend Operation
+
+Bends the turtle toward a given world-space vector, scaled by the magnitude of the cross-product between the current turtle's heading and the world-space vector. This operation replicates the function of the Tropism Vector described on [page 58 of Algorithmic Beauty of Plants](http://algorithmicbotany.org/papers/abop/abop.pdf#page=70). See it in use in the [fruiting plant L-system](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/fruiting-plant.lsystem), in this case different plant organs have different bending factors which can be used to represent the stiffness of that organ.
 
 ## [Extension](#extension)
 
@@ -203,3 +207,7 @@ x || y
 [Herbaceous Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceous-plant.lsystem)
 
 ![herbaceous plant gif](../../DemoPhotos/herbaceous-plant.gif)
+
+[Fruiting Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/fruiting-plant.lsystem)
+
+![fruiting plant gif](../../DemoPhotos/fruiting-plant.gif)

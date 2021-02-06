@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.5] - 2021-02-06
+
+L-system language file, developer tools, more examples
+
+### Added
+
+- L-system language spec, and importer for `.lsystem` files
+- Turtle bend operation based on world-space vector. can be used to simulate bending due to gravity
+- live-reloading with developer tools while running inside unity editor
+- fixed memory leak
+
 ## [0.1.4] - 2021-01-31
 
 Turtle scale operation
