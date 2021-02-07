@@ -43,6 +43,11 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public event Action OnSystemUpdated;
 
+        public ArrayParameterRepresenation<double> GetRuntimeParameters()
+        {
+            return ArrayParameterRepresenation<double>.GenerateFromList(defaultGlobalRuntimeParameters, p => p.name, p => p.defaultValue);
+        }
+
         /// <summary>
         /// Compile this L-system into the <see cref="compiledSystem"/> property
         /// </summary>

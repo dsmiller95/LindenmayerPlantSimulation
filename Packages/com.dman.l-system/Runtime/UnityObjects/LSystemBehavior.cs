@@ -1,6 +1,5 @@
 using Dman.LSystem.SystemRuntime;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -23,8 +22,7 @@ namespace Dman.LSystem.UnityObjects
         public event Action OnSystemStateUpdated;
 
         private DefaultLSystemState systemState;
-        private double[] systemParameters;
-        private Dictionary<string, int> parameterNameToIndex;
+        private ArrayParameterRepresenation<double> runtimeParameters;
 
         private SymbolString<double> lastState;
         /// <summary>
@@ -52,7 +50,7 @@ namespace Dman.LSystem.UnityObjects
             }
             systemObject = newSystemObject;
             systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
-            this.ResetState();
+            ResetState();
         }
 
         /// <summary>
@@ -77,7 +75,7 @@ namespace Dman.LSystem.UnityObjects
         {
             try
             {
-                systemObject.compiledSystem?.StepSystem(systemState, systemParameters);
+                systemObject.compiledSystem?.StepSystem(systemState, runtimeParameters.GetCurrentParameters());
             }
             catch (System.Exception e)
             {
@@ -101,13 +99,7 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="parameterValue"></param>
         public void SetRuntimeParameter(string parameterName, double parameterValue)
         {
-            if(!parameterNameToIndex.TryGetValue(parameterName, out var parameterIndex))
-            {
-                Debug.LogError($"{systemObject?.name} does not contain a parameter named {parameterName}");
-                return;
-            }
-
-            this.systemParameters[parameterIndex] = parameterValue;
+            runtimeParameters.SetParameter(parameterName, parameterValue);
         }
 
         private void Awake()
@@ -135,20 +127,8 @@ namespace Dman.LSystem.UnityObjects
             lastUpdateChanged = true;
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
             systemState = new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
-            ExtractParameters();
+            runtimeParameters = systemObject.GetRuntimeParameters();
             OnSystemStateUpdated?.Invoke();
-        }
-
-        private void ExtractParameters()
-        {
-            parameterNameToIndex = new Dictionary<string, int>();
-            systemParameters = new double[systemObject.defaultGlobalRuntimeParameters.Count];
-            for (int i = 0; i < systemObject.defaultGlobalRuntimeParameters.Count; i++)
-            {
-                var globalParam = systemObject.defaultGlobalRuntimeParameters[i];
-                systemParameters[i] = globalParam.defaultValue;
-                parameterNameToIndex[globalParam.name] = i;
-            }
         }
     }
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.6] - 2021-02-07
+
+Changes to make it easier to use the l-system object as a standalone tool
+
+### Added
+
+- Parameter representation object to make it easier to interact with the runtime parameter array
+- different L-system generation parameters
+
 ## [0.1.5] - 2021-02-06
 
 L-system language file, developer tools, more examples
