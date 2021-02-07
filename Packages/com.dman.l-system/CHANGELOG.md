@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.7] - 2021-02-07
+
+### Added
+
+- Missing .meta file
+
 ## [0.1.6] - 2021-02-07
 
 Changes to make it easier to use the l-system object as a standalone tool
