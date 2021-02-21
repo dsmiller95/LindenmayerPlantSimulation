@@ -1,0 +1,21 @@
+{
+    "name": "com.dman.plantbuilder.nodegraph.editor",
+    "rootNamespace": "PlantBuilder.NodeGraph",
+    "references": [
+        "com.alelievr.NodeGraphProcessor.Runtime",
+        "com.alelievr.NodeGraphProcessor.Editor",
+        "com.dman.plantbuilder.nodegraph",
+        "com.dman.plantbuilder",
+        "ProceduralToolkit",
+        "com.dman.MeshDraftExtensions"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

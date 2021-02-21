@@ -1,0 +1,21 @@
+{
+    "name": "com.dman.plantbuilder.nodegraph",
+    "rootNamespace": "PlantBuilder.NodeGraph",
+    "references": [
+        "com.dman.plantbuilder",
+        "SplineMesh",
+        "Utilities",
+        "ProceduralToolkit",
+        "com.dman.MeshDraftExtensions",
+        "com.alelievr.NodeGraphProcessor.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

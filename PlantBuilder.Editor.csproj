@@ -56,21 +56,10 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\MeshRenderingVisualElement.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorInspector.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\MeshOutputNodeView.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\CylinderCoordinateFieldDrawer.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorView.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\ConstantNodeView.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorWindow.cs" />
     <Compile Include="Packages\com.dman.plantbuilder\Editor\BuilderControllerEditor.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\PlantMeshGeneratorToolbarView.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\MeshDraftWithExtrasDrawer.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\Core\NumberNodeView.cs" />
-    <Compile Include="Packages\com.dman.plantbuilder\Editor\NodeGraph\GraphAssetCallbacks.cs" />
   </ItemGroup>
   <ItemGroup>
-     <None Include="Packages\com.dman.plantbuilder\Editor\PlantBuilderEditor.asmdef" />
+     <None Include="Packages\com.dman.plantbuilder\Editor\com.dman.PlantBuilder.Editor.asmdef" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.1f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

@@ -56,7 +56,17 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\PlantBuilderPackage\Editor\BuilderControllerEditor.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\PlantMeshGeneratorWindow.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\Core\MeshOutputNodeView.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\Core\MeshRenderingVisualElement.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\PlantMeshGeneratorInspector.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\Core\CylinderCoordinateFieldDrawer.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\PlantMeshGeneratorToolbarView.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\Core\ConstantNodeView.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\GraphAssetCallbacks.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\Core\NumberNodeView.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\MeshDraftWithExtrasDrawer.cs" />
+    <Compile Include="Assets\com.dman.plantbuilder.nodegraph\Editor\PlantMeshGeneratorView.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -644,8 +654,17 @@
     <Reference Include="UnityEditor.TestRunner">
       <HintPath>Library\ScriptAssemblies\UnityEditor.TestRunner.dll</HintPath>
     </Reference>
+    <Reference Include="ProceduralToolkit.Editor">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="com.alelievr.NodeGraphProcessor.Editor">
+      <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="ProceduralToolkit">
       <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="Utilities">
+      <HintPath>Library\ScriptAssemblies\Utilities.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VSCode.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.VSCode.Editor.dll</HintPath>
@@ -662,11 +681,17 @@
     <Reference Include="Unity.VisualStudio.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Timeline.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Timeline">
       <HintPath>Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UtilitiesEditor">
+      <HintPath>Library\ScriptAssemblies\UtilitiesEditor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
@@ -680,25 +705,46 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="ProceduralToolkit.Editor">
-      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Timeline.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
+    <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
+      <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="NewAssembly.csproj">
-      <Project>{E4E21F74-CCB6-0DA2-085F-FC5F9FEDBE77}</Project>
-      <Name>NewAssembly</Name>
-    </ProjectReference>
-    <ProjectReference Include="SplineMesh.Editor.csproj">
-      <Project>{0FF9C463-61C5-B7A0-4999-B8CB64F76FA3}</Project>
-      <Name>SplineMesh.Editor</Name>
+    <ProjectReference Include="Assembly-CSharp.csproj">
+      <Project>{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}</Project>
+      <Name>Assembly-CSharp</Name>
     </ProjectReference>
     <ProjectReference Include="PlantBuilder.csproj">
       <Project>{408F3866-5553-D928-D598-7EDA73C56DD8}</Project>
       <Name>PlantBuilder</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.l-system.editor.csproj">
+      <Project>{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}</Project>
+      <Name>com.dman.l-system.editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="SplineMeshEditor.csproj">
+      <Project>{C885711F-5180-1D83-A830-02373F016E25}</Project>
+      <Name>SplineMeshEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="PlantBuilder.Editor.csproj">
+      <Project>{D416B3D2-1F38-DEF8-13C1-A420157DA023}</Project>
+      <Name>PlantBuilder.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.MeshDraftExtensions.csproj">
+      <Project>{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}</Project>
+      <Name>com.dman.MeshDraftExtensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.LSystem.csproj">
+      <Project>{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}</Project>
+      <Name>com.dman.LSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="SplineMesh.csproj">
+      <Project>{464D9D06-54BB-0727-018A-41EE4F0542AE}</Project>
+      <Name>SplineMesh</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.plantbuilder.nodegraph.csproj">
+      <Project>{FF5C4E60-178B-5716-125C-C25F9F5CE299}</Project>
+      <Name>com.dman.plantbuilder.nodegraph</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
