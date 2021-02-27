@@ -142,6 +142,22 @@ public class RuleParserTests
         Assert.AreEqual(12, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(10, 2));
         Assert.AreEqual(10, ruleFromString.replacementSymbols[0].evaluators[1].DynamicInvoke(10, 2));
     }
+    [Test]
+    public void ParsesRuleWithNonAlphaMultiMatchWithParameter()
+    {
+        var ruleFromString = ParsedRule.ParseToRule("C(x)K(y)`A(z) : x >= timeToFruit -> D(1)", new string[] { "timeToFruit" });
+
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 0, 0, 0));
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 1, 0, 0));
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 4, 0, 0));
+
+        Assert.AreEqual("C(x)K(y)`A(z)", ruleFromString.TargetSymbolString());
+
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+        Assert.AreEqual('D', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(10, 10, 10, 10));
+    }
 
     #region Meaningful Exceptions
     [Test]

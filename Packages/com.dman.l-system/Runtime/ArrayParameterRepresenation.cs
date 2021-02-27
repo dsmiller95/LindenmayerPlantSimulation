@@ -32,6 +32,11 @@ namespace Dman.LSystem
             return parameterArray;
         }
 
+        public bool HasParameter(string name)
+        {
+            return parameterNameToIndex.ContainsKey(name);
+        }
+
         public void SetParameter(string name, T value)
         {
             if (!parameterNameToIndex.TryGetValue(name, out var parameterIndex))

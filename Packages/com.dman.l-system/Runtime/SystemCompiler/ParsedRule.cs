@@ -75,7 +75,10 @@ namespace Dman.LSystem.SystemCompiler
         /// <param name="ruleDef"></param>
         public static ParsedRule ParseToRule(string ruleString, string[] globalParameters = null)
         {
-            var symbolMatchPattern = @"(\w(?:\((?:\w+, )*\w+\))?)+";
+            // invalid match symbol characters:
+            // : - 
+            // whitespace
+            var symbolMatchPattern = @"([^:\-\s](?:\((?:\w+, )*\w+\))?)+";
 
             var ruleMatch = Regex.Match(ruleString.Trim(), @$"(?:P(?<probability>\(.+\)))?\s*(?<targetSymbols>{symbolMatchPattern})\s*(?::(?<conditional>.*)\s*)?->\s*(?<replacement>.+)");
             ParsedRule rule;

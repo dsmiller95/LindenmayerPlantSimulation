@@ -12,7 +12,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns></returns>
         public static InputSymbol[] ParseInputSymbols(string symbolSeries)
         {
-            var individualSymbolTargets = Regex.Matches(symbolSeries, @"(?<symbol>\w)(?:\((?<params>(?:\w+, )*\w+)\))?");
+            var individualSymbolTargets = Regex.Matches(symbolSeries, @"(?<symbol>[^:\-\s])(?:\((?<params>(?:\w+, )*\w+)\))?");
 
             var targetSymbols = new List<InputSymbol>();
             for (int i = 0; i < individualSymbolTargets.Count; i++)
