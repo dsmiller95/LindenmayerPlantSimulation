@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8] - 2021-02-27
+
+### Added
+
+- non-alpha characters in match rules
+- parameter representation object allows for checking if param by name exists
+
 ## [0.1.7] - 2021-02-07
 
 ### Added
