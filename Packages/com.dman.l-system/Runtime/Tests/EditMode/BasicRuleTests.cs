@@ -11,11 +11,12 @@ public class BasicRuleTests
         var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A -> AB"));
         var paramArray = new double[1][];
         paramArray[0] = null;
-        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null));
+        var random = new Unity.Mathematics.Random();
+        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random));
         paramArray[0] = new double[0];
-        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null));
+        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random));
         paramArray[0] = new double[] { 1 };
-        Assert.IsNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null));
+        Assert.IsNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random));
     }
     [Test]
     public void BasicRuleReplacesSelfWithReplacement()
@@ -24,7 +25,8 @@ public class BasicRuleTests
 
         var paramArray = new double[1][];
         paramArray[0] = null;
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        var random = new Unity.Mathematics.Random();
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
         Assert.AreEqual("AB", replacement.ToString());
         var expectedParameters = new double[][]
         {
@@ -42,7 +44,8 @@ public class BasicRuleTests
         {
             new double[] {20, 1 }
         };
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        var random = new Unity.Mathematics.Random();
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
         Assert.AreEqual("B(21)C(20)A(1, 20)", replacement.ToString());
     }
     [Test]
@@ -54,7 +57,8 @@ public class BasicRuleTests
         {
             new double[] {20}
         };
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        var random = new Unity.Mathematics.Random();
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
         Assert.IsNull(replacement);
     }
     [Test]
@@ -66,7 +70,8 @@ public class BasicRuleTests
         {
             new double[] {20}
         };
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        var random = new Unity.Mathematics.Random();
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
         Assert.IsNull(replacement);
     }
     [Test]
@@ -78,7 +83,8 @@ public class BasicRuleTests
         {
             new double[] {6}
         };
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), null);
+        var random = new Unity.Mathematics.Random();
+        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
         Assert.IsNotNull(replacement);
         Assert.AreEqual("A(7)", replacement.ToString());
     }
@@ -94,10 +100,11 @@ public class BasicRuleTests
         {
             new double[] {20, 1 }
         };
+        var random = new Unity.Mathematics.Random();
 
         var replacement = ruleFromString.ApplyRule(
             new ArraySegment<double[]>(paramArray, 0, 1),
-            null,
+            ref random,
             new double[] { 7d });
         Assert.AreEqual("B(27)C(1)", replacement.ToString());
     }

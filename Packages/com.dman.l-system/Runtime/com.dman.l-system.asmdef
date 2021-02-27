@@ -4,7 +4,8 @@
     "references": [
         "Utilities",
         "ProceduralToolkit",
-        "com.dman.MeshDraftExtensions"
+        "com.dman.MeshDraftExtensions",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

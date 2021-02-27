@@ -21,7 +21,7 @@ namespace Dman.LSystem
         /// <returns></returns>
         public SymbolString<T> ApplyRule(
             ArraySegment<T[]> symbolParameters,
-            System.Random random,
+            ref Unity.Mathematics.Random random,
             T[] globalParameters);
     }
 }

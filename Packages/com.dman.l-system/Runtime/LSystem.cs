@@ -32,15 +32,23 @@ namespace Dman.LSystem
     public class LSystemState<T>
     {
         public SymbolString<T> currentSymbols { get; set; }
-        public System.Random randomProvider;
+        public Unity.Mathematics.Random randomProvider;
     }
 
     public class DefaultLSystemState : LSystemState<double>
     {
-        public DefaultLSystemState(string axiom, int seed = 0)
+        public DefaultLSystemState(string axiom, int seed): this(axiom, (uint)seed)
+        {}
+        public DefaultLSystemState(string axiom, uint seed = 1)
         {
             currentSymbols = new SymbolString<double>(axiom);
-            randomProvider = new Random(seed);
+            randomProvider = new Unity.Mathematics.Random(seed);
+        }
+        public DefaultLSystemState(DefaultLSystemState other)
+        {
+            currentSymbols = other.currentSymbols.Clone();
+            randomProvider = new Unity.Mathematics.Random(1);
+            randomProvider.state = other.randomProvider.state;
         }
     }
 
@@ -120,7 +128,7 @@ namespace Dman.LSystem
                         }
                         var result = rule.ApplyRule(
                             new ArraySegment<T[]>(symbolState.parameters, symbolIndex, symbolMatch.Length),
-                            systemState.randomProvider,
+                            ref systemState.randomProvider,
                             globalParameters);// todo
                         if (result != null)
                         {

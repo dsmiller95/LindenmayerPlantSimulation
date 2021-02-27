@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public class SymbolString<ParamType>: System.IEquatable<SymbolString<ParamType>>
+    public class SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>
     {
         public int[] symbols;
         public ParamType[][] parameters;
@@ -31,6 +31,24 @@ namespace Dman.LSystem.SystemRuntime
             this.symbols = symbols;
             this.parameters = parameters;
         }
+        private SymbolString()
+        {
+
+        }
+
+        public SymbolString<ParamType> Clone()
+        {
+            var newParameters = new ParamType[parameters.Length][];
+            for (int i = 0; i < newParameters.Length; i++)
+            {
+                newParameters[i] = (ParamType[])parameters[i].Clone();
+            }
+            return new SymbolString<ParamType>(
+                symbols.Clone() as int[],
+                newParameters
+              );
+        }
+
 
         public override string ToString()
         {
@@ -82,28 +100,28 @@ namespace Dman.LSystem.SystemRuntime
 
         public bool Equals(SymbolString<ParamType> other)
         {
-            if(other == null)
+            if (other == null)
             {
                 return false;
             }
-            if(other.symbols.Length != symbols.Length)
+            if (other.symbols.Length != symbols.Length)
             {
                 return false;
             }
             var paramTypeComparer = EqualityComparer<ParamType>.Default;
             for (int i = 0; i < symbols.Length; i++)
             {
-                if(other.symbols[i] != symbols[i])
+                if (other.symbols[i] != symbols[i])
                 {
                     return false;
                 }
-                if(other.parameters[i].Length != parameters[i].Length)
+                if (other.parameters[i].Length != parameters[i].Length)
                 {
                     return false;
                 }
                 for (int j = 0; j < parameters[i].Length; j++)
                 {
-                    if(!paramTypeComparer.Equals(other.parameters[i][j], parameters[i][j]))
+                    if (!paramTypeComparer.Equals(other.parameters[i][j], parameters[i][j]))
                     {
                         return false;
                     }
@@ -114,7 +132,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public override bool Equals(object obj)
         {
-            if(obj is SymbolString<ParamType> other)
+            if (obj is SymbolString<ParamType> other)
             {
                 return Equals(other);
             }
@@ -125,5 +143,6 @@ namespace Dman.LSystem.SystemRuntime
         {
             return symbols.Length.GetHashCode();
         }
+
     }
 }

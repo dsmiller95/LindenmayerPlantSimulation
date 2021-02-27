@@ -114,15 +114,15 @@ public class LSystemTests
 
         Assert.AreEqual("C", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state);
-        Assert.AreEqual("AB", state.currentSymbols.ToString());
+        Assert.AreEqual("A", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACB", state.currentSymbols.ToString());
+        Assert.AreEqual("AC", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACABB", state.currentSymbols.ToString());
+        Assert.AreEqual("ACAB", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACABACBB", state.currentSymbols.ToString());
+        Assert.AreEqual("ACABACB", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACABACBACABB", state.currentSymbols.ToString());
+        Assert.AreEqual("ACAACBACAB", state.currentSymbols.ToString());
     }
     [Test]
     public void LSystemAppliesStochasticRuleDifferently()
@@ -347,8 +347,6 @@ public class LSystemTests
 
         Assert.AreEqual("A(0)", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(0.5)", state.currentSymbols.ToString());
-        basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(1)", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(1.5)", state.currentSymbols.ToString());
@@ -357,18 +355,71 @@ public class LSystemTests
         basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(3)", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
+        basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(2.5)", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(3)", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(2)", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(2.5)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(3.5)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
         basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(2.5)", state.currentSymbols.ToString());
     }
+
+    [Test]
+    public void LSystemReproducesStochasticResultFromReplicatedState()
+    {
+        var globalParameters = new string[] { "global" };
+
+        var state = new DefaultLSystemState("A(0)");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "P(0.5) A(x) : x < global -> A(x + 1)",
+            "P(0.5) A(x) : x < global -> A(x + 0.5)",
+            "P(0.5) A(x) : x >= global -> A(x - 1)",
+            "P(0.5) A(x) : x >= global -> A(x - 0.5)",
+        }, globalParameters);
+
+        var defaultGlobalParams = new double[] { 3 };
+
+        var expectedResultSequence = new string[]
+        {
+            "A(0)",
+            "A(1)",
+            "A(1.5)",
+            "A(2)",
+            "A(3)",
+            "A(2)",
+            "A(2.5)",
+            "A(3)",
+            "A(2)",
+            "A(3)",
+            "A(2)",
+            "A(2.5)",
+        };
+        Assert.AreEqual(expectedResultSequence[0], state.currentSymbols.ToString());
+
+        DefaultLSystemState systemCopyAt5 = null;
+        for (int i = 1; i < expectedResultSequence.Length; i++)
+        {
+            if (i == 5)
+            {
+                systemCopyAt5 = new DefaultLSystemState(state);
+            }
+            basicLSystem.StepSystem(state, defaultGlobalParams);
+            Assert.AreEqual(expectedResultSequence[i], state.currentSymbols.ToString(), $"Index {i}");
+        }
+
+        for (int i = 5; i < expectedResultSequence.Length; i++)
+        {
+            basicLSystem.StepSystem(systemCopyAt5, defaultGlobalParams);
+            Assert.AreEqual(expectedResultSequence[i], systemCopyAt5.currentSymbols.ToString(), $"Index {i}");
+        }
+    }
+
     [Test]
     public void RuleCompilationFailsWhenConflictingRules()
     {

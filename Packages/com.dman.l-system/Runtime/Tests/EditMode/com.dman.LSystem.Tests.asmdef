@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "com.dman.LSystem"
+        "com.dman.LSystem",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [
         "Editor"

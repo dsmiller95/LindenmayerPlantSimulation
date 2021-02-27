@@ -683,6 +683,12 @@
     <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
       <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Mathematics.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="com.dman.plantbuilder.csproj">
@@ -701,6 +707,10 @@
       <Project>{1AAC77C1-84D8-E99F-149E-88B520EB052D}</Project>
       <Name>com.dman.plantbuilder.editor</Name>
     </ProjectReference>
+    <ProjectReference Include="com.dman.plantbuilder.nodegraph.csproj">
+      <Project>{FF5C4E60-178B-5716-125C-C25F9F5CE299}</Project>
+      <Name>com.dman.plantbuilder.nodegraph</Name>
+    </ProjectReference>
     <ProjectReference Include="com.dman.MeshDraftExtensions.csproj">
       <Project>{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}</Project>
       <Name>com.dman.MeshDraftExtensions</Name>
@@ -709,17 +719,13 @@
       <Project>{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}</Project>
       <Name>com.dman.LSystem</Name>
     </ProjectReference>
-    <ProjectReference Include="SplineMesh.csproj">
-      <Project>{464D9D06-54BB-0727-018A-41EE4F0542AE}</Project>
-      <Name>SplineMesh</Name>
-    </ProjectReference>
-    <ProjectReference Include="com.dman.plantbuilder.nodegraph.csproj">
-      <Project>{FF5C4E60-178B-5716-125C-C25F9F5CE299}</Project>
-      <Name>com.dman.plantbuilder.nodegraph</Name>
-    </ProjectReference>
     <ProjectReference Include="com.dman.plantbuilder.nodegraph.editor.csproj">
       <Project>{0F05B563-19CB-DF72-CE0E-A90379676C0E}</Project>
       <Name>com.dman.plantbuilder.nodegraph.editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="SplineMesh.csproj">
+      <Project>{464D9D06-54BB-0727-018A-41EE4F0542AE}</Project>
+      <Name>SplineMesh</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -53,7 +53,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns></returns>
         public SymbolString<double> ApplyRule(
             System.ArraySegment<double[]> symbolParameters,
-            System.Random random,
+            ref Unity.Mathematics.Random random,
             double[] globalParameters = null)
         {
             var orderedMatchedParameters = new List<object>();
@@ -104,12 +104,12 @@ namespace Dman.LSystem.SystemRuntime
             }
 
 
-            RuleOutcome outcome = SelectOutcome(random);
+            RuleOutcome outcome = SelectOutcome(ref random);
 
             return outcome.GenerateReplacement(paramArray);
         }
 
-        private RuleOutcome SelectOutcome(System.Random rand)
+        private RuleOutcome SelectOutcome(ref Unity.Mathematics.Random rand)
         {
             if (possibleOutcomes.Length > 1)
             {
