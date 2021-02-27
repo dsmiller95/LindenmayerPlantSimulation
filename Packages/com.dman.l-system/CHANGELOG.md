@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9] - 2021-02-27
+
+### Added
+
+- unity mathematics dependency
+- ability to clone the l system state
+
 ## [0.1.8] - 2021-02-27
 
 ### Added
