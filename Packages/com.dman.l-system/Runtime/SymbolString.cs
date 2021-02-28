@@ -36,19 +36,6 @@ namespace Dman.LSystem.SystemRuntime
 
         }
 
-        public SymbolString<ParamType> Clone()
-        {
-            var newParameters = new ParamType[parameters.Length][];
-            for (int i = 0; i < newParameters.Length; i++)
-            {
-                newParameters[i] = (ParamType[])parameters[i].Clone();
-            }
-            return new SymbolString<ParamType>(
-                symbols.Clone() as int[],
-                newParameters
-              );
-        }
-
 
         public override string ToString()
         {
@@ -80,14 +67,22 @@ namespace Dman.LSystem.SystemRuntime
         {
             return new SymbolString<ParamType>(new int[] { symbol }, new ParamType[][] { paramters });
         }
-        public static SymbolString<ParamType> ConcatAll(IList<SymbolString<ParamType>> symbolStrings)
+        public static SymbolString<ParamType> ConcatAll(IEnumerable<SymbolString<ParamType>> symbolStrings)
         {
-            var totalSize = symbolStrings.Sum(x => x.symbols.Length);
+            var totalSize = 0;
+            foreach (var symbolString in symbolStrings)
+            {
+                if (symbolString == null)
+                    continue;
+                totalSize += symbolString.symbols.Length;
+            }
             var newSymbols = new int[totalSize];
             var newParameters = new ParamType[totalSize][];
             int currentIndex = 0;
             foreach (var symbolString in symbolStrings)
             {
+                if(symbolString == null)
+                    continue;
                 symbolString.symbols.CopyTo(newSymbols, currentIndex);
                 symbolString.parameters.CopyTo(newParameters, currentIndex);
 

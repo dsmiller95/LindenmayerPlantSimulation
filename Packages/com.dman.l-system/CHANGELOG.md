@@ -1,11 +1,11 @@
 # Changelog
 
-## [0.1.9] - 2021-02-27
+## [0.1.10] - 2021-02-27
 
 ### Added
 
 - unity mathematics dependency
-- ability to clone the l system state
+- formal l-system state immutability. everything is already copied, only exception was the Random
 
 ## [0.1.8] - 2021-02-27
 

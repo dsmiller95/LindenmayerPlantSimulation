@@ -44,12 +44,6 @@ namespace Dman.LSystem
             currentSymbols = new SymbolString<double>(axiom);
             randomProvider = new Unity.Mathematics.Random(seed);
         }
-        public DefaultLSystemState(DefaultLSystemState other)
-        {
-            currentSymbols = other.currentSymbols.Clone();
-            randomProvider = new Unity.Mathematics.Random(1);
-            randomProvider.state = other.randomProvider.state;
-        }
     }
 
     public class LSystem<T>
@@ -91,11 +85,11 @@ namespace Dman.LSystem
         }
 
         /// <summary>
-        /// Step the given <paramref name="systemState"/>, writing the new state in-place
+        /// Step the given <paramref name="systemState"/>. returning the new system state. No modifications are made the the system sate
         /// </summary>
-        /// <param name="systemState">The entire state of the L-system</param>
+        /// <param name="systemState">The entire state of the L-system. no modifications are made to this object or the contained properties.</param>
         /// <param name="globalParameters">The global parameters, if any</param>
-        public void StepSystem(LSystemState<T> systemState, T[] globalParameters = null)
+        public LSystemState<T> StepSystem(LSystemState<T> systemState, T[] globalParameters = null)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
             var globalParamSize = globalParameters?.Length ?? 0;
@@ -103,15 +97,19 @@ namespace Dman.LSystem
             {
                 throw new Exception($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
-
-            var resultString = GenerateNextSymbols(systemState, globalParameters).ToList();
-            systemState.currentSymbols = SymbolString<T>.ConcatAll(resultString);
+            var nextState = new LSystemState<T>()
+            {
+                randomProvider = systemState.randomProvider
+            };
+            var resultString = GenerateNextSymbols(systemState.currentSymbols, ref nextState.randomProvider, globalParameters).ToList();
+            nextState.currentSymbols = SymbolString<T>.ConcatAll(resultString);
             UnityEngine.Profiling.Profiler.EndSample();
+            return nextState;
         }
 
-        private IEnumerable<SymbolString<T>> GenerateNextSymbols(LSystemState<T> systemState, T[] globalParameters)
+        private SymbolString<T>[] GenerateNextSymbols(SymbolString<T> symbolState, ref Unity.Mathematics.Random random, T[] globalParameters)
         {
-            var symbolState = systemState.currentSymbols;
+            var resultArray = new SymbolString<T>[symbolState.symbols.Length];
             for (int symbolIndex = 0; symbolIndex < symbolState.symbols.Length;)
             {
                 var symbol = symbolState.symbols[symbolIndex];
@@ -128,11 +126,11 @@ namespace Dman.LSystem
                         }
                         var result = rule.ApplyRule(
                             new ArraySegment<T[]>(symbolState.parameters, symbolIndex, symbolMatch.Length),
-                            ref systemState.randomProvider,
+                            ref random,
                             globalParameters);// todo
                         if (result != null)
                         {
-                            yield return result;
+                            resultArray[symbolIndex] = result;
                             symbolIndex += symbolMatch.Length;
                             ruleApplied = true;
                             break;
@@ -143,10 +141,11 @@ namespace Dman.LSystem
                 {
                     // if none of the rules match, which could happen if all of the matches for this char require additional subsequent characters
                     // or if there are no rules
-                    yield return SymbolString<T>.FromSingle(symbol, parameters);
+                    resultArray[symbolIndex] = SymbolString<T>.FromSingle(symbol, parameters);
                     symbolIndex++;
                 }
             }
+            return resultArray;
         }
 
         private bool MatchesSymbolStringAfterFirst(

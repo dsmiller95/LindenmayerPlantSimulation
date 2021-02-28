@@ -12,6 +12,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
+        "com.unity.mathematics": "1.2.1",
         "com.syomus.proceduraltoolkit": "0.2.3",
         "com.dman.mesh-draft-extensions": "0.1.0",
         "com.dman.utilities": "0.2.0"
