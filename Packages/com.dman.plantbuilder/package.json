@@ -1,6 +1,6 @@
 {
   "name": "com.dman.plantbuilder",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "displayName": "Plant builder",
   "description": "This package procedurally generates plants",
   "unity": "2020.1",

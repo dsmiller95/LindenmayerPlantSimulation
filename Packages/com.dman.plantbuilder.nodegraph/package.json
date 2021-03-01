@@ -1,6 +1,6 @@
 {
   "name": "com.dman.plantbuilder.nodegraph",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "displayName": "Nodegraph plant creator",
   "description": "Nodegraph tools for the plantbuilder package",
   "unity": "2020.1",

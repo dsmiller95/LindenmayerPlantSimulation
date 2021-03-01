@@ -1,6 +1,6 @@
 {
   "name": "com.dman.mesh-draft-extensions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Mesh Draft Extensions",
   "description": "extensions to the Mesh draft feature of procedural toolkit",
   "unity": "2020.1",
