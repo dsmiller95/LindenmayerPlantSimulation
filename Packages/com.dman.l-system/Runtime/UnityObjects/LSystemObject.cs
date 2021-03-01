@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using UnityEditor;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -112,7 +111,7 @@ namespace Dman.LSystem.UnityObjects
         public void TriggerReloadFromFile()
         {
 #if UNITY_EDITOR
-            var assetPath = AssetDatabase.GetAssetPath(this);
+            var assetPath = UnityEditor.AssetDatabase.GetAssetPath(this);
             if (!string.IsNullOrWhiteSpace(assetPath))
             {
                 var lSystemCode = File.ReadAllText(assetPath);

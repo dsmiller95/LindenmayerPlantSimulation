@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using UnityEditor;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -17,11 +16,14 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public LSystemObject systemObject;
 
+#if UNITY_EDITOR
         private FileSystemWatcher lSystemAssetWatcher;
+#endif
 
         private void Awake()
         {
-            var assetPath = AssetDatabase.GetAssetPath(systemObject);
+#if UNITY_EDITOR
+            var assetPath = UnityEditor.AssetDatabase.GetAssetPath(systemObject);
             var directoryName = Path.GetDirectoryName(assetPath);
             var fileName = Path.GetFileName(assetPath);
 
@@ -31,7 +33,7 @@ namespace Dman.LSystem.UnityObjects
 
             lSystemAssetWatcher.NotifyFilter = NotifyFilters.LastWrite;
             lSystemAssetWatcher.EnableRaisingEvents = true;
-
+#endif
             foreach (var system in GetComponentsInChildren<LSystemBehavior>())
             {
                 system.SetSystem(systemObject);
@@ -57,7 +59,9 @@ namespace Dman.LSystem.UnityObjects
 
         private void OnDestroy()
         {
+#if UNITY_EDITOR
             lSystemAssetWatcher.Dispose();
+#endif
         }
 
         private void Update()

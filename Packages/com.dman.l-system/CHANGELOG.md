@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.12] - 2021-02-27
+
+### Added
+
+- removal of unityeditor references
+
 ## [0.1.11] - 2021-02-27
 
 ### Added
