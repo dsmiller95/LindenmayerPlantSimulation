@@ -1,14 +1,14 @@
 {
   "name": "com.dman.l-system",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "displayName": "L-system",
   "description": "An attempt to implement most of the features present in L-systems described by 'The Algorithmic Beauty Of Plants' http://algorithmicbotany.org/papers/abop/abop.pdf",
   "unity": "2020.1",
   "dependencies": {
     "com.unity.mathematics": "1.2.1",
     "com.syomus.proceduraltoolkit": "0.2.3",
-    "com.dman.mesh-draft-extensions": "0.1.0",
-    "com.dman.utilities": "0.2.0"
+    "com.dman.mesh-draft-extensions": "0.1.1",
+    "com.dman.utilities": "0.3.3"
   },
   "author": {
     "name": "Dan Miller",

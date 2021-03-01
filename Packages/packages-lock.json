@@ -14,8 +14,8 @@
       "dependencies": {
         "com.unity.mathematics": "1.2.1",
         "com.syomus.proceduraltoolkit": "0.2.3",
-        "com.dman.mesh-draft-extensions": "0.1.0",
-        "com.dman.utilities": "0.2.0"
+        "com.dman.mesh-draft-extensions": "0.1.1",
+        "com.dman.utilities": "0.3.3"
       }
     },
     "com.dman.mesh-draft-extensions": {
@@ -32,8 +32,8 @@
       "source": "embedded",
       "dependencies": {
         "com.syomus.proceduraltoolkit": "0.2.3",
-        "com.dman.mesh-draft-extensions": "0.1.0",
-        "com.dman.utilities": "0.2.0"
+        "com.dman.mesh-draft-extensions": "0.1.1",
+        "com.dman.utilities": "0.3.3"
       }
     },
     "com.dman.plantbuilder.nodegraph": {
@@ -42,13 +42,13 @@
       "source": "embedded",
       "dependencies": {
         "com.syomus.proceduraltoolkit": "0.2.3",
-        "com.dman.mesh-draft-extensions": "0.1.0",
-        "com.dman.utilities": "0.2.0",
+        "com.dman.mesh-draft-extensions": "0.1.1",
+        "com.dman.utilities": "0.3.3",
         "com.alelievr.node-graph-processor": "1.0.1"
       }
     },
     "com.dman.utilities": {
-      "version": "0.2.0",
+      "version": "0.3.3",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
