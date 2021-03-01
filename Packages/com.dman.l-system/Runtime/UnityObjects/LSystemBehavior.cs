@@ -21,7 +21,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public event Action OnSystemStateUpdated;
 
-        private DefaultLSystemState systemState;
+        private LSystemState<double> systemState;
         private ArrayParameterRepresenation<double> runtimeParameters;
 
         private SymbolString<double> lastState;
@@ -75,7 +75,7 @@ namespace Dman.LSystem.UnityObjects
         {
             try
             {
-                systemObject.compiledSystem?.StepSystem(systemState, runtimeParameters.GetCurrentParameters());
+                systemState = systemObject.compiledSystem?.StepSystem(systemState, runtimeParameters.GetCurrentParameters());
             }
             catch (System.Exception e)
             {
