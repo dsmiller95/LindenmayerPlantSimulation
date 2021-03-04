@@ -36,13 +36,14 @@ public class LSystemTests
     }
 
     [Test]
-    public void LSystemAppliesMultiMatchRules()
+    public void LSystemAppliesFlatContextualRules()
     {
         LSystemState<double> state = new DefaultLSystemState("B");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "A -> AB",
             "B -> A",
-            "AA -> B"
+            "A > A ->",
+            "A < A -> B"
         });
 
         Assert.AreEqual("B", state.currentSymbols.ToString());
@@ -63,12 +64,13 @@ public class LSystemTests
     }
 
     [Test]
-    public void LSystemAssumesIdentityReplacementWithMultiMatchRules()
+    public void LSystemAssumesIdentityReplacementWithContextRules()
     {
         LSystemState<double> state = new DefaultLSystemState("B");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "B -> ABA",
-            "AA -> B"
+            "A > A ->",
+            "A < A -> B"
         });
 
         Assert.AreEqual("B", state.currentSymbols.ToString());
@@ -108,8 +110,8 @@ public class LSystemTests
         LSystemState<double> state = new DefaultLSystemState("C");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "A -> AC",
-            "P(0.5) C -> A",
-            "P(0.5) C -> AB"
+            "P(0.5) | C -> A",
+            "P(0.5) | C -> AB"
         });
 
         Assert.AreEqual("C", state.currentSymbols.ToString());
@@ -130,8 +132,8 @@ public class LSystemTests
         LSystemState<double> state = new DefaultLSystemState("C");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "A -> AC",
-            "P(0.9) C -> A",
-            "P(0.1) C -> AB"
+            "P(0.9) | C -> A",
+            "P(0.1) | C -> AB"
         });
 
         Assert.AreEqual("C", state.currentSymbols.ToString());
@@ -186,11 +188,12 @@ public class LSystemTests
     }
 
     [Test]
-    public void LSystemAppliesParameterEquationsWhenMultiMatch()
+    public void LSystemAppliesParameterEquationsWhenContextMatch()
     {
         LSystemState<double> state = new DefaultLSystemState("A(1, 1)B(0)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "A(x, y)B(z) -> A(x + z, y + z)B(y)",
+            "A(x, y) > B(z) -> A(x + z, y + z)",
+            "A(x, y) < B(z) -> B(y)",
         });
 
         Assert.AreEqual("A(1, 1)B(0)", state.currentSymbols.ToString());
@@ -209,7 +212,8 @@ public class LSystemTests
     {
         LSystemState<double> state = new DefaultLSystemState("A(1)B(1)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "A(x)B(y) -> A(x + y)B(x)",
+            "A(x) > B(y) -> A(x + y)",
+            "A(x) < B(y) -> A(x + y)",
         });
 
         Assert.AreEqual("A(1)B(1)", state.currentSymbols.ToString());
@@ -337,10 +341,10 @@ public class LSystemTests
 
         LSystemState<double> state = new DefaultLSystemState("A(0)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "P(0.5) A(x) : x < global -> A(x + 1)",
-            "P(0.5) A(x) : x < global -> A(x + 0.5)",
-            "P(0.5) A(x) : x >= global -> A(x - 1)",
-            "P(0.5) A(x) : x >= global -> A(x - 0.5)",
+            "P(0.5) | A(x) : x < global -> A(x + 1)",
+            "P(0.5) | A(x) : x < global -> A(x + 0.5)",
+            "P(0.5) | A(x) : x >= global -> A(x - 1)",
+            "P(0.5) | A(x) : x >= global -> A(x - 0.5)",
         }, globalParameters);
 
         var defaultGlobalParams = new double[] { 3 };
@@ -377,10 +381,10 @@ public class LSystemTests
 
         LSystemState<double> state = new DefaultLSystemState("A(0)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "P(0.5) A(x) : x < global -> A(x + 1)",
-            "P(0.5) A(x) : x < global -> A(x + 0.5)",
-            "P(0.5) A(x) : x >= global -> A(x - 1)",
-            "P(0.5) A(x) : x >= global -> A(x - 0.5)",
+            "P(0.5) | A(x) : x < global -> A(x + 1)",
+            "P(0.5) | A(x) : x < global -> A(x + 0.5)",
+            "P(0.5) | A(x) : x >= global -> A(x - 1)",
+            "P(0.5) | A(x) : x >= global -> A(x - 0.5)",
         }, globalParameters);
 
         var defaultGlobalParams = new double[] { 3 };
@@ -425,7 +429,7 @@ public class LSystemTests
     {
         Assert.Throws<System.Exception>(() =>
         {
-            var compiledRules = ParsedRule.CompileRules(new string[] {
+            var compiledRules = RuleParser.CompileRules(new string[] {
                 "A -> AB",
                 "A -> CA",
             });

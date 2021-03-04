@@ -9,18 +9,18 @@ namespace Dman.LSystem.SystemRuntime
         /// <summary>
         /// the symbol which this rule will replace. Apply rule will only ever be called with this symbol.
         /// </summary>
-        public int[] TargetSymbolSeries => _targetSymbols;
-        private readonly int[] _targetSymbols;
+        public int TargetSymbol => _targetSymbol;
+        private readonly int _targetSymbol;
 
-        private readonly InputSymbol[] _targetSymbolsWithParameters;
+        private readonly InputSymbol _targetSymbolWithParameters;
         private System.Delegate conditionalChecker;
 
         public RuleOutcome[] possibleOutcomes;
 
         public BasicRule(ParsedRule parsedInfo)
         {
-            _targetSymbolsWithParameters = parsedInfo.targetSymbols;
-            _targetSymbols = _targetSymbolsWithParameters.Select(x => x.targetSymbol).ToArray();
+            _targetSymbolWithParameters = parsedInfo.coreSymbol;
+            _targetSymbol = _targetSymbolWithParameters.targetSymbol;
             conditionalChecker = parsedInfo.conditionalMatch;
             possibleOutcomes = new RuleOutcome[] {
                 new RuleOutcome
@@ -39,8 +39,8 @@ namespace Dman.LSystem.SystemRuntime
                     replacementSymbols = x.replacementSymbols
                 }).ToArray();
             var firstOutcome = parsedRules.First();
-            _targetSymbolsWithParameters = firstOutcome.targetSymbols;
-            _targetSymbols = _targetSymbolsWithParameters.Select(x => x.targetSymbol).ToArray();
+            _targetSymbolWithParameters = firstOutcome.coreSymbol;
+            _targetSymbol = _targetSymbolWithParameters.targetSymbol;
 
             conditionalChecker = firstOutcome.conditionalMatch;
         }
@@ -54,29 +54,30 @@ namespace Dman.LSystem.SystemRuntime
         public SymbolString<double> ApplyRule(
             System.ArraySegment<double[]> symbolParameters,
             ref Unity.Mathematics.Random random,
-            double[] globalParameters = null)
+            double[] globalRuntimeParameters = null)
         {
             var orderedMatchedParameters = new List<object>();
-            if (globalParameters != null)
+            if (globalRuntimeParameters != null)
             {
-                foreach (var globalParam in globalParameters)
+                foreach (var globalParam in globalRuntimeParameters)
                 {
                     orderedMatchedParameters.Add(globalParam);
                 }
             }
-            for (int targetSymbolIndex = 0; targetSymbolIndex < _targetSymbolsWithParameters.Length; targetSymbolIndex++)
+            //for (int targetSymbolIndex = 0; targetSymbolIndex < _targetSymbolsWithParameters.Length; targetSymbolIndex++)
+            //{
+            var target = _targetSymbolWithParameters;
+            var parameter = symbolParameters.Array[symbolParameters.Offset];
+            if (parameter == null)
             {
-                var target = _targetSymbolsWithParameters[targetSymbolIndex];
-                var parameter = symbolParameters.Array[symbolParameters.Offset + targetSymbolIndex];
-                if (parameter == null)
+                if (target.parameterLength > 0)
                 {
-                    if (target.namedParameters.Length > 0)
-                    {
-                        return null;
-                    }
-                    continue;
+                    return null;
                 }
-                if (target.namedParameters.Length != parameter.Length)
+            }
+            else
+            {
+                if (target.parameterLength != parameter.Length)
                 {
                     return null;
                 }
@@ -85,6 +86,7 @@ namespace Dman.LSystem.SystemRuntime
                     orderedMatchedParameters.Add(parameter[parameterIndex]);
                 }
             }
+            //}
 
             var paramArray = orderedMatchedParameters.ToArray();
 

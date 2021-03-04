@@ -9,7 +9,7 @@ namespace Dman.LSystem
         /// the symbols which this rule will replace. Apply rule will only ever be called when replacing these exact symbols.
         /// This property will always return the same value for any given instance. It can be used to index the rule
         /// </summary>
-        public int[] TargetSymbolSeries { get; }
+        public int TargetSymbol { get; }
 
         /// <summary>
         /// retrun the symbol string to replace the rule's matching symbols with. return null if no match

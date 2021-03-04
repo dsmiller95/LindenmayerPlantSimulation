@@ -4,10 +4,15 @@ using System.Text;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public class SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>
+    public class SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>, ISymbolString
     {
+
         public int[] symbols;
         public ParamType[][] parameters;
+
+        public int Length => symbols?.Length ?? 0;
+
+        public int this[int index] => symbols[index];
 
         public SymbolString(string symbolString)
         {
@@ -22,6 +27,10 @@ namespace Dman.LSystem.SystemRuntime
                 symbols[i] = match.targetSymbol;
                 parameters[i] = match.evaluators.Select(x => (ParamType)x.DynamicInvoke()).ToArray();
             }
+        }
+        public SymbolString(int symbol, ParamType[] parameters) :
+            this(new int[] { symbol }, new ParamType[][] { parameters })
+        {
         }
         public SymbolString(int[] symbols) : this(symbols, new ParamType[symbols.Length][])
         {
@@ -63,10 +72,6 @@ namespace Dman.LSystem.SystemRuntime
             return builder.ToString();
         }
 
-        public static SymbolString<ParamType> FromSingle(int symbol, ParamType[] paramters)
-        {
-            return new SymbolString<ParamType>(new int[] { symbol }, new ParamType[][] { paramters });
-        }
         public static SymbolString<ParamType> ConcatAll(IEnumerable<SymbolString<ParamType>> symbolStrings)
         {
             var totalSize = 0;
@@ -90,7 +95,6 @@ namespace Dman.LSystem.SystemRuntime
             }
             return new SymbolString<ParamType>(newSymbols, newParameters);
         }
-
 
 
         public bool Equals(SymbolString<ParamType> other)

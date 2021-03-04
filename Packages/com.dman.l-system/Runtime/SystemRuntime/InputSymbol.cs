@@ -8,8 +8,10 @@ namespace Dman.LSystem.SystemRuntime
     /// </summary>
     internal class InputSymbol : System.IEquatable<InputSymbol>
     {
-        public int targetSymbol;
-        public string[] namedParameters;
+        public int targetSymbol { get; private set; }
+        public int parameterLength => namedParameters.Length;
+        public IEnumerable<string> parameterNames => namedParameters;
+        private string[] namedParameters;
 
         public InputSymbol(int targetSymbol, IEnumerable<string> namedParams)
         {

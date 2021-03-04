@@ -7,7 +7,15 @@ namespace Dman.LSystem.SystemCompiler
     {
         public bool Equals(ParsedRule x, ParsedRule y)
         {
-            if (!TargetSymbolsEqual(x.targetSymbols, y.targetSymbols))
+            if (!x.coreSymbol.Equals(y.coreSymbol))
+            {
+                return false;
+            }
+            if (!TargetSymbolsEqual(x.backwardsMatch, y.backwardsMatch))
+            {
+                return false;
+            }
+            if (!TargetSymbolsEqual(x.forwardsMatch, y.forwardsMatch))
             {
                 return false;
             }
@@ -25,7 +33,8 @@ namespace Dman.LSystem.SystemCompiler
             {
                 return true;
             }
-            if (x.Length != y.Length)
+            // if both x and y are null, previous case catches that.
+            if (x == null || y == null || x.Length != y.Length)
             {
                 return false;
             }
@@ -42,9 +51,15 @@ namespace Dman.LSystem.SystemCompiler
         public int GetHashCode(ParsedRule obj)
         {
             int hashCode = 0;
-            for (int i = 0; i < obj.targetSymbols.Length; i++)
+            for (int i = 0; i < obj.backwardsMatch.Length; i++)
             {
-                var symbol = obj.targetSymbols[i];
+                var symbol = obj.backwardsMatch[i];
+                hashCode ^= symbol.GetHashCode();
+            }
+            hashCode ^= obj.coreSymbol.GetHashCode();
+            for (int i = 0; i < obj.forwardsMatch.Length; i++)
+            {
+                var symbol = obj.forwardsMatch[i];
                 hashCode ^= symbol.GetHashCode();
             }
             if (obj.conditionalStringDescription != null)

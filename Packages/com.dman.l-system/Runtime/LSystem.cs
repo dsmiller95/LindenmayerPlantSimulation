@@ -20,7 +20,7 @@ namespace Dman.LSystem
            string[] globalParameters = null)
         {
             return new LSystem<double>(
-                ParsedRule.CompileRules(
+                RuleParser.CompileRules(
                         rules,
                         globalParameters
                         ),
@@ -52,7 +52,7 @@ namespace Dman.LSystem
         /// structured data to store rules, in order of precidence, as follows:
         ///     first, order by size of the TargetSymbolSeries. Patterns which match more symbols always take precidence over patterns which match less symbols
         /// </summary>
-        private IDictionary<int, IList<IRule<T>>> rulesByFirstTargetSymbol;
+        private IDictionary<int, IList<IRule<T>>> rulesByTargetSymbol;
 
         /// <summary>
         /// The number of global runtime parameters
@@ -66,20 +66,20 @@ namespace Dman.LSystem
         {
             GlobalParameters = expectedGlobalParameters;
 
-            rulesByFirstTargetSymbol = new Dictionary<int, IList<IRule<T>>>();
+            rulesByTargetSymbol = new Dictionary<int, IList<IRule<T>>>();
             foreach (var rule in rules)
             {
-                var targetSymbols = rule.TargetSymbolSeries;
-                if (!rulesByFirstTargetSymbol.TryGetValue(targetSymbols[0], out var ruleList))
+                var targetSymbols = rule.TargetSymbol;
+                if (!rulesByTargetSymbol.TryGetValue(targetSymbols, out var ruleList))
                 {
-                    rulesByFirstTargetSymbol[targetSymbols[0]] = ruleList = new List<IRule<T>>();
+                    rulesByTargetSymbol[targetSymbols] = ruleList = new List<IRule<T>>();
                 }
                 ruleList.Add(rule);
             }
-            foreach (var symbol in rulesByFirstTargetSymbol.Keys.ToList())
+            foreach (var symbol in rulesByTargetSymbol.Keys.ToList())
             {
-                rulesByFirstTargetSymbol[symbol] = rulesByFirstTargetSymbol[symbol]
-                    .OrderByDescending(x => x.TargetSymbolSeries.Length)
+                rulesByTargetSymbol[symbol] = rulesByTargetSymbol[symbol]
+                    // .OrderByDescending(x => x.TargetSymbolSeries.Length)
                     .ToList();
             }
         }
@@ -115,23 +115,19 @@ namespace Dman.LSystem
                 var symbol = symbolState.symbols[symbolIndex];
                 var parameters = symbolState.parameters[symbolIndex];
                 var ruleApplied = false;
-                if (rulesByFirstTargetSymbol.TryGetValue(symbol, out var ruleList) && ruleList != null && ruleList.Count > 0)
+                if (rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) && ruleList != null && ruleList.Count > 0)
                 {
                     foreach (var rule in ruleList)
                     {
-                        var symbolMatch = rule.TargetSymbolSeries;
-                        if (!MatchesSymbolStringAfterFirst(symbolState.symbols, symbolMatch, symbolIndex))
-                        {
-                            continue;
-                        }
+                        var symbolMatch = rule.TargetSymbol;
                         var result = rule.ApplyRule(
-                            new ArraySegment<T[]>(symbolState.parameters, symbolIndex, symbolMatch.Length),
+                            new ArraySegment<T[]>(symbolState.parameters, symbolIndex, 1),
                             ref random,
                             globalParameters);// todo
                         if (result != null)
                         {
                             resultArray[symbolIndex] = result;
-                            symbolIndex += symbolMatch.Length;
+                            symbolIndex += 1;
                             ruleApplied = true;
                             break;
                         }
@@ -141,13 +137,20 @@ namespace Dman.LSystem
                 {
                     // if none of the rules match, which could happen if all of the matches for this char require additional subsequent characters
                     // or if there are no rules
-                    resultArray[symbolIndex] = SymbolString<T>.FromSingle(symbol, parameters);
+                    resultArray[symbolIndex] = new SymbolString<T>(symbol, parameters);
                     symbolIndex++;
                 }
             }
             return resultArray;
         }
 
+        /// <summary>
+        /// check to make sure <paramref name="targetSeries"/> matches <paramref name="symbols"/>, starting at <paramref name="offset"/> inside <paramref name="symbols"/>
+        /// </summary>
+        /// <param name="symbols"></param>
+        /// <param name="targetSeries"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         private bool MatchesSymbolStringAfterFirst(
             int[] symbols,
             int[] targetSeries,

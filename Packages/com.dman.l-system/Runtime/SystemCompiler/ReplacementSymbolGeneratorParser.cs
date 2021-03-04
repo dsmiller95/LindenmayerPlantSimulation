@@ -8,6 +8,10 @@ namespace Dman.LSystem.SystemRuntime
     {
         public static IEnumerable<ReplacementSymbolGenerator> ParseReplacementSymbolGenerators(string allsymbols, string[] validParameters)
         {
+            if(allsymbols.Length <= 0)
+            {
+                yield break;
+            }
             var charEnumerator = allsymbols.GetEnumerator();
             int currentIndexInStream = -1;
             AttemptMoveNext(charEnumerator, ref currentIndexInStream);

@@ -8,7 +8,7 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
-        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A -> AB"));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
         var paramArray = new double[1][];
         paramArray[0] = null;
         var random = new Unity.Mathematics.Random();
@@ -21,7 +21,7 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleReplacesSelfWithReplacement()
     {
-        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A -> AB"));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
 
         var paramArray = new double[1][];
         paramArray[0] = null;
@@ -38,7 +38,7 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleReplacesParameters()
     {
-        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
 
         var paramArray = new double[][]
         {
@@ -51,7 +51,7 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleDifferentParametersNoMatch()
     {
-        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
 
         var paramArray = new double[][]
         {
@@ -64,7 +64,7 @@ public class BasicRuleTests
     [Test]
     public void ParametricConditionalNoMatch()
     {
-        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
 
         var paramArray = new double[][]
         {
@@ -77,7 +77,7 @@ public class BasicRuleTests
     [Test]
     public void ParametricConditionalMatch()
     {
-        var ruleFromString = new BasicRule(ParsedRule.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
 
         var paramArray = new double[][]
         {
@@ -94,7 +94,7 @@ public class BasicRuleTests
         var globalParameters = new string[] { "global" };
 
         var ruleFromString = new BasicRule(
-            ParsedRule.ParseToRule("A(x, y) -> B(global + x)C(y)",
+            RuleParser.ParseToRule("A(x, y) -> B(global + x)C(y)",
             globalParameters));
         var paramArray = new double[][]
         {
