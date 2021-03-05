@@ -9,24 +9,22 @@ public class BasicRuleTests
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
-        var paramArray = new double[1][];
-        paramArray[0] = null;
+        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][]{ null });
         var random = new Unity.Mathematics.Random();
-        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random));
-        paramArray[0] = new double[0];
-        Assert.IsNotNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random));
-        paramArray[0] = new double[] { 1 };
-        Assert.IsNull(ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random));
+        Assert.IsNotNull(ruleFromString.ApplyRule(symbols, 0, ref random));
+        symbols.parameters[0] = new double[0];
+        Assert.IsNotNull(ruleFromString.ApplyRule(symbols, 0, ref random));
+        symbols.parameters[0] = new double[] { 1 };
+        Assert.IsNull(ruleFromString.ApplyRule(symbols, 0, ref random));
     }
     [Test]
     public void BasicRuleReplacesSelfWithReplacement()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
+        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { null });
 
-        var paramArray = new double[1][];
-        paramArray[0] = null;
         var random = new Unity.Mathematics.Random();
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
+        var replacement = ruleFromString.ApplyRule(symbols, 0, ref random);
         Assert.AreEqual("AB", replacement.ToString());
         var expectedParameters = new double[][]
         {
@@ -39,52 +37,40 @@ public class BasicRuleTests
     public void BasicRuleReplacesParameters()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
+        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 20, 1 } });
 
-        var paramArray = new double[][]
-        {
-            new double[] {20, 1 }
-        };
         var random = new Unity.Mathematics.Random();
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
+        var replacement = ruleFromString.ApplyRule(symbols, 0, ref random);
         Assert.AreEqual("B(21)C(20)A(1, 20)", replacement.ToString());
     }
     [Test]
     public void BasicRuleDifferentParametersNoMatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
+        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 20 } });
 
-        var paramArray = new double[][]
-        {
-            new double[] {20}
-        };
         var random = new Unity.Mathematics.Random();
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
+        var replacement = ruleFromString.ApplyRule(symbols, 0, ref random);
         Assert.IsNull(replacement);
     }
     [Test]
     public void ParametricConditionalNoMatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
+        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 20 } });
 
-        var paramArray = new double[][]
-        {
-            new double[] {20}
-        };
         var random = new Unity.Mathematics.Random();
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
+        var replacement = ruleFromString.ApplyRule(symbols, 0, ref random);
         Assert.IsNull(replacement);
     }
     [Test]
     public void ParametricConditionalMatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
+        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 6 } });
 
-        var paramArray = new double[][]
-        {
-            new double[] {6}
-        };
         var random = new Unity.Mathematics.Random();
-        var replacement = ruleFromString.ApplyRule(new ArraySegment<double[]>(paramArray, 0, 1), ref random);
+        var replacement = ruleFromString.ApplyRule(symbols, 0, ref random);
         Assert.IsNotNull(replacement);
         Assert.AreEqual("A(7)", replacement.ToString());
     }
@@ -96,14 +82,11 @@ public class BasicRuleTests
         var ruleFromString = new BasicRule(
             RuleParser.ParseToRule("A(x, y) -> B(global + x)C(y)",
             globalParameters));
-        var paramArray = new double[][]
-        {
-            new double[] {20, 1 }
-        };
-        var random = new Unity.Mathematics.Random();
+        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 20, 1 } });
 
+        var random = new Unity.Mathematics.Random();
         var replacement = ruleFromString.ApplyRule(
-            new ArraySegment<double[]>(paramArray, 0, 1),
+            symbols, 0,
             ref random,
             new double[] { 7d });
         Assert.AreEqual("B(27)C(1)", replacement.ToString());

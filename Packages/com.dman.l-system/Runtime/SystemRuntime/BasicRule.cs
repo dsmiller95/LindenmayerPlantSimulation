@@ -52,7 +52,8 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="symbolParameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
         public SymbolString<double> ApplyRule(
-            System.ArraySegment<double[]> symbolParameters,
+            SymbolString<double> symbols,
+            int indexInSymbols,
             ref Unity.Mathematics.Random random,
             double[] globalRuntimeParameters = null)
         {
@@ -67,7 +68,7 @@ namespace Dman.LSystem.SystemRuntime
             //for (int targetSymbolIndex = 0; targetSymbolIndex < _targetSymbolsWithParameters.Length; targetSymbolIndex++)
             //{
             var target = _targetSymbolWithParameters;
-            var parameter = symbolParameters.Array[symbolParameters.Offset];
+            var parameter = symbols.parameters[indexInSymbols];
             if (parameter == null)
             {
                 if (target.parameterLength > 0)

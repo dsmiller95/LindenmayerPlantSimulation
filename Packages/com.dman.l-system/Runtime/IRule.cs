@@ -20,7 +20,8 @@ namespace Dman.LSystem
         ///     Will always be the same length as what is returned from TargetSymbolSeries</param>
         /// <returns></returns>
         public SymbolString<T> ApplyRule(
-            ArraySegment<T[]> symbolParameters,
+            SymbolString<T> symbols,
+            int indexInSymbols,
             ref Unity.Mathematics.Random random,
             T[] globalParameters);
     }

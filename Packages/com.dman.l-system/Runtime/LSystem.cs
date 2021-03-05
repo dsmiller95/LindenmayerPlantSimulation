@@ -121,7 +121,8 @@ namespace Dman.LSystem
                     {
                         var symbolMatch = rule.TargetSymbol;
                         var result = rule.ApplyRule(
-                            new ArraySegment<T[]>(symbolState.parameters, symbolIndex, 1),
+                            symbolState,
+                            symbolIndex,
                             ref random,
                             globalParameters);// todo
                         if (result != null)
