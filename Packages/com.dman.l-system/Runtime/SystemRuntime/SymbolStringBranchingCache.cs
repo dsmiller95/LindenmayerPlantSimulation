@@ -47,20 +47,20 @@ namespace Dman.LSystem.SystemRuntime
             for (; matchingIndex < seriesMatch.targetSymbolSeries.Length && indexInSymbolTarget < symbolStringTarget.Length; matchingIndex++)
             {
                 var symbolToMatch = seriesMatch.targetSymbolSeries[matchingIndex].targetSymbol;
-                while (indexInSymbolTarget >= 0)
+                while (indexInSymbolTarget < symbolStringTarget.Length)
                 {
                     var currentSymbol = symbolStringTarget[indexInSymbolTarget];
                     if (currentSymbol == branchCloseSymbol)
                     {
-                        indexInSymbolTarget = FindOpeningBranchIndex(indexInSymbolTarget) - 1;
+                        return false;
                     }
                     else if (currentSymbol == branchOpenSymbol)
                     {
-                        indexInSymbolTarget--;
+                        indexInSymbolTarget = FindClosingBranchIndex(indexInSymbolTarget) + 1;
                     }
                     else if (currentSymbol == symbolToMatch)
                     {
-                        indexInSymbolTarget--;
+                        indexInSymbolTarget++;
                         break;
                     }
                     else
@@ -69,7 +69,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                 }
             }
-            return matchingIndex == -1;
+            return matchingIndex == seriesMatch.targetSymbolSeries.Length;
         }
         public bool MatchesBackwards(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch)
         {

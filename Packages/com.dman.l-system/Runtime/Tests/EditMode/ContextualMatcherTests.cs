@@ -88,7 +88,7 @@ public class ContextualMatcherTests
     }
 
     [Test]
-    public void BasicForwardSkipBranchMatches()
+    public void BasicForwardSkipBranchMatchesDoesntSkipDown ()
     {
         AssertForwardsMatch("B[C]A", "A", true);
         AssertForwardsMatch("[C]AD", "A", false, indexInTarget: 1);
@@ -143,5 +143,20 @@ public class ContextualMatcherTests
         AssertBackwardsMatch("A[BE]", "AB", true, indexInTarget: -2);
         AssertBackwardsMatch("ABE", "AB", true);
         AssertBackwardsMatch("[AB]E", "AB", false);
+    }
+    [Test]
+    public void ForwardMatchTreeStructureShuffledMatch()
+    {
+        AssertForwardsMatch("A[C][B]", "A[B][C]", true);
+        AssertForwardsMatch("A[C[B]]", "A[B][C]", false);
+        AssertForwardsMatch("A[[C]B]", "A[B][C]", true);
+        AssertForwardsMatch("A[A[C]B]", "A[B][C]", false);
+    }
+    [Test]
+    public void NestedForwardMatchBranches()
+    {
+        AssertForwardsMatch("A[[B]C]", "A[[B]C]", true);
+        AssertForwardsMatch("A[C][B]", "A[[B]C]", true);
+        AssertForwardsMatch("A[[B]C]", "A[[B]C]", true);
     }
 }
