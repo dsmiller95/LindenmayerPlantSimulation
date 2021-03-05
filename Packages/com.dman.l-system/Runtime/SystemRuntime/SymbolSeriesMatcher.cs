@@ -26,68 +26,81 @@ namespace Dman.LSystem.SystemRuntime
         public int[][] graphPointers;
         public void ComputeGraphIndexes(int branchOpen, int branchClose)
         {
+            // indexes of parents. -1 is valid, indicating the parent is the entry point to the graph.
+            // -2 is invalid, and indicates a node with no parent worth noting.
             var parentIndexes = new int[targetSymbolSeries.Length];
-            var childIndexes = new SortedSet<int>[targetSymbolSeries.Length + 1];
-            childIndexes[0] = new SortedSet<int>();
+            var childrenCounts = new int[targetSymbolSeries.Length];
             var parentIndexStack = new Stack<int>();
-            parentIndexStack.Push(0);
-            for (int indexInGraph = 1; indexInGraph < childIndexes.Length; indexInGraph++)
+            parentIndexStack.Push(-1);
+            for (int indexInSymbols = 0; indexInSymbols < targetSymbolSeries.Length; indexInSymbols++)
             {
-                childIndexes[indexInGraph] = new SortedSet<int>();
-
-                var targetSymbol = targetSymbolSeries[indexInGraph - 1].targetSymbol;
+                var targetSymbol = targetSymbolSeries[indexInSymbols].targetSymbol;
                 if(targetSymbol == branchOpen)
                 {
-                    childIndexes[parentIndexStack.Peek()].Add(indexInGraph);
-                    parentIndexStack.Push(indexInGraph);
+                    var parentIndex = parentIndexStack.Peek();
+                    parentIndexes[indexInSymbols] = parentIndex;
+                    if(parentIndex >= 0)
+                    {
+                        childrenCounts[parentIndex]++;
+                    }
+                    parentIndexStack.Push(indexInSymbols);
                 }else if (targetSymbol == branchClose)
                 {
+                    parentIndexes[indexInSymbols] = -2;
                     parentIndexStack.Pop();
                 }
                 else
                 {
                     var parentIndex = parentIndexStack.Pop();
-                    childIndexes[parentIndex].Add(indexInGraph);
-                    parentIndexStack.Push(indexInGraph);
+                    parentIndexes[indexInSymbols] = parentIndex;
+                    if (parentIndex >= 0)
+                    {
+                        childrenCounts[parentIndex]++;
+                    }
+                    parentIndexStack.Push(indexInSymbols);
                 }
             }
 
-            //var visitStack = new Stack<GraphVisitIndex>();
-            //visitStack.Push(new GraphVisitIndex
-            //{
-            //    grandParentIndex = -1,
-            //    parentIndex = -1,
-            //    parentSymbol = -1,
-            //    visitIndex = 0
-            //});
-            //// DFS traverse to find duplicated nesting symbols
-            //while(visitStack.Count > 0)
-            //{
-            //    var current = visitStack.Pop();
-            //    var currentSymbol = -1;
-            //    if (current.visitIndex >= 1)
-            //    {
-            //        currentSymbol = targetSymbolSeries[current.visitIndex - 1].targetSymbol;
-            //    }
-            //    if(current.parentSymbol == branchOpen && currentSymbol == branchOpen)
-            //    {
-            //        // cut self out from underneath Parent, insert self under Grandparent
-            //        childIndexes[current.parentIndex].Remove(current.visitIndex);
-            //        //childIndexes[current.grandParentIndex]
-            //        // reduce graph here
-            //    }
-            //    var nextVisits = childIndexes[current.visitIndex];
-            //    foreach (var visit in nextVisits)
-            //    {
-            //        visitStack.Push(new GraphVisitIndex
-            //        {
-            //            grandParentIndex = current.parentIndex,
-            //            parentIndex = current.visitIndex,
-            //            parentSymbol = currentSymbol,
-            //            visitIndex = visit
-            //        });
-            //    }
-            //}
+            //Traverse to find duplicated nesting symbols
+            for(int nodeIndex = 0; nodeIndex < parentIndexes.Length; nodeIndex++)
+            {
+                var parentIndex = parentIndexes[nodeIndex];
+                if(parentIndex < 0)
+                {
+                    // if parent is entry point, or no parent, nothing will happen to this node.
+                    continue;
+                }
+                var currentSymbol = targetSymbolSeries[nodeIndex].targetSymbol;
+                var parentSymbol = targetSymbolSeries[parentIndex].targetSymbol;
+                if (parentSymbol == branchOpen && currentSymbol == branchOpen)
+                {
+                    // cut self out from underneath Parent, insert self under Grandparent
+                    var grandparentIndex = parentIndexes[parentIndex];
+                    parentIndexes[nodeIndex] = grandparentIndex;
+                    if(grandparentIndex >= 0)
+                    {
+                        childrenCounts[grandparentIndex]++;
+                    }
+                    // decrement child count of parent, if below 0 orphan it.
+                    childrenCounts[parentIndex]--;
+                    if(childrenCounts[parentIndex] <= 0)
+                    {
+                        parentIndexes[parentIndex] = -2;
+                    }
+                }
+            }
+
+            var childIndexes = new SortedSet<int>[targetSymbolSeries.Length + 1];
+            childIndexes[0] = new SortedSet<int>();
+            for (int graphIndex = 1; graphIndex < childIndexes.Length; graphIndex++)
+            {
+                childIndexes[graphIndex] = new SortedSet<int>();
+                var parentIndex = parentIndexes[graphIndex - 1] + 1;
+                if(parentIndex >= 0)
+                {
+                    childIndexes[parentIndex].Add(graphIndex);
+                }
+            }
 
             graphPointers = childIndexes.Select(x => x.ToArray()).ToArray();
         }

@@ -75,7 +75,71 @@ public class SymbolSeriesGraphTests
         Assert.IsTrue(seriesMatcher.graphPointers[3].SequenceEqual(new int[] { 4 }));
         Assert.IsTrue(seriesMatcher.graphPointers[4].SequenceEqual(new int[] { }));
         Assert.IsTrue(seriesMatcher.graphPointers[5].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[6].SequenceEqual(new int[] { }));
+    }
+
+    [Test]
+    public void SimplifiesComplexDeeplyNestedBranches()
+    {
+        var seriesMatcher = SymbolSeriesMatcher.Parse("A[[E][B]]");
+        seriesMatcher.ComputeGraphIndexes('[', ']');
+        Assert.AreEqual(10, seriesMatcher.graphPointers.Length);
+        Assert.IsTrue(seriesMatcher.graphPointers[0].SequenceEqual(new int[] { 1 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[1].SequenceEqual(new int[] { 3, 6 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[2].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[3].SequenceEqual(new int[] { 4 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[4].SequenceEqual(new int[] { }));
         Assert.IsTrue(seriesMatcher.graphPointers[5].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[6].SequenceEqual(new int[] { 7 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[7].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[8].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[9].SequenceEqual(new int[] { }));
+    }
+    [Test]
+    public void SimplifiesComplexDeeplyNestedBranchesWithNoInitial()
+    {
+        var seriesMatcher = SymbolSeriesMatcher.Parse("[[E][B]]");
+        seriesMatcher.ComputeGraphIndexes('[', ']');
+        Assert.AreEqual(9, seriesMatcher.graphPointers.Length);
+        Assert.IsTrue(seriesMatcher.graphPointers[0].SequenceEqual(new int[] { 2, 5 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[1].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[2].SequenceEqual(new int[] { 3 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[3].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[4].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[5].SequenceEqual(new int[] { 6 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[6].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[7].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[8].SequenceEqual(new int[] { }));
+    }
+    [Test]
+    public void SimplifiesOtherNestedBranches()
+    {
+        var seriesMatcher = SymbolSeriesMatcher.Parse("A[[E]B]");
+        seriesMatcher.ComputeGraphIndexes('[', ']');
+        Assert.AreEqual(8, seriesMatcher.graphPointers.Length);
+        Assert.IsTrue(seriesMatcher.graphPointers[0].SequenceEqual(new int[] { 1 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[1].SequenceEqual(new int[] { 2, 3 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[2].SequenceEqual(new int[] { 6 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[3].SequenceEqual(new int[] { 4 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[4].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[5].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[6].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[7].SequenceEqual(new int[] { }));
+    }
+    [Test]
+    public void PreservesNestedWithIntermediateSymbol()
+    {
+        var seriesMatcher = SymbolSeriesMatcher.Parse("A[B[E]]");
+        seriesMatcher.ComputeGraphIndexes('[', ']');
+        Assert.AreEqual(8, seriesMatcher.graphPointers.Length);
+        Assert.IsTrue(seriesMatcher.graphPointers[0].SequenceEqual(new int[] { 1 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[1].SequenceEqual(new int[] { 2 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[2].SequenceEqual(new int[] { 3 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[3].SequenceEqual(new int[] { 4 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[4].SequenceEqual(new int[] { 5 }));
+        Assert.IsTrue(seriesMatcher.graphPointers[5].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[6].SequenceEqual(new int[] { }));
+        Assert.IsTrue(seriesMatcher.graphPointers[7].SequenceEqual(new int[] { }));
     }
 
 }
