@@ -3,33 +3,44 @@ using System.Linq;
 
 namespace Dman.LSystem.SystemRuntime
 {
-
-    internal struct GraphVisitIndex
-    {
-        public int grandParentIndex;
-        public int parentIndex;
-        public int parentSymbol;
-        public int visitIndex;
-    }
-
     internal class SymbolSeriesMatcher
     {
         public InputSymbol[] targetSymbolSeries;
 
+        /// <summary>
+        /// -1 is valid, indicating the parent is the entry point to the graph.
+        ///     -2 is invalid, and indicates a node with no parent.
+        /// All other values will be indexes in <see cref="targetSymbolSeries"/>
+        /// </summary>
+        /// <param name="symbolIndex"></param>
+        /// <returns></returns>
+        public int ParentOf(int symbolIndex)
+        {
+            return graphParentPointers[symbolIndex];
+        }
+
+        public bool IsLeaf(int symbolIndex)
+        {
+            return graphChildPointers[symbolIndex + 1].Length <= 0;
+        }
 
         /// <summary>
         /// Jagged array used to represent the branching structure of <see cref="targetSymbolSeries"/>. 
         /// First element is entry point into the symbols, and does not represent any symbol in itself.
-        ///     This array is shifted behind targetSymbolSeries by one. meaning that <see cref="graphPointers"/>[1]
+        ///     This array is shifted behind targetSymbolSeries by one. meaning that <see cref="graphChildPointers"/>[1]
         ///     refers to symbol <see cref="targetSymbolSeries"/>[0]
         /// </summary>
-        public int[][] graphPointers;
+        public int[][] graphChildPointers;
+        public int[] childrenCounts;
+        /// <summary> 
+        /// Indexes of parents. -1 is valid, indicating the parent is the entry point to the graph.
+        ///     -2 is invalid, and indicates a node with no parent.
+        /// </summary>
+        public int[] graphParentPointers;
         public void ComputeGraphIndexes(int branchOpen, int branchClose)
         {
-            // indexes of parents. -1 is valid, indicating the parent is the entry point to the graph.
-            // -2 is invalid, and indicates a node with no parent worth noting.
-            var parentIndexes = new int[targetSymbolSeries.Length];
-            var childrenCounts = new int[targetSymbolSeries.Length];
+            graphParentPointers = new int[targetSymbolSeries.Length];
+            childrenCounts = new int[targetSymbolSeries.Length];
             var parentIndexStack = new Stack<int>();
             parentIndexStack.Push(-1);
             for (int indexInSymbols = 0; indexInSymbols < targetSymbolSeries.Length; indexInSymbols++)
@@ -38,7 +49,7 @@ namespace Dman.LSystem.SystemRuntime
                 if(targetSymbol == branchOpen)
                 {
                     var parentIndex = parentIndexStack.Peek();
-                    parentIndexes[indexInSymbols] = parentIndex;
+                    graphParentPointers[indexInSymbols] = parentIndex;
                     if(parentIndex >= 0)
                     {
                         childrenCounts[parentIndex]++;
@@ -46,13 +57,13 @@ namespace Dman.LSystem.SystemRuntime
                     parentIndexStack.Push(indexInSymbols);
                 }else if (targetSymbol == branchClose)
                 {
-                    parentIndexes[indexInSymbols] = -2;
+                    graphParentPointers[indexInSymbols] = -2;
                     parentIndexStack.Pop();
                 }
                 else
                 {
                     var parentIndex = parentIndexStack.Pop();
-                    parentIndexes[indexInSymbols] = parentIndex;
+                    graphParentPointers[indexInSymbols] = parentIndex;
                     if (parentIndex >= 0)
                     {
                         childrenCounts[parentIndex]++;
@@ -62,9 +73,9 @@ namespace Dman.LSystem.SystemRuntime
             }
 
             //Traverse to find duplicated nesting symbols
-            for(int nodeIndex = 0; nodeIndex < parentIndexes.Length; nodeIndex++)
+            for(int nodeIndex = 0; nodeIndex < graphParentPointers.Length; nodeIndex++)
             {
-                var parentIndex = parentIndexes[nodeIndex];
+                var parentIndex = graphParentPointers[nodeIndex];
                 if(parentIndex < 0)
                 {
                     // if parent is entry point, or no parent, nothing will happen to this node.
@@ -75,8 +86,8 @@ namespace Dman.LSystem.SystemRuntime
                 if (parentSymbol == branchOpen && currentSymbol == branchOpen)
                 {
                     // cut self out from underneath Parent, insert self under Grandparent
-                    var grandparentIndex = parentIndexes[parentIndex];
-                    parentIndexes[nodeIndex] = grandparentIndex;
+                    var grandparentIndex = graphParentPointers[parentIndex];
+                    graphParentPointers[nodeIndex] = grandparentIndex;
                     if(grandparentIndex >= 0)
                     {
                         childrenCounts[grandparentIndex]++;
@@ -85,7 +96,7 @@ namespace Dman.LSystem.SystemRuntime
                     childrenCounts[parentIndex]--;
                     if(childrenCounts[parentIndex] <= 0)
                     {
-                        parentIndexes[parentIndex] = -2;
+                        graphParentPointers[parentIndex] = -2;
                     }
                 }
             }
@@ -95,14 +106,14 @@ namespace Dman.LSystem.SystemRuntime
             for (int graphIndex = 1; graphIndex < childIndexes.Length; graphIndex++)
             {
                 childIndexes[graphIndex] = new SortedSet<int>();
-                var parentIndex = parentIndexes[graphIndex - 1] + 1;
+                var parentIndex = graphParentPointers[graphIndex - 1] + 1;
                 if(parentIndex >= 0)
                 {
                     childIndexes[parentIndex].Add(graphIndex);
                 }
             }
 
-            graphPointers = childIndexes.Select(x => x.ToArray()).ToArray();
+            graphChildPointers = childIndexes.Select(x => x.ToArray()).ToArray();
         }
 
         public static SymbolSeriesMatcher Parse(string symbolString)

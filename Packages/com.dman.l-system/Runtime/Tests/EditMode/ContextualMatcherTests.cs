@@ -88,10 +88,16 @@ public class ContextualMatcherTests
     }
 
     [Test]
-    public void BasicForwardSkipBranchMatchesDoesntSkipDown ()
+    public void BasicForwardSkipBranchMatchesDoesntSkipDown()
     {
         AssertForwardsMatch("B[C]A", "A", true);
         AssertForwardsMatch("[C]AD", "A", false, indexInTarget: 1);
+    }
+    [Test]
+    public void MultiForwardSkipBranchMatchesDoesntSkipDown()
+    {
+        AssertForwardsMatch("BA[C]B", "AB", true);
+        AssertForwardsMatch("[C]ABD", "AB", false, indexInTarget: 1);
     }
 
     [Test]
@@ -108,6 +114,14 @@ public class ContextualMatcherTests
         AssertForwardsMatch("B[C[A]]E", "A", false);
         AssertForwardsMatch("B[C[A]]E", "A", true, indexInTarget: 2);
     }
+    [Test]
+    public void ForwardBranchUpDoesntBranchBackDown()
+    {
+        AssertForwardsMatch("E[A[B[C]]]", "ABC", true);
+        AssertForwardsMatch("E[AB[C]]", "ABC", true);
+        AssertForwardsMatch("E[A[B][C]]", "ABC", false);
+        AssertForwardsMatch("E[A]BC", "ABC", false);
+    }
 
     [Test]
     public void BackwardsMultibranch()
@@ -119,9 +133,22 @@ public class ContextualMatcherTests
     }
 
     [Test]
-    public void ForwardsMatchesTreeStructure()
+    public void ForwardsMatchesSimpleTreeStructure()
     {
         AssertForwardsMatch("EA[B]", "A[B]", true);
+        AssertForwardsMatch("EA[BC]", "A[BC]", true);
+        AssertForwardsMatch("EA[B][C]", "A[B][C]", true);
+        AssertForwardsMatch("EA[[B]C]", "A[B][C]", true);
+    }
+    [Test]
+    public void ForwardsDoubleMatchTreeStructure()
+    {
+        AssertForwardsMatch("EA[B][C]", "A[B][C]", true);
+        AssertForwardsMatch("EA[[B]C]", "A[B][C]", true);
+    }
+    [Test]
+    public void ForwardsMatchesExtraNestedTreeStructure()
+    {
         AssertForwardsMatch("EA[[B]EE]", "A[B]", true);
         AssertForwardsMatch("E[A[BEEE]]", "A[B]", true);
         AssertForwardsMatch("EC[A[B]]", "A[B]", false);
@@ -147,16 +174,40 @@ public class ContextualMatcherTests
     [Test]
     public void ForwardMatchTreeStructureShuffledMatch()
     {
-        AssertForwardsMatch("A[C][B]", "A[B][C]", true);
-        AssertForwardsMatch("A[C[B]]", "A[B][C]", false);
-        AssertForwardsMatch("A[[C]B]", "A[B][C]", true);
-        AssertForwardsMatch("A[A[C]B]", "A[B][C]", false);
+        AssertForwardsMatch("EA[C][B]", "A[B][C]", true);
+        AssertForwardsMatch("EA[C[B]]", "A[B][C]", false);
+        AssertForwardsMatch("EA[[C]B]", "A[B][C]", true);
+        AssertForwardsMatch("EA[A[C]B]", "A[B][C]", false);
     }
     [Test]
     public void NestedForwardMatchBranches()
     {
-        AssertForwardsMatch("A[[B]C]", "A[[B]C]", true);
-        AssertForwardsMatch("A[C][B]", "A[[B]C]", true);
-        AssertForwardsMatch("A[[B]C]", "A[[B]C]", true);
+        AssertForwardsMatch("EA[[B]C]", "A[[B]C]", true);
+        AssertForwardsMatch("EA[C][B]", "A[[B]C]", true);
+        AssertForwardsMatch("EA[[B]C]", "A[[B]C]", true);
+        AssertForwardsMatch("EA[BC]", "A[[B]C]", false);
+    }
+    [Test]
+    public void ForwardBranchMustRemainSingle()
+    {
+        AssertForwardsMatch("EA[B[C][D]]", "A[B[C][D]]", true);
+        AssertForwardsMatch("EA[B[C]][B[D]]", "A[B[C][D]]", false);
+    }
+    [Test]
+    public void ForwardBranchHandlesSubsetsInMatchString()
+    {
+        AssertForwardsMatch("EA[BC][B][BCD]", "A[B][BC][BCD]", true);
+        AssertForwardsMatch("EA[BC][BCD]", "A[B][BC][BCD]", false);
+        AssertForwardsMatch("EA[BC][[B]BCD]", "A[B][BC][BCD]", true);
+        AssertForwardsMatch("EA[B][BCD]", "A[B][BC][BCD]", false);
+    }
+    [Test]
+    public void ForwardBranchMultipleIdenticleBranchesRequired()
+    {
+        AssertForwardsMatch("EA[BC][B][BCD]", "A[B][B][B]", true);
+        AssertForwardsMatch("EA[B][B][B]", "A[B][B][B]", true);
+        AssertForwardsMatch("EA[[B]B][B]", "A[B][B][B]", true);
+        AssertForwardsMatch("EA[B][B]", "A[B][B][B]", false);
+        AssertForwardsMatch("EA[BC][BD]", "A[B][B][B]", false);
     }
 }
