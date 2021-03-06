@@ -72,18 +72,17 @@ namespace Dman.LSystem.SystemRuntime
                 }
             }
 
-            //Traverse to find duplicated nesting symbols
+            //Traverse to remove all nesting symbols
             for(int nodeIndex = 0; nodeIndex < graphParentPointers.Length; nodeIndex++)
             {
                 var parentIndex = graphParentPointers[nodeIndex];
                 if(parentIndex < 0)
                 {
-                    // if parent is entry point, or no parent, nothing will happen to this node.
+                    // if parent is entry point, aka no parent, nothing will happen to this node.
                     continue;
                 }
-                var currentSymbol = targetSymbolSeries[nodeIndex].targetSymbol;
                 var parentSymbol = targetSymbolSeries[parentIndex].targetSymbol;
-                if (parentSymbol == branchOpen && currentSymbol == branchOpen)
+                if (parentSymbol == branchOpen)
                 {
                     // cut self out from underneath Parent, insert self under Grandparent
                     var grandparentIndex = graphParentPointers[parentIndex];
