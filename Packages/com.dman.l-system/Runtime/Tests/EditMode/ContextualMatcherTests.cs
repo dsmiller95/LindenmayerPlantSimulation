@@ -145,6 +145,23 @@ public class ContextualMatcherTests
     {
         AssertForwardsMatch("EA[B][C]", "A[B][C]", true);
         AssertForwardsMatch("EA[[B]C]", "A[B][C]", true);
+        AssertForwardsMatch("EA[B]C", "A[B][C]", true);
+        AssertForwardsMatch("EAC[B]", "A[B][C]", true);
+    }
+    [Test]
+    public void ForwardsDoubleMatchTreeStructureWhenIndividualsNotNested()
+    {
+        AssertForwardsMatch("EA[B]C", "A[B][C]", true);
+        AssertForwardsMatch("EA[C]B", "A[B][C]", true);
+    }
+    [Test]
+    public void ForwardsDoubleMatchTreeStructureWithSymbolContinuationAndExtraBranchInTarget()
+    {
+        AssertForwardsMatch("EA[B][C]D[E]F[G]", "A[B][C]DF", true);
+        AssertForwardsMatch("EA[B][C][D[E]F]", "A[B][C]DF", true);
+        AssertForwardsMatch("EA[DF][B][C]", "A[B][C]DF", true);
+        AssertForwardsMatch("EA[D[F]][C][B]", "A[B][C]DF", true);
+        AssertForwardsMatch("EA[D[F][C][B]]", "A[B][C]DF", false);
     }
     [Test]
     public void ForwardsMatchesExtraNestedTreeStructure()
@@ -154,6 +171,13 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EC[A[B]]", "A[B]", false);
         AssertForwardsMatch("E[[C]A[B]]", "A[B]", true);
         AssertForwardsMatch("EA[[B][C]]", "A[B][C]", true);
+    }
+    [Test]
+    public void ForwardsDoubleMatchTreeStructureFailsWhenDisordered()
+    {
+        AssertForwardsMatch("EA[B[C]]", "A[B][C]", false);
+        AssertForwardsMatch("EAB[C]", "A[B][C]", false);
+        AssertForwardsMatch("EAC[B]", "A[B][C]", false);
     }
 
     [Test]
