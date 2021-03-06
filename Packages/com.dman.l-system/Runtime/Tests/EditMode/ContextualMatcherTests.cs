@@ -153,6 +153,7 @@ public class ContextualMatcherTests
         AssertForwardsMatch("E[A[BEEE]]", "A[B]", true);
         AssertForwardsMatch("EC[A[B]]", "A[B]", false);
         AssertForwardsMatch("E[[C]A[B]]", "A[B]", true);
+        AssertForwardsMatch("EA[[B][C]]", "A[B][C]", true);
     }
 
     [Test]

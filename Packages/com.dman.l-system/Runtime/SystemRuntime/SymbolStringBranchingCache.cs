@@ -83,17 +83,18 @@ namespace Dman.LSystem.SystemRuntime
         }
 
         /// <summary>
-        /// before entry, assumes that the last match has been checked already. will only use the last indexes to find
-        ///     the children, and match against those
+        /// Entry conditions:
+        ///     the symbols indexed by <paramref name="nextCheck"/> have already been compared, and do match.
+        ///     The symbols indexed by <paramref name="nextCheck"/> are not present in <paramref name="consumedTargetIndexes"/>
         /// </summary>
         /// <param name="nextCheck"></param>
         /// <param name="seriesMatch"></param>
-        /// <param name="consumedTargetSymbols">
+        /// <param name="consumedTargetIndexes">
         ///     indexes of symbols in the target string which have been matched against. These indexes will never be used as
         ///     part of any match
         /// </param>
         /// <returns>a set of the indexes in the target which have been consumed as a result of the matches. null if no match.</returns>
-        private ImmutableHashSet<int> MatchesAtIndex(MatchCheckPoint nextCheck, SymbolSeriesMatcher seriesMatch, ImmutableHashSet<int> consumedTargetSymbols)
+        private ImmutableHashSet<int> MatchesAtIndex(MatchCheckPoint nextCheck, SymbolSeriesMatcher seriesMatch, ImmutableHashSet<int> consumedTargetIndexes)
         {
             var children = seriesMatch.graphChildPointers[nextCheck.lastMatchedIndexInMatcher + 1];
             if (children.Length == 0)
@@ -101,7 +102,7 @@ namespace Dman.LSystem.SystemRuntime
                 // wat do when terminated?
                 // probably just return success, since subset matching. Termination of matcher tree
                 //  without mismatch means success
-                return consumedTargetSymbols;
+                return consumedTargetIndexes;
             }
 
             var nextTargetIndex = nextCheck.lastMatchedIndexInTarget + 1;
@@ -109,11 +110,21 @@ namespace Dman.LSystem.SystemRuntime
             {
                 return null;
             }
-            if (consumedTargetSymbols.Contains(nextTargetIndex))
+
+            int nextTargetSymbol = symbolStringTarget[nextTargetIndex];
+
+            // skip over all branching structures marked as consumed
+            while (nextTargetIndex < symbolStringTarget.Length
+                && consumedTargetIndexes.Contains(nextTargetIndex)
+                && (nextTargetSymbol = symbolStringTarget[nextTargetIndex]) == branchOpenSymbol)
+            {
+                nextTargetIndex = FindClosingBranchIndex(nextTargetIndex) + 1;
+            }
+            if (consumedTargetIndexes.Contains(nextTargetIndex))
             {
                 return null;
             }
-            var nextTargetSymbol = symbolStringTarget[nextTargetIndex];
+
 
             if (nextTargetSymbol == branchOpenSymbol)
             {
@@ -122,10 +133,10 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         lastMatchedIndexInMatcher = nextCheck.lastMatchedIndexInMatcher,
                         lastMatchedIndexInTarget = nextTargetIndex
-                    }, seriesMatch, consumedTargetSymbols);
+                    }, seriesMatch, consumedTargetIndexes);
                 if (matchesInsideDirectNested != null)
                 {
-                    return consumedTargetSymbols.Union(matchesInsideDirectNested).Add(nextTargetIndex);
+                    return consumedTargetIndexes.Union(matchesInsideDirectNested).Add(nextTargetIndex);
                 }
             }
 
@@ -146,19 +157,20 @@ namespace Dman.LSystem.SystemRuntime
             }
 
 
-
             if (matcherBranches.Length > 0)
             {
                 if (nextTargetSymbol != branchOpenSymbol)
                 {
                     return null;
                 }
-                var consumedIndexesBuilder = consumedTargetSymbols.ToBuilder();
+                //var consumedIndexesBuilder = consumedTargetSymbols.ToBuilder();
+
                 // for every branching structure in target,
                 //  check all of the matcher's child branches against each
                 while (nextTargetIndex < symbolStringTarget.Length
                     && (nextTargetSymbol = symbolStringTarget[nextTargetIndex]) == branchOpenSymbol)
                 {
+                    // TODO: early exit if all branches matched
                     for (int branchMatchIndex = 0; branchMatchIndex < matcherBranches.Length; branchMatchIndex++)
                     {
                         if (matchedBranches[branchMatchIndex])
@@ -170,17 +182,17 @@ namespace Dman.LSystem.SystemRuntime
                                 lastMatchedIndexInTarget = nextTargetIndex
                             },
                             seriesMatch,
-                            consumedTargetSymbols);
+                            consumedTargetIndexes);
                         if(consumedMatchesHere != null)
                         {
                             matchedBranches[branchMatchIndex] = true;
-                            //consumedTargetSymbols = consumedTargetSymbols.Union(consumedMatchesHere).Add(nextTargetIndex);
-                            consumedIndexesBuilder.UnionWith(consumedMatchesHere);
-                            consumedIndexesBuilder.Add(nextTargetIndex);
-                            // can match multiple sub-branches at each child branch
-                            //break; // only match against each branch in the target once
+                            // tracking consumed targets here is necessary because each branch is capable of matching multiple matcher patterns,
+                            //  by containing internal nesting.for example a target string of A[[B]B][B] will match a matching pattern of A[B][B][B].
+                            //  consumed symbols is used to ensure all 3 of the unique branches in the pattern do not match on the same first occurence of B
+                            consumedTargetIndexes = consumedTargetIndexes.Union(consumedMatchesHere);
                         }
                     }
+                    consumedTargetIndexes = consumedTargetIndexes.Add(nextTargetIndex);
 
                     nextTargetIndex = FindClosingBranchIndex(nextTargetIndex) + 1;
                 }
@@ -188,10 +200,8 @@ namespace Dman.LSystem.SystemRuntime
                 if (!matchedBranches.All(x => x))
                 {
                     // not all branches matched. fail.
-                    // TODO: rewind consumed target symbol changes?
                     return null;
                 }
-                consumedTargetSymbols = consumedIndexesBuilder.ToImmutable();
             }
             else
             {
@@ -205,7 +215,7 @@ namespace Dman.LSystem.SystemRuntime
             if (!hasSeriesContinuation || seriesContinuationMatcherIndex < 0)
             {
                 // no series continuation. we're done
-                return consumedTargetSymbols;
+                return consumedTargetIndexes;
             }
             if (nextTargetIndex >= symbolStringTarget.Length)
             {
@@ -222,7 +232,7 @@ namespace Dman.LSystem.SystemRuntime
                 {
                     lastMatchedIndexInMatcher = seriesContinuationMatcherIndex,
                     lastMatchedIndexInTarget = nextTargetIndex
-                }, seriesMatch, consumedTargetSymbols);
+                }, seriesMatch, consumedTargetIndexes);
                 if (continuedMatch != null)
                 {
                     //TODO: how handle deep recursion, which requires these changes to be undone?
