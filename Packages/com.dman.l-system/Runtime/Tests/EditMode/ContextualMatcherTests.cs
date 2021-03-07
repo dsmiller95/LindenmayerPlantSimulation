@@ -49,16 +49,7 @@ public class ContextualMatcherTests
         }
     }
 
-    [Test]
-    public void NoBranchingBackwardsMatch()
-    {
-        var branchingCache = new SymbolStringBranchingCache('[', ']');
-        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A")));
-        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("ABC")));
-        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A[B]")));
-        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("[A]")));
-    }
-
+    #region branch navigation
     [Test]
     public void FindsOpeningBranchLinks()
     {
@@ -68,7 +59,6 @@ public class ContextualMatcherTests
         Assert.AreEqual(8, branchingCache.FindOpeningBranchIndex(18));
         Assert.AreEqual(10, branchingCache.FindOpeningBranchIndex(17));
         Assert.AreEqual(1, branchingCache.FindOpeningBranchIndex(4));
-
     }
     [Test]
     public void FindsClosingBranchLinks()
@@ -79,10 +69,20 @@ public class ContextualMatcherTests
         Assert.AreEqual(4, branchingCache.FindClosingBranchIndex(1));
         Assert.AreEqual(17, branchingCache.FindClosingBranchIndex(10));
         Assert.AreEqual(18, branchingCache.FindClosingBranchIndex(8));
-
     }
+    #endregion
 
     #region Boolean symbol matching
+    [Test]
+    public void NoBranchingBackwardsMatch()
+    {
+        var branchingCache = new SymbolStringBranchingCache('[', ']');
+        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A")));
+        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("ABC")));
+        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A[B]")));
+        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("[A]")));
+    }
+
     [Test]
     public void BasicForwardMatchesOnlyImmediateSiblingNoBranching()
     {
