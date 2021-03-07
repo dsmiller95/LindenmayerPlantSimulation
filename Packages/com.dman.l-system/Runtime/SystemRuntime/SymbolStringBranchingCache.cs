@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Dman.LSystem.SystemCompiler;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime
 {
@@ -177,7 +179,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                 }
             }
-            throw new System.Exception("No matching closing branch found. malformed symbol string.");
+            throw new SyntaxException("No matching closing branch found. malformed symbol string.");
         }
 
         /// <summary>
@@ -212,7 +214,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                 }
             }
-            throw new System.Exception("No matching opening branch found. malformed symbol string.");
+            throw new SyntaxException("No matching opening branch found. malformed symbol string.");
         }
 
         /// <summary>

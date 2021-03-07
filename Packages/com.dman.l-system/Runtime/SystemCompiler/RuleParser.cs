@@ -140,7 +140,7 @@ namespace Dman.LSystem.SystemCompiler
                     }
                     if (ruleComparer.Equals(parsedRules[i], parsedRules[j]))
                     {
-                        throw new System.Exception($"Cannot have two non-stochastic rules matching the same symbols. matching rules: {parsedRules[i]} {parsedRules[j]}");
+                        throw new LSystemRuntimeException($"Cannot have two non-stochastic rules matching the same symbols. matching rules: {parsedRules[i]} {parsedRules[j]}");
                     }
                 }
             }

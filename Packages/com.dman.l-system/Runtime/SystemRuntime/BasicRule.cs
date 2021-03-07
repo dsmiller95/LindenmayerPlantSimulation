@@ -144,7 +144,7 @@ namespace Dman.LSystem.SystemRuntime
                 if (!(invokeResult is bool boolResult))
                 {
                     // TODO: call this out a bit better. All compilation context is lost here
-                    throw new System.Exception($"Conditional expression must evaluate to a boolean");
+                    throw new LSystemRuntimeException($"Conditional expression must evaluate to a boolean");
                 }
                 var conditionalResult = boolResult;
                 if (!conditionalResult)
@@ -174,7 +174,7 @@ namespace Dman.LSystem.SystemRuntime
                         return possibleOutcome;
                     }
                 }
-                throw new System.Exception("possible outcome probabilities do not sum to 1");
+                throw new LSystemRuntimeException("possible outcome probabilities do not sum to 1");
             }
             return possibleOutcomes[0];
         }

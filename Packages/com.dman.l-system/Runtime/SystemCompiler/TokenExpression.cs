@@ -125,7 +125,14 @@ namespace Dman.LSystem.SystemCompiler
             //should be all compiled
             if (tokenLinkedList.Count != 1)
             {
-                throw new Exception("Compilation error: token string could not compile to one expression");
+                if (tokenLinkedList.Count > 0)
+                {
+                    throw tokenLinkedList.First.Value.context.ExceptionHere("Compilation error: token string could not compile to one expression");
+                }
+                else
+                {
+                    throw new SyntaxException("Compilation error: token string could not compile to one expression");
+                }
             }
             return (tokenLinkedList.First.Value as TokenExpression).compiledExpression;
         }

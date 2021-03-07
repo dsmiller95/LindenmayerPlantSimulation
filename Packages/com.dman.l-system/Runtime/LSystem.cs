@@ -106,7 +106,7 @@ namespace Dman.LSystem
             var globalParamSize = globalParameters?.Length ?? 0;
             if (globalParamSize != GlobalParameters)
             {
-                throw new Exception($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
+                throw new LSystemRuntimeException($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
             var nextState = new LSystemState<T>()
             {
