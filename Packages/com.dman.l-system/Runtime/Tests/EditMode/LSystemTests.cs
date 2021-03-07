@@ -215,8 +215,8 @@ public class LSystemTests
     {
         LSystemState<double> state = new DefaultLSystemState("A(1, 1)B(0)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "A(x, y) > B(z) -> A(x + z, y + z)",
-            "A(x, y) < B(z) -> B(y)",
+            "          A(x, y) > B(z) -> A(x + z, y + z)",
+            "A(x, y) < B(z)           -> B(y)",
         });
 
         Assert.AreEqual("A(1, 1)B(0)", state.currentSymbols.ToString());
@@ -235,8 +235,8 @@ public class LSystemTests
     {
         LSystemState<double> state = new DefaultLSystemState("A(1)B(1)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "A(x) > B(y) -> A(x + y)",
-            "A(x) < B(y) -> A(x + y)",
+            "       A(x) > B(y) -> A(x + y)",
+            "A(x) < B(y)        -> B(x)",
         });
 
         Assert.AreEqual("A(1)B(1)", state.currentSymbols.ToString());
@@ -454,9 +454,9 @@ public class LSystemTests
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "A -> B",
             "A > A -> C",
-            "A > AB -> D",
-            "A > ABC -> E",
             "A > ABCD -> F",
+            "A > ABC -> E",
+            "A > AB -> D",
         });
 
         Assert.AreEqual("AABCD", state.currentSymbols.ToString());

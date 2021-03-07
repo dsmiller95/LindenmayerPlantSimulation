@@ -45,6 +45,10 @@ namespace Dman.LSystem.SystemRuntime
 
         }
 
+        public int ParameterSize(int index)
+        {
+            return parameters[index].Length;
+        }
 
         public override string ToString()
         {

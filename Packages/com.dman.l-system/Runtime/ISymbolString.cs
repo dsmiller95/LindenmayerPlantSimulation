@@ -7,5 +7,7 @@
         {
             get;
         }
+
+        int ParameterSize(int index);
     }
 }

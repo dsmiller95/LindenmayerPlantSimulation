@@ -75,7 +75,7 @@ public class ContextualMatcherTests
         var branchingCache = new SymbolStringBranchingCache('[', ']');
         branchingCache.SetTargetSymbolString(targetString);
 
-        var realIndex = indexInTarget < 0 ? indexInTarget + target.Length : indexInTarget;
+        var realIndex = indexInTarget < 0 ? indexInTarget + targetString.Length : indexInTarget;
         var matchPairings = branchingCache.MatchesBackwards(realIndex, seriesMatcher);
         var matches = matchPairings != null;
         if (shouldMatch != matches)
@@ -134,6 +134,13 @@ public class ContextualMatcherTests
     public void BackwardsLongPathMatch()
     {
         AssertBackwardsMatch("AB[JJ][CD[JJ]EF]", "ABCDE", true, indexInTarget: -2, expectedMatchToTargetMapping: new[] { (0, 0), (1, 1), (2, 7), (3, 8), (4, 13) });
+    }
+    [Test]
+    public void BackwardsPathMatchOnlyCorrectParameterSize()
+    {
+        AssertBackwardsMatch("AB(1)E", "AB(x)", true, expectedMatchToTargetMapping: new[] { (0, 0), (1, 1) });
+        AssertBackwardsMatch("ABE", "AB(x)", false);
+        AssertBackwardsMatch("A(2)B(1)E", "A(y)B(x)", true, expectedMatchToTargetMapping: new[] { (0, 0), (1, 1) });
     }
 
 
@@ -315,6 +322,15 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[B][B]", "A[B][B][B]", false);
         AssertForwardsMatch("EA[BC][BD]", "A[B][B][B]", false);
     }
+    [Test]
+    public void ForwardMatchSelectsForCorrectParameterSize()
+    {
+        AssertForwardsMatch("EAB", "AB(x)", false, testOrderingAgnostict: true);
+        AssertForwardsMatch("EA[B][B(1)]", "AB(x)", true, expectedMatchToTargetMapping: new[] { (0, 1), (1, 6) });
+        AssertForwardsMatch("EA[B][B(2)]", "AB(x, y)", false, testOrderingAgnostict: true);
+        AssertForwardsMatch("EA[B][B(3)]B(2, 3)", "AB(x, y)", true, expectedMatchToTargetMapping: new[] { (0, 1), (1, 8) });
+    }
+
     #endregion
 
     #region Ordering-agnosting boolean forward symbol matching

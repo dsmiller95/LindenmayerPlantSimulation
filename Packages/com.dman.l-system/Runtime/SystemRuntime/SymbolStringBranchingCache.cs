@@ -114,7 +114,7 @@ namespace Dman.LSystem.SystemRuntime
 
             for (; matchingIndex >= 0 && indexInSymbolTarget >= 0; matchingIndex--)
             {
-                var symbolToMatch = seriesMatch.targetSymbolSeries[matchingIndex].targetSymbol;
+                var symbolToMatch = seriesMatch.targetSymbolSeries[matchingIndex];
                 while (indexInSymbolTarget >= 0)
                 {
                     var currentSymbol = symbolStringTarget[indexInSymbolTarget];
@@ -126,7 +126,7 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         indexInSymbolTarget--;
                     }
-                    else if (currentSymbol == symbolToMatch)
+                    else if (currentSymbol == symbolToMatch.targetSymbol && symbolToMatch.parameterLength == symbolStringTarget.ParameterSize(indexInSymbolTarget))
                     {
                         matcherIndexToTargetIndex[matchingIndex] = indexInSymbolTarget;
                         indexInSymbolTarget--;
@@ -269,8 +269,10 @@ namespace Dman.LSystem.SystemRuntime
                 if (nextCheck.nextIndexInMatchToCheck != -1)
                 {
                     // if its the Origin symbol, don't even check if match. assume it does, proceed to children checking.
-                    var matchingSymbol = seriesMatch.targetSymbolSeries[nextCheck.nextIndexInMatchToCheck].targetSymbol;
-                    if (matchingSymbol != nextTargetSymbol)
+                    var matchingSymbol = seriesMatch.targetSymbolSeries[nextCheck.nextIndexInMatchToCheck];
+                    if (
+                        matchingSymbol.targetSymbol != nextTargetSymbol || 
+                        matchingSymbol.parameterLength != symbolStringTarget.ParameterSize(nextCheck.nextIndexInTargetToCheck))
                     {
                         return null;
                     }
@@ -390,7 +392,7 @@ namespace Dman.LSystem.SystemRuntime
                         seriesMatch,
                         targetIndexesToMatchIndexes,
                         currentParentIndexInTarget,
-                        targetSymbol,
+                        indexInTarget,
                         indexInMatch);
                     if (currentTargetMatchesMatcher)
                     {
@@ -433,12 +435,14 @@ namespace Dman.LSystem.SystemRuntime
             SymbolSeriesMatcher seriesMatch,
             ImmutableDictionary<int, int> targetIndexesToMatchIndexes,
             int currentParentIndexInTarget,
-            int currentSymbolInTarget,
+            int currentIndexInTarget,
             int currentIndexInMatch
             )
         {
-            var symbolInMatch = seriesMatch.targetSymbolSeries[currentIndexInMatch].targetSymbol;
-            if (symbolInMatch == currentSymbolInTarget)
+            var symbolInMatch = seriesMatch.targetSymbolSeries[currentIndexInMatch];
+            if (
+                symbolInMatch.targetSymbol == symbolStringTarget[currentIndexInTarget] &&
+                symbolInMatch.parameterLength == symbolStringTarget.ParameterSize(currentIndexInTarget))
             {
                 var parentIndexInMatch = seriesMatch.graphParentPointers[currentIndexInMatch];
                 if(parentIndexInMatch == -1)
