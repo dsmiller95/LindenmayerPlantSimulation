@@ -34,8 +34,8 @@ P(budBranchChanceFactor) B(x) -> [^(50)V]R(x, 0)
 P(1 - budBranchChanceFactor) B(x) -> [^(50)V]P(leavesPerPetiole)
 
 ## V is a flowering bud
-P(flowerFailureChance) V -> []
-P(1 - flowerFailureChance) V -> V(flowerStalkLength)
+P(flowerFailureChance) | V -> []
+P(1 - flowerFailureChance) | V -> V(flowerStalkLength)
 V(x) : x > 0 -> $(0.1)FV(x - 1)
 V(x) : x <= 0 -> [``C(x)K(0)]
 
@@ -50,16 +50,16 @@ C(x)K(y) : x >= timeToFruit -> D(0)
 D(x) : x < fruiteSize -> D(x + 1)
 
 ## R is a side branch terminal node.
-P(shootStemBranchingFactor) R(x, y) : x < branchInternodes && y >= internodeHeight -> [-(75)^(20)N(x + 1)][+(75)^(20)N(x + 1)]R(x + 1, 0)
-P(1 - shootStemBranchingFactor) R(x, y) : x < branchInternodes && y >= internodeHeight -> R(x + 1, 0)
+P(shootStemBranchingFactor) | R(x, y) : x < branchInternodes && y >= internodeHeight -> [-(75)^(20)N(x + 1)][+(75)^(20)N(x + 1)]R(x + 1, 0)
+P(1 - shootStemBranchingFactor) | R(x, y) : x < branchInternodes && y >= internodeHeight -> R(x + 1, 0)
 R(x, y) : x >= branchInternodes && y >= internodeHeight -> petiole(leavesPerPetiole)
 
 ## rotate relative to world
 R(x, y) : y < internodeHeight -> $(0.02)FR(x, y + 1)
 
 ## N is a bud off the branch stem, and randomly chooses what it will become
-P(budBranchChanceFactor) N(x) -> [^V]petiole(leavesPerPetiole)
-P(1 - budBranchChanceFactor) N(x) -> [^V]FL
+P(budBranchChanceFactor) | N(x) -> [^V]petiole(leavesPerPetiole)
+P(1 - budBranchChanceFactor) | N(x) -> [^V]FL
 
 ## P is the petiole, x is number of leaves
 #define petiole( P(

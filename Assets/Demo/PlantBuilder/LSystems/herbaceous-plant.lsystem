@@ -26,17 +26,17 @@ S(x) : x == shootHeight -> T(0)
 T(x) : x < terminalBudGrowth -> I(internodeHeight)[&(75)B(x + 1)][\(180)&(75)B(x + 1)]\(90)T(x + 1)
 
 ## B is a bud, and randomly chooses what it will become
-P(budBranchChanceFactor) B(x) -> [^V(3)]R(x)
-P(1 - budBranchChanceFactor) B(x) -> [^V(3)]P(leavesPerPetiole)
+P(budBranchChanceFactor) | B(x) -> [^V(3)]R(x)
+P(1 - budBranchChanceFactor) | B(x) -> [^V(3)]P(leavesPerPetiole)
 
 ## V is a flowering bud
-P(1 - flowerIncrementFailureChance) V(x) : x > 0 -> ^(7)FV(x - 1)
-P(flowerIncrementFailureChance) V(x) : x > 0 -> []
+P(1 - flowerIncrementFailureChance) | V(x) : x > 0 -> ^(7)FV(x - 1)
+P(flowerIncrementFailureChance) | V(x) : x > 0 -> []
 V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
-P(shootStemBranchingFactor) R(x) : x < branchLength -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
-P(1 - shootStemBranchingFactor) R(x) : x < branchLength -> I(internodeHeight)R(x + 1)
+P(shootStemBranchingFactor) | R(x) : x < branchLength -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
+P(1 - shootStemBranchingFactor) | R(x) : x < branchLength -> I(internodeHeight)R(x + 1)
 R(x) : x == branchLength -> P(leavesPerPetiole)
 
 P(x) : x >= 2 -> I(1)[O((x - 1) / 2, -40)]L[O((x - 1) / 2, 40)]
