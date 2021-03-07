@@ -86,5 +86,54 @@ public class SymbolSeriesGraphTests
             .ToArray()
             );
     }
+    [Test]
+    public void DepthFirstTraverseForwardAndReverse()
+    {
+        var seriesMatcher = SymbolSeriesMatcher.Parse("A[B[C][D[E][F]][G[H][I]][J[K][L]]");
+        seriesMatcher.ComputeGraphIndexes('[', ']');
+        Assert.AreEqual(
+            "ABCDEFGHIJKL".Select(x => (int)x).ToArray(),
+            seriesMatcher
+            .GetDepthFirstEnumerator()
+            .Select(x => seriesMatcher.targetSymbolSeries[x].targetSymbol)
+            .Take(15) // infinite loop protection
+            .ToArray()
+            );
+
+        var dfsIterator = seriesMatcher.GetImmutableDepthFirstIterationState();
+
+        var partial = dfsIterator.TakeNNext(8).ToArray();
+        Assert.AreEqual(
+            "ABCDEFGH".Select(x => (int)x).ToArray(),
+            partial.Select(x => seriesMatcher.targetSymbolSeries[x.currentIndex].targetSymbol).ToArray()
+            );
+        partial = partial[partial.Length - 1].TakeNPrevious(6).ToArray();
+        Assert.AreEqual(
+            "GFEDCB".Select(x => (int)x).ToArray(),
+            partial.Select(x => seriesMatcher.targetSymbolSeries[x.currentIndex].targetSymbol).ToArray()
+            );
+
+        partial = partial[partial.Length - 1].TakeNPrevious(100).ToArray();
+        Assert.AreEqual(
+            "A\0".Select(x => (int)x).ToArray(),
+            partial.Select(x => x.currentIndex == -1 ? 0 : seriesMatcher.targetSymbolSeries[x.currentIndex].targetSymbol).ToArray()
+            );
+        partial = partial[partial.Length - 1].TakeNNext(20).ToArray();
+        Assert.AreEqual(
+            "ABCDEFGHIJKL".Select(x => (int)x).ToArray(),
+            partial.Select(x => seriesMatcher.targetSymbolSeries[x.currentIndex].targetSymbol).ToArray()
+            );
+
+        partial = partial[partial.Length - 1].TakeNPrevious(6).ToArray();
+        Assert.AreEqual(
+            "KJIHGF".Select(x => (int)x).ToArray(),
+            partial.Select(x => seriesMatcher.targetSymbolSeries[x.currentIndex].targetSymbol).ToArray()
+            );
+        partial = partial[partial.Length - 1].TakeNNext(6).ToArray();
+        Assert.AreEqual(
+            "GHIJKL".Select(x => (int)x).ToArray(),
+            partial.Select(x => seriesMatcher.targetSymbolSeries[x.currentIndex].targetSymbol).ToArray()
+            );
+    }
 
 }
