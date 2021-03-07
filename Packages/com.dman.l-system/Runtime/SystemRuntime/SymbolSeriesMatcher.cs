@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Dman.LSystem.SystemRuntime
@@ -113,6 +114,69 @@ namespace Dman.LSystem.SystemRuntime
             }
 
             graphChildPointers = childIndexes.Select(x => x.ToArray()).ToArray();
+        }
+
+        public IEnumerable<int> GetDepthFirstEnumerator()
+        {
+            var currentState = new DepthFirstSearchState(this);
+            while (currentState.Next(out var nextState))
+            {
+                yield return nextState.currentIndex;
+                currentState = nextState;
+            }
+        }
+
+        private struct DepthFirstSearchState
+        {
+            public int currentIndex { get; private set; }
+            public SymbolSeriesMatcher source;
+            private ImmutableStack<int> indexInAncestors;
+
+            public DepthFirstSearchState(SymbolSeriesMatcher source)
+            {
+                this.currentIndex = -1;
+                this.source = source;
+                indexInAncestors = ImmutableStack<int>.Empty;
+            }
+
+            private DepthFirstSearchState(SymbolSeriesMatcher source, int nextIndex, ImmutableStack<int> indexInAncenstors) {
+                this.source = source;
+                this.currentIndex = nextIndex;
+                this.indexInAncestors = indexInAncenstors;
+            }
+
+            public bool Next(out DepthFirstSearchState nextState)
+            {
+                var nextIndex = currentIndex;
+                var nextAncestorsStack = indexInAncestors;
+
+                var children = this.source.graphChildPointers[nextIndex + 1];
+                var indexInChildren = 0;
+
+
+                while (indexInChildren >= children.Length && nextIndex >= 0)
+                {
+                    nextIndex = this.source.graphParentPointers[nextIndex];
+                    children = this.source.graphChildPointers[nextIndex + 1];
+                    nextAncestorsStack = nextAncestorsStack.Pop(out var lastIndexInChildren);
+                    indexInChildren = lastIndexInChildren + 1;
+                }
+                if (indexInChildren < children.Length)
+                {
+                    nextAncestorsStack = nextAncestorsStack.Push(indexInChildren);
+                    nextIndex = children[indexInChildren] - 1;
+                    nextState = new DepthFirstSearchState(this.source, nextIndex, nextAncestorsStack);
+                    return true;
+                }
+                nextState = default;
+                return false;
+            }
+
+            public void Reset()
+            {
+                this.currentIndex = -1;
+                indexInAncestors.Clear();
+            }
         }
 
         public static SymbolSeriesMatcher Parse(string symbolString)

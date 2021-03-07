@@ -72,5 +72,19 @@ public class SymbolSeriesGraphTests
         seriesMatcher.ComputeGraphIndexes('[', ']');
         Assert.IsTrue(seriesMatcher.graphParentPointers.SequenceEqual(new int[] { -1, -2, 0, -2, 2, -2, -2 }));
     }
+    [Test]
+    public void DepthFirstTraversYieldsInCorrectOrder()
+    {
+        var seriesMatcher = SymbolSeriesMatcher.Parse("A[B[E]][C]D[[E]F]");
+        seriesMatcher.ComputeGraphIndexes('[', ']');
+        Assert.AreEqual(
+            new int[] { 'A', 'B', 'E', 'C', 'D', 'E', 'F' },
+            seriesMatcher
+            .GetDepthFirstEnumerator()
+            .Select(x => seriesMatcher.targetSymbolSeries[x].targetSymbol)
+            .Take(10) // infinite loop protection
+            .ToArray()
+            );
+    }
 
 }
