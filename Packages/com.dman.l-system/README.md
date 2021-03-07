@@ -11,7 +11,7 @@ An attempt to implement most of the features present in L-systems described by [
 - [L-System Language](#l-system-language)
   - [Rule examples](#rule-examples)
   - [Parameterization](#parameterization)
-  - [Limitations](#limitations)
+  - [Contextual Matching](#contextual-matching)
 - [Examples](#example-showcase)
 
 ## [Installation](#installation)
@@ -113,10 +113,10 @@ F -> FF
 
 ---
 
-Looks for `A` directly followed by `B`, and replaces both symbols with `B`
+Looks for `A` with a child of `B`, and replaces self with `B`
 
 ```
-AB -> B
+A > B -> B
 ```
 
 ---
@@ -124,8 +124,8 @@ AB -> B
 40% chance of replacing `F` with `FF`, and 60% chance to do nothing
 
 ```
-P(0.4) F -> FF
-P(1 - 0.4) F -> F
+P(0.4) | F -> FF
+P(1 - 0.4) | F -> F
 ```
 
 ---
@@ -194,9 +194,9 @@ x && y
 x || y
 ```
 
-## [Limitations](#limitations)
+## [Contextual Matching](#contextual-matching)
 
-- Does not support contextual matches, E.X. `C < A > B -> X`
+- Contextual matches must occur in-order, even if nested in branching structures. See the [Contextual match](Runtime/Tests/EditMode/ContextualMatcherTests.cs) tests for examples of how the matching rules work
 
 # [Example Showcase](#example-showcase)
 
