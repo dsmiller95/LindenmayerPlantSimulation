@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 public class ContextualMatcherTests
 {
-    private void AssertForwardsMatch(string target, string matcher, bool shouldMatch = true, int indexInTarget = 0, string message = null, IEnumerable<(int, int)> expectedMatchToTargetMapping = null)
+    private void AssertForwardsMatch(string target, string matcher, bool shouldMatch = true, int indexInTarget = 0, string message = null, IEnumerable<(int, int)> expectedMatchToTargetMapping = null, bool orderingAgnostict = false)
     {
         var seriesMatcher = new SymbolSeriesMatcher
         {
@@ -16,7 +16,7 @@ public class ContextualMatcherTests
         var branchingCache = new SymbolStringBranchingCache('[', ']');
         branchingCache.SetTargetSymbolString(targetString);
 
-        var matchPairings = branchingCache.MatchesForward(indexInTarget, seriesMatcher);
+        var matchPairings = branchingCache.MatchesForward(indexInTarget, seriesMatcher, orderingAgnostict);
         var matches = matchPairings != null;
         if (shouldMatch != matches)
         {
@@ -31,6 +31,9 @@ public class ContextualMatcherTests
             }
         }
     }
+
+
+    #region backwards matching
     private void AssertBackwardsMatch(string target, string matcher, bool shouldMatch, string message = "", int indexInTarget = -1)
     {
         var seriesMatcher = new SymbolSeriesMatcher
@@ -48,7 +51,48 @@ public class ContextualMatcherTests
             Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match backwards from {indexInTarget} in '{target}'");
         }
     }
+    [Test]
+    public void NoBranchingBackwardsMatch()
+    {
+        var branchingCache = new SymbolStringBranchingCache('[', ']');
+        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A")));
+        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("ABC")));
+        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A[B]")));
+        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("[A]")));
+    }
+    [Test]
+    public void BasicBackwardMatchesOnlyImmediateSiblingNoBranching()
+    {
+        AssertBackwardsMatch("AD", "A", true, message: "must match when immediate preceding symbol matches");
+        AssertBackwardsMatch("BCA", "A", false, message: "must not match when immediate preceding symbol is not branch");
+        AssertBackwardsMatch("ADE", "A", false, message: "must not match when immediate preceding symbol is not branch");
+    }
+    [Test]
+    public void BasicBackwardsSkipBranchMatches()
+    {
+        AssertBackwardsMatch("[C]AD", "A", true);
+        AssertBackwardsMatch("[C]ADE", "A", false);
+        AssertBackwardsMatch("A[D]E", "A", true);
+    }
+    [Test]
+    public void BackwardsMultibranch()
+    {
+        AssertBackwardsMatch("A[[E]F]", "A", true, indexInTarget: -4);
+        AssertBackwardsMatch("A[D][E]", "A", true, indexInTarget: -2);
+        AssertBackwardsMatch("A[[D][E]]", "A", true, indexInTarget: -3);
+        AssertBackwardsMatch("A[[D][E]]E", "A", true, indexInTarget: -1);
+    }
+    [Test]
+    public void BackwardsPathMatch()
+    {
+        AssertBackwardsMatch("A[B]E", "AB", false);
+        AssertBackwardsMatch("A[BE]", "AB", true, indexInTarget: -2);
+        AssertBackwardsMatch("ABE", "AB", true);
+        AssertBackwardsMatch("[AB]E", "AB", false);
+    }
 
+    #endregion
+    
     #region branch navigation
     [Test]
     public void FindsOpeningBranchLinks()
@@ -72,17 +116,7 @@ public class ContextualMatcherTests
     }
     #endregion
 
-    #region Boolean symbol matching
-    [Test]
-    public void NoBranchingBackwardsMatch()
-    {
-        var branchingCache = new SymbolStringBranchingCache('[', ']');
-        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A")));
-        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("ABC")));
-        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A[B]")));
-        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("[A]")));
-    }
-
+    #region Ordering-invariant Boolean forward symbol matching
     [Test]
     public void BasicForwardMatchesOnlyImmediateSiblingNoBranching()
     {
@@ -90,14 +124,6 @@ public class ContextualMatcherTests
         AssertForwardsMatch("BCA", "A", false, message: "must not match when immediate following symbol is not branch");
         AssertForwardsMatch("ADE", "A", false, message: "must not match when match is self");
     }
-    [Test]
-    public void BasicBackwardMatchesOnlyImmediateSiblingNoBranching()
-    {
-        AssertBackwardsMatch("AD", "A", true, message: "must match when immediate preceding symbol matches");
-        AssertBackwardsMatch("BCA", "A", false, message: "must not match when immediate preceding symbol is not branch");
-        AssertBackwardsMatch("ADE", "A", false, message: "must not match when immediate preceding symbol is not branch");
-    }
-
     [Test]
     public void BasicForwardSkipBranchMatchesDoesntSkipDown()
     {
@@ -109,14 +135,6 @@ public class ContextualMatcherTests
     {
         AssertForwardsMatch("BA[C]B", "AB", true);
         AssertForwardsMatch("[C]ABD", "AB", false, indexInTarget: 1);
-    }
-
-    [Test]
-    public void BasicBackwardsSkipBranchMatches()
-    {
-        AssertBackwardsMatch("[C]AD", "A", true);
-        AssertBackwardsMatch("[C]ADE", "A", false);
-        AssertBackwardsMatch("A[D]E", "A", true);
     }
 
     [Test]
@@ -135,13 +153,31 @@ public class ContextualMatcherTests
     }
 
     [Test]
-    public void BackwardsMultibranch()
+    public void ForwardSkipsOverPartiallyMatchBranchStructures()
     {
-        AssertBackwardsMatch("A[[E]F]", "A", true, indexInTarget: -4);
-        AssertBackwardsMatch("A[D][E]", "A", true, indexInTarget: -2);
-        AssertBackwardsMatch("A[[D][E]]", "A", true, indexInTarget: -3);
-        AssertBackwardsMatch("A[[D][E]]E", "A", true, indexInTarget: -1);
+        AssertForwardsMatch("EA[BC][BCD][BCDE]", "A[BCDE]", true, expectedMatchToTargetMapping: new[] { (0, 1), (2, 12), (3, 13), (4, 14), (5, 15) });
+        AssertForwardsMatch("EA[BC[D][E]][BCD][BCDE]", "A[BCDE]", true, expectedMatchToTargetMapping: new[] { (0, 1), (2, 18), (3, 19), (4, 20), (5, 21) });
     }
+
+    [Test]
+    public void ForwardOrderInvariantHandlesOverlapingMatchesPredictably()
+    {
+        AssertForwardsMatch("EA[BC][BCD][BCDE]", "A[BC][BCD][BCDE]", true);
+        AssertForwardsMatch("EA[BCD][BCDE][BC]", "A[BC][BCD][BCDE]", false);
+        AssertForwardsMatch("EA[BCD][BCDE][BC][BCD][BCDE]", "A[BC][BCD][BCDE]", true,
+            expectedMatchToTargetMapping: new[] { (0, 1), (2, 3), (3, 4), (6, 8), (7, 9), (8, 10), (11, 23), (12, 24), (13, 25), (14, 26) });
+        AssertForwardsMatch("EA[BCD][BCDE][BCDE]", "A[BC][BCD][BCDE]", true);
+        AssertForwardsMatch("EA[BCD][BCDE][BCD]", "A[BC][BCD][BCDE]", false);
+    }
+    [Test]
+    public void ForwardOrderInvariantHandlesWrongParentingOfLongChain()
+    {
+        AssertForwardsMatch("EA[BC[BCD]]", "A[BC][BCD]", false);
+        AssertForwardsMatch("EA[BC]BCD[BCDE]", "A[BC][BCD][BCDE]", false);
+        AssertForwardsMatch("EA[BC[B]DE]DE", "A[BCDE]", true);
+        AssertForwardsMatch("EA[BC[B]]DE", "A[BCDE]", false);
+    }
+
 
     [Test]
     public void ForwardsMatchesSimpleTreeStructure()
@@ -160,18 +196,12 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EAC[B]", "A[B][C]", false);
     }
     [Test]
-    public void ForwardsDoubleMatchTreeStructureWhenIndividualsNotNested()
-    {
-        AssertForwardsMatch("EA[B]C", "A[B][C]", true);
-        AssertForwardsMatch("EA[C]B", "A[B][C]", true);
-    }
-    [Test]
     public void ForwardsDoubleMatchTreeStructureWithSymbolContinuationAndExtraBranchInTarget()
     {
         AssertForwardsMatch("EA[B][C]D[E]F[G]", "A[B][C]DF", true);
         AssertForwardsMatch("EA[B][C][D[E]F]", "A[B][C]DF", true);
-        AssertForwardsMatch("EA[DF][B][C]", "A[B][C]DF", true);
-        AssertForwardsMatch("EA[D[F]][C][B]", "A[B][C]DF", true);
+        AssertForwardsMatch("EA[DF][B][C]", "A[B][C]DF", false);
+        AssertForwardsMatch("EA[D[F]][C][B]", "A[B][C]DF", false);
         AssertForwardsMatch("EA[D[F][C][B]]", "A[B][C]DF", false);
     }
     [Test]
@@ -184,43 +214,33 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[[B][C]]", "A[B][C]", true);
     }
     [Test]
-    public void ForwardsDoubleMatchTreeStructureFailsWhenDisordered()
+    public void ForwardsDoubleMatchTreeStructureFailsBranchStructureMismatch()
     {
         AssertForwardsMatch("EA[B[C]]", "A[B][C]", false);
         AssertForwardsMatch("EAB[C]", "A[B][C]", false);
-        AssertForwardsMatch("EAC[B]", "A[B][C]", false);
     }
-
     [Test]
-    public void ForwardsMatchesTreeStructureOutOfPerfectOrder()
+    public void ForwardsMatchesTreeStructureWithExtraSymbols()
     {
         AssertForwardsMatch("E[B]A", "A[B]", false);
         AssertForwardsMatch("EA[E][B]", "A[B]", true);
         AssertForwardsMatch("EA[[E]EEE[B]]", "A[B]", false);
         AssertForwardsMatch("EA[[E][[E]B]]", "A[B]", true);
     }
+
     [Test]
-    public void BackwardsPathMatch()
+    public void ForwardMatchTreeStructureShuffledMatchAllFailsWhenOrderInvariant()
     {
-        AssertBackwardsMatch("A[B]E", "AB", false);
-        AssertBackwardsMatch("A[BE]", "AB", true, indexInTarget: -2);
-        AssertBackwardsMatch("ABE", "AB", true);
-        AssertBackwardsMatch("[AB]E", "AB", false);
-    }
-    [Test]
-    public void ForwardMatchTreeStructureShuffledMatch()
-    {
-        AssertForwardsMatch("EA[C][B]", "A[B][C]", true);
+        AssertForwardsMatch("EA[C][B]", "A[B][C]", false);
         AssertForwardsMatch("EA[C[B]]", "A[B][C]", false);
-        AssertForwardsMatch("EA[[C]B]", "A[B][C]", true);
+        AssertForwardsMatch("EA[[C]B]", "A[B][C]", false);
         AssertForwardsMatch("EA[A[C]B]", "A[B][C]", false);
     }
     [Test]
     public void NestedForwardMatchBranches()
     {
         AssertForwardsMatch("EA[[B]C]", "A[[B]C]", true);
-        AssertForwardsMatch("EA[C][B]", "A[[B]C]", true);
-        AssertForwardsMatch("EA[[B]C]", "A[[B]C]", true);
+        AssertForwardsMatch("EA[B][C]", "A[[B]C]", true);
         AssertForwardsMatch("EA[BC]", "A[[B]C]", false);
     }
     [Test]
@@ -237,6 +257,41 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[[B]B][B]", "A[B][B][B]", true);
         AssertForwardsMatch("EA[B][B]", "A[B][B][B]", false);
         AssertForwardsMatch("EA[BC][BD]", "A[B][B][B]", false);
+    }
+    #endregion
+
+    #region Ordering-agnosting boolean forward symbol matching
+
+    [Test]
+    public void ForwardsDoubleMatchTreeStructureWhenIndividualsNotNestedAndSwapped()
+    {
+        AssertForwardsMatch("EA[B]C", "A[B][C]", true, orderingAgnostict: true);
+        AssertForwardsMatch("EA[C]B", "A[B][C]", true, orderingAgnostict: true);
+    }
+
+    [Test]
+    public void ForwardsMatchLongTreeStructureShuffled()
+    {
+        AssertForwardsMatch("EA[DF][B][C]", "A[B][C]DF", true, orderingAgnostict: true);
+        AssertForwardsMatch("EA[D[F]][C][B]", "A[B][C]DF", true, orderingAgnostict: true);
+        AssertForwardsMatch("EA[D[F][C][B]]", "A[B][C]DF", false, orderingAgnostict: true);
+    }
+    [Test]
+    public void ForwardsDoubleMatchTreeStructureFailsWhenDisorderedOrderAgnostic()
+    {
+        AssertForwardsMatch("EA[B[C]]", "A[B][C]", false, orderingAgnostict: true);
+        AssertForwardsMatch("EAB[C]", "A[B][C]", false, orderingAgnostict: true);
+        AssertForwardsMatch("EAC[B]", "A[B][C]", false, orderingAgnostict: true);
+    }
+    [Test]
+    public void ForwardMatchTreeStructureShuffledMatch()
+    {
+        AssertForwardsMatch("EA[C][B]", "A[B][C]", true, orderingAgnostict: true);
+        AssertForwardsMatch("EA[C[B]]", "A[B][C]", false, orderingAgnostict: true);
+        AssertForwardsMatch("EA[[C]B]", "A[B][C]", true, orderingAgnostict: true);
+        AssertForwardsMatch("EA[A[C]B]", "A[B][C]", false, orderingAgnostict: true);
+
+        AssertForwardsMatch("EA[C][B]", "A[[B]C]", true, orderingAgnostict: true);
     }
 
     /// <summary>
@@ -262,6 +317,7 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[B[D][C]][B[D]]", "A[BC][BD]", true);
         AssertForwardsMatch("EA[B[D][C]][B[C]]", "A[BC][BD]", true);
     }
+
     #endregion
 
     #region Symbol Mapping
@@ -278,7 +334,7 @@ public class ContextualMatcherTests
     {
         AssertForwardsMatch("EA[B][C]", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 3), (5, 6) });
         AssertForwardsMatch("EA[[B]C]", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 4), (5, 6) });
-        AssertForwardsMatch("EA[C]B", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 5), (5, 3) });
+        AssertForwardsMatch("EA[C]B", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 5), (5, 3) }, orderingAgnostict: true);
     }
     [Test]
     public void ForwardBranchMultipleIdenticleBranchesMapped()

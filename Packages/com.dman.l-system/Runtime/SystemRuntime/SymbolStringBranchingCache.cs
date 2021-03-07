@@ -57,7 +57,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="indexInSymbolTarget"></param>
         /// <param name="seriesMatch"></param>
         /// <returns>a mapping from all symbols in seriesMatch back into the target string</returns>
-        public IDictionary<int, int> MatchesForward(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch)
+        public IDictionary<int, int> MatchesForward(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch, bool orderingAgnostict)
         {
             if (seriesMatch.graphChildPointers == null)
             {
@@ -69,18 +69,29 @@ namespace Dman.LSystem.SystemRuntime
             //  starts out as a copy of the child count array. each leaf will be at 0, and will go negative when matched.
             //var remainingMatchesAtIndexes = seriesMatch.childrenCounts.Clone() as int[];
 
-            var remappedSymbols = ImmutableDictionary<int, int>.Empty;
-            var matchedSet = MatchesAtIndex(new MatchCheckPoint
+            if (orderingAgnostict)
             {
-                nextIndexInMatchToCheck = -1,
-                nextIndexInTargetToCheck = indexInSymbolTarget
-            },
-            seriesMatch,
-            remappedSymbols);
+                var remappedSymbols = ImmutableDictionary<int, int>.Empty;
+                var matchedSet = MatchesAtIndexOrderAgnostic(new MatchCheckPoint
+                {
+                    nextIndexInMatchToCheck = -1,
+                    nextIndexInTargetToCheck = indexInSymbolTarget
+                },
+                seriesMatch,
+                remappedSymbols);
 
-            // invert the dictionary here, switching from mapping from target string into matcher string
-            // to mapping from the matcher string into the target string
-            return matchedSet?.ToDictionary(x => x.Value, x => x.Key);
+                // invert the dictionary here, switching from mapping from target string into matcher string
+                // to mapping from the matcher string into the target string
+                return matchedSet?.ToDictionary(x => x.Value, x => x.Key);
+            }else
+            {
+                var targetSymbolToMatchSymbol = MatchesAtIndexOrderingInvariant(indexInSymbolTarget, seriesMatch);
+                // order by target symbol, then aggregate to dictionary. there will be duplicates of match indexes,
+                //  ordering this way guarantees that the only last duplicate in the target sting will be preserved.
+                //  Since the method is order invariant, it is guaranteed that the match with the highest index in the target
+                //  string is the correct match.
+                return targetSymbolToMatchSymbol?.OrderBy(x => x.Key)?.ToDictionary(x => x.Value, x => x.Key);
+            }
 
             //return false;
         }
@@ -97,7 +108,10 @@ namespace Dman.LSystem.SystemRuntime
         ///     a dictionary of the indexes in the target which have been consumed as a result of the matches, mapped to the index of the symbol in the matching pattern.
         ///     null if no match.
         /// </returns>
-        private ImmutableDictionary<int, int> MatchesAtIndex(MatchCheckPoint nextCheck, SymbolSeriesMatcher seriesMatch, ImmutableDictionary<int, int> consumedTargetIndexes)
+        private ImmutableDictionary<int, int> MatchesAtIndexOrderAgnostic(
+            MatchCheckPoint nextCheck,
+            SymbolSeriesMatcher seriesMatch,
+            ImmutableDictionary<int, int> consumedTargetIndexes)
         {
             if (nextCheck.nextIndexInTargetToCheck >= symbolStringTarget.Length)
             {
@@ -108,7 +122,7 @@ namespace Dman.LSystem.SystemRuntime
                 return null;
             }
             int nextTargetSymbol = symbolStringTarget[nextCheck.nextIndexInTargetToCheck];
-            if(nextTargetSymbol == branchOpenSymbol)
+            if (nextTargetSymbol == branchOpenSymbol)
             {
                 // branch open. don't compare against matcher, just advance.
                 //   only forward through matcher indexes
@@ -116,7 +130,7 @@ namespace Dman.LSystem.SystemRuntime
                 //  check if any matches starting at the matcher index passed in
                 foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck))
                 {
-                    var matchesAtChild = MatchesAtIndex(
+                    var matchesAtChild = MatchesAtIndexOrderAgnostic(
                         new MatchCheckPoint
                         {
                             nextIndexInTargetToCheck = childIndexInTarget,
@@ -130,9 +144,10 @@ namespace Dman.LSystem.SystemRuntime
                     }
                 }
                 return null;
-            }else
+            }
+            else
             {
-                if(nextCheck.nextIndexInMatchToCheck != -1)
+                if (nextCheck.nextIndexInMatchToCheck != -1)
                 {
                     // if its the Origin symbol, don't even check if match. assume it does, proceed to children checking.
                     var matchingSymbol = seriesMatch.targetSymbolSeries[nextCheck.nextIndexInMatchToCheck].targetSymbol;
@@ -151,7 +166,7 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         if (matchedChildren[branchMatchIndex])
                             continue; // if branch matched already, skip.
-                        var consumedMatchesHere = MatchesAtIndex(
+                        var consumedMatchesHere = MatchesAtIndexOrderAgnostic(
                             new MatchCheckPoint
                             {
                                 nextIndexInMatchToCheck = childrenBranchesToMatch[branchMatchIndex],
@@ -177,6 +192,129 @@ namespace Dman.LSystem.SystemRuntime
                 }
                 return null;
             }
+        }
+
+        private struct BranchEventData
+        {
+            public int currentParentIndex;
+            public int openBranchSymbolIndex;
+        }
+
+        /// <summary>
+        /// check for a match, enforcing the same ordering in the target match as defined in the matching pattern.
+        /// </summary>
+        /// <param name="originIndexInTarget"></param>
+        /// <param name="seriesMatch"></param>
+        /// <param name="consumedTargetIndexes"></param>
+        /// <returns></returns>
+        private ImmutableDictionary<int, int> MatchesAtIndexOrderingInvariant(
+            int originIndexInTarget,
+            SymbolSeriesMatcher seriesMatch)
+        {
+            var targetParentIndexStack = new Stack<BranchEventData>();
+            int currentParentIndexInTarget = originIndexInTarget;
+            var indexInMatchTracker = seriesMatch.GetDepthFirstEnumerator().GetEnumerator();
+            indexInMatchTracker.MoveNext();
+
+            var targetIndexesToMatchIndexes = ImmutableDictionary<int, int>.Empty;
+
+            for (int indexInTarget = originIndexInTarget + 1; indexInTarget < symbolStringTarget.Length; indexInTarget++)
+            {
+                var targetSymbol = symbolStringTarget[indexInTarget];
+                if (targetSymbol == branchOpenSymbol)
+                {
+                    targetParentIndexStack.Push(new BranchEventData
+                    {
+                        currentParentIndex = currentParentIndexInTarget,
+                        openBranchSymbolIndex = indexInTarget
+                    });
+                }
+                else if (targetSymbol == branchCloseSymbol)
+                {
+                    if (targetParentIndexStack.Count <= 0)
+                    {
+                        // if we encounter the end of the branch which contains the origin index before full match, fail.
+                        return null;
+                    }
+                    var lastState = targetParentIndexStack.Pop();
+                    currentParentIndexInTarget = lastState.currentParentIndex;
+                    // cache the open/close braces, may as well while we're here.
+                    branchingJumpIndexes[lastState.openBranchSymbolIndex] = indexInTarget;
+                    branchingJumpIndexes[indexInTarget] = lastState.openBranchSymbolIndex;
+                }
+                else
+                {
+                    var indexInMatch = indexInMatchTracker.Current;
+                    var currentTargetMatchesMatcher = TargetSymbolMatchesAndParentMatches(
+                        seriesMatch,
+                        targetIndexesToMatchIndexes,
+                        currentParentIndexInTarget,
+                        targetSymbol,
+                        indexInMatch);
+                    if (currentTargetMatchesMatcher)
+                    {
+                        targetIndexesToMatchIndexes = targetIndexesToMatchIndexes.Add(indexInTarget, indexInMatch);
+                        currentParentIndexInTarget = indexInTarget; // series continuation includes implicit parenting
+                        if (!indexInMatchTracker.MoveNext())
+                        {
+                            return targetIndexesToMatchIndexes;
+                        }
+                    }
+                    else
+                    {
+                        // symbol in target isn't a valid match, so no further symbols in the current target branching structure can match.
+                        // rewind back to the previous branching symbol, and skip this whole structure.
+                        // Or if we're not in a nested structure, fail.
+                        if(targetParentIndexStack.Count <= 0)
+                        {
+                            return null;
+                        }
+                        var lastBranch = targetParentIndexStack.Pop();
+                        currentParentIndexInTarget = lastBranch.currentParentIndex;
+                        indexInTarget = FindClosingBranchIndex(lastBranch.openBranchSymbolIndex);// this gets incremented on the next loop through
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Checks to see if <paramref name="currentSymbolInTarget"/> matches the symbol at <paramref name="currentIndexInMatch"/> in the <paramref name="seriesMatch"/> string.
+        ///     And also if the parent at <paramref name="currentParentIndexInTarget"/> maps to the parent of <paramref name="currentIndexInMatch"/>
+        /// </summary>
+        /// <param name="seriesMatch"></param>
+        /// <param name="targetIndexesToMatchIndexes"></param>
+        /// <param name="currentParentIndexInTarget"></param>
+        /// <param name="currentSymbolInTarget"></param>
+        /// <param name="currentIndexInMatch"></param>
+        /// <returns></returns>
+        private bool TargetSymbolMatchesAndParentMatches(
+            SymbolSeriesMatcher seriesMatch,
+            ImmutableDictionary<int, int> targetIndexesToMatchIndexes,
+            int currentParentIndexInTarget,
+            int currentSymbolInTarget,
+            int currentIndexInMatch
+            )
+        {
+            var symbolInMatch = seriesMatch.targetSymbolSeries[currentIndexInMatch].targetSymbol;
+            if (symbolInMatch == currentSymbolInTarget)
+            {
+                var parentIndexInMatch = seriesMatch.graphParentPointers[currentIndexInMatch];
+                if(parentIndexInMatch == -1)
+                {
+                    // if the parent is the origin, always match.
+                    return true;
+                }
+                var parentIndexInTarget = currentParentIndexInTarget;
+                var indexInMatchOfTargetParentMapped = targetIndexesToMatchIndexes[parentIndexInTarget];
+                // check to ensure the parent of this node in the target graph
+                //  is already mapped to the parent of the node in the 
+                if (parentIndexInMatch == indexInMatchOfTargetParentMapped)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
