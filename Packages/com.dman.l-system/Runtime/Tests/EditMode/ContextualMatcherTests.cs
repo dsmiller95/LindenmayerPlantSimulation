@@ -2,10 +2,11 @@ using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 
 public class ContextualMatcherTests
 {
-    private void AssertForwardsMatch(string target, string matcher, bool shouldMatch, int indexInTarget = 0, string message = null)
+    private void AssertForwardsMatch(string target, string matcher, bool shouldMatch = true, int indexInTarget = 0, string message = null, IEnumerable<(int, int)> expectedMatchToTargetMapping = null)
     {
         var seriesMatcher = new SymbolSeriesMatcher
         {
@@ -15,10 +16,19 @@ public class ContextualMatcherTests
         var branchingCache = new SymbolStringBranchingCache('[', ']');
         branchingCache.SetTargetSymbolString(targetString);
 
-        var matches = branchingCache.MatchesForward(indexInTarget, seriesMatcher);
+        var matchPairings = branchingCache.MatchesForward(indexInTarget, seriesMatcher);
+        var matches = matchPairings != null;
         if (shouldMatch != matches)
         {
             Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
+        }
+        if(shouldMatch && expectedMatchToTargetMapping != null)
+        {
+            foreach (var expectedMatch in expectedMatchToTargetMapping)
+            {
+                Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
+                Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+            }
         }
     }
     private void AssertBackwardsMatch(string target, string matcher, bool shouldMatch, string message = "", int indexInTarget = -1)
@@ -72,6 +82,7 @@ public class ContextualMatcherTests
 
     }
 
+    #region Boolean symbol matching
     [Test]
     public void BasicForwardMatchesOnlyImmediateSiblingNoBranching()
     {
@@ -231,11 +242,11 @@ public class ContextualMatcherTests
     /// <summary>
     ///TODO: partial child matches will fail inconsistently based on ordering of children.
     ///  should be sufficient for most systems. must keep in mind that order matters,
-    ///  when matching child patterns have overlap in their chain
+    ///  under very specific circumstances
     /// Perhaps a completely seperate matching approach, which consolidates the matching pattern sections together,
     ///  would solve this problem.
     /// </summary>
-    [Test]
+    [Test, Ignore("Disordered matching restriction accepted")]
     public void ForwardBranchHandlesSubsetsInMatchString()
     {
         AssertForwardsMatch("EA[BC][B][BCD]", "A[BCD][BC][B]", true);
@@ -244,11 +255,35 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[BC][[B]BCD]", "A[B][BC][BCD]", true);
         AssertForwardsMatch("EA[B][BCD]", "A[B][BC][BCD]", false);
     }
-    [Test]
+    [Test, Ignore("Disordered matching restriction accepted")]
     public void ForwardBranchHandlesEqualComplexityMultipleMatches()
     {
         AssertForwardsMatch("EA[B[D][C]][B[D][C]]", "A[BC][BD]", true);
         AssertForwardsMatch("EA[B[D][C]][B[D]]", "A[BC][BD]", true);
         AssertForwardsMatch("EA[B[D][C]][B[C]]", "A[BC][BD]", true);
     }
+    #endregion
+
+    #region Symbol Mapping
+
+    [Test]
+    public void ForwardMatchBasicSymbolMatch()
+    {
+        AssertForwardsMatch("CA", "A", expectedMatchToTargetMapping: new[] { (0, 1) });
+        AssertForwardsMatch("CAB", "A", expectedMatchToTargetMapping: new[] { (0, 1) });
+        AssertForwardsMatch("CACE", "A", expectedMatchToTargetMapping: new[] { (0, 1) });
+    }
+    [Test]
+    public void ForwardMatchTreeStructureMapping()
+    {
+        AssertForwardsMatch("EA[B][C]", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 3), (5, 6) });
+        AssertForwardsMatch("EA[[B]C]", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 4), (5, 6) });
+        AssertForwardsMatch("EA[C]B", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 5), (5, 3) });
+    }
+    [Test]
+    public void ForwardBranchMultipleIdenticleBranchesMapped()
+    {
+        AssertForwardsMatch("EA[BC][B][BCD]", "A[B][B][B]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 3), (5, 7), (8, 10) });
+    }
+    #endregion
 }

@@ -56,8 +56,8 @@ namespace Dman.LSystem.SystemRuntime
         /// </summary>
         /// <param name="indexInSymbolTarget"></param>
         /// <param name="seriesMatch"></param>
-        /// <returns></returns>
-        public bool MatchesForward(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch)
+        /// <returns>a mapping from all symbols in seriesMatch back into the target string</returns>
+        public IDictionary<int, int> MatchesForward(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch)
         {
             if (seriesMatch.graphChildPointers == null)
             {
@@ -69,15 +69,18 @@ namespace Dman.LSystem.SystemRuntime
             //  starts out as a copy of the child count array. each leaf will be at 0, and will go negative when matched.
             //var remainingMatchesAtIndexes = seriesMatch.childrenCounts.Clone() as int[];
 
-            var consumedTargets = ImmutableHashSet<int>.Empty;
+            var remappedSymbols = ImmutableDictionary<int, int>.Empty;
             var matchedSet = MatchesAtIndex(new MatchCheckPoint
             {
                 nextIndexInMatchToCheck = -1,
                 nextIndexInTargetToCheck = indexInSymbolTarget
             },
             seriesMatch,
-            consumedTargets);
-            return matchedSet != null;
+            remappedSymbols);
+
+            // invert the dictionary here, switching from mapping from target string into matcher string
+            // to mapping from the matcher string into the target string
+            return matchedSet?.ToDictionary(x => x.Value, x => x.Key);
 
             //return false;
         }
@@ -90,14 +93,17 @@ namespace Dman.LSystem.SystemRuntime
         ///     indexes of symbols in the target string which have been matched against. These indexes will never be used as
         ///     part of any match
         /// </param>
-        /// <returns>a set of the indexes in the target which have been consumed as a result of the matches. null if no match.</returns>
-        private ImmutableHashSet<int> MatchesAtIndex(MatchCheckPoint nextCheck, SymbolSeriesMatcher seriesMatch, ImmutableHashSet<int> consumedTargetIndexes)
+        /// <returns>
+        ///     a dictionary of the indexes in the target which have been consumed as a result of the matches, mapped to the index of the symbol in the matching pattern.
+        ///     null if no match.
+        /// </returns>
+        private ImmutableDictionary<int, int> MatchesAtIndex(MatchCheckPoint nextCheck, SymbolSeriesMatcher seriesMatch, ImmutableDictionary<int, int> consumedTargetIndexes)
         {
             if (nextCheck.nextIndexInTargetToCheck >= symbolStringTarget.Length)
             {
                 return null;
             }
-            if (consumedTargetIndexes.Contains(nextCheck.nextIndexInTargetToCheck))
+            if (consumedTargetIndexes.ContainsKey(nextCheck.nextIndexInTargetToCheck))
             {
                 return null;
             }
@@ -120,8 +126,7 @@ namespace Dman.LSystem.SystemRuntime
                         consumedTargetIndexes);
                     if (matchesAtChild != null)
                     {
-                        // TODO: some way to mark branching symbols as consumed?
-                        return consumedTargetIndexes.Union(matchesAtChild);
+                        return consumedTargetIndexes.AddRange(matchesAtChild);
                     }
                 }
                 return null;
@@ -160,7 +165,7 @@ namespace Dman.LSystem.SystemRuntime
                             // tracking consumed targets here is necessary because each branch is capable of matching multiple matcher patterns,
                             //  by containing internal nesting.for example a target string of A[[B]B][B] will match a matching pattern of A[B][B][B].
                             //  consumed symbols is used to ensure all 3 of the unique branches in the pattern do not match on the same first occurence of B
-                            consumedTargetIndexes = consumedTargetIndexes.Union(consumedMatchesHere);
+                            consumedTargetIndexes = consumedTargetIndexes.AddRange(consumedMatchesHere);
                         }
                     }
                 }
@@ -168,7 +173,7 @@ namespace Dman.LSystem.SystemRuntime
                 if (matchedChildren.All(x => x))
                 {
                     // all branches matched. success!
-                    return consumedTargetIndexes.Add(nextCheck.nextIndexInTargetToCheck);
+                    return consumedTargetIndexes.Add(nextCheck.nextIndexInTargetToCheck, nextCheck.nextIndexInMatchToCheck);
                 }
                 return null;
             }
