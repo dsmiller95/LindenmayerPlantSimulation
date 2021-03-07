@@ -154,7 +154,7 @@ namespace Dman.LSystem.SystemCompiler
                     var probabilityDeviation = System.Math.Abs(group.Sum(x => x.probability) - 1);
                     if (probabilityDeviation > 1e-30)
                     {
-                        throw new System.Exception($"Error: group for {group.Key.TargetSymbolString()}"
+                        throw new LSystemRuntimeException($"Error: group for {group.Key.TargetSymbolString()}"
                             + $" has probability {probabilityDeviation} away from 1");
                     }
                     return new BasicRule(group);

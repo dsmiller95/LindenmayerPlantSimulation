@@ -1,5 +1,6 @@
 using Dman.LSystem;
 using Dman.LSystem.SystemCompiler;
+using Dman.LSystem.SystemRuntime;
 using NUnit.Framework;
 
 public class LSystemTests
@@ -463,6 +464,55 @@ public class LSystemTests
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("FBBCD", state.currentSymbols.ToString());
     }
+    [Test]
+    public void LSystemAppliesContextualRulesStochasticly()
+    {
+        LSystemState<double> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "A -> AB",
+            "B -> A",
+            "P(0.5) | A > A ->",
+            "P(0.5) | A > A -> A",
+            "A < A -> B"
+        });
+
+        Assert.AreEqual("B", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("A", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("AB", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABA", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABAAB", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABABA", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABAABAAB", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABAABAABA", state.currentSymbols.ToString());
+    }
+    [Test]
+    public void LSystemAppliesContextualRulesOfEqualComplexityInDefinitionOrder()
+    {
+        LSystemState<double> state = new DefaultLSystemState("AAA");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "    A > A -> B",
+            "A < A     -> C"
+        });
+        Assert.AreEqual("AAA", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("BBC", state.currentSymbols.ToString());
+
+        state = new DefaultLSystemState("AAA");
+        basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "A < A     -> C",
+            "    A > A -> B"
+        });
+        Assert.AreEqual("AAA", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("BCC", state.currentSymbols.ToString());
+    }
 
     [Test]
     public void RuleCompilationFailsWhenConflictingRules()
@@ -472,6 +522,17 @@ public class LSystemTests
             var compiledRules = RuleParser.CompileRules(new string[] {
                 "A -> AB",
                 "A -> CA",
+            });
+        });
+    }
+    [Test]
+    public void RuleCompilationFailsWhenContextMatchesOfDifferentTypesTryToShareProbability()
+    {
+        Assert.Throws<LSystemRuntimeException>(() =>
+        {
+            var compiledRules = RuleParser.CompileRules(new string[] {
+                "P(0.5) | A > B -> AB",
+                "P(0.5) | A > BC -> CA",
             });
         });
     }
