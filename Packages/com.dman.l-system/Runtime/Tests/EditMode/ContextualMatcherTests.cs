@@ -219,6 +219,23 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[B[C]][B[D]]", "A[B[C][D]]", false);
     }
     [Test]
+    public void ForwardBranchMultipleIdenticleBranchesRequired()
+    {
+        AssertForwardsMatch("EA[BC][B][BCD]", "A[B][B][B]", true);
+        AssertForwardsMatch("EA[B][B][B]", "A[B][B][B]", true);
+        AssertForwardsMatch("EA[[B]B][B]", "A[B][B][B]", true);
+        AssertForwardsMatch("EA[B][B]", "A[B][B][B]", false);
+        AssertForwardsMatch("EA[BC][BD]", "A[B][B][B]", false);
+    }
+
+    /// <summary>
+    ///TODO: partial child matches will fail inconsistently based on ordering of children.
+    ///  should be sufficient for most systems. must keep in mind that order matters,
+    ///  when matching child patterns have overlap in their chain
+    /// Perhaps a completely seperate matching approach, which consolidates the matching pattern sections together,
+    ///  would solve this problem.
+    /// </summary>
+    [Test]
     public void ForwardBranchHandlesSubsetsInMatchString()
     {
         AssertForwardsMatch("EA[BC][B][BCD]", "A[BCD][BC][B]", true);
@@ -228,12 +245,10 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[B][BCD]", "A[B][BC][BCD]", false);
     }
     [Test]
-    public void ForwardBranchMultipleIdenticleBranchesRequired()
+    public void ForwardBranchHandlesEqualComplexityMultipleMatches()
     {
-        AssertForwardsMatch("EA[BC][B][BCD]", "A[B][B][B]", true);
-        AssertForwardsMatch("EA[B][B][B]", "A[B][B][B]", true);
-        AssertForwardsMatch("EA[[B]B][B]", "A[B][B][B]", true);
-        AssertForwardsMatch("EA[B][B]", "A[B][B][B]", false);
-        AssertForwardsMatch("EA[BC][BD]", "A[B][B][B]", false);
+        AssertForwardsMatch("EA[B[D][C]][B[D][C]]", "A[BC][BD]", true);
+        AssertForwardsMatch("EA[B[D][C]][B[D]]", "A[BC][BD]", true);
+        AssertForwardsMatch("EA[B[D][C]][B[C]]", "A[BC][BD]", true);
     }
 }
