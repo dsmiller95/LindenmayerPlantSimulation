@@ -82,14 +82,14 @@ public class ContextualMatcherTests
         {
             Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match backwards from {indexInTarget} in '{target}'");
         }
-        //if (shouldMatch && expectedMatchToTargetMapping != null)
-        //{
-        //    foreach (var expectedMatch in expectedMatchToTargetMapping)
-        //    {
-        //        Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
-        //        Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
-        //    }
-        //}
+        if (shouldMatch && expectedMatchToTargetMapping != null)
+        {
+            foreach (var expectedMatch in expectedMatchToTargetMapping)
+            {
+                Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
+                Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+            }
+        }
     }
     [Test]
     public void NoBranchingBackwardsMatch()

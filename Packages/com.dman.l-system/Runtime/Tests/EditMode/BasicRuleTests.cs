@@ -152,7 +152,7 @@ public class BasicRuleTests
     public void ContextualRuleCapturesParametersFromPrefixAndSuffix()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("B(x) < A(y) > B(z) -> B((x - y)/z)"));
-        var symbols = new SymbolString<double>("BA".Select(x => (int)x).ToArray(), new double[][] { new[] { 20.0 }, new[] { 3.1 }, new[] { 2.0 } });
+        var symbols = new SymbolString<double>("BAB".Select(x => (int)x).ToArray(), new double[][] { new[] { 20.0 }, new[] { 3.1 }, new[] { 2.0 } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 

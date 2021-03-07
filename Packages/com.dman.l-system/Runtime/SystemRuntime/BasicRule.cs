@@ -78,14 +78,25 @@ namespace Dman.LSystem.SystemRuntime
             }
 
             // context match
-            if (ContextPrefix != null)
+            if (ContextPrefix != null && ContextPrefix.targetSymbolSeries?.Length > 0)
             {
-                var backwardMatch = branchingCache.MatchesBackwards(indexInSymbols, ContextSuffix);
+                var backwardMatch = branchingCache.MatchesBackwards(indexInSymbols, ContextPrefix);
                 if (backwardMatch == null)
                 {
                     return null;
                 }
-                // TODO: get parameters
+                for (int indexInPrefix = 0; indexInPrefix < ContextPrefix.targetSymbolSeries.Length; indexInPrefix++)
+                {
+                    if (!backwardMatch.TryGetValue(indexInPrefix, out var matchingTargetIndex))
+                    {
+                        continue;
+                    }
+                    var nextSymbol = symbols.parameters[matchingTargetIndex];
+                    foreach (var paramValue in nextSymbol)
+                    {
+                        orderedMatchedParameters.Add(paramValue);
+                    }
+                }
             }
 
             var coreParameter = symbols.parameters[indexInSymbols];
@@ -101,7 +112,7 @@ namespace Dman.LSystem.SystemRuntime
                 }
             }
 
-            if (ContextSuffix != null)
+            if (ContextSuffix != null && ContextSuffix.targetSymbolSeries?.Length > 0)
             {
                 var forwardMatch = branchingCache.MatchesForward(indexInSymbols, ContextSuffix, false);
                 if (forwardMatch == null)
@@ -120,8 +131,6 @@ namespace Dman.LSystem.SystemRuntime
                         orderedMatchedParameters.Add(paramValue);
                     }
                 }
-
-                //TODO: get parameters
             }
 
 

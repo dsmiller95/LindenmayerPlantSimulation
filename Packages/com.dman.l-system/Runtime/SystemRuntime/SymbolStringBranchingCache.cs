@@ -128,6 +128,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                     else if (currentSymbol == symbolToMatch)
                     {
+                        matcherIndexToTargetIndex[matchingIndex] = indexInSymbolTarget;
                         indexInSymbolTarget--;
                         break;
                     }
