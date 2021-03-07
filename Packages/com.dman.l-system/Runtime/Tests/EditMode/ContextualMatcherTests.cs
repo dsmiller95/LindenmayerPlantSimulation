@@ -146,7 +146,7 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[B][C]", "A[B][C]", true);
         AssertForwardsMatch("EA[[B]C]", "A[B][C]", true);
         AssertForwardsMatch("EA[B]C", "A[B][C]", true);
-        AssertForwardsMatch("EAC[B]", "A[B][C]", true);
+        AssertForwardsMatch("EAC[B]", "A[B][C]", false);
     }
     [Test]
     public void ForwardsDoubleMatchTreeStructureWhenIndividualsNotNested()
@@ -221,6 +221,7 @@ public class ContextualMatcherTests
     [Test]
     public void ForwardBranchHandlesSubsetsInMatchString()
     {
+        AssertForwardsMatch("EA[BC][B][BCD]", "A[BCD][BC][B]", true);
         AssertForwardsMatch("EA[BC][B][BCD]", "A[B][BC][BCD]", true);
         AssertForwardsMatch("EA[BC][BCD]", "A[B][BC][BCD]", false);
         AssertForwardsMatch("EA[BC][[B]BCD]", "A[B][BC][BCD]", true);

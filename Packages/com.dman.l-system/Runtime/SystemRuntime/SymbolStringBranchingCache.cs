@@ -42,8 +42,8 @@ namespace Dman.LSystem.SystemRuntime
 
         struct MatchCheckPoint
         {
-            public int lastMatchedIndexInTarget;
-            public int lastMatchedIndexInMatcher;
+            public int nextIndexInTargetToCheck;
+            public int nextIndexInMatchToCheck;
         }
 
         /// <summary>
@@ -72,8 +72,8 @@ namespace Dman.LSystem.SystemRuntime
             var consumedTargets = ImmutableHashSet<int>.Empty;
             var matchedSet = MatchesAtIndex(new MatchCheckPoint
             {
-                lastMatchedIndexInMatcher = -1,
-                lastMatchedIndexInTarget = indexInSymbolTarget
+                nextIndexInMatchToCheck = -1,
+                nextIndexInTargetToCheck = indexInSymbolTarget
             },
             seriesMatch,
             consumedTargets);
@@ -83,9 +83,6 @@ namespace Dman.LSystem.SystemRuntime
         }
 
         /// <summary>
-        /// Entry conditions:
-        ///     the symbols indexed by <paramref name="nextCheck"/> have already been compared, and do match.
-        ///     The symbols indexed by <paramref name="nextCheck"/> are not present in <paramref name="consumedTargetIndexes"/>
         /// </summary>
         /// <param name="nextCheck"></param>
         /// <param name="seriesMatch"></param>
@@ -96,158 +93,109 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns>a set of the indexes in the target which have been consumed as a result of the matches. null if no match.</returns>
         private ImmutableHashSet<int> MatchesAtIndex(MatchCheckPoint nextCheck, SymbolSeriesMatcher seriesMatch, ImmutableHashSet<int> consumedTargetIndexes)
         {
-            var children = seriesMatch.graphChildPointers[nextCheck.lastMatchedIndexInMatcher + 1];
-            if (children.Length == 0)
-            {
-                // wat do when terminated?
-                // probably just return success, since subset matching. Termination of matcher tree
-                //  without mismatch means success
-                return consumedTargetIndexes;
-            }
-
-            var nextTargetIndex = nextCheck.lastMatchedIndexInTarget + 1;
-            if(nextTargetIndex >= symbolStringTarget.Length)
+            if (nextCheck.nextIndexInTargetToCheck >= symbolStringTarget.Length)
             {
                 return null;
             }
-
-            int nextTargetSymbol = symbolStringTarget[nextTargetIndex];
-
-            // skip over all branching structures marked as consumed
-            while (nextTargetIndex < symbolStringTarget.Length
-                && consumedTargetIndexes.Contains(nextTargetIndex)
-                && (nextTargetSymbol = symbolStringTarget[nextTargetIndex]) == branchOpenSymbol)
-            {
-                nextTargetIndex = FindClosingBranchIndex(nextTargetIndex) + 1;
-            }
-            if (consumedTargetIndexes.Contains(nextTargetIndex))
+            if (consumedTargetIndexes.Contains(nextCheck.nextIndexInTargetToCheck))
             {
                 return null;
             }
-
-
-            if (nextTargetSymbol == branchOpenSymbol)
+            int nextTargetSymbol = symbolStringTarget[nextCheck.nextIndexInTargetToCheck];
+            if(nextTargetSymbol == branchOpenSymbol)
             {
-                var matchesInsideDirectNested = MatchesAtIndex(
-                    new MatchCheckPoint
-                    {
-                        lastMatchedIndexInMatcher = nextCheck.lastMatchedIndexInMatcher,
-                        lastMatchedIndexInTarget = nextTargetIndex
-                    }, seriesMatch, consumedTargetIndexes);
-                if (matchesInsideDirectNested != null)
-                {
-                    return consumedTargetIndexes.Union(matchesInsideDirectNested).Add(nextTargetIndex);
-                }
-            }
-
-            int[] matcherBranches = children
-                .Select(x => x - 1)
-                .Where(x => seriesMatch.targetSymbolSeries[x].targetSymbol == branchOpenSymbol)
-                .ToArray();
-            // tracks the child branches in the matcher that have been matched against
-            bool[] matchedBranches = new bool[matcherBranches.Length];
-            // TODO: sort the branches by a complexity constant, matching most complex branches first.
-            //   can be analized as part of the parent/child branching parser.
-
-            bool hasSeriesContinuation = matcherBranches.Length < children.Length;
-            int seriesContinuationMatcherIndex = -2;
-            if (hasSeriesContinuation)
-            {
-                seriesContinuationMatcherIndex = children[children.Length - 1] - 1;
-            }
-
-
-            if (matcherBranches.Length > 0)
-            {
-                if (nextTargetSymbol != branchOpenSymbol)
-                {
-                    return null;
-                }
-                //var consumedIndexesBuilder = consumedTargetSymbols.ToBuilder();
-
+                // branch open. don't compare against matcher, just advance.
+                //   only forward through matcher indexes
                 // for every branching structure in target,
-                //  check all of the matcher's child branches against each
-                while (nextTargetIndex < symbolStringTarget.Length
-                    && (nextTargetSymbol = symbolStringTarget[nextTargetIndex]) == branchOpenSymbol)
+                //  check if any matches starting at the matcher index passed in
+                foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck))
+                {
+                    var matchesAtChild = MatchesAtIndex(
+                        new MatchCheckPoint
+                        {
+                            nextIndexInTargetToCheck = childIndexInTarget,
+                            nextIndexInMatchToCheck = nextCheck.nextIndexInMatchToCheck
+                        },
+                        seriesMatch,
+                        consumedTargetIndexes);
+                    if (matchesAtChild != null)
+                    {
+                        // TODO: some way to mark branching symbols as consumed?
+                        return consumedTargetIndexes.Union(matchesAtChild);
+                    }
+                }
+                return null;
+            }else
+            {
+                if(nextCheck.nextIndexInMatchToCheck != -1)
+                {
+                    // if its the Origin symbol, don't even check if match. assume it does, proceed to children checking.
+                    var matchingSymbol = seriesMatch.targetSymbolSeries[nextCheck.nextIndexInMatchToCheck].targetSymbol;
+                    if (matchingSymbol != nextTargetSymbol)
+                    {
+                        return null;
+                    }
+                }
+                var childrenBranchesToMatch = seriesMatch.graphChildPointers[nextCheck.nextIndexInMatchToCheck + 1].Select(x => x - 1).ToArray();
+                bool[] matchedChildren = new bool[childrenBranchesToMatch.Length];
+
+                foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck))
                 {
                     // TODO: early exit if all branches matched
-                    for (int branchMatchIndex = 0; branchMatchIndex < matcherBranches.Length; branchMatchIndex++)
+                    for (int branchMatchIndex = 0; branchMatchIndex < childrenBranchesToMatch.Length; branchMatchIndex++)
                     {
-                        if (matchedBranches[branchMatchIndex])
+                        if (matchedChildren[branchMatchIndex])
                             continue; // if branch matched already, skip.
                         var consumedMatchesHere = MatchesAtIndex(
                             new MatchCheckPoint
                             {
-                                lastMatchedIndexInMatcher = matcherBranches[branchMatchIndex],
-                                lastMatchedIndexInTarget = nextTargetIndex
+                                nextIndexInMatchToCheck = childrenBranchesToMatch[branchMatchIndex],
+                                nextIndexInTargetToCheck = childIndexInTarget
                             },
                             seriesMatch,
                             consumedTargetIndexes);
-                        if(consumedMatchesHere != null)
+                        if (consumedMatchesHere != null)
                         {
-                            matchedBranches[branchMatchIndex] = true;
+                            matchedChildren[branchMatchIndex] = true;
                             // tracking consumed targets here is necessary because each branch is capable of matching multiple matcher patterns,
                             //  by containing internal nesting.for example a target string of A[[B]B][B] will match a matching pattern of A[B][B][B].
                             //  consumed symbols is used to ensure all 3 of the unique branches in the pattern do not match on the same first occurence of B
                             consumedTargetIndexes = consumedTargetIndexes.Union(consumedMatchesHere);
                         }
                     }
-                    consumedTargetIndexes = consumedTargetIndexes.Add(nextTargetIndex);
-
-                    nextTargetIndex = FindClosingBranchIndex(nextTargetIndex) + 1;
                 }
 
-                if (!matchedBranches.All(x => x))
+                if (matchedChildren.All(x => x))
                 {
-                    // not all branches matched. fail.
-                    return null;
+                    // all branches matched. success!
+                    return consumedTargetIndexes.Add(nextCheck.nextIndexInTargetToCheck);
                 }
-            }
-            else
-            {
-                // skip over all branching structures in target
-                while (nextTargetIndex < symbolStringTarget.Length
-                    && (nextTargetSymbol = symbolStringTarget[nextTargetIndex]) == branchOpenSymbol)
-                {
-                    nextTargetIndex = FindClosingBranchIndex(nextTargetIndex) + 1;
-                }
-            }
-            if (!hasSeriesContinuation || seriesContinuationMatcherIndex < 0)
-            {
-                // no series continuation. we're done
-                return consumedTargetIndexes;
-            }
-            if (nextTargetIndex >= symbolStringTarget.Length)
-            {
-                // matcher series continues, but target string has terminated.
-                return null;
-            }
-
-            var nextMatcherSymbol = seriesMatch.targetSymbolSeries[seriesContinuationMatcherIndex].targetSymbol;
-
-
-            if (nextMatcherSymbol == nextTargetSymbol)
-            {
-                var continuedMatch = MatchesAtIndex(new MatchCheckPoint
-                {
-                    lastMatchedIndexInMatcher = seriesContinuationMatcherIndex,
-                    lastMatchedIndexInTarget = nextTargetIndex
-                }, seriesMatch, consumedTargetIndexes);
-                if (continuedMatch != null)
-                {
-                    //TODO: how handle deep recursion, which requires these changes to be undone?
-                    return continuedMatch.Add(nextTargetIndex);
-                }else
-                {
-                    return null;
-                }
-            }
-            else
-            {
                 return null;
             }
         }
 
+        /// <summary>
+        /// returns indexes of all structures which can be children of the symbol at <paramref name="originIndex"/>
+        /// will return 1, 4 when run starting at 0 for string: "A[B]CD"
+        /// </summary>
+        /// <param name="originIndex"></param>
+        /// <returns></returns>
+        private IEnumerable<int> GetIndexesInTargetOfAllChildren(int originIndex)
+        {
+            int childStructureIndexInTarget = originIndex + 1;
+            // for every branching structure in target,
+            //  check if any matches starting at the matcher index passed in
+            while (childStructureIndexInTarget < symbolStringTarget.Length
+                && symbolStringTarget[childStructureIndexInTarget] == branchOpenSymbol)
+            {
+                yield return childStructureIndexInTarget;
+                childStructureIndexInTarget = FindClosingBranchIndex(childStructureIndexInTarget) + 1;
+            }
+            if (childStructureIndexInTarget < symbolStringTarget.Length)
+            {
+                yield return childStructureIndexInTarget;
+            }
+        }
         public bool MatchesBackwards(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch)
         {
             indexInSymbolTarget--;
