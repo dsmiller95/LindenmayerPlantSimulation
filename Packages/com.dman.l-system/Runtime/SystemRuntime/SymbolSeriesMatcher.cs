@@ -4,25 +4,13 @@ using System.Linq;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    internal class SymbolSeriesMatcher
+    public class SymbolSeriesMatcher
     {
         public InputSymbol[] targetSymbolSeries;
 
-        /// <summary>
-        /// -1 is valid, indicating the parent is the entry point to the graph.
-        ///     -2 is invalid, and indicates a node with no parent.
-        /// All other values will be indexes in <see cref="targetSymbolSeries"/>
-        /// </summary>
-        /// <param name="symbolIndex"></param>
-        /// <returns></returns>
-        public int ParentOf(int symbolIndex)
+        public SymbolSeriesMatcher(InputSymbol[] matchingSeries)
         {
-            return graphParentPointers[symbolIndex];
-        }
-
-        public bool IsLeaf(int symbolIndex)
-        {
-            return graphChildPointers[symbolIndex + 1].Length <= 0;
+            this.targetSymbolSeries = matchingSeries;
         }
 
         /// <summary>
@@ -250,10 +238,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public static SymbolSeriesMatcher Parse(string symbolString)
         {
-            return new SymbolSeriesMatcher
-            {
-                targetSymbolSeries = InputSymbolParser.ParseInputSymbols(symbolString)
-            };
+            return new SymbolSeriesMatcher(InputSymbolParser.ParseInputSymbols(symbolString));
         }
     }
 }

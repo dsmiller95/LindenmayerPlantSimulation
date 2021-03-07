@@ -48,6 +48,11 @@ namespace Dman.LSystem.SystemCompiler
             return $"{TargetSymbolString()} -> {ReplacementSymbolString()}";
         }
 
+        /// <summary>
+        /// returns all parameter names in the match pattern, in the order they would have appeared in the rule string
+        ///     including parameter names captured as part of a contextual match
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> TargetSymbolParameterNames()
         {
             var result = new List<string>();

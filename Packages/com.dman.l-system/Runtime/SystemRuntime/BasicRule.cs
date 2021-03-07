@@ -9,8 +9,12 @@ namespace Dman.LSystem.SystemRuntime
         /// <summary>
         /// the symbol which this rule will replace. Apply rule will only ever be called with this symbol.
         /// </summary>
-        public int TargetSymbol => _targetSymbol;
-        private readonly int _targetSymbol;
+        public int TargetSymbol => _targetSymbolWithParameters.targetSymbol;
+
+        public SymbolSeriesMatcher ContextPrefix {get; private set;}
+
+        public SymbolSeriesMatcher ContextSuffix { get; private set; }
+
 
         private readonly InputSymbol _targetSymbolWithParameters;
         private System.Delegate conditionalChecker;
@@ -20,8 +24,6 @@ namespace Dman.LSystem.SystemRuntime
         public BasicRule(ParsedRule parsedInfo)
         {
             _targetSymbolWithParameters = parsedInfo.coreSymbol;
-            _targetSymbol = _targetSymbolWithParameters.targetSymbol;
-            conditionalChecker = parsedInfo.conditionalMatch;
             possibleOutcomes = new RuleOutcome[] {
                 new RuleOutcome
                 {
@@ -29,6 +31,10 @@ namespace Dman.LSystem.SystemRuntime
                     replacementSymbols = parsedInfo.replacementSymbols
                 }
             };
+
+            conditionalChecker = parsedInfo.conditionalMatch;
+            ContextPrefix = new SymbolSeriesMatcher(parsedInfo.backwardsMatch);
+            ContextSuffix = new SymbolSeriesMatcher(parsedInfo.forwardsMatch);
         }
         public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules)
         {
@@ -40,9 +46,10 @@ namespace Dman.LSystem.SystemRuntime
                 }).ToArray();
             var firstOutcome = parsedRules.First();
             _targetSymbolWithParameters = firstOutcome.coreSymbol;
-            _targetSymbol = _targetSymbolWithParameters.targetSymbol;
 
             conditionalChecker = firstOutcome.conditionalMatch;
+            ContextPrefix = new SymbolSeriesMatcher(firstOutcome.backwardsMatch);
+            ContextSuffix = new SymbolSeriesMatcher(firstOutcome.forwardsMatch);
         }
 
         /// <summary>
@@ -52,11 +59,15 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="symbolParameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
         public SymbolString<double> ApplyRule(
+            SymbolStringBranchingCache branchingCache,
             SymbolString<double> symbols,
             int indexInSymbols,
             ref Unity.Mathematics.Random random,
             double[] globalRuntimeParameters = null)
         {
+            var target = _targetSymbolWithParameters;
+
+            // parameters
             var orderedMatchedParameters = new List<object>();
             if (globalRuntimeParameters != null)
             {
@@ -65,32 +76,59 @@ namespace Dman.LSystem.SystemRuntime
                     orderedMatchedParameters.Add(globalParam);
                 }
             }
-            //for (int targetSymbolIndex = 0; targetSymbolIndex < _targetSymbolsWithParameters.Length; targetSymbolIndex++)
-            //{
-            var target = _targetSymbolWithParameters;
-            var parameter = symbols.parameters[indexInSymbols];
-            if (parameter == null)
+
+            // context match
+            if (ContextPrefix != null)
             {
-                if (target.parameterLength > 0)
+                var backwardMatch = branchingCache.MatchesBackwards(indexInSymbols, ContextSuffix);
+                if (backwardMatch == null)
                 {
                     return null;
                 }
+                // TODO: get parameters
             }
-            else
+
+            var coreParameter = symbols.parameters[indexInSymbols];
+            if ((coreParameter?.Length ?? 0) != target.parameterLength)
             {
-                if (target.parameterLength != parameter.Length)
+                return null;
+            }
+            if (coreParameter != null)
+            {
+                for (int parameterIndex = 0; parameterIndex < coreParameter.Length; parameterIndex++)
+                {
+                    orderedMatchedParameters.Add(coreParameter[parameterIndex]);
+                }
+            }
+
+            if (ContextSuffix != null)
+            {
+                var forwardMatch = branchingCache.MatchesForward(indexInSymbols, ContextSuffix, false);
+                if (forwardMatch == null)
                 {
                     return null;
                 }
-                for (int parameterIndex = 0; parameterIndex < parameter.Length; parameterIndex++)
+                for (int indexInSuffix = 0; indexInSuffix < ContextSuffix.targetSymbolSeries.Length; indexInSuffix++)
                 {
-                    orderedMatchedParameters.Add(parameter[parameterIndex]);
+                    if(!forwardMatch.TryGetValue(indexInSuffix, out var matchingTargetIndex))
+                    {
+                        continue;
+                    }
+                    var nextSymbol = symbols.parameters[matchingTargetIndex];
+                    foreach (var paramValue in nextSymbol)
+                    {
+                        orderedMatchedParameters.Add(paramValue);
+                    }
                 }
+
+                //TODO: get parameters
             }
-            //}
+
+
 
             var paramArray = orderedMatchedParameters.ToArray();
 
+            // conditional
             if (conditionalChecker != null)
             {
                 var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
@@ -106,9 +144,10 @@ namespace Dman.LSystem.SystemRuntime
                 }
             }
 
-
+            // stochastic selection
             RuleOutcome outcome = SelectOutcome(ref random);
 
+            // replacement
             return outcome.GenerateReplacement(paramArray);
         }
 

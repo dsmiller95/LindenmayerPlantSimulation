@@ -6,7 +6,7 @@ namespace Dman.LSystem.SystemRuntime
     /// <summary>
     /// represents a single target matcher. Used to match input symbols and input parameters
     /// </summary>
-    internal class InputSymbol : System.IEquatable<InputSymbol>
+    public class InputSymbol : System.IEquatable<InputSymbol>
     {
         public int targetSymbol { get; private set; }
         public int parameterLength => namedParameters.Length;
@@ -18,6 +18,8 @@ namespace Dman.LSystem.SystemRuntime
             this.targetSymbol = targetSymbol;
             namedParameters = namedParams.ToArray();
         }
+
+
 
         public override string ToString()
         {

@@ -36,6 +36,29 @@ public class LSystemTests
     }
 
     [Test]
+    public void LSystemAppliesContextualRulesWithUniqueOrigins()
+    {
+        LSystemState<double> state = new DefaultLSystemState("A");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "A -> AB",
+            "B -> CDC",
+            "D > C -> A",
+            "D < C > D -> B"
+        });
+
+        Assert.AreEqual("A", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("AB", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABCDC", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABCDCCAC", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABCDCCACCABC", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABCDCCACCABCCABCDCC", state.currentSymbols.ToString());
+    }
+    [Test]
     public void LSystemAppliesFlatContextualRules()
     {
         LSystemState<double> state = new DefaultLSystemState("B");
@@ -422,6 +445,23 @@ public class LSystemTests
             systemCopyAt5 = basicLSystem.StepSystem(systemCopyAt5, defaultGlobalParams);
             Assert.AreEqual(expectedResultSequence[i], systemCopyAt5.currentSymbols.ToString(), $"Index {i}");
         }
+    }
+
+    [Test]
+    public void LSystemPrioritizesContextualRulesBySize()
+    {
+        LSystemState<double> state = new DefaultLSystemState("AABCD");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "A -> B",
+            "A > A -> C",
+            "A > AB -> D",
+            "A > ABC -> E",
+            "A > ABCD -> F",
+        });
+
+        Assert.AreEqual("AABCD", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("FBBCD", state.currentSymbols.ToString());
     }
 
     [Test]

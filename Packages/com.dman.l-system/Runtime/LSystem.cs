@@ -59,12 +59,23 @@ namespace Dman.LSystem
         /// </summary>
         public int GlobalParameters { get; private set; }
 
+        public int branchOpenSymbol;
+        public int branchCloseSymbol;
+        /// <summary>
+        /// Defaults to false. fully ordering agnostic matching is not yet implemented, setting to true will result in an approximation
+        ///     with some failures on edge cases involving subsets of matches. look at the context matcher tests for more details.
+        /// </summary>
+        public bool orderingAgnosticContextMatching = false;
 
         public LSystem(
             IEnumerable<IRule<T>> rules,
-            int expectedGlobalParameters = 0)
+            int expectedGlobalParameters = 0,
+            int branchOpenSymbol = '[',
+            int branchCloseSymbol = ']')
         {
             GlobalParameters = expectedGlobalParameters;
+            this.branchOpenSymbol = branchOpenSymbol;
+            this.branchCloseSymbol = branchCloseSymbol;
 
             rulesByTargetSymbol = new Dictionary<int, IList<IRule<T>>>();
             foreach (var rule in rules)
@@ -79,7 +90,7 @@ namespace Dman.LSystem
             foreach (var symbol in rulesByTargetSymbol.Keys.ToList())
             {
                 rulesByTargetSymbol[symbol] = rulesByTargetSymbol[symbol]
-                    // .OrderByDescending(x => x.TargetSymbolSeries.Length)
+                    .OrderByDescending(x => (x.ContextPrefix?.targetSymbolSeries?.Length ?? 0) + (x.ContextSuffix?.targetSymbolSeries?.Length ?? 0))
                     .ToList();
             }
         }
@@ -109,6 +120,9 @@ namespace Dman.LSystem
 
         private SymbolString<T>[] GenerateNextSymbols(SymbolString<T> symbolState, ref Unity.Mathematics.Random random, T[] globalParameters)
         {
+            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol);
+            tmpBranchingCache.SetTargetSymbolString(symbolState);
+
             var resultArray = new SymbolString<T>[symbolState.symbols.Length];
             for (int symbolIndex = 0; symbolIndex < symbolState.symbols.Length;)
             {
@@ -119,8 +133,9 @@ namespace Dman.LSystem
                 {
                     foreach (var rule in ruleList)
                     {
-                        var symbolMatch = rule.TargetSymbol;
+                        // check if match
                         var result = rule.ApplyRule(
+                            tmpBranchingCache,
                             symbolState,
                             symbolIndex,
                             ref random,

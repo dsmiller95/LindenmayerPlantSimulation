@@ -101,6 +101,23 @@ public class RuleParserTests
         Assert.AreEqual("B(x) > A(y, z)", ruleFromString.TargetSymbolString());
         Assert.AreEqual("B", ruleFromString.ReplacementSymbolString());
     }
+
+    [Test]
+    public void ParsesRuleWithFullContextParametersInOrder()
+    {
+        var ruleFromString = RuleParser.ParseToRule("C(x) < K(y) > A(z) -> D((timeToFruit - x) / (y -z))", new string[] { "timeToFruit" });
+
+        Assert.AreEqual("C(x) < K(y) > A(z)", ruleFromString.TargetSymbolString());
+
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+        Assert.AreEqual('D', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
+
+        var evaluatorFunction = ruleFromString.replacementSymbols[0].evaluators[0];
+        Assert.AreEqual((10.0 - 25.0) / (4.0 - 8.0), evaluatorFunction.DynamicInvoke(10, 25, 4, 8));
+
+        Assert.AreEqual((11.2 - 892) / (6.66 - 1.7), evaluatorFunction.DynamicInvoke(11.2, 892, 6.66, 1.7));
+    }
     [Test]
     public void ParsesRuleWithParametersAndReplacementParameters()
     {

@@ -1,7 +1,5 @@
-using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 
 public class ContextualMatcherTests
@@ -16,15 +14,12 @@ public class ContextualMatcherTests
         bool? testOrderingAgnostict = null,
         bool testOrderingInvariant = true)
     {
-        var seriesMatcher = new SymbolSeriesMatcher
-        {
-            targetSymbolSeries = InputSymbolParser.ParseInputSymbols(matcher)
-        };
+        var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
         var targetString = new SymbolString<double>(target);
         var branchingCache = new SymbolStringBranchingCache('[', ']');
         branchingCache.SetTargetSymbolString(targetString);
 
-        if(testOrderingInvariant && shouldMatch && !testOrderingAgnostict.HasValue)
+        if (testOrderingInvariant && shouldMatch && !testOrderingAgnostict.HasValue)
         {
             // if an invariant matches, agnostic should match too.
             testOrderingAgnostict = true;
@@ -68,22 +63,33 @@ public class ContextualMatcherTests
 
 
     #region backwards matching
-    private void AssertBackwardsMatch(string target, string matcher, bool shouldMatch, string message = "", int indexInTarget = -1)
+    private void AssertBackwardsMatch(
+        string target,
+        string matcher,
+        bool shouldMatch,
+        IEnumerable<(int, int)> expectedMatchToTargetMapping = null,
+        int indexInTarget = -1)
     {
-        var seriesMatcher = new SymbolSeriesMatcher
-        {
-            targetSymbolSeries = InputSymbolParser.ParseInputSymbols(matcher)
-        };
+        var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
         var targetString = new SymbolString<double>(target);
         var branchingCache = new SymbolStringBranchingCache('[', ']');
         branchingCache.SetTargetSymbolString(targetString);
 
         var realIndex = indexInTarget < 0 ? indexInTarget + target.Length : indexInTarget;
-        var matches = branchingCache.MatchesBackwards(realIndex, seriesMatcher);
+        var matchPairings = branchingCache.MatchesBackwards(realIndex, seriesMatcher);
+        var matches = matchPairings != null;
         if (shouldMatch != matches)
         {
             Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match backwards from {indexInTarget} in '{target}'");
         }
+        //if (shouldMatch && expectedMatchToTargetMapping != null)
+        //{
+        //    foreach (var expectedMatch in expectedMatchToTargetMapping)
+        //    {
+        //        Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
+        //        Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+        //    }
+        //}
     }
     [Test]
     public void NoBranchingBackwardsMatch()
@@ -97,36 +103,42 @@ public class ContextualMatcherTests
     [Test]
     public void BasicBackwardMatchesOnlyImmediateSiblingNoBranching()
     {
-        AssertBackwardsMatch("AD", "A", true, message: "must match when immediate preceding symbol matches");
-        AssertBackwardsMatch("BCA", "A", false, message: "must not match when immediate preceding symbol is not branch");
-        AssertBackwardsMatch("ADE", "A", false, message: "must not match when immediate preceding symbol is not branch");
+        AssertBackwardsMatch("AD", "A", true, expectedMatchToTargetMapping: new[] { (0, 0) });
+        AssertBackwardsMatch("BCA", "A", false);
+        AssertBackwardsMatch("ADE", "A", false);
     }
     [Test]
     public void BasicBackwardsSkipBranchMatches()
     {
-        AssertBackwardsMatch("[C]AD", "A", true);
+        AssertBackwardsMatch("[C]AD", "A", true, expectedMatchToTargetMapping: new[] { (0, 3) });
         AssertBackwardsMatch("[C]ADE", "A", false);
         AssertBackwardsMatch("A[D]E", "A", true);
     }
     [Test]
     public void BackwardsMultibranch()
     {
-        AssertBackwardsMatch("A[[E]F]", "A", true, indexInTarget: -4);
-        AssertBackwardsMatch("A[D][E]", "A", true, indexInTarget: -2);
-        AssertBackwardsMatch("A[[D][E]]", "A", true, indexInTarget: -3);
-        AssertBackwardsMatch("A[[D][E]]E", "A", true, indexInTarget: -1);
+        AssertBackwardsMatch("A[[E]F]", "A", true, indexInTarget: -4, expectedMatchToTargetMapping: new[] { (0, 0) });
+        AssertBackwardsMatch("A[D][E]", "A", true, indexInTarget: -2, expectedMatchToTargetMapping: new[] { (0, 0) });
+        AssertBackwardsMatch("A[[D][E]]", "A", true, indexInTarget: -3, expectedMatchToTargetMapping: new[] { (0, 0) });
+        AssertBackwardsMatch("A[[D][E]]E", "A", true, indexInTarget: -1, expectedMatchToTargetMapping: new[] { (0, 0) });
     }
     [Test]
     public void BackwardsPathMatch()
     {
         AssertBackwardsMatch("A[B]E", "AB", false);
-        AssertBackwardsMatch("A[BE]", "AB", true, indexInTarget: -2);
-        AssertBackwardsMatch("ABE", "AB", true);
+        AssertBackwardsMatch("A[BE]", "AB", true, indexInTarget: -2, expectedMatchToTargetMapping: new[] { (0, 0), (1, 2) });
+        AssertBackwardsMatch("ABE", "AB", true, expectedMatchToTargetMapping: new[] { (0, 0), (1, 1) });
         AssertBackwardsMatch("[AB]E", "AB", false);
     }
+    [Test]
+    public void BackwardsLongPathMatch()
+    {
+        AssertBackwardsMatch("AB[JJ][CD[JJ]EF]", "ABCDE", true, indexInTarget: -2, expectedMatchToTargetMapping: new[] { (0, 0), (1, 1), (2, 7), (3, 8), (4, 13) });
+    }
+
 
     #endregion
-    
+
     #region branch navigation
     [Test]
     public void FindsOpeningBranchLinks()
@@ -220,6 +232,7 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[[B]CE]CD", "A[B][CD]", true);
         AssertForwardsMatch("EA[[B]CE]D", "A[B][CD]", false);
         AssertForwardsMatch("E[[B]CE]CD", "[B][CD]", true);
+        AssertForwardsMatch("EA[[B]CE]CD", "[B][CD]", false);
     }
 
 
