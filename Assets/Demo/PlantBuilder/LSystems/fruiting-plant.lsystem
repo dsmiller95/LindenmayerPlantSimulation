@@ -30,8 +30,8 @@ T(x) : x == terminalBudGrowth -> []
 #define flowerStalkLength 6
 
 ## B is a bud off the main stem, and randomly chooses what it will become
-P(budBranchChanceFactor) B(x) -> [^(50)V]R(x, 0)
-P(1 - budBranchChanceFactor) B(x) -> [^(50)V]P(leavesPerPetiole)
+P(budBranchChanceFactor) | B(x) -> [^(50)V]R(x, 0)
+P(1 - budBranchChanceFactor) | B(x) -> [^(50)V]P(leavesPerPetiole)
 
 ## V is a flowering bud
 P(flowerFailureChance) | V -> []
@@ -40,10 +40,12 @@ V(x) : x > 0 -> $(0.1)FV(x - 1)
 V(x) : x <= 0 -> [``C(x)K(0)]
 
 #define timeToFruit 4
+
  
 ## C is a flower controller
 C(x) : x < timeToFruit -> C(x + 1)
-C(x)K(y) : x >= timeToFruit -> D(0)
+       C(x) > K(y) : x >= timeToFruit -> D(0)
+C(x) < K(y) : x >= timeToFruit ->
 
 #define fruiteSize 3
 ## D is a fruiting body

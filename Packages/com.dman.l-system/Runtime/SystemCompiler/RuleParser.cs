@@ -67,7 +67,16 @@ namespace Dman.LSystem.SystemCompiler
                 rule = new ParsedRule();
             }
 
-            rule.ParseContextualMatches(matcherMatch.Groups["contextMatch"]);
+            var contextMatch = matcherMatch.Groups["contextMatch"];
+            try
+            {
+                rule.ParseContextualMatches(contextMatch);
+            }
+            catch (SyntaxException e)
+            {
+                e.RecontextualizeIndex(contextMatch.Index, ruleString);
+                throw;
+            }
 
             var availableParameters = rule.TargetSymbolParameterNames();
             if (globalParameters != null)
