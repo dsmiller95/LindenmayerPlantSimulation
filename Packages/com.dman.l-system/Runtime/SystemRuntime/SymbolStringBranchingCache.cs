@@ -83,14 +83,24 @@ namespace Dman.LSystem.SystemRuntime
                 // invert the dictionary here, switching from mapping from target string into matcher string
                 // to mapping from the matcher string into the target string
                 return matchedSet?.ToDictionary(x => x.Value, x => x.Key);
-            }else
+            } else
             {
                 var targetSymbolToMatchSymbol = MatchesAtIndexOrderingInvariant(indexInSymbolTarget, seriesMatch);
                 // order by target symbol, then aggregate to dictionary. there will be duplicates of match indexes,
                 //  ordering this way guarantees that the only last duplicate in the target sting will be preserved.
                 //  Since the method is order invariant, it is guaranteed that the match with the highest index in the target
                 //  string is the correct match.
-                return targetSymbolToMatchSymbol?.OrderBy(x => x.Key)?.ToDictionary(x => x.Value, x => x.Key);
+                if (targetSymbolToMatchSymbol == null)
+                {
+                    return null;
+                }
+                var resultBuilder = ImmutableDictionary<int, int>.Empty.ToBuilder();
+                foreach (var kvp in targetSymbolToMatchSymbol.OrderBy(x => x.Key))
+                {
+                    resultBuilder[kvp.Value] = kvp.Key;
+                    //resultBuilder.Add(kvp.Value, kvp.Key);
+                }
+                return resultBuilder.ToImmutable();
             }
 
             //return false;
@@ -198,6 +208,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             public int currentParentIndex;
             public int openBranchSymbolIndex;
+            public SymbolSeriesMatcher.DepthFirstSearchState matcherSymbolBranchingSearchState;
         }
 
         /// <summary>
@@ -213,10 +224,17 @@ namespace Dman.LSystem.SystemRuntime
         {
             var targetParentIndexStack = new Stack<BranchEventData>();
             int currentParentIndexInTarget = originIndexInTarget;
-            var indexInMatchTracker = seriesMatch.GetDepthFirstEnumerator().GetEnumerator();
-            indexInMatchTracker.MoveNext();
-
             var targetIndexesToMatchIndexes = ImmutableDictionary<int, int>.Empty;
+
+            var indexInMatchDFSState = seriesMatch.GetImmutableDepthFirstIterationState();
+            targetIndexesToMatchIndexes = targetIndexesToMatchIndexes.Add(originIndexInTarget, indexInMatchDFSState.currentIndex);
+            if (!indexInMatchDFSState.Next(out indexInMatchDFSState))
+            {
+                // if the match is empty, automatically matches.
+                return targetIndexesToMatchIndexes;
+            }
+
+
 
             for (int indexInTarget = originIndexInTarget + 1; indexInTarget < symbolStringTarget.Length; indexInTarget++)
             {
@@ -226,25 +244,39 @@ namespace Dman.LSystem.SystemRuntime
                     targetParentIndexStack.Push(new BranchEventData
                     {
                         currentParentIndex = currentParentIndexInTarget,
-                        openBranchSymbolIndex = indexInTarget
+                        openBranchSymbolIndex = indexInTarget,
+                        matcherSymbolBranchingSearchState = indexInMatchDFSState
                     });
                 }
                 else if (targetSymbol == branchCloseSymbol)
                 {
+                    // will encounter a close symbol in one of two cases:
+                    //  1. the branch in target has exactly matched the branch in the matcher, and we should just step down
+                    //  2. the branch in target has terminated early, meaning we must step down the branch chain and also
+                    //      reverse the matcher DFS back to a common ancenstor
                     if (targetParentIndexStack.Count <= 0)
                     {
                         // if we encounter the end of the branch which contains the origin index before full match, fail.
                         return null;
                     }
-                    var lastState = targetParentIndexStack.Pop();
-                    currentParentIndexInTarget = lastState.currentParentIndex;
+                    var lastBranch = targetParentIndexStack.Pop();
+                    currentParentIndexInTarget = lastBranch.currentParentIndex;
                     // cache the open/close braces, may as well while we're here.
-                    branchingJumpIndexes[lastState.openBranchSymbolIndex] = indexInTarget;
-                    branchingJumpIndexes[indexInTarget] = lastState.openBranchSymbolIndex;
+                    branchingJumpIndexes[lastBranch.openBranchSymbolIndex] = indexInTarget;
+                    branchingJumpIndexes[indexInTarget] = lastBranch.openBranchSymbolIndex;
                 }
                 else
                 {
-                    var indexInMatch = indexInMatchTracker.Current;
+                    // reverse the DFS in matcher, back to the last point which shares a parent with the current parent
+                    // this acts to ensure the entry to the match has a shared parent, if at all possible.
+                    //   the reversal is necessary when a branching structure failed to match in the last step
+                    var parentInMatch = targetIndexesToMatchIndexes[currentParentIndexInTarget];
+                    if (indexInMatchDFSState.FindPreviousWithParent(out var reversedMatchIndex, parentInMatch))
+                    {
+                        indexInMatchDFSState = reversedMatchIndex;
+                    }
+
+                    var indexInMatch = indexInMatchDFSState.currentIndex;
                     var currentTargetMatchesMatcher = TargetSymbolMatchesAndParentMatches(
                         seriesMatch,
                         targetIndexesToMatchIndexes,
@@ -255,7 +287,7 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         targetIndexesToMatchIndexes = targetIndexesToMatchIndexes.Add(indexInTarget, indexInMatch);
                         currentParentIndexInTarget = indexInTarget; // series continuation includes implicit parenting
-                        if (!indexInMatchTracker.MoveNext())
+                        if (!indexInMatchDFSState.Next(out indexInMatchDFSState))
                         {
                             return targetIndexesToMatchIndexes;
                         }
@@ -265,13 +297,13 @@ namespace Dman.LSystem.SystemRuntime
                         // symbol in target isn't a valid match, so no further symbols in the current target branching structure can match.
                         // rewind back to the previous branching symbol, and skip this whole structure.
                         // Or if we're not in a nested structure, fail.
-                        if(targetParentIndexStack.Count <= 0)
+                        if (targetParentIndexStack.Count <= 0)
                         {
                             return null;
                         }
                         var lastBranch = targetParentIndexStack.Pop();
                         currentParentIndexInTarget = lastBranch.currentParentIndex;
-                        indexInTarget = FindClosingBranchIndex(lastBranch.openBranchSymbolIndex);// this gets incremented on the next loop through
+                        indexInTarget = FindClosingBranchIndex(lastBranch.openBranchSymbolIndex);
                     }
                 }
             }

@@ -227,6 +227,20 @@ namespace Dman.LSystem.SystemRuntime
                 return false;
             }
 
+            public bool FindPreviousWithParent(out DepthFirstSearchState foundState, int parentNode)
+            {
+                foundState = this;
+                do
+                {
+                    var parent = source.graphParentPointers[foundState.currentIndex];
+                    if (parent == parentNode)
+                    {
+                        return true;
+                    }
+                } while (foundState.Previous(out foundState) && foundState.currentIndex >= 0);
+                return false;
+            }
+
             public void Reset()
             {
                 currentIndex = -1;
