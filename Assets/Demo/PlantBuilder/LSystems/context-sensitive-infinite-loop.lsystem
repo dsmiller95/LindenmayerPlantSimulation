@@ -1,0 +1,33 @@
+#axiom T(0)
+#iterations 30
+
+#ignore /\&^F
+
+#runtime terminalBudGrowth 6
+
+#runtime growthStop 5
+#runtime segmentGrowth 6
+#runtime shootHeight 3
+#runtime internodeHeight 3
+#runtime branchLength 3
+#runtime leafAge 3
+#runtime leavesPerPetiole 7
+#runtime flowerAge 3
+
+
+## T is the terminal bud
+T(x) : x < terminalBudGrowth -> I(internodeHeight)[&(75)B(x + 1)][\(180)&(75)B(x + 1)]\(90)T(x + 1)
+T(x) : x >= terminalBudGrowth -> J
+
+J ->
+
+## B is a bud, and randomly chooses what it will become
+JI(Y) < B(x) -> R(x)
+
+## R is a side branch terminal node
+R(x) : x < branchLength && (x % 2 < 1) -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
+R(x) : x < branchLength && (x % 2 >= 1) -> I(internodeHeight)R(x + 1)
+
+## I is an internode, used to just build length of certain size
+I(x) : x > 0 -> FI(x - 1)
+I(x) > J -> JI(x)

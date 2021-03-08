@@ -241,6 +241,13 @@ public class ContextualMatcherTests
         AssertForwardsMatch("B[C[A]]E", "A", true, indexInTarget: 2);
     }
     [Test]
+    public void ForwardBranchWithNoMatchInsideStructureFailsGracefull()
+    {
+        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
+        AssertForwardsMatch("BE", "A", false);
+        AssertForwardsMatch("[BE[A134]144]24", "A", false, indexInTarget: 1);
+    }
+    [Test]
     public void ForwardBranchUpDoesntBranchBackDown()
     {
         AssertForwardsMatch("E[A[B[C]]]", "ABC", true);
