@@ -37,25 +37,17 @@ V(x) : x > 0 -> ^(7)FV(x - 1)
 V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
-R(x) : x < branchLength && (x % 2 < 1) -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
+R(x) : x < branchLength && (x % 2 < 1) -> I(internodeHeight)[-^B(x + 1)][+^B(x + 1)]R(x + 1)
 R(x) : x < branchLength && (x % 2 >= 1) -> I(internodeHeight)R(x + 1)
 R(x) : x == branchLength -> P(leavesPerPetiole)
 
 P(x) : x >= 2 -> I(1)[O((x - 1) / 2, -40)]L[O((x - 1) / 2, 40)]
-P(x) : x > 0 -> L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
 I(x) : x > 0 -> FI(x - 1)
 I(x) > J -> JI(x)
 
-A(x) : x < growthStop -> Q(x)NI(growthStop - x + 3)A(x + 1)
-A(x) : x == growthStop -> Q(x)N
 
-Q(x) : x < segmentGrowth -> FQ(x + 1)F
-
-N -> leafExpression
 L -> [`!(1, 0.5, 0.5)l(1, leafAge)]
 L(x) -> [`!(1, 0.5, 0.5)l(1, x)]
-l(x, y) : x < y -> l(x + 1, y)
-K(x) : x < flowerAge -> K(x + 1)
