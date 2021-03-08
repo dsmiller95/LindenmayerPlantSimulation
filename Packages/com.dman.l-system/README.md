@@ -93,6 +93,7 @@ There are x types of directives. parameters to the directives are parsed based o
 
 - `#axiom string` defines the axiom for this system
 - `#iterations int` defines how many iterations the system should step for, by default. x must be an integer.
+- `#ignore string` sets every character as part of the string to be ignored by the L-system, when performing contextual matches.
 - `#runtime string float` defines a global runtime value named <string> with a default value of <float>
 - `#define string string` defines a global compile time replacement directive which searches the full text of the rules for an exact match against the first string, replacing with the second string.
 

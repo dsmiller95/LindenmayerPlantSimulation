@@ -1,6 +1,7 @@
 using Dman.LSystem.SystemRuntime;
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Linq;
 
 public class ContextualMatcherTests
 {
@@ -12,11 +13,12 @@ public class ContextualMatcherTests
         string message = null,
         IEnumerable<(int, int)> expectedMatchToTargetMapping = null,
         bool? testOrderingAgnostict = null,
-        bool testOrderingInvariant = true)
+        bool testOrderingInvariant = true,
+        IEnumerable<int> ignoreSymbols = null)
     {
         var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
         var targetString = new SymbolString<double>(target);
-        var branchingCache = new SymbolStringBranchingCache('[', ']');
+        var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
         branchingCache.SetTargetSymbolString(targetString);
 
         if (testOrderingInvariant && shouldMatch && !testOrderingAgnostict.HasValue)
@@ -68,11 +70,12 @@ public class ContextualMatcherTests
         string matcher,
         bool shouldMatch,
         IEnumerable<(int, int)> expectedMatchToTargetMapping = null,
-        int indexInTarget = -1)
+        int indexInTarget = -1,
+        IEnumerable<int> ignoreSymbols = null)
     {
         var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
         var targetString = new SymbolString<double>(target);
-        var branchingCache = new SymbolStringBranchingCache('[', ']');
+        var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
         branchingCache.SetTargetSymbolString(targetString);
 
         var realIndex = indexInTarget < 0 ? indexInTarget + targetString.Length : indexInTarget;
@@ -94,7 +97,7 @@ public class ContextualMatcherTests
     [Test]
     public void NoBranchingBackwardsMatch()
     {
-        var branchingCache = new SymbolStringBranchingCache('[', ']');
+        var branchingCache = new SymbolStringBranchingCache();
         Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A")));
         Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("ABC")));
         Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A[B]")));
@@ -115,6 +118,30 @@ public class ContextualMatcherTests
         AssertBackwardsMatch("A[D]E", "A", true);
     }
     [Test]
+    public void BackwardsSkipIgnoredCharacters()
+    {
+        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
+        AssertBackwardsMatch("[C]A1234567890D", "A", true, expectedMatchToTargetMapping: new[] { (0, 3) }, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("[C]A1233344B2555CD", "ABC", true, expectedMatchToTargetMapping: new[] { (0, 3), (1, 11), (2, 16) }, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("[C]A1234567890", "A", true, expectedMatchToTargetMapping: new[] { (0, 3) }, ignoreSymbols: defaultExclude);
+    }
+    [Test]
+    public void BackwardsMatchNoMatchWhenOverlapCloseToStringOrigin()
+    {
+        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
+        AssertBackwardsMatch("[A]", "A", false, indexInTarget: 1, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("A4", "A", false, indexInTarget: 0, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("23A4", "A", false, indexInTarget: 2, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("3A4", "A", false, indexInTarget: 1, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("3A4", "A", true, indexInTarget: 2, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("3A4", "A", false, indexInTarget: 0, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("3A4124", "A", true, indexInTarget: -1, ignoreSymbols: defaultExclude);
+
+        AssertBackwardsMatch("BCADE", "A", false, indexInTarget: 2, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("BCADE", "A", true, indexInTarget: 3, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("BCADE", "A", false, indexInTarget: 4, ignoreSymbols: defaultExclude);
+    }
+    [Test]
     public void BackwardsMultibranch()
     {
         AssertBackwardsMatch("A[[E]F]", "A", true, indexInTarget: -4, expectedMatchToTargetMapping: new[] { (0, 0) });
@@ -129,6 +156,16 @@ public class ContextualMatcherTests
         AssertBackwardsMatch("A[BE]", "AB", true, indexInTarget: -2, expectedMatchToTargetMapping: new[] { (0, 0), (1, 2) });
         AssertBackwardsMatch("ABE", "AB", true, expectedMatchToTargetMapping: new[] { (0, 0), (1, 1) });
         AssertBackwardsMatch("[AB]E", "AB", false);
+    }
+    [Test]
+    public void BackwardsPathMatchManyBranchingSymbols()
+    {
+        AssertBackwardsMatch("[[ABE]]", "AB", true, indexInTarget: -3);
+        AssertBackwardsMatch("[A[BE]]", "AB", true, indexInTarget: -3);
+        AssertBackwardsMatch("A[[BE]]", "AB", true, indexInTarget: -3);
+        AssertBackwardsMatch("D[[BE]]", "AB", false, indexInTarget: -3);
+        AssertBackwardsMatch("[A]BE", "AB", false, indexInTarget: -3);
+        AssertBackwardsMatch("[[BE]]", "AB", false, indexInTarget: -3);
     }
     [Test]
     public void BackwardsLongPathMatch()
@@ -151,7 +188,7 @@ public class ContextualMatcherTests
     public void FindsOpeningBranchLinks()
     {
         var targetString = new SymbolString<double>("A[AA]AAA[A[AAA[A]]]A");
-        var branchingCache = new SymbolStringBranchingCache('[', ']');
+        var branchingCache = new SymbolStringBranchingCache();
         branchingCache.SetTargetSymbolString(targetString);
         Assert.AreEqual(8, branchingCache.FindOpeningBranchIndex(18));
         Assert.AreEqual(10, branchingCache.FindOpeningBranchIndex(17));
@@ -161,7 +198,7 @@ public class ContextualMatcherTests
     public void FindsClosingBranchLinks()
     {
         var targetString = new SymbolString<double>("A[AA]AAA[A[AAA[A]]]A");
-        var branchingCache = new SymbolStringBranchingCache('[', ']');
+        var branchingCache = new SymbolStringBranchingCache();
         branchingCache.SetTargetSymbolString(targetString);
         Assert.AreEqual(4, branchingCache.FindClosingBranchIndex(1));
         Assert.AreEqual(17, branchingCache.FindClosingBranchIndex(10));
@@ -210,6 +247,16 @@ public class ContextualMatcherTests
     {
         AssertForwardsMatch("EA[BC][BCD][BCDE]", "A[BCDE]", true, expectedMatchToTargetMapping: new[] { (0, 1), (2, 12), (3, 13), (4, 14), (5, 15) });
         AssertForwardsMatch("EA[BC[D][E]][BCD][BCDE]", "A[BCDE]", true, expectedMatchToTargetMapping: new[] { (0, 1), (2, 18), (3, 19), (4, 20), (5, 21) });
+    }
+
+    [Test]
+    public void ForwardSkipsOverIgnoredCharacters()
+    {
+        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
+        AssertForwardsMatch("E1[23A4[5B67[890C]]]", "ABC", true, ignoreSymbols: defaultExclude, expectedMatchToTargetMapping: new[] { (0, 5), (1, 9), (2, 16) });
+        AssertForwardsMatch("E1A2B3C", "ABC", true, ignoreSymbols: defaultExclude, expectedMatchToTargetMapping: new[] { (0, 2), (1, 4), (2, 6) });
+        AssertForwardsMatch("1A2B3C", "ABC", true, ignoreSymbols: defaultExclude, expectedMatchToTargetMapping: new[] { (0, 1), (1, 3), (2, 5) });
+        AssertForwardsMatch("1A3[2B]3[C3]3", "A[B][C]", true, ignoreSymbols: defaultExclude, expectedMatchToTargetMapping: new[] { (0, 1), (2, 5), (5, 9) });
     }
 
     [Test]

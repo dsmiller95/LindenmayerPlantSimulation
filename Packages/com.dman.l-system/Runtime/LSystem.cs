@@ -17,15 +17,17 @@ namespace Dman.LSystem
         /// <returns></returns>
         public static LSystem<double> DoubleSystem(
            IEnumerable<string> rules,
-           string[] globalParameters = null)
+           string[] globalParameters = null,
+           string ignoredCharacters = "")
         {
             return new LSystem<double>(
                 RuleParser.CompileRules(
                         rules,
                         globalParameters
                         ),
-                globalParameters?.Length ?? 0
-                );
+                globalParameters?.Length ?? 0,
+                ignoredCharacters: new HashSet<int>(ignoredCharacters.Select(x => (int)x))
+            );
         }
     }
 
@@ -67,15 +69,21 @@ namespace Dman.LSystem
         /// </summary>
         public bool orderingAgnosticContextMatching = false;
 
+        // currently just used for blocking out context matching. could be used in the future to exclude rule application from specific symbols, too.
+        // if that improves runtime.
+        public ISet<int> ignoredCharacters;
+
         public LSystem(
             IEnumerable<IRule<T>> rules,
             int expectedGlobalParameters = 0,
             int branchOpenSymbol = '[',
-            int branchCloseSymbol = ']')
+            int branchCloseSymbol = ']',
+            ISet<int> ignoredCharacters = null)
         {
             GlobalParameters = expectedGlobalParameters;
             this.branchOpenSymbol = branchOpenSymbol;
             this.branchCloseSymbol = branchCloseSymbol;
+            this.ignoredCharacters = ignoredCharacters == null ? new HashSet<int>() : ignoredCharacters;
 
             rulesByTargetSymbol = new Dictionary<int, IList<IRule<T>>>();
             foreach (var rule in rules)
@@ -120,7 +128,7 @@ namespace Dman.LSystem
 
         private SymbolString<T>[] GenerateNextSymbols(SymbolString<T> symbolState, ref Unity.Mathematics.Random random, T[] globalParameters)
         {
-            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol);
+            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, this.ignoredCharacters);
             tmpBranchingCache.SetTargetSymbolString(symbolState);
 
             var resultArray = new SymbolString<T>[symbolState.symbols.Length];

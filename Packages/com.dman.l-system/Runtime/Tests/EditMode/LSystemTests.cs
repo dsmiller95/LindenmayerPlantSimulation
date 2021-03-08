@@ -513,6 +513,29 @@ public class LSystemTests
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("BCC", state.currentSymbols.ToString());
     }
+    [Test]
+    public void LSystemIgnoresIgnoredCharachters()
+    {
+        LSystemState<double> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "    A     -> A1B2",
+            "    B     -> 3A4",
+            "    A > A -> 5",
+            "A < A     -> 6B7"
+        }, ignoredCharacters: "1234567");
+
+        Assert.AreEqual("B", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A4", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A1B24", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A1B213A424", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A1B213A4213A1B2424", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A1B213A4213542136B713A42424", state.currentSymbols.ToString());
+    }
 
     [Test]
     public void RuleCompilationFailsWhenConflictingRules()

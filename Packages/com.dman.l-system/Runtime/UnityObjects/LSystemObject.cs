@@ -32,6 +32,8 @@ namespace Dman.LSystem.UnityObjects
         [Multiline(30)]
         public string rules;
 
+        public string ignoredCharacters;
+
         public List<ParameterAndDefault> defaultGlobalRuntimeParameters;
         public List<DefineDirectives> defaultGlobalCompileTimeParameters;
 
@@ -90,7 +92,8 @@ namespace Dman.LSystem.UnityObjects
                     .Where(x => !string.IsNullOrEmpty(x));
                 return LSystemBuilder.DoubleSystem(
                     ruleLines,
-                    defaultGlobalRuntimeParameters.Select(x => x.name).ToArray());
+                    defaultGlobalRuntimeParameters.Select(x => x.name).ToArray(),
+                    ignoredCharacters);
             }
             catch (System.Exception e)
             {
@@ -178,6 +181,9 @@ namespace Dman.LSystem.UnityObjects
                         throw new SyntaxException($"iterations must be an integer", dirParams[1]);
                     }
                     this.iterations = iterations;
+                    return;
+                case "ignore":
+                    this.ignoredCharacters = dirParams[1].Groups["param"].Value;
                     return;
                 case "runtime":
                     if (dirParams.Count < 3)

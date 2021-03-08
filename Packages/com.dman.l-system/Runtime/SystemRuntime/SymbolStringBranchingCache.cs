@@ -15,16 +15,18 @@ namespace Dman.LSystem.SystemRuntime
         public int branchCloseSymbol;
 
         private ISymbolString symbolStringTarget;
+        private ISet<int> ignoreSymbols;
         /// <summary>
         /// Contains a caches set of indexes, mapping each branching symbol to its matching closing/opening symbol.
         /// </summary>
         private Dictionary<int, int> branchingJumpIndexes;
 
-        public SymbolStringBranchingCache() : this(defaultBranchOpenSymbol, defaultBranchCloseSymbol) { }
-        public SymbolStringBranchingCache(int open, int close)
+        public SymbolStringBranchingCache() : this(defaultBranchOpenSymbol, defaultBranchCloseSymbol, new HashSet<int>()) { }
+        public SymbolStringBranchingCache(int open, int close, ISet<int> ignoreSymbols)
         {
             branchOpenSymbol = open;
             branchCloseSymbol = close;
+            this.ignoreSymbols = ignoreSymbols;
         }
 
         public void SetTargetSymbolString(ISymbolString symbols)
@@ -114,24 +116,26 @@ namespace Dman.LSystem.SystemRuntime
 
             var matcherIndexToTargetIndex = new Dictionary<int, int>();
 
-            for (; matchingIndex >= 0 && indexInSymbolTarget >= 0; matchingIndex--)
+            for (; matchingIndex >= 0 && indexInSymbolTarget >= 0;)
             {
                 var symbolToMatch = seriesMatch.targetSymbolSeries[matchingIndex];
                 while (indexInSymbolTarget >= 0)
                 {
                     var currentSymbol = symbolStringTarget[indexInSymbolTarget];
-                    if (currentSymbol == branchCloseSymbol)
+                    if (ignoreSymbols.Contains(currentSymbol) || currentSymbol == branchOpenSymbol)
+                    {
+                        indexInSymbolTarget--;
+                    }else if (currentSymbol == branchCloseSymbol)
                     {
                         indexInSymbolTarget = FindOpeningBranchIndex(indexInSymbolTarget) - 1;
                     }
-                    else if (currentSymbol == branchOpenSymbol)
-                    {
-                        indexInSymbolTarget--;
-                    }
-                    else if (currentSymbol == symbolToMatch.targetSymbol && symbolToMatch.parameterLength == symbolStringTarget.ParameterSize(indexInSymbolTarget))
+                    else if (
+                        currentSymbol == symbolToMatch.targetSymbol &&
+                        symbolToMatch.parameterLength == symbolStringTarget.ParameterSize(indexInSymbolTarget))
                     {
                         matcherIndexToTargetIndex[matchingIndex] = indexInSymbolTarget;
                         indexInSymbolTarget--;
+                        matchingIndex--;
                         break;
                     }
                     else
@@ -243,6 +247,17 @@ namespace Dman.LSystem.SystemRuntime
                 return null;
             }
             int nextTargetSymbol = symbolStringTarget[nextCheck.nextIndexInTargetToCheck];
+            if (ignoreSymbols.Contains(nextTargetSymbol) && nextCheck.nextIndexInMatchToCheck != -1)
+            {
+                return MatchesAtIndexOrderAgnostic(
+                    new MatchCheckPoint
+                    {
+                        nextIndexInTargetToCheck = nextCheck.nextIndexInTargetToCheck + 1,
+                        nextIndexInMatchToCheck = nextCheck.nextIndexInMatchToCheck
+                    },
+                    seriesMatch,
+                    consumedTargetIndexes);
+            }
             if (nextTargetSymbol == branchOpenSymbol)
             {
                 // branch open. don't compare against matcher, just advance.
@@ -352,6 +367,11 @@ namespace Dman.LSystem.SystemRuntime
             for (int indexInTarget = originIndexInTarget + 1; indexInTarget < symbolStringTarget.Length; indexInTarget++)
             {
                 var targetSymbol = symbolStringTarget[indexInTarget];
+
+                if (ignoreSymbols.Contains(targetSymbol))
+                {
+                    continue;
+                }
                 if (targetSymbol == branchOpenSymbol)
                 {
                     targetParentIndexStack.Push(new BranchEventData
@@ -473,6 +493,10 @@ namespace Dman.LSystem.SystemRuntime
         private IEnumerable<int> GetIndexesInTargetOfAllChildren(int originIndex)
         {
             int childStructureIndexInTarget = originIndex + 1;
+            while (childStructureIndexInTarget < symbolStringTarget.Length && ignoreSymbols.Contains(symbolStringTarget[childStructureIndexInTarget]))
+            {
+                childStructureIndexInTarget++;
+            }
             // for every branching structure in target,
             //  check if any matches starting at the matcher index passed in
             while (childStructureIndexInTarget < symbolStringTarget.Length
@@ -480,6 +504,10 @@ namespace Dman.LSystem.SystemRuntime
             {
                 yield return childStructureIndexInTarget;
                 childStructureIndexInTarget = FindClosingBranchIndex(childStructureIndexInTarget) + 1;
+                while (childStructureIndexInTarget < symbolStringTarget.Length && ignoreSymbols.Contains(symbolStringTarget[childStructureIndexInTarget]))
+                {
+                    childStructureIndexInTarget++;
+                }
             }
             if (childStructureIndexInTarget < symbolStringTarget.Length)
             {
