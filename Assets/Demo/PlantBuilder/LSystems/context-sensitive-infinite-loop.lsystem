@@ -3,7 +3,7 @@
 
 #ignore /\&^F
 
-#runtime terminalBudGrowth 6
+#runtime terminalBudGrowth 4
 #runtime internodeHeight 3
 #runtime branchLength 4
 #runtime leafAge 3
