@@ -5,7 +5,7 @@
 
 #runtime terminalBudGrowth 6
 #runtime internodeHeight 3
-#runtime branchLength 3
+#runtime branchLength 4
 #runtime leafAge 3
 #runtime leavesPerPetiole 7
 
@@ -31,7 +31,7 @@ R(x) : x < branchLength && (x % 2 >= 1) -> I(internodeHeight)R(x + 1)
 R(x) : x == branchLength -> P(leavesPerPetiole)
 
 P(x) : x >= 2 -> I(1)[O((x - 1) / 2, -40)]L[O((x - 1) / 2, 40)]
-O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
+O(x, t) : x > 0 -> +L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
 I(x) : x > 0 -> FI(x - 1)
