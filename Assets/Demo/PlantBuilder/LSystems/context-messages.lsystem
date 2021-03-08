@@ -1,9 +1,12 @@
 #axiom T(0)
 #iterations 30
 
+#ignore /\&^F
+
+#runtime terminalBudGrowth 6
+
 #runtime growthStop 5
 #runtime segmentGrowth 6
-#runtime terminalBudGrowth 6
 #runtime shootHeight 3
 #runtime internodeHeight 3
 #runtime branchLength 3
@@ -12,7 +15,7 @@
 #runtime flowerAge 3
 
 #define leafExpression [&&L][/(180)&&L]
-#define budBranchChanceFactor 0.2
+#define budBranchChanceFactor 0.7
 #define shootStemBranchingFactor 0.3
 
 
@@ -22,10 +25,12 @@ T(x) : x >= terminalBudGrowth -> J
 
 ## J is a signal which propigates from the apex to the root, signalling branch growth on the way down.
 J ->
+## X is an accompanying symbol to J, which propogates up from an internode to the buds
+## X -> 
 
 ## B is a bud, and randomly chooses what it will become
-P(budBranchChanceFactor) | J < B(x) -> [^V(3)]R(x)
-P(1 - budBranchChanceFactor) | J < B(x) -> [^V(3)]P(leavesPerPetiole)
+P(budBranchChanceFactor) | JI(Y) < B(x) -> [^V(3)]R(x)
+P(1 - budBranchChanceFactor) | JI(Y) < B(x) -> [^V(3)]P(leavesPerPetiole)
 
 ## V is a flowering bud
 V(x) : x > 0 -> ^(7)FV(x - 1)

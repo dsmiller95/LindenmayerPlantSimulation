@@ -118,6 +118,13 @@ public class ContextualMatcherTests
         AssertBackwardsMatch("A[D]E", "A", true);
     }
     [Test]
+    public void BackwardsMatchFromInsideBranchWithIgnoreFailsGracefull()
+    {
+        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
+        AssertBackwardsMatch("AB[12E]", "AB", true, indexInTarget: -2, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("B[12E]", "AB", false, indexInTarget: -2, ignoreSymbols: defaultExclude);
+    }
+    [Test]
     public void BackwardsSkipIgnoredCharacters()
     {
         var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
