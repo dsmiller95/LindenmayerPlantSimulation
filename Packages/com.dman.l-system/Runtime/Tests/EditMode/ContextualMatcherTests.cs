@@ -211,6 +211,24 @@ public class ContextualMatcherTests
         Assert.AreEqual(17, branchingCache.FindClosingBranchIndex(10));
         Assert.AreEqual(18, branchingCache.FindClosingBranchIndex(8));
     }
+    [Test]
+    public void FindsBranchClosingLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
+    {
+        var targetString = new SymbolString<double>("EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
+        var branchingCache = new SymbolStringBranchingCache();
+        branchingCache.SetTargetSymbolString(targetString);
+        Assert.AreEqual(87, branchingCache.FindClosingBranchIndex(69));
+        Assert.AreEqual(98, branchingCache.FindClosingBranchIndex(91));
+    }
+    [Test]
+    public void FindsBranchForwardLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
+    {
+        var targetString = new SymbolString<double>("[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
+        var branchingCache = new SymbolStringBranchingCache();
+        branchingCache.SetTargetSymbolString(targetString);
+        Assert.AreEqual(64, branchingCache.FindOpeningBranchIndex(82));
+        Assert.AreEqual(86, branchingCache.FindOpeningBranchIndex(93));
+    }
     #endregion
 
     #region Ordering-invariant Boolean forward symbol matching

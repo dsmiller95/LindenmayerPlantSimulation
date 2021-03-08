@@ -170,7 +170,7 @@ namespace Dman.LSystem.SystemRuntime
                 var symbol = symbolStringTarget[indexInString];
                 if (symbol == branchOpenSymbol)
                 {
-                    openingIndexes.Push(symbol);
+                    openingIndexes.Push(indexInString);
                 }
                 else if (symbol == branchCloseSymbol)
                 {
@@ -205,7 +205,7 @@ namespace Dman.LSystem.SystemRuntime
                 var symbol = symbolStringTarget[indexInString];
                 if (symbol == branchCloseSymbol)
                 {
-                    closingIndexes.Push(symbol);
+                    closingIndexes.Push(indexInString);
                 }
                 else if (symbol == branchOpenSymbol)
                 {
