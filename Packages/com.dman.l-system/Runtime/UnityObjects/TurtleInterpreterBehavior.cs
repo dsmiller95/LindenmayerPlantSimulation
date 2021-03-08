@@ -64,7 +64,7 @@ namespace Dman.LSystem.UnityObjects
         {
             if (System != null)
             {
-                System.OnSystemStateUpdated += OnSystemStateUpdated;
+                System.OnSystemStateUpdated -= OnSystemStateUpdated;
             }
         }
 

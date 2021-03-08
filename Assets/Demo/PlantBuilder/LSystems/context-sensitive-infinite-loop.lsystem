@@ -1,15 +1,13 @@
-#axiom T(0)
+#axiom FFFJI(0)[&B(1)][\&B(1)]\FFFI(0)[&[^V(3)]R(2)][\&[^V(3)]R(2)]\FFFI(0)[&[^^FV(2)]I(3)R(4)][\&[^^FV(2)]I(3)R(4)]\FFFI(0)[&[^^F^FV(1)]I(1)[O(3,-40)]L[O(0,40)]][\&[^^F^FV(1)]I(1)[O(3,-40)]L[O(3,40)]]\
 #iterations 30
 
 #ignore /\&^F
 
-#runtime terminalBudGrowth 4
-#runtime internodeHeight 3
-#runtime branchLength 4
-#runtime leafAge 3
-#runtime leavesPerPetiole 7
-
-
+#define terminalBudGrowth 4
+#define internodeHeight 3
+#define branchLength 4
+#define leafAge 3
+#define leavesPerPetiole 7
 
 ## T is the terminal bud
 T(x) : x < terminalBudGrowth -> I(internodeHeight)[&B(x + 1)][\&B(x + 1)]\T(x + 1)
@@ -23,7 +21,6 @@ JI(Y) < B(x) -> [^V(3)]R(x)
 
 ## V is a flowering bud
 V(x) : x > 0 -> ^FV(x - 1)
-V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
 R(x) : x < branchLength && (x % 2 < 1) -> I(internodeHeight)[-^B(x + 1)][+^B(x + 1)]R(x + 1)
@@ -40,3 +37,12 @@ I(x) > J -> JI(x)
 
 L -> [`!l(1, leafAge)]
 L(x) -> [`!l(1, x)]
+
+
+
+
+## source FFFJI(0)[&B(1)][\&B(1)]\
+## source FFFI(0)[&[^V(3)]R(2)][\&[^V(3)]R(2)]\
+## source FFFI(0)[&[^^FV(2)]I(3)R(4)][\&[^^FV(2)]I(3)R(4)]\
+## source FFFI(0)[&[^^F^FV(1)]I(1)[O(3, -40)]L[O(0, 40)]]
+## source [\&[^^F^FV(1)]I(1)[O(3, -40)]L[O(3, 40)]]\

@@ -1922,8 +1922,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78755203f1cf4e742b0faa6bb03bf6f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  secondsPerUpdate: 0.25
-  timeBeforeRestart: 5
+  secondsPerUpdate: 0.1
+  timeBeforeRestart: 1
   systemObject: {fileID: 378491273550888993, guid: 2983f78530f19a24aba2a646ca6da262, type: 3}
 --- !u!4 &2023392570
 Transform:
@@ -2088,5 +2088,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameObject
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 9089396036891669027, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
