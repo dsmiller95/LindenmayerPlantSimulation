@@ -11,7 +11,7 @@ An attempt to implement most of the features present in L-systems described by [
 - [L-System Language](#l-system-language)
   - [Rule examples](#rule-examples)
   - [Parameterization](#parameterization)
-  - [Limitations](#limitations)
+  - [Contextual Matching](#contextual-matching)
 - [Examples](#example-showcase)
 
 ## [Installation](#installation)
@@ -93,6 +93,7 @@ There are x types of directives. parameters to the directives are parsed based o
 
 - `#axiom string` defines the axiom for this system
 - `#iterations int` defines how many iterations the system should step for, by default. x must be an integer.
+- `#ignore string` sets every character as part of the string to be ignored by the L-system, when performing contextual matches.
 - `#runtime string float` defines a global runtime value named <string> with a default value of <float>
 - `#define string string` defines a global compile time replacement directive which searches the full text of the rules for an exact match against the first string, replacing with the second string.
 
@@ -113,10 +114,10 @@ F -> FF
 
 ---
 
-Looks for `A` directly followed by `B`, and replaces both symbols with `B`
+Looks for `A` with a child of `B`, and replaces self with `B`
 
 ```
-AB -> B
+A > B -> B
 ```
 
 ---
@@ -124,8 +125,8 @@ AB -> B
 40% chance of replacing `F` with `FF`, and 60% chance to do nothing
 
 ```
-P(0.4) F -> FF
-P(1 - 0.4) F -> F
+P(0.4) | F -> FF
+P(1 - 0.4) | F -> F
 ```
 
 ---
@@ -194,9 +195,9 @@ x && y
 x || y
 ```
 
-## [Limitations](#limitations)
+## [Contextual Matching](#contextual-matching)
 
-- Does not support contextual matches, E.X. `C < A > B -> X`
+- Contextual matches must occur in-order, even if nested in branching structures. See the [Contextual match](Runtime/Tests/EditMode/ContextualMatcherTests.cs) tests for examples of how the matching rules work
 
 # [Example Showcase](#example-showcase)
 

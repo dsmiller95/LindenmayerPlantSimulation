@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2] - 2021-03-07
+
+### Breaking changes
+
+- Stochastic rule grammar changed
+- Multi-symbol match rules are no longer supported, those rules must be refactored as context-sensitive rules
+
+### Added
+
+- Support for L1/L2 context-sensitive systems
+
 ## [0.1.12] - 2021-02-27
 
 ### Added

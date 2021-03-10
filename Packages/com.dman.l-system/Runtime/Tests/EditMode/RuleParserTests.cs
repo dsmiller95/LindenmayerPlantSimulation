@@ -6,31 +6,61 @@ public class RuleParserTests
     [Test]
     public void ParsedRuleParsesStringDefinition()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A -> AB");
+        var ruleFromString = RuleParser.ParseToRule("A -> AB");
 
         Assert.AreEqual("A", ruleFromString.TargetSymbolString());
         Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
     }
     [Test]
+    public void ParsedRuleParsesStringDefinitionWithExoticCharacter()
+    {
+        var ruleFromString = RuleParser.ParseToRule("- -> AB");
+
+        Assert.AreEqual("-", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
     public void ParsedRuleParsesStringDefinitionWithNovelCharacters()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A -> F-[[X]+X]+F[+FX]-X");
+        var ruleFromString = RuleParser.ParseToRule("A -> F-[[X]+X]+F[+FX]-X");
 
         Assert.AreEqual("A", ruleFromString.TargetSymbolString());
         Assert.AreEqual("F-[[X]+X]+F[+FX]-X", ruleFromString.ReplacementSymbolString());
     }
     [Test]
-    public void ParsesRuleWithMultipleCharacterMatch()
+    public void ParsesRuleWithPrefixCharacterMatch()
     {
-        var ruleFromString = ParsedRule.ParseToRule("AB -> A");
+        var ruleFromString = RuleParser.ParseToRule("A < B -> A");
 
-        Assert.AreEqual("AB", ruleFromString.TargetSymbolString());
+        Assert.AreEqual(1, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual(0, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual("A < B", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
+    public void ParsesRuleWithSuffixCharacterMatch()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A > B -> A");
+
+        Assert.AreEqual(0, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual(1, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual("A > B", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
+    public void ParsesRuleWithFullContextCharacterMatch()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A < B > C -> A");
+
+        Assert.AreEqual(1, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual(1, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual("A < B > C", ruleFromString.TargetSymbolString());
         Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
     }
     [Test]
     public void ParsedRuleProbability()
     {
-        var ruleFromString = ParsedRule.ParseToRule("P(0.5) A -> AB");
+        var ruleFromString = RuleParser.ParseToRule("P(0.5) | A -> AB");
 
         Assert.AreEqual("A", ruleFromString.TargetSymbolString());
         Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
@@ -42,7 +72,7 @@ public class RuleParserTests
     [Test]
     public void ParsedRuleProbabilityFromExpression()
     {
-        var ruleFromString = ParsedRule.ParseToRule("P(0.5 - 0.3) A -> AB");
+        var ruleFromString = RuleParser.ParseToRule("P(0.5 - 0.3) | A -> AB");
 
         Assert.AreEqual("A", ruleFromString.TargetSymbolString());
         Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
@@ -54,23 +84,44 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithInputParameters()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B");
+        var ruleFromString = RuleParser.ParseToRule("A(x, y) -> B");
 
         Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
         Assert.AreEqual("B", ruleFromString.ReplacementSymbolString());
     }
     [Test]
-    public void ParsesRuleWithMultipleCharactersAndParameters()
+    public void ParsesRuleWithPrefixContextAndParameters()
     {
-        var ruleFromString = ParsedRule.ParseToRule("B(x)A(x, y) -> B");
+        var ruleFromString = RuleParser.ParseToRule("B(x) > A(y, z) -> B");
 
-        Assert.AreEqual("B(x)A(x, y)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual(1, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual(1, ruleFromString.coreSymbol.parameterLength);
+        Assert.AreEqual(2, ruleFromString.forwardsMatch[0].parameterLength);
+
+        Assert.AreEqual("B(x) > A(y, z)", ruleFromString.TargetSymbolString());
         Assert.AreEqual("B", ruleFromString.ReplacementSymbolString());
+    }
+
+    [Test]
+    public void ParsesRuleWithFullContextParametersInOrder()
+    {
+        var ruleFromString = RuleParser.ParseToRule("C(x) < K(y) > A(z) -> D((timeToFruit - x) / (y -z))", new string[] { "timeToFruit" });
+
+        Assert.AreEqual("C(x) < K(y) > A(z)", ruleFromString.TargetSymbolString());
+
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+        Assert.AreEqual('D', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
+
+        var evaluatorFunction = ruleFromString.replacementSymbols[0].evaluators[0];
+        Assert.AreEqual((10.0 - 25.0) / (4.0 - 8.0), evaluatorFunction.DynamicInvoke(10, 25, 4, 8));
+
+        Assert.AreEqual((11.2 - 892) / (6.66 - 1.7), evaluatorFunction.DynamicInvoke(11.2, 892, 6.66, 1.7));
     }
     [Test]
     public void ParsesRuleWithParametersAndReplacementParameters()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B(y)");
+        var ruleFromString = RuleParser.ParseToRule("A(x, y) -> B(y)");
 
         Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
         Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
@@ -81,7 +132,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithParametersAndReplacementParametersAndComplexExpression()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B(y + (y - x) * y)");
+        var ruleFromString = RuleParser.ParseToRule("A(x, y) -> B(y + (y - x) * y)");
 
         Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
         Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
@@ -92,7 +143,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithParametersAndMultipleReplacementParameters()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A(x, y) -> B(y + (y - x) * y)C(x)A(y, x)");
+        var ruleFromString = RuleParser.ParseToRule("A(x, y) -> B(y + (y - x) * y)C(x)A(y, x)");
 
         Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
         Assert.AreEqual(3, ruleFromString.replacementSymbols.Length);
@@ -113,7 +164,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithParametersAndConditionalMatch()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A(x, y): x < 10 -> A(x + 1, y - x)");
+        var ruleFromString = RuleParser.ParseToRule("A(x, y): x < 10 -> A(x + 1, y - x)");
 
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(11, 2));
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(10, 2));
@@ -130,7 +181,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithGlobalParametersMatch()
     {
-        var ruleFromString = ParsedRule.ParseToRule("A(x) -> B(x + stretch, stretch)", new string[] { "stretch" });
+        var ruleFromString = RuleParser.ParseToRule("A(x) -> B(x + stretch, stretch)", new string[] { "stretch" });
 
         Assert.IsNull(ruleFromString.conditionalMatch);
 
@@ -143,20 +194,69 @@ public class RuleParserTests
         Assert.AreEqual(10, ruleFromString.replacementSymbols[0].evaluators[1].DynamicInvoke(10, 2));
     }
     [Test]
-    public void ParsesRuleWithNonAlphaMultiMatchWithParameter()
+    public void ParsesRuleWithNonAlphaContextMatchWithParameter()
     {
-        var ruleFromString = ParsedRule.ParseToRule("C(x)K(y)`A(z) : x >= timeToFruit -> D(1)", new string[] { "timeToFruit" });
+        var ruleFromString = RuleParser.ParseToRule("C(x) < K(y) > `A(z) : x >= timeToFruit -> D(1)", new string[] { "timeToFruit" });
 
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 0, 0, 0));
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 1, 0, 0));
         Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 4, 0, 0));
 
-        Assert.AreEqual("C(x)K(y)`A(z)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("C(x) < K(y) > `A(z)", ruleFromString.TargetSymbolString());
 
         Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
         Assert.AreEqual('D', ruleFromString.replacementSymbols[0].targetSymbol);
         Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
         Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(10, 10, 10, 10));
+    }
+
+    [Test]
+    public void RuleWithNoReplacementValidZeroLengthReplacement()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A(x) ->");
+
+        Assert.AreEqual("A(x)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual(0, ruleFromString.replacementSymbols.Length);
+        Assert.AreEqual("", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
+    public void RuleWithProbabilityConditionalParses()
+    {
+        var ruleFromString = RuleParser.ParseToRule("P(0.5) | A(x) : x < global -> A(x + 1)", new string[] { "global" });
+
+        Assert.IsInstanceOf<ParsedStochasticRule>(ruleFromString);
+
+        var stochastic = ruleFromString as ParsedStochasticRule;
+
+        Assert.AreEqual(0.5, stochastic.probability);
+
+        Assert.AreEqual("A(x)", stochastic.TargetSymbolString());
+        Assert.AreEqual(1, stochastic.replacementSymbols.Length);
+        Assert.AreEqual('A', stochastic.replacementSymbols[0].targetSymbol);
+
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2));
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5, 2));
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3));
+    }
+
+    [Test]
+    public void ParsesRuleWithEverySyntax()
+    {
+        var ruleFromString = RuleParser.ParseToRule("P(0.8 - (1/2)) | A < B > C(y) : y < global -> A", new string[] { "global" });
+
+        Assert.AreEqual(1, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual(1, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual("A < B > C(y)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
+
+        Assert.IsInstanceOf<ParsedStochasticRule>(ruleFromString);
+        var stochastic = ruleFromString as ParsedStochasticRule;
+
+        Assert.AreEqual(0.3, stochastic.probability, 1e-5);
+
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2));
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5, 2));
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3));
     }
 
     #region Meaningful Exceptions
@@ -166,7 +266,7 @@ public class RuleParserTests
         var ruleString = "A(x) -> B(x, yeet)";
         try
         {
-            ParsedRule.ParseToRule(ruleString);
+            RuleParser.ParseToRule(ruleString);
         }
         catch (SyntaxException e)
         {
@@ -177,27 +277,12 @@ public class RuleParserTests
         }
     }
     [Test]
-    public void RuleWithNoReplacementThrowsMeaninfulException()
-    {
-        var ruleString = "A(x) ->";
-        try
-        {
-            ParsedRule.ParseToRule(ruleString);
-        }
-        catch (SyntaxException e)
-        {
-            Assert.AreEqual(0, e.errorStartIndex);
-            Assert.AreEqual(ruleString.Length, e.errorLength);
-            Assert.AreEqual(ruleString, e.ruleText);
-        }
-    }
-    [Test]
     public void RuleWithOneTooFewParensThrowsMeaninfulException()
     {
         var ruleString = "A(x) -> B(x + (y)";
         try
         {
-            ParsedRule.ParseToRule(ruleString);
+            RuleParser.ParseToRule(ruleString);
         }
         catch (SyntaxException e)
         {
@@ -211,7 +296,7 @@ public class RuleParserTests
         var ruleString = "A(x, y) -> B(x + / * y)";
         try
         {
-            ParsedRule.ParseToRule(ruleString);
+            RuleParser.ParseToRule(ruleString);
         }
         catch (SyntaxException e)
         {
@@ -225,7 +310,7 @@ public class RuleParserTests
         var ruleString = "A(x, y) -> B(x + / y)";
         try
         {
-            ParsedRule.ParseToRule(ruleString);
+            RuleParser.ParseToRule(ruleString);
         }
         catch (SyntaxException e)
         {
@@ -239,7 +324,7 @@ public class RuleParserTests
         var ruleString = "A(x, y) -> B(+)";
         try
         {
-            ParsedRule.ParseToRule(ruleString);
+            RuleParser.ParseToRule(ruleString);
         }
         catch (SyntaxException e)
         {
@@ -254,7 +339,7 @@ public class RuleParserTests
         var ruleString = "A(x, y) -> B()";
         try
         {
-            ParsedRule.ParseToRule(ruleString);
+            RuleParser.ParseToRule(ruleString);
         }
         catch (SyntaxException e)
         {
@@ -269,7 +354,7 @@ public class RuleParserTests
         var ruleString = "A(x, y) -> B(x))";
         try
         {
-            ParsedRule.ParseToRule(ruleString);
+            RuleParser.ParseToRule(ruleString);
         }
         catch (SyntaxException e)
         {
@@ -284,7 +369,7 @@ public class RuleParserTests
         var ruleString = "A(x, y) : x >= e -> B(x)";
         try
         {
-            ParsedRule.ParseToRule(ruleString);
+            RuleParser.ParseToRule(ruleString);
         }
         catch (SyntaxException e)
         {

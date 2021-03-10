@@ -9,19 +9,21 @@ namespace Dman.LSystem.SystemRuntime
         /// <summary>
         /// the symbol which this rule will replace. Apply rule will only ever be called with this symbol.
         /// </summary>
-        public int[] TargetSymbolSeries => _targetSymbols;
-        private readonly int[] _targetSymbols;
+        public int TargetSymbol => _targetSymbolWithParameters.targetSymbol;
 
-        private readonly InputSymbol[] _targetSymbolsWithParameters;
+        public SymbolSeriesMatcher ContextPrefix {get; private set;}
+
+        public SymbolSeriesMatcher ContextSuffix { get; private set; }
+
+
+        private readonly InputSymbol _targetSymbolWithParameters;
         private System.Delegate conditionalChecker;
 
         public RuleOutcome[] possibleOutcomes;
 
         public BasicRule(ParsedRule parsedInfo)
         {
-            _targetSymbolsWithParameters = parsedInfo.targetSymbols;
-            _targetSymbols = _targetSymbolsWithParameters.Select(x => x.targetSymbol).ToArray();
-            conditionalChecker = parsedInfo.conditionalMatch;
+            _targetSymbolWithParameters = parsedInfo.coreSymbol;
             possibleOutcomes = new RuleOutcome[] {
                 new RuleOutcome
                 {
@@ -29,6 +31,10 @@ namespace Dman.LSystem.SystemRuntime
                     replacementSymbols = parsedInfo.replacementSymbols
                 }
             };
+
+            conditionalChecker = parsedInfo.conditionalMatch;
+            ContextPrefix = new SymbolSeriesMatcher(parsedInfo.backwardsMatch);
+            ContextSuffix = new SymbolSeriesMatcher(parsedInfo.forwardsMatch);
         }
         public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules)
         {
@@ -39,10 +45,11 @@ namespace Dman.LSystem.SystemRuntime
                     replacementSymbols = x.replacementSymbols
                 }).ToArray();
             var firstOutcome = parsedRules.First();
-            _targetSymbolsWithParameters = firstOutcome.targetSymbols;
-            _targetSymbols = _targetSymbolsWithParameters.Select(x => x.targetSymbol).ToArray();
+            _targetSymbolWithParameters = firstOutcome.coreSymbol;
 
             conditionalChecker = firstOutcome.conditionalMatch;
+            ContextPrefix = new SymbolSeriesMatcher(firstOutcome.backwardsMatch);
+            ContextSuffix = new SymbolSeriesMatcher(firstOutcome.forwardsMatch);
         }
 
         /// <summary>
@@ -52,49 +59,92 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="symbolParameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
         public SymbolString<double> ApplyRule(
-            System.ArraySegment<double[]> symbolParameters,
+            SymbolStringBranchingCache branchingCache,
+            SymbolString<double> symbols,
+            int indexInSymbols,
             ref Unity.Mathematics.Random random,
-            double[] globalParameters = null)
+            double[] globalRuntimeParameters = null)
         {
+            var target = _targetSymbolWithParameters;
+
+            // parameters
             var orderedMatchedParameters = new List<object>();
-            if (globalParameters != null)
+            if (globalRuntimeParameters != null)
             {
-                foreach (var globalParam in globalParameters)
+                foreach (var globalParam in globalRuntimeParameters)
                 {
                     orderedMatchedParameters.Add(globalParam);
                 }
             }
-            for (int targetSymbolIndex = 0; targetSymbolIndex < _targetSymbolsWithParameters.Length; targetSymbolIndex++)
+
+            // context match
+            if (ContextPrefix != null && ContextPrefix.targetSymbolSeries?.Length > 0)
             {
-                var target = _targetSymbolsWithParameters[targetSymbolIndex];
-                var parameter = symbolParameters.Array[symbolParameters.Offset + targetSymbolIndex];
-                if (parameter == null)
-                {
-                    if (target.namedParameters.Length > 0)
-                    {
-                        return null;
-                    }
-                    continue;
-                }
-                if (target.namedParameters.Length != parameter.Length)
+                var backwardMatch = branchingCache.MatchesBackwards(indexInSymbols, ContextPrefix);
+                if (backwardMatch == null)
                 {
                     return null;
                 }
-                for (int parameterIndex = 0; parameterIndex < parameter.Length; parameterIndex++)
+                for (int indexInPrefix = 0; indexInPrefix < ContextPrefix.targetSymbolSeries.Length; indexInPrefix++)
                 {
-                    orderedMatchedParameters.Add(parameter[parameterIndex]);
+                    if (!backwardMatch.TryGetValue(indexInPrefix, out var matchingTargetIndex))
+                    {
+                        continue;
+                    }
+                    var nextSymbol = symbols.parameters[matchingTargetIndex];
+                    foreach (var paramValue in nextSymbol)
+                    {
+                        orderedMatchedParameters.Add(paramValue);
+                    }
                 }
             }
 
+            var coreParameter = symbols.parameters[indexInSymbols];
+            if ((coreParameter?.Length ?? 0) != target.parameterLength)
+            {
+                return null;
+            }
+            if (coreParameter != null)
+            {
+                for (int parameterIndex = 0; parameterIndex < coreParameter.Length; parameterIndex++)
+                {
+                    orderedMatchedParameters.Add(coreParameter[parameterIndex]);
+                }
+            }
+
+            if (ContextSuffix != null && ContextSuffix.targetSymbolSeries?.Length > 0)
+            {
+                var forwardMatch = branchingCache.MatchesForward(indexInSymbols, ContextSuffix, false);
+                if (forwardMatch == null)
+                {
+                    return null;
+                }
+                for (int indexInSuffix = 0; indexInSuffix < ContextSuffix.targetSymbolSeries.Length; indexInSuffix++)
+                {
+                    if(!forwardMatch.TryGetValue(indexInSuffix, out var matchingTargetIndex))
+                    {
+                        continue;
+                    }
+                    var nextSymbol = symbols.parameters[matchingTargetIndex];
+                    foreach (var paramValue in nextSymbol)
+                    {
+                        orderedMatchedParameters.Add(paramValue);
+                    }
+                }
+            }
+
+
+
             var paramArray = orderedMatchedParameters.ToArray();
 
+            // conditional
             if (conditionalChecker != null)
             {
                 var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
                 if (!(invokeResult is bool boolResult))
                 {
                     // TODO: call this out a bit better. All compilation context is lost here
-                    throw new System.Exception($"Conditional expression must evaluate to a boolean");
+                    throw new LSystemRuntimeException($"Conditional expression must evaluate to a boolean");
                 }
                 var conditionalResult = boolResult;
                 if (!conditionalResult)
@@ -103,9 +153,10 @@ namespace Dman.LSystem.SystemRuntime
                 }
             }
 
-
+            // stochastic selection
             RuleOutcome outcome = SelectOutcome(ref random);
 
+            // replacement
             return outcome.GenerateReplacement(paramArray);
         }
 
@@ -123,7 +174,7 @@ namespace Dman.LSystem.SystemRuntime
                         return possibleOutcome;
                     }
                 }
-                throw new System.Exception("possible outcome probabilities do not sum to 1");
+                throw new LSystemRuntimeException("possible outcome probabilities do not sum to 1");
             }
             return possibleOutcomes[0];
         }

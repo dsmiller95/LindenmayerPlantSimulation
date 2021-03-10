@@ -17,15 +17,17 @@ namespace Dman.LSystem
         /// <returns></returns>
         public static LSystem<double> DoubleSystem(
            IEnumerable<string> rules,
-           string[] globalParameters = null)
+           string[] globalParameters = null,
+           string ignoredCharacters = "")
         {
             return new LSystem<double>(
-                ParsedRule.CompileRules(
+                RuleParser.CompileRules(
                         rules,
                         globalParameters
                         ),
-                globalParameters?.Length ?? 0
-                );
+                globalParameters?.Length ?? 0,
+                ignoredCharacters: new HashSet<int>(ignoredCharacters.Select(x => (int)x))
+            );
         }
     }
 
@@ -52,34 +54,51 @@ namespace Dman.LSystem
         /// structured data to store rules, in order of precidence, as follows:
         ///     first, order by size of the TargetSymbolSeries. Patterns which match more symbols always take precidence over patterns which match less symbols
         /// </summary>
-        private IDictionary<int, IList<IRule<T>>> rulesByFirstTargetSymbol;
+        private IDictionary<int, IList<IRule<T>>> rulesByTargetSymbol;
 
         /// <summary>
         /// The number of global runtime parameters
         /// </summary>
         public int GlobalParameters { get; private set; }
 
+        public int branchOpenSymbol;
+        public int branchCloseSymbol;
+        /// <summary>
+        /// Defaults to false. fully ordering agnostic matching is not yet implemented, setting to true will result in an approximation
+        ///     with some failures on edge cases involving subsets of matches. look at the context matcher tests for more details.
+        /// </summary>
+        public bool orderingAgnosticContextMatching = false;
+
+        // currently just used for blocking out context matching. could be used in the future to exclude rule application from specific symbols, too.
+        // if that improves runtime.
+        public ISet<int> ignoredCharacters;
 
         public LSystem(
             IEnumerable<IRule<T>> rules,
-            int expectedGlobalParameters = 0)
+            int expectedGlobalParameters = 0,
+            int branchOpenSymbol = '[',
+            int branchCloseSymbol = ']',
+            ISet<int> ignoredCharacters = null)
         {
             GlobalParameters = expectedGlobalParameters;
+            this.branchOpenSymbol = branchOpenSymbol;
+            this.branchCloseSymbol = branchCloseSymbol;
+            this.ignoredCharacters = ignoredCharacters == null ? new HashSet<int>() : ignoredCharacters;
 
-            rulesByFirstTargetSymbol = new Dictionary<int, IList<IRule<T>>>();
+            rulesByTargetSymbol = new Dictionary<int, IList<IRule<T>>>();
             foreach (var rule in rules)
             {
-                var targetSymbols = rule.TargetSymbolSeries;
-                if (!rulesByFirstTargetSymbol.TryGetValue(targetSymbols[0], out var ruleList))
+                var targetSymbols = rule.TargetSymbol;
+                if (!rulesByTargetSymbol.TryGetValue(targetSymbols, out var ruleList))
                 {
-                    rulesByFirstTargetSymbol[targetSymbols[0]] = ruleList = new List<IRule<T>>();
+                    rulesByTargetSymbol[targetSymbols] = ruleList = new List<IRule<T>>();
                 }
                 ruleList.Add(rule);
             }
-            foreach (var symbol in rulesByFirstTargetSymbol.Keys.ToList())
+            foreach (var symbol in rulesByTargetSymbol.Keys.ToList())
             {
-                rulesByFirstTargetSymbol[symbol] = rulesByFirstTargetSymbol[symbol]
-                    .OrderByDescending(x => x.TargetSymbolSeries.Length)
+                rulesByTargetSymbol[symbol] = rulesByTargetSymbol[symbol]
+                    .OrderByDescending(x => (x.ContextPrefix?.targetSymbolSeries?.Length ?? 0) + (x.ContextSuffix?.targetSymbolSeries?.Length ?? 0))
                     .ToList();
             }
         }
@@ -95,7 +114,7 @@ namespace Dman.LSystem
             var globalParamSize = globalParameters?.Length ?? 0;
             if (globalParamSize != GlobalParameters)
             {
-                throw new Exception($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
+                throw new LSystemRuntimeException($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
             var nextState = new LSystemState<T>()
             {
@@ -109,29 +128,30 @@ namespace Dman.LSystem
 
         private SymbolString<T>[] GenerateNextSymbols(SymbolString<T> symbolState, ref Unity.Mathematics.Random random, T[] globalParameters)
         {
+            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, this.ignoredCharacters);
+            tmpBranchingCache.SetTargetSymbolString(symbolState);
+
             var resultArray = new SymbolString<T>[symbolState.symbols.Length];
             for (int symbolIndex = 0; symbolIndex < symbolState.symbols.Length;)
             {
                 var symbol = symbolState.symbols[symbolIndex];
                 var parameters = symbolState.parameters[symbolIndex];
                 var ruleApplied = false;
-                if (rulesByFirstTargetSymbol.TryGetValue(symbol, out var ruleList) && ruleList != null && ruleList.Count > 0)
+                if (rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) && ruleList != null && ruleList.Count > 0)
                 {
                     foreach (var rule in ruleList)
                     {
-                        var symbolMatch = rule.TargetSymbolSeries;
-                        if (!MatchesSymbolStringAfterFirst(symbolState.symbols, symbolMatch, symbolIndex))
-                        {
-                            continue;
-                        }
+                        // check if match
                         var result = rule.ApplyRule(
-                            new ArraySegment<T[]>(symbolState.parameters, symbolIndex, symbolMatch.Length),
+                            tmpBranchingCache,
+                            symbolState,
+                            symbolIndex,
                             ref random,
                             globalParameters);// todo
                         if (result != null)
                         {
                             resultArray[symbolIndex] = result;
-                            symbolIndex += symbolMatch.Length;
+                            symbolIndex += 1;
                             ruleApplied = true;
                             break;
                         }
@@ -141,13 +161,20 @@ namespace Dman.LSystem
                 {
                     // if none of the rules match, which could happen if all of the matches for this char require additional subsequent characters
                     // or if there are no rules
-                    resultArray[symbolIndex] = SymbolString<T>.FromSingle(symbol, parameters);
+                    resultArray[symbolIndex] = new SymbolString<T>(symbol, parameters);
                     symbolIndex++;
                 }
             }
             return resultArray;
         }
 
+        /// <summary>
+        /// check to make sure <paramref name="targetSeries"/> matches <paramref name="symbols"/>, starting at <paramref name="offset"/> inside <paramref name="symbols"/>
+        /// </summary>
+        /// <param name="symbols"></param>
+        /// <param name="targetSeries"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         private bool MatchesSymbolStringAfterFirst(
             int[] symbols,
             int[] targetSeries,

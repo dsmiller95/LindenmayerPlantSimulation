@@ -1,5 +1,6 @@
 using Dman.LSystem;
 using Dman.LSystem.SystemCompiler;
+using Dman.LSystem.SystemRuntime;
 using NUnit.Framework;
 
 public class LSystemTests
@@ -36,13 +37,37 @@ public class LSystemTests
     }
 
     [Test]
-    public void LSystemAppliesMultiMatchRules()
+    public void LSystemAppliesContextualRulesWithUniqueOrigins()
+    {
+        LSystemState<double> state = new DefaultLSystemState("A");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "A -> AB",
+            "B -> CDC",
+            "D > C -> A",
+            "D < C > D -> B"
+        });
+
+        Assert.AreEqual("A", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("AB", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABCDC", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABCDCCAC", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABCDCCACCABC", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABCDCCACCABCCABCDCC", state.currentSymbols.ToString());
+    }
+    [Test]
+    public void LSystemAppliesFlatContextualRules()
     {
         LSystemState<double> state = new DefaultLSystemState("B");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "A -> AB",
             "B -> A",
-            "AA -> B"
+            "A > A ->",
+            "A < A -> B"
         });
 
         Assert.AreEqual("B", state.currentSymbols.ToString());
@@ -63,12 +88,13 @@ public class LSystemTests
     }
 
     [Test]
-    public void LSystemAssumesIdentityReplacementWithMultiMatchRules()
+    public void LSystemAssumesIdentityReplacementWithContextRules()
     {
         LSystemState<double> state = new DefaultLSystemState("B");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "B -> ABA",
-            "AA -> B"
+            "A > A ->",
+            "A < A -> B"
         });
 
         Assert.AreEqual("B", state.currentSymbols.ToString());
@@ -108,8 +134,8 @@ public class LSystemTests
         LSystemState<double> state = new DefaultLSystemState("C");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "A -> AC",
-            "P(0.5) C -> A",
-            "P(0.5) C -> AB"
+            "P(0.5) | C -> A",
+            "P(0.5) | C -> AB"
         });
 
         Assert.AreEqual("C", state.currentSymbols.ToString());
@@ -130,8 +156,8 @@ public class LSystemTests
         LSystemState<double> state = new DefaultLSystemState("C");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
             "A -> AC",
-            "P(0.9) C -> A",
-            "P(0.1) C -> AB"
+            "P(0.9) | C -> A",
+            "P(0.1) | C -> AB"
         });
 
         Assert.AreEqual("C", state.currentSymbols.ToString());
@@ -186,11 +212,12 @@ public class LSystemTests
     }
 
     [Test]
-    public void LSystemAppliesParameterEquationsWhenMultiMatch()
+    public void LSystemAppliesParameterEquationsWhenContextMatch()
     {
         LSystemState<double> state = new DefaultLSystemState("A(1, 1)B(0)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "A(x, y)B(z) -> A(x + z, y + z)B(y)",
+            "          A(x, y) > B(z) -> A(x + z, y + z)",
+            "A(x, y) < B(z)           -> B(y)",
         });
 
         Assert.AreEqual("A(1, 1)B(0)", state.currentSymbols.ToString());
@@ -209,7 +236,8 @@ public class LSystemTests
     {
         LSystemState<double> state = new DefaultLSystemState("A(1)B(1)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "A(x)B(y) -> A(x + y)B(x)",
+            "       A(x) > B(y) -> A(x + y)",
+            "A(x) < B(y)        -> B(x)",
         });
 
         Assert.AreEqual("A(1)B(1)", state.currentSymbols.ToString());
@@ -337,10 +365,10 @@ public class LSystemTests
 
         LSystemState<double> state = new DefaultLSystemState("A(0)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "P(0.5) A(x) : x < global -> A(x + 1)",
-            "P(0.5) A(x) : x < global -> A(x + 0.5)",
-            "P(0.5) A(x) : x >= global -> A(x - 1)",
-            "P(0.5) A(x) : x >= global -> A(x - 0.5)",
+            "P(0.5) | A(x) : x < global -> A(x + 1)",
+            "P(0.5) | A(x) : x < global -> A(x + 0.5)",
+            "P(0.5) | A(x) : x >= global -> A(x - 1)",
+            "P(0.5) | A(x) : x >= global -> A(x - 0.5)",
         }, globalParameters);
 
         var defaultGlobalParams = new double[] { 3 };
@@ -377,10 +405,10 @@ public class LSystemTests
 
         LSystemState<double> state = new DefaultLSystemState("A(0)");
         var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
-            "P(0.5) A(x) : x < global -> A(x + 1)",
-            "P(0.5) A(x) : x < global -> A(x + 0.5)",
-            "P(0.5) A(x) : x >= global -> A(x - 1)",
-            "P(0.5) A(x) : x >= global -> A(x - 0.5)",
+            "P(0.5) | A(x) : x < global -> A(x + 1)",
+            "P(0.5) | A(x) : x < global -> A(x + 0.5)",
+            "P(0.5) | A(x) : x >= global -> A(x - 1)",
+            "P(0.5) | A(x) : x >= global -> A(x - 0.5)",
         }, globalParameters);
 
         var defaultGlobalParams = new double[] { 3 };
@@ -421,13 +449,135 @@ public class LSystemTests
     }
 
     [Test]
+    public void LSystemPrioritizesContextualRulesBySize()
+    {
+        LSystemState<double> state = new DefaultLSystemState("AABCD");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "A -> B",
+            "A > A -> C",
+            "A > ABCD -> F",
+            "A > ABC -> E",
+            "A > AB -> D",
+        });
+
+        Assert.AreEqual("AABCD", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("FBBCD", state.currentSymbols.ToString());
+    }
+    [Test]
+    public void LSystemAppliesContextualRulesStochasticly()
+    {
+        LSystemState<double> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "A -> AB",
+            "B -> A",
+            "P(0.5) | A > A ->",
+            "P(0.5) | A > A -> A",
+            "A < A -> B"
+        });
+
+        Assert.AreEqual("B", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("A", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("AB", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABA", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABAAB", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABABA", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABAABAAB", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("ABAABAABA", state.currentSymbols.ToString());
+    }
+    [Test]
+    public void LSystemAppliesContextualRulesOfEqualComplexityInDefinitionOrder()
+    {
+        LSystemState<double> state = new DefaultLSystemState("AAA");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "    A > A -> B",
+            "A < A     -> C"
+        });
+        Assert.AreEqual("AAA", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("BBC", state.currentSymbols.ToString());
+
+        state = new DefaultLSystemState("AAA");
+        basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "A < A     -> C",
+            "    A > A -> B"
+        });
+        Assert.AreEqual("AAA", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("BCC", state.currentSymbols.ToString());
+    }
+    [Test]
+    public void LSystemIgnoresIgnoredCharachters()
+    {
+        LSystemState<double> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+            "    A     -> A1B2",
+            "    B     -> 3A4",
+            "    A > A -> 5",
+            "A < A     -> 6B7"
+        }, ignoredCharacters: "1234567");
+
+        Assert.AreEqual("B", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A4", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A1B24", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A1B213A424", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A1B213A4213A1B2424", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("3A1B213A4213542136B713A42424", state.currentSymbols.ToString());
+    }
+
+    [Test]
     public void RuleCompilationFailsWhenConflictingRules()
     {
-        Assert.Throws<System.Exception>(() =>
+        Assert.Throws<LSystemRuntimeException>(() =>
         {
-            var compiledRules = ParsedRule.CompileRules(new string[] {
+            var compiledRules = RuleParser.CompileRules(new string[] {
                 "A -> AB",
                 "A -> CA",
+            });
+        });
+    }
+    [Test]
+    public void RuleCompilationFailsWhenContextMatchesOfDifferentTypesTryToShareProbability()
+    {
+        Assert.Throws<LSystemRuntimeException>(() =>
+        {
+            var compiledRules = RuleParser.CompileRules(new string[] {
+                "P(0.5) | A > B -> AB",
+                "P(0.5) | A > BC -> CA",
+            });
+        });
+    }
+    [Test]
+    public void RuleCompilationFailsWhenContextMatchesOfDifferentTypesMatchSamePattern()
+    {
+        Assert.Throws<LSystemRuntimeException>(() =>
+        {
+            var compiledRules = RuleParser.CompileRules(new string[] {
+                "C < A > B[C][D] -> AB",
+                "C < A > B[C][D] -> CA",
+            });
+        });
+    }
+    [Test, Ignore("future feature will be to compare rules semantically instead of literally")]
+    public void RuleCompilationFailsWhenSuffixContextsMatchSemanticallyButNotLiterally()
+    {
+        Assert.Throws<LSystemRuntimeException>(() =>
+        {
+            var compiledRules = RuleParser.CompileRules(new string[] {
+                "A > B[C]D -> AB",
+                "A > B[C][D] -> CA",
             });
         });
     }

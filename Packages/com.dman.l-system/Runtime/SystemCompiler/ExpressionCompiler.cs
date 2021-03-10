@@ -51,7 +51,7 @@ namespace Dman.LSystem.SystemCompiler
             var firstToken = enumerator.Current;
             if (firstToken.token != TokenType.LEFT_PAREN)
             {
-                throw new Exception("token string must begin with an open paren");
+                throw firstToken.context.ExceptionHere("token string must begin with an open paren");
             }
             var internalExpressionList = ParseToTokenExpressionTillNextParen(enumerator).ToList();
             return new TokenExpression(
@@ -95,7 +95,7 @@ namespace Dman.LSystem.SystemCompiler
                     }
                     else
                     {
-                        throw new Exception($"Invalid Expression Token Type: '{Enum.GetName(typeof(TokenType), tokenType)}'");
+                        throw current.context.ExceptionHere($"Invalid Expression Token Type: '{Enum.GetName(typeof(TokenType), tokenType)}'");
                     }
                 }
                 else
