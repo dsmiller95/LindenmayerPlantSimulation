@@ -76,8 +76,6 @@ namespace Dman.LSystem.UnityObjects
             try
             {
                 systemState = systemObject.compiledSystem?.StepSystem(systemState, runtimeParameters.GetCurrentParameters());
-                Debug.Log($"len: {systemState.currentSymbols.Length} iter:{totalSteps}");
-                Debug.Log(systemState.currentSymbols);
             }
             catch (System.Exception e)
             {

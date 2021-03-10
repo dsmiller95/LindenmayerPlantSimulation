@@ -1,6 +1,0 @@
-#axiom EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]
-#iterations 30
-
-#ignore &
-
-A > B -> X

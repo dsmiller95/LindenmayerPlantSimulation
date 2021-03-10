@@ -1,60 +1,59 @@
-#axiom T(0)
-#iterations 30
+#axiom Z(0)T(0)
+#iterations 70
 
-#ignore /\&^F
+#ignore /\&^F$
 
-#runtime terminalBudGrowth 6
+#runtime terminalBudGrowth 15
 
-#runtime growthStop 5
-#runtime segmentGrowth 6
-#runtime shootHeight 3
-#runtime internodeHeight 3
-#runtime branchLength 3
+#runtime primaryInternodeHeight 2
+#runtime sideInternodeLength 2
 #runtime leafAge 3
-#runtime leavesPerPetiole 7
+#runtime leavesPerPetiole 5
 #runtime flowerAge 3
 
-#define leafExpression [&&L][/(180)&&L]
-#define budBranchChanceFactor 0.7
-#define shootStemBranchingFactor 0.3
-
+#define shootStemLeafProbability 0
 
 ## T is the terminal bud
-T(x) : x < terminalBudGrowth -> I(internodeHeight)[&(75)B(x + 1)][\(180)&(75)B(x + 1)]\(90)T(x + 1)
+T(x) : x < terminalBudGrowth -> I(primaryInternodeHeight)[&(15)B(x)][\(180)&(15)B(x)]\(137)T(x + 1)
 T(x) : x >= terminalBudGrowth -> J
 
-## J is a signal which propigates from the apex to the root, signalling branch growth on the way down.
+## J is a signal which propigates from the root, signalling branch growth.
 J ->
-## X is an accompanying symbol to J, which propogates up from an internode to the buds
-## X -> 
+## X is a signal which propigates from the root, signalling flower growth
+X -> 
+
+#define rootBounceTime 10
+## Z is the root, and bounces signals
+Z(x) : x == 1 -> Z(0)X
+Z(x) : x > 1 -> Z(x - 1)
+Z(x) > J -> Z(rootBounceTime)
+## o Z > J -> ZX
 
 ## B is a bud, and randomly chooses what it will become
-P(budBranchChanceFactor) | JI(Y) < B(x) -> [^V(3)]R(x)
-P(1 - budBranchChanceFactor) | JI(Y) < B(x) -> [^V(3)]P(leavesPerPetiole)
+JI(Y) < B(x) -> R((terminalBudGrowth - x)^0.6)
+
+## G is a dormant flowering bud
+G(x) -> V(x)
 
 ## V is a flowering bud
 V(x) : x > 0 -> ^(7)FV(x - 1)
-V(x) : x == 0 -> [``K(0)]
+X < V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
-P(shootStemBranchingFactor) | R(x) : x < branchLength -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
-P(1 - shootStemBranchingFactor) | R(x) : x < branchLength -> I(internodeHeight)R(x + 1)
-R(x) : x == branchLength -> P(leavesPerPetiole)
+P(shootStemLeafProbability) | R(x) : x > 0 -> I(sideInternodeLength)[-(75)^(20)P(leavesPerPetiole)][+(75)^(20)P(leavesPerPetiole)]R(x - 1)
+P(1 - shootStemLeafProbability) | R(x) : x > 0 -> I(sideInternodeLength)R(x - 1)
+R(x) : x <= 0 -> [^G(2)]P(leavesPerPetiole)
 
-P(x) : x >= 2 -> I(1)[O((x - 1) / 2, -40)]L[O((x - 1) / 2, 40)]
+P(x) : x >= 2 -> I(2)[O((x - 1) / 2, -40)]L[O((x - 1) / 2, 40)]
 P(x) : x > 0 -> L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
-I(x) : x > 0 -> FI(x - 1)
+I(x) : x > 0 -> $(0.05 / x)FI(x - 1)
 I(x) > J -> JI(x)
+X < I(x) -> I(x)X
 
-A(x) : x < growthStop -> Q(x)NI(growthStop - x + 3)A(x + 1)
-A(x) : x == growthStop -> Q(x)N
-
-Q(x) : x < segmentGrowth -> FQ(x + 1)F
-
-N -> leafExpression
+## organs
 L -> [`!(1, 0.5, 0.5)l(1, leafAge)]
 L(x) -> [`!(1, 0.5, 0.5)l(1, x)]
 l(x, y) : x < y -> l(x + 1, y)

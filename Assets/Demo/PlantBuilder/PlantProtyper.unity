@@ -1924,7 +1924,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   secondsPerUpdate: 0.1
   timeBeforeRestart: 1
-  systemObject: {fileID: 378491273550888993, guid: 2983f78530f19a24aba2a646ca6da262, type: 3}
+  systemObject: {fileID: 378491273550888993, guid: e5d2ac04a3c30804b840cd434655bdc8, type: 3}
 --- !u!4 &2023392570
 Transform:
   m_ObjectHideFlags: 0
@@ -2088,6 +2088,5 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameObject
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 9089396036891669027, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
