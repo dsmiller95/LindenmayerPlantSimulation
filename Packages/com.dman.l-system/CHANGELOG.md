@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1] - 2021-03-27
+
+### Added
+
+- new "@" thickness control operator, which effects mesh's labeled to be effected by thickness
+
 ## [0.2] - 2021-03-07
 
 ### Breaking changes

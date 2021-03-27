@@ -73,7 +73,9 @@ In this example, `F` is used as the most basic stem unit. In the [herbaceous pla
 
 ### Scale Operation
 
-Defines a single character to be used to scale the turtle's current transformation. This will multiply the scale of everything done by the turtle, such as the size of meshes and as the distance traveled when translating the turtle. The character can also be parameterized in three ways:`!` will scale by the default configured scale in the scriptable object, `!(x)` will scale every dimension by x exactly, and `!(x, y, z)` will scale by the vector <x, y, z>
+Defines one character to be used to scale the turtle's current transformation. This will multiply the scale of everything done by the turtle, such as the size of meshes and as the distance traveled when translating the turtle. The character can also be parameterized in three ways:`!` will scale by the default configured scale in the scriptable object, `!(x)` will scale every dimension by x exactly, and `!(x, y, z)` will scale by the vector <x, y, z>
+
+Also defines a thickness scaling operator, `@`. works similarly to the vector based scaling operator, but instead multiplies a scalar value which tracks "thickness". The thickness value is applied to mesh's which have UseThickness checked, and will scale the mesh along the non-primary axises (y and z). Pretty useful for controlling the thickness of stems and trunks. Can pass in a single parameter to override the default multiplier.
 
 ### Bend Operation
 
