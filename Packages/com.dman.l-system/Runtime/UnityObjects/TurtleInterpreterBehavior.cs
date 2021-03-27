@@ -50,7 +50,8 @@ namespace Dman.LSystem.UnityObjects
                 operatorDictionary,
                 new TurtleState
                 {
-                    transformation = Matrix4x4.Scale(initialScale)
+                    transformation = Matrix4x4.Scale(initialScale),
+                    thickness = 1f
                 });
             turtle.submeshIndexIncrementChar = submeshIndexIncrementor;
 

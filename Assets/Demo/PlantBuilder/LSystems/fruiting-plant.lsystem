@@ -36,7 +36,7 @@ P(1 - budBranchChanceFactor) | B(x) -> [^(50)V]P(leavesPerPetiole)
 ## V is a flowering bud
 P(flowerFailureChance) | V -> []
 P(1 - flowerFailureChance) | V -> V(flowerStalkLength)
-V(x) : x > 0 -> $(0.1)FV(x - 1)
+V(x) : x > 0 -> $(0.1)@FV(x - 1)
 V(x) : x <= 0 -> [``C(x)K(0)]
 
 #define timeToFruit 4
@@ -57,7 +57,7 @@ P(1 - shootStemBranchingFactor) | R(x, y) : x < branchInternodes && y >= interno
 R(x, y) : x >= branchInternodes && y >= internodeHeight -> petiole(leavesPerPetiole)
 
 ## rotate relative to world
-R(x, y) : y < internodeHeight -> $(0.02)FR(x, y + 1)
+R(x, y) : y < internodeHeight -> $(0.02)@FR(x, y + 1)
 
 ## N is a bud off the branch stem, and randomly chooses what it will become
 P(budBranchChanceFactor) | N(x) -> [^V]petiole(leavesPerPetiole)
@@ -70,7 +70,7 @@ petiole(x) : x > 0 -> L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
-I(x) : x > 0 -> I(x - 1)$(0.005)F
+I(x) : x > 0 -> I(x - 1)$(0.005)@F
 
 ## organs
 N -> leafExpression

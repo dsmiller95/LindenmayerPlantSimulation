@@ -16,6 +16,8 @@ namespace Dman.LSystem.UnityObjects
         public Vector3 ScalePerParameter;
 
         public bool AlsoMove;
+        [Tooltip("When checked, scale the mesh along the non-primary axises based on the thickness state")]
+        public bool UseThickness;
     }
     [CreateAssetMenu(fileName = "TurtleMeshOperations", menuName = "LSystem/TurtleMeshOperations")]
     public class TurtleMeshOperations : TurtleOperationSet<TurtleState>
@@ -39,7 +41,8 @@ namespace Dman.LSystem.UnityObjects
                     transformPostMesh,
                     newDraft,
                     meshKey.ParameterScale,
-                    meshKey.ScalePerParameter);
+                    meshKey.ScalePerParameter,
+                    meshKey.UseThickness);
             }
         }
 
@@ -49,19 +52,22 @@ namespace Dman.LSystem.UnityObjects
             private Matrix4x4 transformPostMesh;
             private bool scaling;
             private Vector3 scalePerParameter;
+            private bool thickness;
             public char TargetSymbol { get; private set; }
             public TurtleMeshOperator(
                 char symbol,
                 Matrix4x4 transform,
                 MeshDraft generatedMesh,
                 bool scaling,
-                Vector3 scalePerParameter)
+                Vector3 scalePerParameter,
+                bool thickness)
             {
                 TargetSymbol = symbol;
                 transformPostMesh = transform;
                 this.generatedMesh = generatedMesh;
-                this.scalePerParameter = scalePerParameter;
                 this.scaling = scaling;
+                this.scalePerParameter = scalePerParameter;
+                this.thickness = thickness;
             }
 
             public TurtleState Operate(TurtleState initialState, double[] parameters, MeshDraft targetDraft)
@@ -70,6 +76,10 @@ namespace Dman.LSystem.UnityObjects
                 if (scaling && parameters.Length >= 1)
                 {
                     meshScale *= Matrix4x4.Scale(scalePerParameter * (float)parameters[0]);
+                }
+                if (thickness)
+                {
+                    meshScale *= Matrix4x4.Scale(new Vector3(1, initialState.thickness, initialState.thickness));
                 }
 
                 targetDraft.AddWithTransform(generatedMesh, meshScale);

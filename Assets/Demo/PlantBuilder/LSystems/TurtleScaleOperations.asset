@@ -14,3 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scaleOperator: 33
   defaultScaleAmount: 0.9
+  thicknessScaleOperator: 64
+  defaultThicknessScale: 0.97

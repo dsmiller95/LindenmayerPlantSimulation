@@ -17,7 +17,7 @@
 T(x) : x < terminalBudGrowth -> I(primaryInternodeHeight)[&(15)B(x)][\(180)&(15)B(x)]\(137)T(x + 1)
 T(x) : x >= terminalBudGrowth -> J
 
-## J is a signal which propigates from the root, signalling branch growth.
+## J is a signal which propigates from the apex, signalling branch growth.
 J ->
 ## X is a signal which propigates from the root, signalling flower growth
 X -> 
