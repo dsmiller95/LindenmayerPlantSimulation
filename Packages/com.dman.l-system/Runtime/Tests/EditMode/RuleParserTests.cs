@@ -259,6 +259,24 @@ public class RuleParserTests
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3));
     }
 
+
+    [Test]
+    public void ParsesRuleWithExtraParens()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A(x) -> A((x + 1))");
+
+        Assert.AreEqual(0, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual(0, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual("A(x)", ruleFromString.TargetSymbolString());
+        
+
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+        Assert.AreEqual('A', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
+        Assert.AreEqual(2, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(1));
+        Assert.AreEqual(11, ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(10));
+    }
+
     #region Meaningful Exceptions
     [Test]
     public void RuleWithMissingParameterThrowsMeaningfulException()

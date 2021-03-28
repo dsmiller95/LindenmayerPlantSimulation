@@ -134,7 +134,9 @@ namespace Dman.LSystem.SystemCompiler
                     throw new SyntaxException("Compilation error: token string could not compile to one expression");
                 }
             }
-            return (tokenLinkedList.First.Value as TokenExpression).compiledExpression;
+            
+            // the final node could be uncompiled if this was a simple nested paren. call compile method just in case, rely on short-circuit if already compiled.
+            return (tokenLinkedList.First.Value as TokenExpression).CompileSelfToExpression();
         }
 
         private Expression GetExpressionFromBinaryOperator(Expression a, TokenOperator op, Expression b)

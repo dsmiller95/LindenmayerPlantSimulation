@@ -68,6 +68,66 @@ public class ExpressionCompilerTests
         Assert.AreEqual(1f, result);
     }
     [Test]
+    public void CompilesExpressionWithExtraParensOutside()
+    {
+        var expressionString = "((1 + 1))";
+
+        var parameters = new Dictionary<string, ParameterExpression>();
+        var expressionCompiler = new ExpressionCompiler(parameters);
+        var expression = expressionCompiler.CompileToExpression(expressionString);
+
+        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
+        var compiledExpression = le.Compile();
+        double result = (double)compiledExpression.DynamicInvoke();
+
+        Assert.AreEqual(2f, result);
+    }
+    [Test]
+    public void CompilesExpressionWithExtraParensInside()
+    {
+        var expressionString = "(((1 - 2)) * ((1 + 1)))";
+
+        var parameters = new Dictionary<string, ParameterExpression>();
+        var expressionCompiler = new ExpressionCompiler(parameters);
+        var expression = expressionCompiler.CompileToExpression(expressionString);
+
+        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
+        var compiledExpression = le.Compile();
+        double result = (double)compiledExpression.DynamicInvoke();
+
+        Assert.AreEqual(-2f, result);
+    }
+    [Test]
+    public void CompilesExpressionWithExtraParensEverywhere()
+    {
+        var expressionString = "((((1 - 2)) * ((1 + 1))))";
+
+        var parameters = new Dictionary<string, ParameterExpression>();
+        var expressionCompiler = new ExpressionCompiler(parameters);
+        var expression = expressionCompiler.CompileToExpression(expressionString);
+
+        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
+        var compiledExpression = le.Compile();
+        double result = (double)compiledExpression.DynamicInvoke();
+
+        Assert.AreEqual(-2f, result);
+    }
+    [Test]
+    public void CompilesExpressionWithExtraParensEverywhereAndUnaries()
+    {
+        var expressionString = "(-((-(1 - 2)) * -((1 + 1))))";
+
+        var parameters = new Dictionary<string, ParameterExpression>();
+        var expressionCompiler = new ExpressionCompiler(parameters);
+        var expression = expressionCompiler.CompileToExpression(expressionString);
+
+        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
+        var compiledExpression = le.Compile();
+        double result = (double)compiledExpression.DynamicInvoke();
+
+        Assert.AreEqual(2f, result);
+    }
+    [Test]
     public void CompilesExpressionWithParameters()
     {
         var expressionString = "(2^pow + add)";

@@ -1,5 +1,4 @@
 using Dman.LSystem.SystemCompiler;
-using Dman.LSystem.SystemRuntime;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -55,8 +54,8 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
         public void CompileToCached(Dictionary<string, string> globalCompileTimeOverrides = null)
         {
-            var newSystem = this.CompileSystem(globalCompileTimeOverrides);
-            if(newSystem != null)
+            var newSystem = CompileSystem(globalCompileTimeOverrides);
+            if (newSystem != null)
             {
                 OnCachedSystemUpdated?.Invoke();
                 compiledSystem = newSystem;
@@ -69,7 +68,7 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
         public LSystem<double> CompileWithParameters(Dictionary<string, string> globalCompileTimeOverrides)
         {
-            return this.CompileSystem(globalCompileTimeOverrides);
+            return CompileSystem(globalCompileTimeOverrides);
         }
 
         private LSystem<double> CompileSystem(Dictionary<string, string> globalCompileTimeOverrides)
@@ -131,10 +130,12 @@ namespace Dman.LSystem.UnityObjects
         {
             defaultGlobalRuntimeParameters = new List<ParameterAndDefault>();
             defaultGlobalCompileTimeParameters = new List<DefineDirectives>();
-            var ruleLines = fullCode.Split('\n');
+            var ruleLines = fullCode.Split('\n')
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrEmpty(x));
             var outputRules = new StringBuilder();
 
-            foreach (var inputLine in ruleLines.Where(x => !string.IsNullOrEmpty(x)))
+            foreach (var inputLine in ruleLines)
             {
                 if (inputLine[0] == '#')
                 {
@@ -160,63 +161,63 @@ namespace Dman.LSystem.UnityObjects
 
         private void ParseDirective(string directiveText)
         {
-            var dirParams = Regex.Matches(directiveText, @"(?<param>[^ ]+)\s+");
-            if (!dirParams[0].Success)
+            var directiveMatch = Regex.Match(directiveText, @"(?<directive>[^ ]+)\s+(?<parameter>.+)");
+            if (!directiveMatch.Success)
             {
                 throw new SyntaxException($"missing directive after hash", -1, 1);
             }
-            if (dirParams.Count < 2)
-            {
-                throw new SyntaxException($"missing directive parameter", dirParams[0]);
-            }
 
-            switch (dirParams[0].Groups["param"].Value)
+            switch (directiveMatch.Groups["directive"].Value)
             {
                 case "axiom":
-                    axiom = dirParams[1].Groups["param"].Value;
+                    axiom = directiveMatch.Groups["parameter"].Value;
                     return;
                 case "iterations":
-                    if (!int.TryParse(dirParams[1].Groups["param"].Value, out int iterations))
+                    if (!int.TryParse(directiveMatch.Groups["parameter"].Value, out int iterations))
                     {
-                        throw new SyntaxException($"iterations must be an integer", dirParams[1]);
+                        throw new SyntaxException($"iterations must be an integer", directiveMatch.Groups["parameter"]);
                     }
                     this.iterations = iterations;
                     return;
                 case "ignore":
-                    this.ignoredCharacters = dirParams[1].Groups["param"].Value;
+                    ignoredCharacters = directiveMatch.Groups["parameter"].Value;
                     return;
                 case "runtime":
-                    if (dirParams.Count < 3)
+                    var nameValueMatch = Regex.Match(directiveMatch.Groups["parameter"].Value, @"(?<variable>[^ ]+)\s+(?<value>[^ ]+)");
+                    if (!nameValueMatch.Success)
                     {
-                        throw new SyntaxException($"runtime directive requires 2 parameters", dirParams[0]);
+                        throw new SyntaxException($"runtime directive requires 2 parameters", directiveMatch.Groups["parameter"]);
                     }
-                    if (!int.TryParse(dirParams[2].Groups["param"].Value, out int runtimeDefault))
+                    if (!double.TryParse(nameValueMatch.Groups["value"].Value, out var runtimeDefault))
                     {
-                        throw new SyntaxException($"runtime parameter must default to a number", dirParams[2]);
+                        throw new SyntaxException($"runtime parameter must default to a number", nameValueMatch.Groups["value"]);
                     }
                     defaultGlobalRuntimeParameters.Add(new ParameterAndDefault
                     {
-                        name = dirParams[1].Groups["param"].Value,
+                        name = nameValueMatch.Groups["variable"].Value,
                         defaultValue = runtimeDefault
                     });
                     return;
                 case "define":
-                    if (dirParams.Count < 3)
+                    var nameReplacementMatch = Regex.Match(directiveMatch.Groups["parameter"].Value, @"(?<variable>[^ ]+)\s+(?<replacement>.+)");
+                    if (!nameReplacementMatch.Success)
                     {
-                        throw new SyntaxException($"define directive requires 2 parameters", dirParams[0]);
+                        throw new SyntaxException($"define directive requires 2 parameters", directiveMatch.Groups["parameter"]);
                     }
                     defaultGlobalCompileTimeParameters.Add(new DefineDirectives
                     {
-                        name = dirParams[1].Groups["param"].Value,
-                        replacement = dirParams[2].Groups["param"].Value
+                        name = nameReplacementMatch.Groups["variable"].Value,
+                        replacement = nameReplacementMatch.Groups["replacement"].Value
                     });
                     return;
-                case "#":
-                    return;
                 default:
+                    if (directiveMatch.Groups["directive"].Value.StartsWith("#"))
+                    {
+                        return;
+                    }
                     throw new SyntaxException(
-                        $"unrecognized directive name \"{dirParams[0].Groups["param"].Value}\"",
-                        dirParams[0]);
+                        $"unrecognized directive name \"{directiveMatch.Groups["directive"].Value}\"",
+                        directiveMatch.Groups["directive"]);
             }
         }
     }
