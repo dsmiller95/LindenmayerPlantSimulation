@@ -1,9 +1,15 @@
 using Dman.LSystem.SystemRuntime;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {
+    public abstract class LSystemCompileTimeParameterGenerator : MonoBehaviour
+    {
+        public abstract Dictionary<string, string> GenerateCompileTimeParameters();
+    }
+
     public class LSystemBehavior : MonoBehaviour
     {
         /// <summary>
@@ -22,6 +28,29 @@ namespace Dman.LSystem.UnityObjects
         public event Action OnSystemStateUpdated;
 
         private LSystemState<double> systemState;
+
+        private LSystem<double> _compiledSystem;
+        private LSystem<double> CompiledSystem
+        {
+            get
+            {
+                if (_compiledSystem == null)
+                {
+                    var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
+                    if (globalParams != null)
+                    {
+                        Debug.Log("compiling new system");
+                        var extraGlobalParams = globalParams.GenerateCompileTimeParameters();
+                        _compiledSystem = systemObject?.CompileWithParameters(extraGlobalParams);
+                    }
+                    else
+                    {
+                        _compiledSystem = systemObject?.compiledSystem;
+                    }
+                }
+                return _compiledSystem;
+            }
+        }
         private ArrayParameterRepresenation<double> runtimeParameters;
 
         private SymbolString<double> lastState;
@@ -46,10 +75,10 @@ namespace Dman.LSystem.UnityObjects
         {
             if (systemObject != null)
             {
-                systemObject.OnSystemUpdated -= OnSystemObjectRecompiled;
+                systemObject.OnCachedSystemUpdated -= OnSystemObjectRecompiled;
             }
             systemObject = newSystemObject;
-            systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
+            systemObject.OnCachedSystemUpdated += OnSystemObjectRecompiled;
             ResetState();
         }
 
@@ -58,6 +87,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public void ResetState(int? newSeed = null)
         {
+            _compiledSystem = null;
             lastState = null;
             totalSteps = 0;
             lastUpdateChanged = true;
@@ -75,7 +105,7 @@ namespace Dman.LSystem.UnityObjects
         {
             try
             {
-                systemState = systemObject.compiledSystem?.StepSystem(systemState, runtimeParameters.GetCurrentParameters());
+                systemState = CompiledSystem?.StepSystem(systemState, runtimeParameters.GetCurrentParameters());
             }
             catch (System.Exception e)
             {
@@ -107,7 +137,7 @@ namespace Dman.LSystem.UnityObjects
             lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
             if (systemObject != null)
             {
-                systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
+                systemObject.OnCachedSystemUpdated += OnSystemObjectRecompiled;
             }
             totalSteps = 0;
         }
@@ -116,19 +146,14 @@ namespace Dman.LSystem.UnityObjects
         {
             if (systemObject != null)
             {
-                systemObject.OnSystemUpdated += OnSystemObjectRecompiled;
+                systemObject.OnCachedSystemUpdated -= OnSystemObjectRecompiled;
             }
         }
 
         private void OnSystemObjectRecompiled()
         {
-            lastState = null;
-            totalSteps = 0;
-            lastUpdateChanged = true;
-            lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
-            systemState = new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
             runtimeParameters = systemObject.GetRuntimeParameters();
-            OnSystemStateUpdated?.Invoke();
+            ResetState();
         }
     }
 }

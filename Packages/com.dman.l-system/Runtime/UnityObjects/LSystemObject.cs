@@ -42,7 +42,7 @@ namespace Dman.LSystem.UnityObjects
         /// <summary>
         /// Emits whenever the system is compiled
         /// </summary>
-        public event Action OnSystemUpdated;
+        public event Action OnCachedSystemUpdated;
 
         public ArrayParameterRepresenation<double> GetRuntimeParameters()
         {
@@ -58,6 +58,7 @@ namespace Dman.LSystem.UnityObjects
             var newSystem = this.CompileSystem(globalCompileTimeOverrides);
             if(newSystem != null)
             {
+                OnCachedSystemUpdated?.Invoke();
                 compiledSystem = newSystem;
             }
         }
@@ -102,7 +103,6 @@ namespace Dman.LSystem.UnityObjects
             finally
             {
                 UnityEngine.Profiling.Profiler.EndSample();
-                OnSystemUpdated?.Invoke();
             }
             return null;
         }
