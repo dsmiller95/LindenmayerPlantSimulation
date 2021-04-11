@@ -161,7 +161,7 @@ namespace Dman.LSystem.SystemCompiler
                 .Select(group =>
                 {
                     var probabilityDeviation = System.Math.Abs(group.Sum(x => x.probability) - 1);
-                    if (probabilityDeviation > 1e-30)
+                    if (probabilityDeviation > 1e-10)
                     {
                         throw new LSystemRuntimeException($"Error: group for {group.Key.TargetSymbolString()}"
                             + $" has probability {probabilityDeviation} away from 1");

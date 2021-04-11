@@ -20,8 +20,9 @@ namespace Dman.LSystem.UnityObjects
         private FileSystemWatcher lSystemAssetWatcher;
 #endif
 
-        private void Awake()
+        private void Start()
         {
+            Debug.Log("Developer setting up");
 #if UNITY_EDITOR
             var assetPath = UnityEditor.AssetDatabase.GetAssetPath(systemObject);
             var directoryName = Path.GetDirectoryName(assetPath);
@@ -38,10 +39,6 @@ namespace Dman.LSystem.UnityObjects
             {
                 system.SetSystem(systemObject);
             }
-        }
-
-        private void Start()
-        {
             systemObject.CompileToCached();
         }
 
@@ -60,7 +57,7 @@ namespace Dman.LSystem.UnityObjects
         private void OnDestroy()
         {
 #if UNITY_EDITOR
-            lSystemAssetWatcher.Dispose();
+            lSystemAssetWatcher?.Dispose();
 #endif
         }
 
