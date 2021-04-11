@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9089396036891669024}
   - component: {fileID: 9089396036891669025}
   - component: {fileID: 9089396036891669031}
-  - component: {fileID: 9089396036891669027}
+  - component: {fileID: 4336313098753995651}
   m_Layer: 0
   m_Name: turtle string reader
   m_TagString: Untagged
@@ -62,8 +62,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: e520c19c21eba8f47ba404904f4f10ba, type: 2}
-  - {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
-  - {fileID: -116030579230884914, guid: a381acc0272832b44bdaff9265914e18, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -98,7 +96,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   systemObject: {fileID: 0}
---- !u!114 &9089396036891669027
+--- !u!114 &4336313098753995651
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -107,7 +105,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 9089396036891669036}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c330099717b1bb842b62843865854d4d, type: 3}
+  m_Script: {fileID: 11500000, guid: 1fdc2729f42a9b649a7c24d3cc3faab0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   operationSets:

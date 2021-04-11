@@ -3,7 +3,27 @@ guid: a381acc0272832b44bdaff9265914e18
 ModelImporter:
   serializedVersion: 20200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DarkGreen
+    second: {fileID: 2100000, guid: 40c078ae0f125f5468df3fd029702d21, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Red
+    second: {fileID: 2100000, guid: 364fccc233ebf3d48ad7c2b55ffde66a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: leaf
+    second: {fileID: 2100000, guid: 2fb36985d3a82954d972e2213b9a96bc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: petals
+    second: {fileID: 2100000, guid: 2c82f0931f461c54184b79cdbba8edf8, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

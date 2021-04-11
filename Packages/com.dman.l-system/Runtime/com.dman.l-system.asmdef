@@ -7,7 +7,8 @@
         "com.dman.MeshDraftExtensions",
         "Unity.Mathematics",
         "Unity.Entities",
-        "Unity.Transforms"
+        "Unity.Transforms",
+        "Unity.Rendering.Hybrid"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
