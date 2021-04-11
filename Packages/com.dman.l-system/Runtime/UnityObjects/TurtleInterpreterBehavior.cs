@@ -39,7 +39,8 @@ namespace Dman.LSystem.UnityObjects
             
 
             // Ref is unecessary in the backing API here, which is why we're not re-assigning back from it here
-            turtle.CompileStringToMesh(symbols, ref targetMesh, meshRenderer.materials.Length);
+            var resultMaterials = turtle.CompileStringToMesh(symbols, ref targetMesh);
+            meshRenderer.materials = resultMaterials.ToArray();
         }
 
         private void Awake()

@@ -2,6 +2,7 @@
 using ProceduralToolkit;
 using System.Collections.Generic;
 using UnityEngine;
+using Dman.MeshDraftExtensions;
 
 namespace Dman.LSystem
 {
@@ -26,18 +27,44 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="symbols"></param>
         /// <param name="targetMesh"></param>
-        public void CompileStringToMesh(SymbolString<double> symbols, ref Mesh targetMesh, int targetSubmeshCount = -1)
+        public List<Material> CompileStringToMesh(SymbolString<double> symbols, ref Mesh targetMesh)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle interpretation");
             var resultMeshes = new List<MeshDraft>();
-            targetSubmeshCount = Mathf.Max(targetSubmeshCount, 1);
-            for (int i = 0; i < targetSubmeshCount; i++)
+            var targetMaterials = new List<Material>();
+
+            var meshInstances = this.CompileStringToTransformsWithMeshIds(symbols);
+            foreach (var meshInstance in meshInstances.GetTurtleMeshInstances())
             {
-                resultMeshes.Add(new MeshDraft());
+                var meshTemplate = meshInstances.GetMeshTemplate(meshInstance.meshIndex);
+                var meshMaterialIndex = targetMaterials.IndexOf(meshTemplate.material);
+                if(meshMaterialIndex == -1)
+                {
+                    targetMaterials.Add(meshTemplate.material);
+                    resultMeshes.Add(new MeshDraft());
+                    meshMaterialIndex = targetMaterials.Count - 1;
+                }
+                resultMeshes[meshMaterialIndex].AddWithTransform(meshTemplate.draft, meshInstance.transformation);
             }
 
-            var currentState = new TurtleMeshState<T>(defaultState);
 
+            UnityEngine.Profiling.Profiler.BeginSample("Mesh construction");
+            var resultMeshbulder = new CompoundMeshDraft();
+            foreach (var meshOutput in resultMeshes)
+            {
+                resultMeshbulder.Add(meshOutput);
+            }
+            resultMeshbulder.ToMeshWithSubMeshes(ref targetMesh);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            return targetMaterials;
+        }
+
+        public TurtleMeshInstanceTracker CompileStringToTransformsWithMeshIds(SymbolString<double> symbols)
+        {
+            var meshInstanceTracker = new TurtleMeshInstanceTracker();
+            var currentState = new TurtleMeshState<T>(defaultState);
             var stateStack = new Stack<TurtleMeshState<T>>();
 
             for (int symbolIndex = 0; symbolIndex < symbols.symbols.Length; symbolIndex++)
@@ -56,8 +83,6 @@ namespace Dman.LSystem
                 if (symbol == submeshIndexIncrementChar)
                 {
                     currentState.submeshIndex++;
-                    if (resultMeshes.Count < currentState.submeshIndex + 1)
-                        resultMeshes.Add(new MeshDraft());
                     continue;
                 }
                 if (operationsByKey.TryGetValue(symbol, out var operation))
@@ -65,20 +90,11 @@ namespace Dman.LSystem
                     currentState.turtleBaseState = operation.Operate(
                         currentState.turtleBaseState,
                         symbols.parameters[symbolIndex],
-                        resultMeshes[currentState.submeshIndex]);
+                        meshInstanceTracker);
                 }
             }
 
-            UnityEngine.Profiling.Profiler.BeginSample("Mesh construction");
-            var resultMeshbulder = new CompoundMeshDraft();
-            foreach (var meshOutput in resultMeshes)
-            {
-                resultMeshbulder.Add(meshOutput);
-            }
-            resultMeshbulder.ToMeshWithSubMeshes(ref targetMesh);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.EndSample();
+            return meshInstanceTracker;
         }
     }
 }

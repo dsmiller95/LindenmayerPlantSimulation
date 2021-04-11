@@ -5,7 +5,9 @@
         "Utilities",
         "ProceduralToolkit",
         "com.dman.MeshDraftExtensions",
-        "Unity.Mathematics"
+        "Unity.Mathematics",
+        "Unity.Entities",
+        "Unity.Transforms"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
