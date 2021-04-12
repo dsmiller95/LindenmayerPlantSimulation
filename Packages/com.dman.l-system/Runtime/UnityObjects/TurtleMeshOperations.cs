@@ -45,11 +45,9 @@ namespace Dman.LSystem.UnityObjects
                               Matrix4x4.Translate(new Vector3(bounds.size.x * meshKey.IndividualScale.x, 0, 0))
                             : Matrix4x4.identity;
                         return (
-                        new TurtleMeshTemplate
-                        {
-                            draft = newDraft,
-                            material = meshKey.material
-                        }, transformPostMesh);
+                            new TurtleEntityOrganTemplate(newDraft,meshKey.material),
+                            transformPostMesh
+                        );
                     });
                 yield return new TurtleMeshOperator(
                     meshKey.Character,
@@ -62,14 +60,14 @@ namespace Dman.LSystem.UnityObjects
 
         class TurtleMeshOperator : ITurtleOperator<TurtleState>
         {
-            private (TurtleMeshTemplate, Matrix4x4)[] generatedMeshes;
+            private (TurtleEntityOrganTemplate, Matrix4x4)[] generatedMeshes;
             private bool scaling;
             private Vector3 scalePerParameter;
             private bool thickness;
             public char TargetSymbol { get; private set; }
             public TurtleMeshOperator(
                 char symbol,
-                (TurtleMeshTemplate, Matrix4x4)[] generatedMeshes,
+                (TurtleEntityOrganTemplate, Matrix4x4)[] generatedMeshes,
                 bool scaling,
                 Vector3 scalePerParameter,
                 bool thickness)
@@ -81,7 +79,7 @@ namespace Dman.LSystem.UnityObjects
                 this.thickness = thickness;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker targetDraft)
+            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
                 var meshTransform = initialState.transformation;
 
@@ -104,8 +102,7 @@ namespace Dman.LSystem.UnityObjects
                     meshTransform *= Matrix4x4.Scale(new Vector3(1, initialState.thickness, initialState.thickness));
                 }
 
-                var meshId = targetDraft.AddOrGetMeshTemplate(selectedMesh.Item1);
-                targetDraft.AddMeshInstance(meshId, meshTransform);
+                targetDraft.AddMeshInstance(selectedMesh.Item1, meshTransform);
 
                 initialState.transformation *= selectedMesh.Item2;
                 return initialState;

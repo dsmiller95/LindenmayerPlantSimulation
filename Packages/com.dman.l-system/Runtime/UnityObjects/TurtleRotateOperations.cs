@@ -42,7 +42,7 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultTheta = defaultTheta;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker targetDraft)
+            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
                 if (parameters.Length != 1 || !(parameters[0] is double theta))
                 {

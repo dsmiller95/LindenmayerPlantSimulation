@@ -36,7 +36,7 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultScale = defaultScale;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker targetDraft)
+            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
                 if (parameters.Length == 0)
                 {
@@ -67,7 +67,7 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultScale = defaultScale;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker targetDraft)
+            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
                 if (parameters.Length == 0)
                 {

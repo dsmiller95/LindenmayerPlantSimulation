@@ -8,7 +8,8 @@
         "Unity.Mathematics",
         "Unity.Entities",
         "Unity.Transforms",
-        "Unity.Rendering.Hybrid"
+        "Unity.Rendering.Hybrid",
+        "Unity.Burst"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

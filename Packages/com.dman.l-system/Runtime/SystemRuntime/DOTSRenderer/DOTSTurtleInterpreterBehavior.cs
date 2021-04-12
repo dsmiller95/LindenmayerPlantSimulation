@@ -26,6 +26,18 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 
         private Entity lSystemEntity;
 
+        private void Update()
+        {
+            var manager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            if (manager.Exists(lSystemEntity))
+            {
+                manager.SetComponentData(lSystemEntity, new Rotation
+                {
+                    Value = this.transform.rotation
+                });
+            }
+        }
+
         /// <summary>
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
@@ -63,13 +75,14 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 
             organSystem.ClearOldOrgans(buffer, lSystemEntity);
 
-            foreach (var meshInstance in turtleResults.GetTurtleMeshInstances())
+            for (int i = 0; i < turtleResults.TemplateTypeCount; i++)
             {
-                var meshTemplate = turtleResults.GetMeshTemplate(meshInstance.meshIndex);
-                organSystem.SpawnOrgan(
+                var meshTemplate = turtleResults.GetMeshTemplate(i);
+                var templateInstance = meshTemplate.GetOrganTemplateValue();
+                organSystem.SpawnOrgans(
                     buffer,
-                    meshTemplate,
-                    meshInstance,
+                    templateInstance,
+                    turtleResults.GetTurtleMeshTransformsByTemplateType(i),
                     lSystemEntity);
             }
             UnityEngine.Profiling.Profiler.EndSample();

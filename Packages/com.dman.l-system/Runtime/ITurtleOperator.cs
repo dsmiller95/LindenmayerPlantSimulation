@@ -1,65 +1,109 @@
-﻿using ProceduralToolkit;
+﻿using Dman.LSystem.SystemRuntime.DOTSRenderer;
+using ProceduralToolkit;
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Rendering;
+using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Dman.LSystem
 {
     public interface ITurtleOperator<T>
     {
         char TargetSymbol { get; }
-        T Operate(T initialState, double[] parameters, TurtleMeshInstanceTracker targetDraft);
+        T Operate(T initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft);
     }
 
-    public struct TurtleMeshInstance
+    public class TurtleEntityPrototypeOrganTemplate
     {
-        public Matrix4x4 transformation;
-        public int meshIndex;
+        public Entity prototype;
     }
 
-    public struct TurtleMeshTemplate : IEquatable<TurtleMeshTemplate>
+    public interface ITurtleOrganTemplate<T>
     {
-        public MeshDraft draft;
-        public Material material;
+        T GetOrganTemplateValue();
+    }
 
-        public bool Equals(TurtleMeshTemplate other)
+    public class TurtleEntityOrganTemplate : ITurtleOrganTemplate<TurtleEntityPrototypeOrganTemplate>
+    {
+        public TurtleEntityPrototypeOrganTemplate templateValue;
+
+        public TurtleEntityOrganTemplate(MeshDraft draft, Material material)
         {
-            return other.draft.Equals(draft) && other.material.Equals(material);
+            var world = World.DefaultGameObjectInjectionWorld;
+            var entityManager = world.EntityManager;
+            var mesh = draft.ToMesh();
+
+            // Create a RenderMeshDescription using the convenience constructor
+            // with named parameters.
+            var desc = new RenderMeshDescription(
+                mesh,
+                material,
+                shadowCastingMode: ShadowCastingMode.Off,
+                receiveShadows: false);
+
+            // Create empty base entity
+            var prototype = entityManager.CreateEntity();
+
+            entityManager.AddComponents(prototype, new ComponentTypes(
+                typeof(LSystemOrganComponent),
+                typeof(LSystemOrganTemplateComponentFlag)
+            ));
+            entityManager.AddComponents(prototype, new ComponentTypes(
+                typeof(LocalToWorld),
+                typeof(LocalToParent),
+                typeof(Parent),
+                typeof(PreviousParent)
+            ));
+            // Call AddComponents to populate base entity with the components required
+            // by Hybrid Renderer
+            RenderMeshUtility.AddComponents(
+                prototype,
+                entityManager,
+                desc);
+            templateValue = new TurtleEntityPrototypeOrganTemplate
+            {
+                prototype = prototype
+            };
+        }
+
+        public TurtleEntityPrototypeOrganTemplate GetOrganTemplateValue()
+        {
+            return templateValue;
         }
     }
 
-    public class TurtleMeshInstanceTracker
+    public class TurtleMeshInstanceTracker<T>
     {
-        private IList<TurtleMeshInstance> meshInstances = new List<TurtleMeshInstance>();
-        private IList<TurtleMeshTemplate> meshTemplates = new List<TurtleMeshTemplate>();
+        private IList<ITurtleOrganTemplate<T>> meshTemplates = new List<ITurtleOrganTemplate<T>>();
 
-        public void AddMeshInstance(int index, Matrix4x4 transformation)
-        {
-            meshInstances.Add(new TurtleMeshInstance
-            {
-                meshIndex = index,
-                transformation = transformation
-            });
-        }
+        private IDictionary<ITurtleOrganTemplate<T>, int> existingTemplates = new Dictionary<ITurtleOrganTemplate<T>, int>();
+        private IList<IList<Matrix4x4>> meshTransformsByTemplate = new List<IList<Matrix4x4>>();
 
-        public int AddOrGetMeshTemplate(TurtleMeshTemplate mesh)
+        public void AddMeshInstance(ITurtleOrganTemplate<T> template, Matrix4x4 transformation)
         {
-            var index = meshTemplates.IndexOf(mesh);
-            if (index == -1)
+            if(!existingTemplates.TryGetValue(template, out int index))
             {
-                meshTemplates.Add(mesh);
-                return meshTemplates.Count - 1;
+                meshTemplates.Add(template);
+                meshTransformsByTemplate.Add(new List<Matrix4x4>());
+                index = meshTemplates.Count - 1;
+                existingTemplates[template] = index;
             }
-            return index;
+            meshTransformsByTemplate[index].Add(transformation);
         }
-        public TurtleMeshTemplate GetMeshTemplate(int templateId)
+
+        public int TemplateTypeCount => meshTemplates.Count;
+
+        public ITurtleOrganTemplate<T> GetMeshTemplate(int templateId)
         {
             return meshTemplates[templateId];
         }
-
-        public IEnumerable<TurtleMeshInstance> GetTurtleMeshInstances()
+        public IEnumerable<Matrix4x4> GetTurtleMeshTransformsByTemplateType(int templateId)
         {
-            return meshInstances;
+            return meshTransformsByTemplate[templateId];
         }
     }
 }

@@ -33,19 +33,20 @@ namespace Dman.LSystem
             var resultMeshes = new List<MeshDraft>();
             var targetMaterials = new List<Material>();
 
-            var meshInstances = this.CompileStringToTransformsWithMeshIds(symbols);
-            foreach (var meshInstance in meshInstances.GetTurtleMeshInstances())
-            {
-                var meshTemplate = meshInstances.GetMeshTemplate(meshInstance.meshIndex);
-                var meshMaterialIndex = targetMaterials.IndexOf(meshTemplate.material);
-                if(meshMaterialIndex == -1)
-                {
-                    targetMaterials.Add(meshTemplate.material);
-                    resultMeshes.Add(new MeshDraft());
-                    meshMaterialIndex = targetMaterials.Count - 1;
-                }
-                resultMeshes[meshMaterialIndex].AddWithTransform(meshTemplate.draft, meshInstance.transformation);
-            }
+            //var meshInstances = this.CompileStringToTransformsWithMeshIds(symbols);
+            //foreach (var meshInstance in meshInstances.GetTurtleMeshInstances())
+            //{
+            //    var meshTemplate = meshInstances.GetMeshTemplate(meshInstance.meshIndex);
+            //    var templateInstance = meshTemplate.GetOrganTemplateValue();
+            //    var meshMaterialIndex = targetMaterials.IndexOf(templateInstance.material);
+            //    if(meshMaterialIndex == -1)
+            //    {
+            //        targetMaterials.Add(templateInstance.material);
+            //        resultMeshes.Add(new MeshDraft());
+            //        meshMaterialIndex = targetMaterials.Count - 1;
+            //    }
+            //    resultMeshes[meshMaterialIndex].AddWithTransform(templateInstance.draft, meshInstance.transformation);
+            //}
 
 
             UnityEngine.Profiling.Profiler.BeginSample("Mesh construction");
@@ -61,9 +62,9 @@ namespace Dman.LSystem
             return targetMaterials;
         }
 
-        public TurtleMeshInstanceTracker CompileStringToTransformsWithMeshIds(SymbolString<double> symbols)
+        public TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> CompileStringToTransformsWithMeshIds(SymbolString<double> symbols)
         {
-            var meshInstanceTracker = new TurtleMeshInstanceTracker();
+            var meshInstanceTracker = new TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate>();
             var currentState = new TurtleMeshState<T>(defaultState);
             var stateStack = new Stack<TurtleMeshState<T>>();
 
