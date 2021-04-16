@@ -1,4 +1,3 @@
-using ProceduralToolkit;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -36,7 +35,7 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultScale = defaultScale;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
                 if (parameters.Length == 0)
                 {
@@ -45,7 +44,7 @@ namespace Dman.LSystem.UnityObjects
                 else
                 if (parameters.Length == 1)
                 {
-                    initialState.thickness *= (float)parameters[0];
+                    initialState.thickness *= parameters[0];
                 }
                 else
                 {
@@ -67,22 +66,23 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultScale = defaultScale;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
                 if (parameters.Length == 0)
                 {
-                    initialState.transformation *= Matrix4x4.Scale((float)defaultScale * scale);
+                    initialState.transformation *= Matrix4x4.Scale(defaultScale * scale);
                 }
                 else
                 if (parameters.Length == 1)
                 {
-                    initialState.transformation *= Matrix4x4.Scale((float)parameters[0] * scale);
+                    initialState.transformation *= Matrix4x4.Scale(parameters[0] * scale);
                 }
                 else
                 if (parameters.Length == 3)
                 {
-                    initialState.transformation *= Matrix4x4.Scale(new Vector3((float)parameters[0], (float)parameters[1], (float) parameters[2]));
-                }else
+                    initialState.transformation *= Matrix4x4.Scale(new Vector3(parameters[0], parameters[1], parameters[2]));
+                }
+                else
                 {
                     Debug.LogError($"Invalid scale parameter length: {parameters.Length}");
                 }

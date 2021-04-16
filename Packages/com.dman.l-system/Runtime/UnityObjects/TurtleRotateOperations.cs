@@ -42,13 +42,13 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultTheta = defaultTheta;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
-                if (parameters.Length != 1 || !(parameters[0] is double theta))
+                if (parameters.Length != 1 || !(parameters[0] is float theta))
                 {
                     theta = defaultTheta;
                 }
-                initialState.transformation *= Matrix4x4.Rotate(Quaternion.Euler((float)theta * unitEulerRotation));
+                initialState.transformation *= Matrix4x4.Rotate(Quaternion.Euler(theta * unitEulerRotation));
                 return initialState;
             }
         }

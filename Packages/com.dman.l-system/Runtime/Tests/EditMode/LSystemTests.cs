@@ -18,8 +18,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesBasicRules()
     {
-        LSystemState<double> state = new DefaultLSystemState("B");
-        var basicLSystem = LSystemBuilder.DoubleSystem(
+        LSystemState<float> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.FloatSystem(
             new string[] {
             "A -> AB",
             "B -> A"
@@ -39,8 +39,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesContextualRulesWithUniqueOrigins()
     {
-        LSystemState<double> state = new DefaultLSystemState("A");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A -> AB",
             "B -> CDC",
             "D > C -> A",
@@ -62,8 +62,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesFlatContextualRules()
     {
-        LSystemState<double> state = new DefaultLSystemState("B");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A -> AB",
             "B -> A",
             "A > A ->",
@@ -90,8 +90,8 @@ public class LSystemTests
     [Test]
     public void LSystemAssumesIdentityReplacementWithContextRules()
     {
-        LSystemState<double> state = new DefaultLSystemState("B");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "B -> ABA",
             "A > A ->",
             "A < A -> B"
@@ -111,8 +111,8 @@ public class LSystemTests
     [Test]
     public void LSystemAssumesIdentityRule()
     {
-        LSystemState<double> state = new DefaultLSystemState("B");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A -> ACB",
             "B -> A"
         });
@@ -131,8 +131,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesStochasticRule()
     {
-        LSystemState<double> state = new DefaultLSystemState("C");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("C");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A -> AC",
             "P(0.5) | C -> A",
             "P(0.5) | C -> AB"
@@ -140,21 +140,21 @@ public class LSystemTests
 
         Assert.AreEqual("C", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A", state.currentSymbols.ToString());
+        Assert.AreEqual("AB", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("AC", state.currentSymbols.ToString());
+        Assert.AreEqual("ACB", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ACAB", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ACABACB", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACAACBACAB", state.currentSymbols.ToString());
+        Assert.AreEqual("ACAACBACABB", state.currentSymbols.ToString());
     }
     [Test]
     public void LSystemAppliesStochasticRuleDifferently()
     {
-        LSystemState<double> state = new DefaultLSystemState("C");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("C");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A -> AC",
             "P(0.9) | C -> A",
             "P(0.1) | C -> AB"
@@ -176,8 +176,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesParameterMatches()
     {
-        LSystemState<double> state = new DefaultLSystemState("A(1)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(1)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A(x) -> A(x + 1)",
         });
 
@@ -195,8 +195,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesComplexParameterEquations()
     {
-        LSystemState<double> state = new DefaultLSystemState("A(1, 1)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(1, 1)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A(x, y) -> A(x + y, x * y)",
         });
 
@@ -214,8 +214,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesParameterEquationsWhenContextMatch()
     {
-        LSystemState<double> state = new DefaultLSystemState("A(1, 1)B(0)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(1, 1)B(0)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "          A(x, y) > B(z) -> A(x + z, y + z)",
             "A(x, y) < B(z)           -> B(y)",
         });
@@ -234,8 +234,8 @@ public class LSystemTests
     [Test]
     public void LSystemDoesAFibbonachi()
     {
-        LSystemState<double> state = new DefaultLSystemState("A(1)B(1)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(1)B(1)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "       A(x) > B(y) -> A(x + y)",
             "A(x) < B(y)        -> B(x)",
         });
@@ -256,8 +256,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesParameterMatchesAndTerminatesAtCondition()
     {
-        LSystemState<double> state = new DefaultLSystemState("A(2)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(2)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A(x) : x < 6 -> A(x + 1)",
         });
 
@@ -280,12 +280,12 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        LSystemState<double> state = new DefaultLSystemState("A(1, 1)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(1, 1)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A(x, y) -> A((x + y) - global, x * y + global)",
         }, globalParameters);
 
-        var defaultGlobalParams = new double[] { 5 };
+        var defaultGlobalParams = new float[] { 5 };
 
         Assert.AreEqual("A(1, 1)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
@@ -306,12 +306,12 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        LSystemState<double> state = new DefaultLSystemState("A(0)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(0)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A(x) : x < global -> A(x + 1)",
         }, globalParameters);
 
-        var defaultGlobalParams = new double[] { 3 };
+        var defaultGlobalParams = new float[] { 3 };
 
         Assert.AreEqual("A(0)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
@@ -325,7 +325,7 @@ public class LSystemTests
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(3)", state.currentSymbols.ToString());
 
-        var nextGlobalParams = new double[] { 4 };
+        var nextGlobalParams = new float[] { 4 };
         state = basicLSystem.StepSystem(state, nextGlobalParams);
         Assert.AreEqual("A(4)", state.currentSymbols.ToString());
     }
@@ -334,13 +334,13 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        LSystemState<double> state = new DefaultLSystemState("A(0)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(0)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A(x) : x < global -> A(x + 1)",
             "A(x) : x >= global -> A(x - 1)",
         }, globalParameters);
 
-        var defaultGlobalParams = new double[] { 3 };
+        var defaultGlobalParams = new float[] { 3 };
 
         Assert.AreEqual("A(0)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
@@ -363,28 +363,22 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        LSystemState<double> state = new DefaultLSystemState("A(0)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(0)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "P(0.5) | A(x) : x < global -> A(x + 1)",
             "P(0.5) | A(x) : x < global -> A(x + 0.5)",
             "P(0.5) | A(x) : x >= global -> A(x - 1)",
             "P(0.5) | A(x) : x >= global -> A(x - 0.5)",
         }, globalParameters);
 
-        var defaultGlobalParams = new double[] { 3 };
+        var defaultGlobalParams = new float[] { 3 };
 
         Assert.AreEqual("A(0)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(0.5)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(1.5)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
-        state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
-        state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
-        state = basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(2.5)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(3)", state.currentSymbols.ToString());
@@ -396,6 +390,12 @@ public class LSystemTests
         Assert.AreEqual("A(2)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(2.5)", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(3.5)", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(2.5)", state.currentSymbols.ToString());
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(3.5)", state.currentSymbols.ToString());
     }
 
     [Test]
@@ -403,34 +403,34 @@ public class LSystemTests
     {
         var globalParameters = new string[] { "global" };
 
-        LSystemState<double> state = new DefaultLSystemState("A(0)");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("A(0)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "P(0.5) | A(x) : x < global -> A(x + 1)",
             "P(0.5) | A(x) : x < global -> A(x + 0.5)",
             "P(0.5) | A(x) : x >= global -> A(x - 1)",
             "P(0.5) | A(x) : x >= global -> A(x - 0.5)",
         }, globalParameters);
 
-        var defaultGlobalParams = new double[] { 3 };
+        var defaultGlobalParams = new float[] { 3 };
 
         var expectedResultSequence = new string[]
         {
             "A(0)",
-            "A(1)",
+            "A(0.5)",
             "A(1.5)",
-            "A(2)",
-            "A(3)",
-            "A(2)",
             "A(2.5)",
             "A(3)",
             "A(2)",
             "A(3)",
             "A(2)",
             "A(2.5)",
+            "A(3.5)",
+            "A(2.5)",
+            "A(3.5)",
         };
         Assert.AreEqual(expectedResultSequence[0], state.currentSymbols.ToString());
 
-        LSystemState<double> systemCopyAt5 = null;
+        LSystemState<float> systemCopyAt5 = null;
         for (int i = 1; i < expectedResultSequence.Length; i++)
         {
             if (i == 5)
@@ -451,8 +451,8 @@ public class LSystemTests
     [Test]
     public void LSystemPrioritizesContextualRulesBySize()
     {
-        LSystemState<double> state = new DefaultLSystemState("AABCD");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("AABCD");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A -> B",
             "A > A -> C",
             "A > ABCD -> F",
@@ -467,8 +467,8 @@ public class LSystemTests
     [Test]
     public void LSystemAppliesContextualRulesStochasticly()
     {
-        LSystemState<double> state = new DefaultLSystemState("B");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A -> AB",
             "B -> A",
             "P(0.5) | A > A ->",
@@ -490,13 +490,13 @@ public class LSystemTests
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ABAABAAB", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABAABAABA", state.currentSymbols.ToString());
+        Assert.AreEqual("ABABABA", state.currentSymbols.ToString());
     }
     [Test]
     public void LSystemAppliesContextualRulesOfEqualComplexityInDefinitionOrder()
     {
-        LSystemState<double> state = new DefaultLSystemState("AAA");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("AAA");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "    A > A -> B",
             "A < A     -> C"
         });
@@ -505,7 +505,7 @@ public class LSystemTests
         Assert.AreEqual("BBC", state.currentSymbols.ToString());
 
         state = new DefaultLSystemState("AAA");
-        basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A < A     -> C",
             "    A > A -> B"
         });
@@ -516,8 +516,8 @@ public class LSystemTests
     [Test]
     public void LSystemIgnoresIgnoredCharachters()
     {
-        LSystemState<double> state = new DefaultLSystemState("B");
-        var basicLSystem = LSystemBuilder.DoubleSystem(new string[] {
+        LSystemState<float> state = new DefaultLSystemState("B");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "    A     -> A1B2",
             "    B     -> 3A4",
             "    A > A -> 5",

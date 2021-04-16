@@ -14,7 +14,7 @@ namespace Dman.LSystem
     public interface ITurtleOperator<T>
     {
         char TargetSymbol { get; }
-        T Operate(T initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft);
+        T Operate(T initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft);
     }
 
     public class TurtleEntityPrototypeOrganTemplate

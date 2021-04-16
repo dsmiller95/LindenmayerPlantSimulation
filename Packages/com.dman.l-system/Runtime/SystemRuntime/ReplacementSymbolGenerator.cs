@@ -18,9 +18,10 @@ namespace Dman.LSystem.SystemRuntime
             evaluators = evaluatorExpressions.ToArray();
         }
 
-        public double[] EvaluateNewParameters(object[] matchedParameters)
+        public float[] EvaluateNewParameters(object[] matchedParameters)
         {
-            return evaluators.Select(x => (double)x.DynamicInvoke(matchedParameters)).ToArray();
+            // TODO: make the dynamic lambda operate on and return floats instead of doubles?
+            return evaluators.Select(x => (float)x.DynamicInvoke(matchedParameters)).ToArray();
         }
 
         public override string ToString()

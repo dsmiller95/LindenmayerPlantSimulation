@@ -27,7 +27,7 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="symbols"></param>
         /// <param name="targetMesh"></param>
-        public List<Material> CompileStringToMesh(SymbolString<double> symbols, ref Mesh targetMesh)
+        public List<Material> CompileStringToMesh(SymbolString<float> symbols, ref Mesh targetMesh)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle interpretation");
             var resultMeshes = new List<MeshDraft>();
@@ -62,7 +62,7 @@ namespace Dman.LSystem
             return targetMaterials;
         }
 
-        public TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> CompileStringToTransformsWithMeshIds(SymbolString<double> symbols)
+        public TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> CompileStringToTransformsWithMeshIds(SymbolString<float> symbols)
         {
             var meshInstanceTracker = new TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate>();
             var currentState = new TurtleMeshState<T>(defaultState);

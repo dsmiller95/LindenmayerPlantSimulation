@@ -102,13 +102,16 @@ namespace Dman.LSystem.SystemRuntime
                 foreach (var kvp in targetSymbolToMatchSymbol.OrderBy(x => x.Key))
                 {
                     resultBuilder[kvp.Value] = kvp.Key;
-                    //resultBuilder.Add(kvp.Value, kvp.Key);
                 }
                 return resultBuilder.ToImmutable();
             }
-
-            //return false;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="indexInSymbolTarget"></param>
+        /// <param name="seriesMatch"></param>
+        /// <returns>A dictionary mapping indexes in the matcher to indexes in the symbol target, based on what symbols were matched</returns>
         public IDictionary<int, int> MatchesBackwards(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch)
         {
             indexInSymbolTarget--;

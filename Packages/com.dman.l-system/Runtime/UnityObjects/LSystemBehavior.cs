@@ -20,17 +20,17 @@ namespace Dman.LSystem.UnityObjects
         /// <summary>
         /// Gets the current state of the system
         /// </summary>
-        public SymbolString<double> CurrentState => systemState.currentSymbols;
+        public SymbolString<float> CurrentState => systemState.currentSymbols;
 
         /// <summary>
         /// Emits whenever the system state changes
         /// </summary>
         public event Action OnSystemStateUpdated;
 
-        private LSystemState<double> systemState;
+        private LSystemState<float> systemState;
 
-        private LSystem<double> _compiledSystem;
-        private LSystem<double> CompiledSystem
+        private LSystem _compiledSystem;
+        private LSystem CompiledSystem
         {
             get
             {
@@ -51,9 +51,9 @@ namespace Dman.LSystem.UnityObjects
                 return _compiledSystem;
             }
         }
-        private ArrayParameterRepresenation<double> runtimeParameters;
+        private ArrayParameterRepresenation<float> runtimeParameters;
 
-        private SymbolString<double> lastState;
+        private SymbolString<float> lastState;
         /// <summary>
         /// true if the last system step changed the state of this behavior, false otherwise
         /// </summary>
@@ -127,7 +127,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         /// <param name="parameterName"></param>
         /// <param name="parameterValue"></param>
-        public void SetRuntimeParameter(string parameterName, double parameterValue)
+        public void SetRuntimeParameter(string parameterName, float parameterValue)
         {
             runtimeParameters.SetParameter(parameterName, parameterValue);
         }

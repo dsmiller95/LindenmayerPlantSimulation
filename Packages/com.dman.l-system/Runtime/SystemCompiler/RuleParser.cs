@@ -53,7 +53,7 @@ namespace Dman.LSystem.SystemCompiler
                     var compiledProbabilityExpression = ExpressionCompiler.CompileExpressionToDelegateWithParameters(probabilityExpression);
                     rule = new ParsedStochasticRule
                     {
-                        probability = (double)compiledProbabilityExpression.DynamicInvoke()
+                        probability = (float)compiledProbabilityExpression.DynamicInvoke()
                     };
                 }
                 catch (SyntaxException e)
@@ -124,7 +124,7 @@ namespace Dman.LSystem.SystemCompiler
         }
 
 
-        public static IEnumerable<IRule<double>> CompileRules(IEnumerable<string> ruleStrings, string[] globalParameters = null)
+        public static IEnumerable<IRule<float>> CompileRules(IEnumerable<string> ruleStrings, string[] globalParameters = null)
         {
             var parsedRules = ruleStrings
                 .Select(x => ParseToRule(x, globalParameters))
@@ -161,7 +161,7 @@ namespace Dman.LSystem.SystemCompiler
                 .Select(group =>
                 {
                     var probabilityDeviation = System.Math.Abs(group.Sum(x => x.probability) - 1);
-                    if (probabilityDeviation > 1e-10)
+                    if (probabilityDeviation > 1e-5)
                     {
                         throw new LSystemRuntimeException($"Error: group for {group.Key.TargetSymbolString()}"
                             + $" has probability {probabilityDeviation} away from 1");

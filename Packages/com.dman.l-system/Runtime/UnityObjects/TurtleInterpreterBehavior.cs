@@ -30,7 +30,7 @@ namespace Dman.LSystem.UnityObjects
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
         /// <param name="symbols"></param>
-        public void InterpretSymbols(SymbolString<double> symbols)
+        public void InterpretSymbols(SymbolString<float> symbols)
         {
             var meshfilter = GetComponent<MeshFilter>();
             var targetMesh = meshfilter.mesh;

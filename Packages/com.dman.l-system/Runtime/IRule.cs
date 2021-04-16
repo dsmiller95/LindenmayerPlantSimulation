@@ -1,9 +1,11 @@
 using Dman.LSystem.SystemRuntime;
+using LSystem.Runtime.SystemRuntime;
 using System;
+using Unity.Collections;
 
 namespace Dman.LSystem
 {
-    public interface IRule<T>
+    public interface IRule<T> where T : unmanaged
     {
         public SymbolSeriesMatcher ContextPrefix { get; }
         public SymbolSeriesMatcher ContextSuffix { get; }
@@ -13,6 +15,11 @@ namespace Dman.LSystem
         /// This property will always return the same value for any given instance. It can be used to index the rule
         /// </summary>
         public int TargetSymbol { get; }
+
+        /// <summary>
+        /// the number of local parameters captured by this rule from the symbol string
+        /// </summary>
+        public int CapturedLocalParameterCount { get; }
 
         /// <summary>
         /// retrun the symbol string to replace the rule's matching symbols with. return null if no match
@@ -28,5 +35,41 @@ namespace Dman.LSystem
             int indexInSymbols,
             ref Unity.Mathematics.Random random,
             T[] globalParameters);
+
+        /// <summary>
+        /// Attempts to match this rule against the symbol string, and return success
+        ///     will write match data to the intermediate match struct
+        /// </summary>
+        /// <param name="branchingCache"></param>
+        /// <param name="symbols"></param>
+        /// <param name="indexInSymbols"></param>
+        /// <returns>a list of captured parameters. null if no match</returns>
+        public T[] PreMatchCapturedParameters(
+            SymbolStringBranchingCache branchingCache,
+            SymbolString<T> symbols,
+            int indexInSymbols,
+            float[] globalParameters,
+            ref Unity.Mathematics.Random random,
+            out ushort replacementSymbolLength,
+            out byte selectedReplacementPattern
+            );
+        /// <summary>
+        /// Writes the replacement symbols into the target symbols arrays, beginning at <paramref name="originIndexInSymbols"/>.
+        ///     should write exactly <paramref name="expectedReplacementSymbolLength"/> symbols
+        /// </summary>
+        /// <param name="branchingCache"></param>
+        /// <param name="symbols"></param>
+        /// <param name="indexInSymbols"></param>
+        /// <returns>a list of captured parameters. null if no match</returns>
+        public void WriteReplacementSymbols(
+            T[] globalParameters,
+            byte selectedReplacementPattern,
+            NativeArray<T> parameters,
+            int originIndexInParameters,
+            int totalMatchedParameters,
+            SymbolString<T> targetSymbols,
+            int originIndexInSymbols,
+            ushort expectedReplacementSymbolLength
+            );
     }
 }

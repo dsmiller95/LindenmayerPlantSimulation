@@ -42,7 +42,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
         /// <param name="symbols"></param>
-        public void InterpretSymbols(SymbolString<double> symbols)
+        public void InterpretSymbols(SymbolString<float> symbols)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
             var turtleResults = turtle.CompileStringToTransformsWithMeshIds(symbols);

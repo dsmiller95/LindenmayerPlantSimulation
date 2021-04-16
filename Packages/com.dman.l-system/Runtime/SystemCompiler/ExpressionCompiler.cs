@@ -12,9 +12,9 @@ namespace Dman.LSystem.SystemCompiler
         {
             this.parameters = parameters;
         }
-        public ExpressionCompiler(params string[] doubleParams)
+        public ExpressionCompiler(params string[] floatParams)
         {
-            parameters = doubleParams.ToDictionary(x => x, x => Expression.Parameter(typeof(double), x));
+            parameters = floatParams.ToDictionary(x => x, x => Expression.Parameter(typeof(float), x));
         }
 
         public static Delegate CompileExpressionToDelegateWithParameters(string expressionString, string[] namedNumericParameters = null)

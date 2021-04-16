@@ -52,9 +52,9 @@ namespace Dman.LSystem.SystemCompiler
                     {
                         return new Token(operatorToken, seg.context);
                     }
-                    if (double.TryParse(seg.value, out var doubleConst))
+                    if (float.TryParse(seg.value, out var floatConst))
                     {
-                        return new Token(doubleConst, seg.context);
+                        return new Token(floatConst, seg.context);
                     }
                     if (variables != null && variables.Contains(seg.value))
                     {

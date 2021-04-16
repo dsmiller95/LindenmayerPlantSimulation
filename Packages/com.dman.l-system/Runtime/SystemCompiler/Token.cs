@@ -38,7 +38,7 @@ namespace Dman.LSystem.SystemCompiler
         /// <summary>
         /// only set if token is CONSTANT
         /// </summary>
-        public double value;
+        public float value;
         /// <summary>
         /// only set if token is VARIABLE
         /// </summary>
@@ -64,7 +64,7 @@ namespace Dman.LSystem.SystemCompiler
             {TokenType.BOOLEAN_OR, 6 },
         };
 
-        public Token(double constantValue, CompilerContext context)
+        public Token(float constantValue, CompilerContext context)
         {
             token = TokenType.CONSTANT;
             value = constantValue;

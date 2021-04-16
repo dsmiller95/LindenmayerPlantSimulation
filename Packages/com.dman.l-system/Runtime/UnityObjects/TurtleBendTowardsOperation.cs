@@ -14,7 +14,7 @@ namespace Dman.LSystem.UnityObjects
         public char bendTowardsOperator = '$';
         public Vector3 defaultBendDirection = Vector3.down;
         [Range(0, 1)]
-        public double defaultBendFactor = 0.1;
+        public float defaultBendFactor = 0.1f;
         public override IEnumerable<ITurtleOperator<TurtleState>> GetOperators()
         {
             yield return new BendTowardsOperator(defaultBendDirection.normalized, bendTowardsOperator, defaultBendFactor);
@@ -23,23 +23,23 @@ namespace Dman.LSystem.UnityObjects
         class BendTowardsOperator : ITurtleOperator<TurtleState>
         {
             private Vector3 worldBendDirection;
-            private double defaultBendFactor;
+            private float defaultBendFactor;
             public char TargetSymbol { get; private set; }
-            public BendTowardsOperator(Vector3 lookdir, char symbol, double defaultTheta)
+            public BendTowardsOperator(Vector3 lookdir, char symbol, float defaultTheta)
             {
                 TargetSymbol = symbol;
                 worldBendDirection = lookdir;
                 this.defaultBendFactor = defaultTheta;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
-                if (parameters.Length != 1 || !(parameters[0] is double bendFactor))
+                if (parameters.Length != 1 || !(parameters[0] is float bendFactor))
                 {
                     bendFactor = defaultBendFactor;
                 }
                 var localBendDirection = initialState.transformation.inverse.MultiplyVector(worldBendDirection);
-                var adjustment = ((float)bendFactor) * (Vector3.Cross(localBendDirection, Vector3.right));
+                var adjustment = (bendFactor) * (Vector3.Cross(localBendDirection, Vector3.right));
                 initialState.transformation *= Matrix4x4.Rotate(Quaternion.Slerp(Quaternion.identity, Quaternion.FromToRotation(Vector3.right, localBendDirection), adjustment.magnitude));
                 return initialState;
             }

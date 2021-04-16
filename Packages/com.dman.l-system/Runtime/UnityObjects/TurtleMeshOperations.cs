@@ -79,7 +79,7 @@ namespace Dman.LSystem.UnityObjects
                 this.thickness = thickness;
             }
 
-            public TurtleState Operate(TurtleState initialState, double[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
                 var meshTransform = initialState.transformation;
 
@@ -95,7 +95,7 @@ namespace Dman.LSystem.UnityObjects
                 if (scaling && parameters.Length > scaleIndex)
                 {
                     var scale = parameters[scaleIndex];
-                    meshTransform *= Matrix4x4.Scale(scalePerParameter * (float)scale);
+                    meshTransform *= Matrix4x4.Scale(scalePerParameter * scale);
                 }
                 if (thickness)
                 {

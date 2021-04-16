@@ -79,7 +79,7 @@ public class RuleParserTests
 
         Assert.IsAssignableFrom<ParsedStochasticRule>(ruleFromString);
         var stochasticRule = ruleFromString as ParsedStochasticRule;
-        Assert.AreEqual(0.2, stochasticRule.probability);
+        Assert.AreEqual(0.2f, stochasticRule.probability, 1e-6);
     }
     [Test]
     public void ParsesRuleWithInputParameters()
@@ -114,9 +114,9 @@ public class RuleParserTests
         Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
 
         var evaluatorFunction = ruleFromString.replacementSymbols[0].evaluators[0];
-        Assert.AreEqual((10.0 - 25.0) / (4.0 - 8.0), evaluatorFunction.DynamicInvoke(10, 25, 4, 8));
+        Assert.AreEqual((10.0f - 25.0f) / (4.0f - 8.0f), (float)evaluatorFunction.DynamicInvoke(10, 25, 4, 8), 1e-3f);
 
-        Assert.AreEqual((11.2 - 892) / (6.66 - 1.7), evaluatorFunction.DynamicInvoke(11.2, 892, 6.66, 1.7));
+        Assert.AreEqual((11.2f - 892) / (6.66f - 1.7f), (float)evaluatorFunction.DynamicInvoke(11.2f, 892, 6.66f, 1.7f), 1e-3f);
     }
     [Test]
     public void ParsesRuleWithParametersAndReplacementParameters()
@@ -235,7 +235,7 @@ public class RuleParserTests
         Assert.AreEqual('A', stochastic.replacementSymbols[0].targetSymbol);
 
         Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2));
-        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5, 2));
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5f, 2));
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3));
     }
 
@@ -252,10 +252,10 @@ public class RuleParserTests
         Assert.IsInstanceOf<ParsedStochasticRule>(ruleFromString);
         var stochastic = ruleFromString as ParsedStochasticRule;
 
-        Assert.AreEqual(0.3, stochastic.probability, 1e-5);
+        Assert.AreEqual(0.3f, stochastic.probability, 1e-5);
 
         Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2));
-        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5, 2));
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5f, 2));
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3));
     }
 

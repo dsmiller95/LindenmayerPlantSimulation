@@ -13,7 +13,7 @@ namespace Dman.LSystem.UnityObjects
     public struct ParameterAndDefault
     {
         public string name;
-        public double defaultValue;
+        public float defaultValue;
     }
 
     [System.Serializable]
@@ -36,16 +36,16 @@ namespace Dman.LSystem.UnityObjects
         public List<ParameterAndDefault> defaultGlobalRuntimeParameters;
         public List<DefineDirectives> defaultGlobalCompileTimeParameters;
 
-        public LSystem<double> compiledSystem { get; private set; }
+        public LSystem compiledSystem { get; private set; }
 
         /// <summary>
         /// Emits whenever the system is compiled
         /// </summary>
         public event Action OnCachedSystemUpdated;
 
-        public ArrayParameterRepresenation<double> GetRuntimeParameters()
+        public ArrayParameterRepresenation<float> GetRuntimeParameters()
         {
-            return ArrayParameterRepresenation<double>.GenerateFromList(defaultGlobalRuntimeParameters, p => p.name, p => p.defaultValue);
+            return ArrayParameterRepresenation<float>.GenerateFromList(defaultGlobalRuntimeParameters, p => p.name, p => p.defaultValue);
         }
 
         /// <summary>
@@ -66,12 +66,12 @@ namespace Dman.LSystem.UnityObjects
         /// Compile this L-system and return the result, not caching it into this object
         /// </summary>
         /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
-        public LSystem<double> CompileWithParameters(Dictionary<string, string> globalCompileTimeOverrides)
+        public LSystem CompileWithParameters(Dictionary<string, string> globalCompileTimeOverrides)
         {
             return CompileSystem(globalCompileTimeOverrides);
         }
 
-        private LSystem<double> CompileSystem(Dictionary<string, string> globalCompileTimeOverrides)
+        private LSystem CompileSystem(Dictionary<string, string> globalCompileTimeOverrides)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
             try
@@ -90,7 +90,7 @@ namespace Dman.LSystem.UnityObjects
                     .Split('\n')
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrEmpty(x));
-                return LSystemBuilder.DoubleSystem(
+                return LSystemBuilder.FloatSystem(
                     ruleLines,
                     defaultGlobalRuntimeParameters.Select(x => x.name).ToArray(),
                     ignoredCharacters);
@@ -188,7 +188,7 @@ namespace Dman.LSystem.UnityObjects
                     {
                         throw new SyntaxException($"runtime directive requires 2 parameters", directiveMatch.Groups["parameter"]);
                     }
-                    if (!double.TryParse(nameValueMatch.Groups["value"].Value, out var runtimeDefault))
+                    if (!float.TryParse(nameValueMatch.Groups["value"].Value, out var runtimeDefault))
                     {
                         throw new SyntaxException($"runtime parameter must default to a number", nameValueMatch.Groups["value"]);
                     }

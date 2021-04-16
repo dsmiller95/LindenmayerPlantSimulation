@@ -150,7 +150,13 @@ namespace Dman.LSystem.SystemCompiler
                 case TokenType.REMAINDER:
                     return Expression.Modulo(a, b);
                 case TokenType.EXPONENT:
-                    return Expression.Power(a, b);
+                    return Expression.Convert( // cast to double and then back, because Expression.Power is a proxy for Math.Pow
+                        Expression.Power(
+                            Expression.Convert(a, typeof(double)),
+                            Expression.Convert(b, typeof(double))
+                        ),
+                        typeof(float)
+                    );
                 case TokenType.ADD:
                     return Expression.AddChecked(a, b);
                 case TokenType.SUBTRACT:

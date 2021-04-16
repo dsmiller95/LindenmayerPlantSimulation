@@ -10,32 +10,32 @@ public class BasicRuleTests
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
-        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][]{ null });
+        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][]{ null });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
         var random = new Unity.Mathematics.Random();
         Assert.IsNotNull(ruleFromString.ApplyRule(branchCache, symbols, 0, ref random));
-        symbols.parameters[0] = new double[0];
+        symbols.parameters[0] = new float[0];
         Assert.IsNotNull(ruleFromString.ApplyRule(branchCache, symbols, 0, ref random));
-        symbols.parameters[0] = new double[] { 1 };
+        symbols.parameters[0] = new float[] { 1 };
         Assert.IsNull(ruleFromString.ApplyRule(branchCache, symbols, 0, ref random));
     }
     [Test]
     public void BasicRuleReplacesSelfWithReplacement()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
-        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { null });
+        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { null });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
         var random = new Unity.Mathematics.Random();
         var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
         Assert.AreEqual("AB", replacement.ToString());
-        var expectedParameters = new double[][]
+        var expectedParameters = new float[][]
         {
-            new double[0],
-            new double[0]
+            new float[0],
+            new float[0]
         };
         Assert.AreEqual(expectedParameters, replacement.parameters);
     }
@@ -43,7 +43,7 @@ public class BasicRuleTests
     public void BasicRuleReplacesParameters()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
-        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 20, 1 } });
+        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 20, 1 } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -55,7 +55,7 @@ public class BasicRuleTests
     public void BasicRuleDifferentParametersNoMatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
-        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 20 } });
+        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 20 } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -67,7 +67,7 @@ public class BasicRuleTests
     public void ParametricConditionalNoMatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
-        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 20 } });
+        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 20 } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -79,7 +79,7 @@ public class BasicRuleTests
     public void ParametricConditionalMatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
-        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 6 } });
+        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 6 } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -96,7 +96,7 @@ public class BasicRuleTests
         var ruleFromString = new BasicRule(
             RuleParser.ParseToRule("A(x, y) -> B(global + x)C(y)",
             globalParameters));
-        var symbols = new SymbolString<double>(new int[] { 'A' }, new double[][] { new double[] { 20, 1 } });
+        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 20, 1 } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -104,14 +104,14 @@ public class BasicRuleTests
         var replacement = ruleFromString.ApplyRule(branchCache, 
             symbols, 0,
             ref random,
-            new double[] { 7d });
+            new float[] { 7 });
         Assert.AreEqual("B(27)C(1)", replacement.ToString());
     }
     [Test]
     public void ContextualRuleRequiresContextToMatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("B < A > B -> B"));
-        var symbols = new SymbolString<double>("BAABAB".Select(x => (int)x).ToArray(), new double[][] { new double[] { 20 }, new double[0] { }, new double[0] { }, new double[0] { }, new double[0] { }, new double[0] { } });
+        var symbols = new SymbolString<float>("BAABAB".Select(x => (int)x).ToArray(), new float[][] { new float[] { 20 }, new float[0] { }, new float[0] { }, new float[0] { }, new float[0] { }, new float[0] { } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -126,7 +126,7 @@ public class BasicRuleTests
     public void ContextualRuleCapturesParametersFromSuffix()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) > B(y) -> B(x - y)"));
-        var symbols = new SymbolString<double>("AB".Select(x => (int)x).ToArray(), new double[][] { new[] { 20.0 }, new[] { 3.1 } });
+        var symbols = new SymbolString<float>("AB".Select(x => (int)x).ToArray(), new float[][] { new[] { 20.0f }, new[] { 3.1f } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -139,7 +139,7 @@ public class BasicRuleTests
     public void ContextualRuleCapturesParametersFromPrefix()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("B(x) < A(y) -> B(x - y)"));
-        var symbols = new SymbolString<double>("BA".Select(x => (int)x).ToArray(), new double[][] { new[] { 20.0 }, new[] { 3.1 } });
+        var symbols = new SymbolString<float>("BA".Select(x => (int)x).ToArray(), new float[][] { new[] { 20.0f }, new[] { 3.1f } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -152,7 +152,7 @@ public class BasicRuleTests
     public void ContextualRuleCapturesParametersFromPrefixAndSuffix()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("B(x) < A(y) > B(z) -> B((x - y)/z)"));
-        var symbols = new SymbolString<double>("BAB".Select(x => (int)x).ToArray(), new double[][] { new[] { 20.0 }, new[] { 3.1 }, new[] { 2.0 } });
+        var symbols = new SymbolString<float>("BAB".Select(x => (int)x).ToArray(), new float[][] { new[] { 20.0f }, new[] { 3.1f }, new[] { 2.0f } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -166,7 +166,7 @@ public class BasicRuleTests
     public void ContextualRulePrefixNoMatchWhenParameterMismatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("B(x) < A(y) -> B(x - y)"));
-        var symbols = new SymbolString<double>("BA".Select(x => (int)x).ToArray(), new double[][] { new double[0], new[] { 3.1 } });
+        var symbols = new SymbolString<float>("BA".Select(x => (int)x).ToArray(), new float[][] { new float[0], new[] { 3.1f } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -178,7 +178,7 @@ public class BasicRuleTests
     public void ContextualRuleSuffixNoMatchWhenParameterMismatch()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) > B(y) -> B(x - y)"));
-        var symbols = new SymbolString<double>("AB".Select(x => (int)x).ToArray(), new double[][] { new[] { 3.1 }, new double[0] });
+        var symbols = new SymbolString<float>("AB".Select(x => (int)x).ToArray(), new float[][] { new[] { 3.1f }, new float[0] });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 
@@ -190,7 +190,7 @@ public class BasicRuleTests
     public void ContextualRuleSuffixFindsMatchBySkipIfPossible()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) > B(y) -> B(x - y)"));
-        var symbols = new SymbolString<double>("A[B]B".Select(x => (int)x).ToArray(), new double[][] { new[] { 3.1 }, new double[0], new double[0], new double[0], new[] { 20.0 } });
+        var symbols = new SymbolString<float>("A[B]B".Select(x => (int)x).ToArray(), new float[][] { new[] { 3.1f }, new float[0], new float[0], new float[0], new[] { 20.0f } });
         var branchCache = new SymbolStringBranchingCache();
         branchCache.SetTargetSymbolString(symbols);
 

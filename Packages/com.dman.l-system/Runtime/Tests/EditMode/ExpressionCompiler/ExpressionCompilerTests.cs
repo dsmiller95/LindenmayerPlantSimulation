@@ -31,7 +31,7 @@ public class ExpressionCompilerTests
         var innerSeries2 = (innerSeries1[2] as TokenExpression).tokenSeries;
         Assert.AreEqual(2, ((innerSeries2[0] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
         Assert.AreEqual(TokenType.SUBTRACT, (innerSeries2[1] as TokenOperator)?.type);
-        Assert.AreEqual(0.1d, ((innerSeries2[2] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(0.1f, ((innerSeries2[2] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
     }
     [Test]
     public void CompilesNestedExpressionWithParameterToHeirarchy()
@@ -63,7 +63,7 @@ public class ExpressionCompilerTests
 
         LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
         var compiledExpression = le.Compile();
-        double result = (double)compiledExpression.DynamicInvoke();
+        float result = (float)compiledExpression.DynamicInvoke();
 
         Assert.AreEqual(1f, result);
     }
@@ -78,7 +78,7 @@ public class ExpressionCompilerTests
 
         LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
         var compiledExpression = le.Compile();
-        double result = (double)compiledExpression.DynamicInvoke();
+        float result = (float)compiledExpression.DynamicInvoke();
 
         Assert.AreEqual(2f, result);
     }
@@ -93,7 +93,7 @@ public class ExpressionCompilerTests
 
         LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
         var compiledExpression = le.Compile();
-        double result = (double)compiledExpression.DynamicInvoke();
+        float result = (float)compiledExpression.DynamicInvoke();
 
         Assert.AreEqual(-2f, result);
     }
@@ -108,7 +108,7 @@ public class ExpressionCompilerTests
 
         LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
         var compiledExpression = le.Compile();
-        double result = (double)compiledExpression.DynamicInvoke();
+        float result = (float)compiledExpression.DynamicInvoke();
 
         Assert.AreEqual(-2f, result);
     }
@@ -123,7 +123,7 @@ public class ExpressionCompilerTests
 
         LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
         var compiledExpression = le.Compile();
-        double result = (double)compiledExpression.DynamicInvoke();
+        float result = (float)compiledExpression.DynamicInvoke();
 
         Assert.AreEqual(2f, result);
     }
@@ -137,11 +137,11 @@ public class ExpressionCompilerTests
 
         LambdaExpression le = Expression.Lambda(expression, expressionCompiler.parameters.Values.ToList());
         var compiledExpression = le.Compile();
-        Assert.AreEqual(4d, (double)compiledExpression.DynamicInvoke(2d, 0d));
-        Assert.AreEqual(2d, (double)compiledExpression.DynamicInvoke(0d, 1d));
-        Assert.AreEqual(9f, (double)compiledExpression.DynamicInvoke(3d, 1d));
-        Assert.AreEqual(Math.Sqrt(2) + 10, (double)compiledExpression.DynamicInvoke(0.5d, 10d));
-        Assert.AreEqual((1 << 10), (double)compiledExpression.DynamicInvoke(10d, 0d));
+        Assert.AreEqual(4, (float)compiledExpression.DynamicInvoke(2, 0));
+        Assert.AreEqual(2, (float)compiledExpression.DynamicInvoke(0, 1));
+        Assert.AreEqual(9, (float)compiledExpression.DynamicInvoke(3, 1));
+        Assert.AreEqual(Math.Sqrt(2) + 10, (float)compiledExpression.DynamicInvoke(0.5f, 10), 1e-3);
+        Assert.AreEqual((1 << 10), (float)compiledExpression.DynamicInvoke(10, 0), 1e-3);
     }
     [Test]
     public void CompilesExpressionWithEveryOperator()
