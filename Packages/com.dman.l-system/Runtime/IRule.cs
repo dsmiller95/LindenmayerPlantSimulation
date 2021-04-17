@@ -44,14 +44,14 @@ namespace Dman.LSystem
         /// <param name="symbols"></param>
         /// <param name="indexInSymbols"></param>
         /// <returns>a list of captured parameters. null if no match</returns>
-        public T[] PreMatchCapturedParameters(
+        public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
             SymbolString<T> symbols,
             int indexInSymbols,
             float[] globalParameters,
+            NativeArray<float> parameterMemory,
             ref Unity.Mathematics.Random random,
-            out ushort replacementSymbolLength,
-            out byte selectedReplacementPattern
+            ref LSystemStepMatchIntermediate matchSingletonData
             );
         /// <summary>
         /// Writes the replacement symbols into the target symbols arrays, beginning at <paramref name="originIndexInSymbols"/>.

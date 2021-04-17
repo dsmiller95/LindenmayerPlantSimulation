@@ -150,6 +150,7 @@ namespace Dman.LSystem
 
 
             // 1.
+            UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
             var matchSingletonData = new NativeArray<LSystemStepMatchIntermediate>(systemState.currentSymbols.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var parameterTotalSum = 0;
             for (int i = 0; i < systemState.currentSymbols.Length; i++)
@@ -173,10 +174,15 @@ namespace Dman.LSystem
 
             // 2.
             var parameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            UnityEngine.Profiling.Profiler.EndSample();
+
 
             // 3.
+            UnityEngine.Profiling.Profiler.BeginSample("matching");
+            UnityEngine.Profiling.Profiler.BeginSample("branch cache");
             var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, this.ignoredCharacters);
             tmpBranchingCache.SetTargetSymbolString(systemState.currentSymbols);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             var random = systemState.randomProvider;
             var randGens = new NativeArray<Unity.Mathematics.Random>(JobsUtility.MaxJobThreadCount, Allocator.TempJob);
@@ -202,7 +208,7 @@ namespace Dman.LSystem
                 RandomGenerator = randGens
             };
 
-            var parallelRun = false;
+            var parallelRun = true;
 
             JobHandle matchJobHandle = default;
             if (parallelRun)
@@ -220,7 +226,10 @@ namespace Dman.LSystem
                     matchingJob.Execute(i);
                 }
             }
+            UnityEngine.Profiling.Profiler.EndSample();
 
+            // 4.
+            UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
             var nextSymbolLength = new NativeArray<int>(1, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var totalSymbolLengthJob = new RuleReplacementSizeJob
             {
@@ -237,8 +246,10 @@ namespace Dman.LSystem
 
             var nextSymbolSize = nextSymbolLength[0];
             nextSymbolLength.Dispose();
+            UnityEngine.Profiling.Profiler.EndSample();
 
-
+            // 5
+            UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
             var nextSymbols = new int[nextSymbolSize];
             var nextParameters = new float[nextSymbolSize][];
             var generatedSymbols = new SymbolString<float>(nextSymbols, nextParameters);
@@ -265,6 +276,7 @@ namespace Dman.LSystem
             {
                 replacementJob.Execute(i);
             }
+            UnityEngine.Profiling.Profiler.EndSample();
 
             branchingCacheHandle.Free();
             rulesByTargetSymbolHandle.Free();
@@ -387,30 +399,17 @@ namespace Dman.LSystem
             for (byte i = 0; i < ruleList.Count; i++)
             {
                 var rule = ruleList[i];
-                var capturedParameters = rule.PreMatchCapturedParameters(
+                var success = rule.PreMatchCapturedParameters(
                     branchingCache,
                     sourceSymbolString,
                     indexInSymbols,
                     globalParameters,
+                    parameterMatchMemory,
                     ref rnd,
-                    out var replacementLength,
-                    out var selectedReplacement);
-                if (capturedParameters != null)
+                    ref matchSingleton);
+                if (success)
                 {
-                    for (int paramIndex = 0; paramIndex < capturedParameters.Length; paramIndex++)
-                    {
-                        parameterMatchMemory[matchSingleton.parametersStartIndex + paramIndex] = capturedParameters[paramIndex];
-                    }
-                    if (capturedParameters.Length > byte.MaxValue)
-                    {
-                        matchSingleton.errorCode = LSystemMatchErrorCode.TOO_MANY_PARAMETERS;
-                        return;
-                    }
-                    matchSingleton.matchedParametersCount = (byte)capturedParameters.Length;
                     matchSingleton.matchedRuleIndexInPossible = i;
-                    matchSingleton.selectedReplacementPattern = selectedReplacement;
-                    matchSingleton.replacementSymbolLength = replacementLength;
-
                     ruleMatched = true;
                     break;
                 }

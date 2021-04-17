@@ -120,7 +120,7 @@ namespace Dman.LSystem.SystemRuntime
             indexInSymbolTarget--;
             int matchingIndex = seriesMatch.targetSymbolSeries.Length - 1;
 
-            var matcherIndexToTargetIndex = new Dictionary<int, int>();
+            Dictionary<int, int>  matcherIndexToTargetIndex = null;
 
             for (; matchingIndex >= 0 && indexInSymbolTarget >= 0;)
             {
@@ -139,6 +139,10 @@ namespace Dman.LSystem.SystemRuntime
                         currentSymbol == symbolToMatch.targetSymbol &&
                         symbolToMatch.parameterLength == symbolStringTarget.ParameterSize(indexInSymbolTarget))
                     {
+                        if(matcherIndexToTargetIndex == null)
+                        {
+                            matcherIndexToTargetIndex = new Dictionary<int, int>();
+                        }
                         matcherIndexToTargetIndex[matchingIndex] = indexInSymbolTarget;
                         indexInSymbolTarget--;
                         matchingIndex--;
@@ -150,7 +154,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                 }
             }
-            if(matchingIndex == -1)
+            if (matchingIndex == -1)
             {
                 return matcherIndexToTargetIndex;
             }
@@ -399,11 +403,6 @@ namespace Dman.LSystem.SystemRuntime
                     }
                     var lastBranch = targetParentIndexStack.Pop();
                     currentParentIndexInTarget = lastBranch.currentParentIndex;
-
-                    // cache the open/close braces, may as well while we're here.
-                    // no longer caching here. this operation should be immutable.
-                    //branchingJumpIndexes[lastBranch.openBranchSymbolIndex] = indexInTarget;
-                    //branchingJumpIndexes[indexInTarget] = lastBranch.openBranchSymbolIndex;
                 }
                 else
                 {

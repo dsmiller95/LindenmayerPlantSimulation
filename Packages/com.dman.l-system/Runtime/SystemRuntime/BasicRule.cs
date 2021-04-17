@@ -1,4 +1,5 @@
 using Dman.LSystem.SystemCompiler;
+using LSystem.Runtime.SystemRuntime;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -198,22 +199,21 @@ namespace Dman.LSystem.SystemRuntime
             return possibleOutcomes[0];
         }
 
-        public float[] PreMatchCapturedParameters(
+        public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
             SymbolString<float> symbols,
             int indexInSymbols,
             float[] globalParameters,
+            NativeArray<float> parameterMemory,
             ref Unity.Mathematics.Random random,
-            out ushort replacementSymbolLength,
-            out byte selectedReplacementPattern)
+            ref LSystemStepMatchIntermediate matchSingletonData)
         {
-            replacementSymbolLength = 0;
-            selectedReplacementPattern = 0;
-
             var target = _targetSymbolWithParameters;
 
+            var parameterStartIndex = matchSingletonData.parametersStartIndex;
+
             // parameters
-            var orderedMatchedParameters = new List<float>();
+            byte matchedParameterNum = 0;
 
             // context match
             if (ContextPrefix != null && ContextPrefix.targetSymbolSeries?.Length > 0)
@@ -222,7 +222,7 @@ namespace Dman.LSystem.SystemRuntime
                 if (backwardMatchMapping == null)
                 {
                     // if backwards match exists, and does not match, then fail this match attempt.
-                    return null;
+                    return false;
                 }
                 for (int indexInPrefix = 0; indexInPrefix < ContextPrefix.targetSymbolSeries.Length; indexInPrefix++)
                 {
@@ -233,7 +233,8 @@ namespace Dman.LSystem.SystemRuntime
                     var nextSymbol = symbols.parameters[matchingTargetIndex];
                     foreach (var paramValue in nextSymbol)
                     {
-                        orderedMatchedParameters.Add(paramValue);
+                        parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
+                        matchedParameterNum++;
                     }
                 }
             }
@@ -243,13 +244,14 @@ namespace Dman.LSystem.SystemRuntime
             {
                 // if core symbol doesn't have the same number of parameters as the target core symbol
                 //  then fail the match attempt
-                return null;
+                return false;
             }
             if (coreParameter != null)
             {
                 for (int parameterIndex = 0; parameterIndex < coreParameter.Length; parameterIndex++)
                 {
-                    orderedMatchedParameters.Add(coreParameter[parameterIndex]);
+                    parameterMemory[parameterStartIndex + matchedParameterNum] = coreParameter[parameterIndex];
+                    matchedParameterNum++;
                 }
             }
 
@@ -259,7 +261,7 @@ namespace Dman.LSystem.SystemRuntime
                 if (forwardMatch == null)
                 {
                     // if forwards match exists, and does not match, then fail this match attempt.
-                    return null;
+                    return false;
                 }
                 for (int indexInSuffix = 0; indexInSuffix < ContextSuffix.targetSymbolSeries.Length; indexInSuffix++)
                 {
@@ -270,18 +272,19 @@ namespace Dman.LSystem.SystemRuntime
                     var nextSymbol = symbols.parameters[matchingTargetIndex];
                     foreach (var paramValue in nextSymbol)
                     {
-                        orderedMatchedParameters.Add(paramValue);
+                        parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
+                        matchedParameterNum++;
                     }
                 }
             }
 
-
-            var paramArray = orderedMatchedParameters.ToArray();
-
             // conditional
             if (conditionalChecker != null)
             {
-                var invokeResult = conditionalChecker.DynamicInvoke(globalParameters.Concat(paramArray).Cast<object>().ToArray());
+                var paramArray = globalParameters.Concat(
+                        Enumerable.Range(0, matchedParameterNum).Select(x => parameterMemory[parameterStartIndex + x])
+                    ).Cast<object>().ToArray();
+                var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
                 if (!(invokeResult is bool boolResult))
                 {
                     // TODO: call this out a bit better. All compilation context is lost here
@@ -290,16 +293,17 @@ namespace Dman.LSystem.SystemRuntime
                 var conditionalResult = boolResult;
                 if (!conditionalResult)
                 {
-                    return null;
+                    return false;
                 }
             }
 
             // stochastic selection
-            selectedReplacementPattern = SelectOutcomeIndex(ref random);
-            var outcomeObject = possibleOutcomes[selectedReplacementPattern];
-            replacementSymbolLength = outcomeObject.ReplacementSymbolSize();
+            matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random);
+            var outcomeObject = possibleOutcomes[matchSingletonData.selectedReplacementPattern];
+            matchSingletonData.replacementSymbolLength = outcomeObject.ReplacementSymbolSize();
+            matchSingletonData.matchedParametersCount = matchedParameterNum;
 
-            return paramArray;
+            return true;
         }
         private byte SelectOutcomeIndex(ref Unity.Mathematics.Random rand)
         {

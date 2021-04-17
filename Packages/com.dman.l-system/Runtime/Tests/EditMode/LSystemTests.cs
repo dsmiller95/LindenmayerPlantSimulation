@@ -3,6 +3,7 @@ using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
@@ -243,11 +244,19 @@ public class LSystemTests
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("CAAAA", state.currentSymbols.ToString());
 
+
+        Stopwatch stopWatch = new Stopwatch();
+        stopWatch.Start();
+
         var stepTarget = 10000;
         for (int i = 0; i < stepTarget; i++)
         {
             state = basicLSystem.StepSystem(state);
         }
+        stopWatch.Stop();
+        // Get the elapsed time as a TimeSpan value.
+        var ts = stopWatch.Elapsed;
+        UnityEngine.Debug.Log(ts.ToString());
 
         var expectedResult = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC";
         Assert.AreEqual(expectedResult.Length, state.currentSymbols.Length);
@@ -273,11 +282,17 @@ public class LSystemTests
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]", state.currentSymbols.ToString());
 
+        Stopwatch stopWatch = new Stopwatch();
+        stopWatch.Start();
         var stepTarget = 20;
         for (int i = 0; i < stepTarget; i++)
         {
             state = basicLSystem.StepSystem(state);
         }
+        stopWatch.Stop();
+        // Get the elapsed time as a TimeSpan value.
+        var ts = stopWatch.Elapsed;
+        UnityEngine.Debug.Log(ts.ToString());
 
         //Debug.Log(state.currentSymbols.Length);
         //var result = state.currentSymbols.ToString();
