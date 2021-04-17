@@ -4,9 +4,11 @@ using LSystem.Runtime.SystemRuntime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 
 namespace Dman.LSystem
 {
@@ -177,36 +179,47 @@ namespace Dman.LSystem
             tmpBranchingCache.SetTargetSymbolString(systemState.currentSymbols);
 
             var random = systemState.randomProvider;
-            var randGens = new NativeArray<Unity.Mathematics.Random>(Environment.ProcessorCount, Allocator.TempJob);
+            var randGens = new NativeArray<Unity.Mathematics.Random>(JobsUtility.MaxJobThreadCount, Allocator.TempJob);
             for (int i = 0; i < randGens.Length; i++)
             {
-                randGens[i] = new Unity.Mathematics.Random((uint)random.NextInt());
+                randGens[i] = new Unity.Mathematics.Random(random.NextUInt());
             }
+
+            var rulesByTargetSymbolHandle = GCHandle.Alloc(rulesByTargetSymbol);
+            var sourceSymbolStringHandle = GCHandle.Alloc(systemState.currentSymbols);
+            var branchingCacheHandle = GCHandle.Alloc(tmpBranchingCache);
+            var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
 
             var matchingJob = new RuleMatchJob
             {
-                globalParameters = globalParameters,
+                globalParametersArray = globalParamNative,
                 matchSingletonData = matchSingletonData,
                 parameterMatchMemory = parameterMemory,
-                rulesByTargetSymbol = this.rulesByTargetSymbol,
-                sourceSymbolString = systemState.currentSymbols,
-                branchingCache = tmpBranchingCache,
+                rulesByTargetSymbolHandle = rulesByTargetSymbolHandle,
+                sourceSymbolStringHandle = sourceSymbolStringHandle,
+                branchingCacheHandle = branchingCacheHandle,
 
                 RandomGenerator = randGens
             };
 
+            var parallelRun = false;
 
-            //var matchJobDependency = matchingJob.Schedule(
-            //    matchSingletonData.Length,
-            //    100
-            //);
-            //matchingJob.Run(matchSingletonData.Length);
-
-            for (int i = 0; i < matchSingletonData.Length; i++)
+            JobHandle matchJobHandle = default;
+            if (parallelRun)
             {
-                matchingJob.Execute(i);
+                //matchingJob.Run(matchSingletonData.Length);
+                matchJobHandle = matchingJob.Schedule(
+                    matchSingletonData.Length,
+                    100
+                );
             }
-            randGens.Dispose();
+            else
+            {
+                for (int i = 0; i < matchSingletonData.Length; i++)
+                {
+                    matchingJob.Execute(i);
+                }
+            }
 
             var nextSymbolLength = new NativeArray<int>(1, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var totalSymbolLengthJob = new RuleReplacementSizeJob
@@ -215,8 +228,12 @@ namespace Dman.LSystem
                 replacementSymbolSizeOutput = nextSymbolLength
             };
             //totalSymbolLengthJob.Run();
-            var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule();
+            var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchJobHandle);
             totalSymbolLengthDependency.Complete();
+            if (!parallelRun)
+            {
+                randGens.Dispose();
+            }
 
             var nextSymbolSize = nextSymbolLength[0];
             nextSymbolLength.Dispose();
@@ -249,6 +266,10 @@ namespace Dman.LSystem
                 replacementJob.Execute(i);
             }
 
+            branchingCacheHandle.Free();
+            rulesByTargetSymbolHandle.Free();
+            sourceSymbolStringHandle.Free();
+            globalParamNative.Dispose();
             matchSingletonData.Dispose();
             parameterMemory.Dispose();
 
@@ -311,15 +332,17 @@ namespace Dman.LSystem
 
     public struct RuleMatchJob : IJobParallelFor
     {
-        public float[] globalParameters;
+        public GCHandle rulesByTargetSymbolHandle; // IDictionary<int, IList<IRule<float>>>
+        public GCHandle sourceSymbolStringHandle; // SymbolString<float> 
+        public GCHandle branchingCacheHandle; // SymbolStringBranchingCache
 
         public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
+
+        [NativeDisableParallelForRestriction]
         public NativeArray<float> parameterMatchMemory;
-        public IDictionary<int, IList<IRule<float>>> rulesByTargetSymbol;
-        public SymbolString<float> sourceSymbolString;
-        // TODO: make the branching cache thread-safe, by making it Read-only. can iterate through the symbols once before 
-        //  opening the job.
-        public SymbolStringBranchingCache branchingCache;
+        [NativeDisableParallelForRestriction]
+        [ReadOnly]
+        public NativeArray<float> globalParametersArray;
 
 
         [NativeSetThreadIndex]
@@ -334,6 +357,11 @@ namespace Dman.LSystem
 
         public void Execute(int indexInSymbols)
         {
+            var branchingCache = (SymbolStringBranchingCache) branchingCacheHandle.Target;
+            var rulesByTargetSymbol = (IDictionary<int, IList<IRule<float>>>)rulesByTargetSymbolHandle.Target;
+            var sourceSymbolString = (SymbolString<float>)sourceSymbolStringHandle.Target;
+            var globalParameters = globalParametersArray.ToArray();
+
             var rnd = RandomGenerator[threadIndex];
 
             var matchSingleton = matchSingletonData[indexInSymbols];

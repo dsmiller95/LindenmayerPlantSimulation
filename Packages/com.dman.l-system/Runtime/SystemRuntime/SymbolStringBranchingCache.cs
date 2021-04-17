@@ -33,6 +33,8 @@ namespace Dman.LSystem.SystemRuntime
         {
             symbolStringTarget = symbols;
             branchingJumpIndexes = new Dictionary<int, int>();
+            CacheAllBranchJumpIndexes();
+
         }
 
         public bool ValidForwardMatch(SymbolSeriesMatcher seriesMatch)
@@ -65,8 +67,9 @@ namespace Dman.LSystem.SystemRuntime
         {
             if (seriesMatch.graphChildPointers == null)
             {
-                // TODO: consider doing this in the parsing/compiling phase. should only have to happen once for the whole system.
-                seriesMatch.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
+                // this should be done in the parsing/compiling phase. should only have to happen once for the whole system, per matching rule.
+                throw new System.Exception("graph indexes should be precomputer");
+                //seriesMatch.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
             }
 
             // keep count of how many more matches are required at each level of the tree.
@@ -130,7 +133,7 @@ namespace Dman.LSystem.SystemRuntime
                         indexInSymbolTarget--;
                     }else if (currentSymbol == branchCloseSymbol)
                     {
-                        indexInSymbolTarget = FindOpeningBranchIndex(indexInSymbolTarget) - 1;
+                        indexInSymbolTarget = FindOpeningBranchIndexReadonly(indexInSymbolTarget) - 1;
                     }
                     else if (
                         currentSymbol == symbolToMatch.targetSymbol &&
@@ -154,21 +157,52 @@ namespace Dman.LSystem.SystemRuntime
             return null;
         }
 
+
         /// <summary>
         /// Assumes that <paramref name="openingBranchIndex"/> is already an index of an open branch symbol, without checking
+        ///     will return info without modifying the state of this object
         /// </summary>
         /// <param name="openingBranchIndex"></param>
         /// <returns></returns>
-        public int FindClosingBranchIndex(int openingBranchIndex)
+        public int FindClosingBranchIndexReadonly(int openingBranchIndex)
         {
             if (branchingJumpIndexes.TryGetValue(openingBranchIndex, out var closingBranch))
             {
                 return closingBranch;
+            }else
+            {
+                throw new System.Exception("branch jump index not cached!! should preload.");
             }
-            var openingIndexes = new Stack<int>();
-            openingIndexes.Push(openingBranchIndex);
+        }
 
-            for (int indexInString = openingBranchIndex + 1; indexInString < symbolStringTarget.Length; indexInString++)
+        /// <summary>
+        /// Assumes that <paramref name="closingBranchIndex"/> is already an index of a closing branch symbol, without checking
+        ///     will return info without modifying the state of this object
+        /// </summary>
+        /// <param name="closingBranchIndex"></param>
+        /// <returns></returns>
+        public int FindOpeningBranchIndexReadonly(int closingBranchIndex)
+        {
+            if (branchingJumpIndexes.TryGetValue(closingBranchIndex, out var openingBranch))
+            {
+                return openingBranch;
+            }
+            else
+            {
+                throw new System.Exception("branch jump index not cached!! should preload.");
+            }
+        }
+
+        /// <summary>
+        /// Read through the entire current symbol string, and cache the jump indexes for all branching symbols
+        ///     assumes no branches are cached already
+        /// </summary>
+        /// <returns></returns>
+        public void CacheAllBranchJumpIndexes()
+        {
+            var openingIndexes = new Stack<int>();
+
+            for (int indexInString = 0; indexInString < symbolStringTarget.Length; indexInString++)
             {
                 var symbol = symbolStringTarget[indexInString];
                 if (symbol == branchOpenSymbol)
@@ -177,51 +211,19 @@ namespace Dman.LSystem.SystemRuntime
                 }
                 else if (symbol == branchCloseSymbol)
                 {
+                    if (openingIndexes.Count <= 0)
+                    {
+                        throw new SyntaxException("Too many closing branch symbols. malformed symbol string.");
+                    }
                     var correspondingOpenSymbolIndex = openingIndexes.Pop();
                     branchingJumpIndexes[indexInString] = correspondingOpenSymbolIndex;
                     branchingJumpIndexes[correspondingOpenSymbolIndex] = indexInString;
-                    if (openingIndexes.Count == 0)
-                    {
-                        return indexInString;
-                    }
                 }
             }
-            throw new SyntaxException("No matching closing branch found. malformed symbol string.");
-        }
-
-        /// <summary>
-        /// Assumes that <paramref name="closingBranchIndex"/> is already an index of a closing branch symbol, without checking
-        /// </summary>
-        /// <param name="closingBranchIndex"></param>
-        /// <returns></returns>
-        public int FindOpeningBranchIndex(int closingBranchIndex)
-        {
-            if (branchingJumpIndexes.TryGetValue(closingBranchIndex, out var openingBranch))
+            if (openingIndexes.Count != 0)
             {
-                return openingBranch;
+                throw new SyntaxException("Too many opening branch symbols. malformed symbol string.");
             }
-            var closingIndexes = new Stack<int>();
-            closingIndexes.Push(closingBranchIndex);
-
-            for (int indexInString = closingBranchIndex - 1; indexInString >= 0; indexInString--)
-            {
-                var symbol = symbolStringTarget[indexInString];
-                if (symbol == branchCloseSymbol)
-                {
-                    closingIndexes.Push(indexInString);
-                }
-                else if (symbol == branchOpenSymbol)
-                {
-                    var correspondingCloseSymbolIndex = closingIndexes.Pop();
-                    branchingJumpIndexes[indexInString] = correspondingCloseSymbolIndex;
-                    branchingJumpIndexes[correspondingCloseSymbolIndex] = indexInString;
-                    if (closingIndexes.Count == 0)
-                    {
-                        return indexInString;
-                    }
-                }
-            }
-            throw new SyntaxException("No matching opening branch found. malformed symbol string.");
         }
 
         /// <summary>
@@ -397,9 +399,11 @@ namespace Dman.LSystem.SystemRuntime
                     }
                     var lastBranch = targetParentIndexStack.Pop();
                     currentParentIndexInTarget = lastBranch.currentParentIndex;
+
                     // cache the open/close braces, may as well while we're here.
-                    branchingJumpIndexes[lastBranch.openBranchSymbolIndex] = indexInTarget;
-                    branchingJumpIndexes[indexInTarget] = lastBranch.openBranchSymbolIndex;
+                    // no longer caching here. this operation should be immutable.
+                    //branchingJumpIndexes[lastBranch.openBranchSymbolIndex] = indexInTarget;
+                    //branchingJumpIndexes[indexInTarget] = lastBranch.openBranchSymbolIndex;
                 }
                 else
                 {
@@ -439,7 +443,7 @@ namespace Dman.LSystem.SystemRuntime
                         }
                         var lastBranch = targetParentIndexStack.Pop();
                         currentParentIndexInTarget = lastBranch.currentParentIndex;
-                        indexInTarget = FindClosingBranchIndex(lastBranch.openBranchSymbolIndex);
+                        indexInTarget = FindClosingBranchIndexReadonly(lastBranch.openBranchSymbolIndex);
                     }
                 }
             }
@@ -506,7 +510,7 @@ namespace Dman.LSystem.SystemRuntime
                 && symbolStringTarget[childStructureIndexInTarget] == branchOpenSymbol)
             {
                 yield return childStructureIndexInTarget;
-                childStructureIndexInTarget = FindClosingBranchIndex(childStructureIndexInTarget) + 1;
+                childStructureIndexInTarget = FindClosingBranchIndexReadonly(childStructureIndexInTarget) + 1;
                 while (childStructureIndexInTarget < symbolStringTarget.Length && ignoreSymbols.Contains(symbolStringTarget[childStructureIndexInTarget]))
                 {
                     childStructureIndexInTarget++;

@@ -24,7 +24,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public RuleOutcome[] possibleOutcomes;
 
-        public BasicRule(ParsedRule parsedInfo)
+        public BasicRule(ParsedRule parsedInfo, int branchOpenSymbol = '[', int branchCloseSymbol = ']')
         {
             _targetSymbolWithParameters = parsedInfo.coreSymbol;
             possibleOutcomes = new RuleOutcome[] {
@@ -38,6 +38,7 @@ namespace Dman.LSystem.SystemRuntime
             conditionalChecker = parsedInfo.conditionalMatch;
             ContextPrefix = new SymbolSeriesMatcher(parsedInfo.backwardsMatch);
             ContextSuffix = new SymbolSeriesMatcher(parsedInfo.forwardsMatch);
+            ContextSuffix.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
 
             CapturedLocalParameterCount = _targetSymbolWithParameters.parameterLength +
                 ContextPrefix.targetSymbolSeries.Sum(x => x.parameterLength) +
@@ -49,7 +50,7 @@ namespace Dman.LSystem.SystemRuntime
         /// same parameters
         /// </summary>
         /// <param name="parsedRules"></param>
-        public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules)
+        public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules, int branchOpenSymbol = '[', int branchCloseSymbol = ']')
         {
             possibleOutcomes = parsedRules
                 .Select(x => new RuleOutcome
@@ -63,6 +64,7 @@ namespace Dman.LSystem.SystemRuntime
             conditionalChecker = firstOutcome.conditionalMatch;
             ContextPrefix = new SymbolSeriesMatcher(firstOutcome.backwardsMatch);
             ContextSuffix = new SymbolSeriesMatcher(firstOutcome.forwardsMatch);
+            ContextSuffix.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
 
             CapturedLocalParameterCount = _targetSymbolWithParameters.parameterLength +
                 ContextPrefix.targetSymbolSeries.Sum(x => x.parameterLength) +

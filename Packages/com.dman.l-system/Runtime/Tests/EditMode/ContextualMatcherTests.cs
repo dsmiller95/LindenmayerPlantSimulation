@@ -17,6 +17,7 @@ public class ContextualMatcherTests
         IEnumerable<int> ignoreSymbols = null)
     {
         var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
+        seriesMatcher.ComputeGraphIndexes('[', ']');
         var targetString = new SymbolString<float>(target);
         var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
         branchingCache.SetTargetSymbolString(targetString);
@@ -197,9 +198,9 @@ public class ContextualMatcherTests
         var targetString = new SymbolString<float>("A[AA]AAA[A[AAA[A]]]A");
         var branchingCache = new SymbolStringBranchingCache();
         branchingCache.SetTargetSymbolString(targetString);
-        Assert.AreEqual(8, branchingCache.FindOpeningBranchIndex(18));
-        Assert.AreEqual(10, branchingCache.FindOpeningBranchIndex(17));
-        Assert.AreEqual(1, branchingCache.FindOpeningBranchIndex(4));
+        Assert.AreEqual(8, branchingCache.FindOpeningBranchIndexReadonly(18));
+        Assert.AreEqual(10, branchingCache.FindOpeningBranchIndexReadonly(17));
+        Assert.AreEqual(1, branchingCache.FindOpeningBranchIndexReadonly(4));
     }
     [Test]
     public void FindsClosingBranchLinks()
@@ -207,9 +208,9 @@ public class ContextualMatcherTests
         var targetString = new SymbolString<float>("A[AA]AAA[A[AAA[A]]]A");
         var branchingCache = new SymbolStringBranchingCache();
         branchingCache.SetTargetSymbolString(targetString);
-        Assert.AreEqual(4, branchingCache.FindClosingBranchIndex(1));
-        Assert.AreEqual(17, branchingCache.FindClosingBranchIndex(10));
-        Assert.AreEqual(18, branchingCache.FindClosingBranchIndex(8));
+        Assert.AreEqual(4, branchingCache.FindClosingBranchIndexReadonly(1));
+        Assert.AreEqual(17, branchingCache.FindClosingBranchIndexReadonly(10));
+        Assert.AreEqual(18, branchingCache.FindClosingBranchIndexReadonly(8));
     }
     [Test]
     public void FindsBranchClosingLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
@@ -217,8 +218,8 @@ public class ContextualMatcherTests
         var targetString = new SymbolString<float>("EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
         var branchingCache = new SymbolStringBranchingCache();
         branchingCache.SetTargetSymbolString(targetString);
-        Assert.AreEqual(87, branchingCache.FindClosingBranchIndex(69));
-        Assert.AreEqual(98, branchingCache.FindClosingBranchIndex(91));
+        Assert.AreEqual(87, branchingCache.FindClosingBranchIndexReadonly(69));
+        Assert.AreEqual(98, branchingCache.FindClosingBranchIndexReadonly(91));
     }
     [Test]
     public void FindsBranchForwardLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
@@ -226,8 +227,8 @@ public class ContextualMatcherTests
         var targetString = new SymbolString<float>("[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
         var branchingCache = new SymbolStringBranchingCache();
         branchingCache.SetTargetSymbolString(targetString);
-        Assert.AreEqual(64, branchingCache.FindOpeningBranchIndex(82));
-        Assert.AreEqual(86, branchingCache.FindOpeningBranchIndex(93));
+        Assert.AreEqual(64, branchingCache.FindOpeningBranchIndexReadonly(82));
+        Assert.AreEqual(86, branchingCache.FindOpeningBranchIndexReadonly(93));
     }
     #endregion
 
