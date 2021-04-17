@@ -118,9 +118,8 @@ namespace Dman.LSystem
         }
         public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null)
         {
-            var result = StepSystem(systemState, out var dep, globalParameters);
-            dep.Complete();
-            return result;
+            var result = StepSystemJob(systemState, globalParameters);
+            return result.CompleteJobAndGetNextState();
         }
 
         /// <summary>
@@ -137,7 +136,7 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="systemState">The entire state of the L-system. no modifications are made to this object or the contained properties.</param>
         /// <param name="globalParameters">The global parameters, if any</param>
-        public LSystemState<float> StepSystem(LSystemState<float> systemState, out JobHandle dependency, float[] globalParameters = null)
+        public LSystemSteppingState StepSystemJob(LSystemState<float> systemState, float[] globalParameters = null)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
             if (globalParameters == null)
@@ -212,6 +211,7 @@ namespace Dman.LSystem
                 seed = random.NextUInt()
             };
 
+            tempState.randResult = random;
 
             var matchJobHandle = matchingJob.Schedule(
                 matchSingletonData.Length,
@@ -229,7 +229,6 @@ namespace Dman.LSystem
             };
             //totalSymbolLengthJob.Run();
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchJobHandle);
-            //totalSymbolLengthDependency.Complete();
 
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -256,7 +255,6 @@ namespace Dman.LSystem
                     100,
                     totalSymbolLengthDependency
                 );
-                replacementDependency.Complete();
             }
             else
             {
@@ -277,14 +275,9 @@ namespace Dman.LSystem
                 tmpSteppingStateHandle = tempStateHandle
             };
 
-            dependency = cleanupJob.Schedule(replacementDependency);
+            var dependency = cleanupJob.Schedule(replacementDependency);
 
-            var generatedSymbols = tempState.nextSymbolString;
-            var realNextState = new LSystemState<float>()
-            {
-                randomProvider = random,
-                currentSymbols = generatedSymbols
-            };
+            tempState.processingHandle = dependency;
 
             //var nextState = new LSystemState<float>()
             //{
@@ -293,7 +286,7 @@ namespace Dman.LSystem
             //var resultString = GenerateNextSymbols(systemState.currentSymbols, ref nextState.randomProvider, globalParameters).ToList();
             //nextState.currentSymbols = SymbolString<float>.ConcatAll(resultString);
             UnityEngine.Profiling.Profiler.EndSample();
-            return realNextState;
+            return tempState;
         }
 
         private SymbolString<float>[] GenerateNextSymbols(SymbolString<float> symbolState, ref Unity.Mathematics.Random random, float[] globalParameters)
@@ -355,6 +348,19 @@ namespace Dman.LSystem
         public SymbolString<float> sourceSymbolString;
         public SymbolString<float> nextSymbolString;
         public IDictionary<int, IList<IRule<float>>> rulesByTargetSymbol;
+        public Unity.Mathematics.Random randResult;
+
+        public JobHandle processingHandle;
+
+        public LSystemState<float> CompleteJobAndGetNextState()
+        {
+            processingHandle.Complete();
+            return new LSystemState<float>
+            {
+                randomProvider = randResult,
+                currentSymbols = nextSymbolString
+            };
+        }
     }
 
     public struct RuleMatchJob : IJobParallelFor

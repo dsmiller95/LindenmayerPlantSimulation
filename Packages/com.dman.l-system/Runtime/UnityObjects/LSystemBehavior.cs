@@ -1,6 +1,7 @@
 using Dman.LSystem.SystemRuntime;
 using System;
 using System.Collections.Generic;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -93,19 +94,30 @@ namespace Dman.LSystem.UnityObjects
             lastUpdateChanged = true;
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
             systemState = new DefaultLSystemState(systemObject.axiom, newSeed ?? UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+            // clear out the next state handle. if an update is pending, just abort it.
+            queuedNextStateHandle = null;
+
             OnSystemStateUpdated?.Invoke();
         }
 
+        private long targetFrameToComplete;
+        private LSystemSteppingState queuedNextStateHandle;
 
         /// <summary>
-        /// step the Lsystem forward one tick
+        /// step the Lsystem forward one tick. when CompleteInLateUpdate is true, be very careful with changes to the L-system
+        ///     it is not perfectly protected against threading race conditions, so be sure not to make any mutations to 
+        ///     the L-system while the behaviors are executing.
         /// </summary>
+        /// <param name="CompleteInLateUpdate">When set to true, the behavior will queue up the jobs and wait until the next frame to complete them</param>
         /// <returns>true if the state changed. false otherwise</returns>
-        public void StepSystem()
+        public void StepSystem(bool CompleteInLateUpdate = true)
         {
+            if (queuedNextStateHandle != null) {
+                Debug.LogError("System is already waiting for an update!! To many!!");
+            }
             try
             {
-                systemState = CompiledSystem?.StepSystem(systemState, runtimeParameters.GetCurrentParameters());
+                queuedNextStateHandle = CompiledSystem?.StepSystemJob(systemState, runtimeParameters.GetCurrentParameters());
             }
             catch (System.Exception e)
             {
@@ -113,6 +125,32 @@ namespace Dman.LSystem.UnityObjects
                 Debug.LogException(e);
                 return;
             }
+            if (!CompleteInLateUpdate)
+            {
+                this.ForceWaitForStepComplete();
+            }else
+            {
+                targetFrameToComplete = Time.frameCount + 1;
+            }
+        }
+
+        private void Update()
+        {
+            if (queuedNextStateHandle != null && Time.frameCount >= targetFrameToComplete)
+            {
+                this.ForceWaitForStepComplete();
+            }
+        }
+
+        private void ForceWaitForStepComplete()
+        {
+            if(queuedNextStateHandle == null)
+            {
+                Debug.LogError("queued handle is null :(");
+            }
+            systemState = queuedNextStateHandle.CompleteJobAndGetNextState();
+            queuedNextStateHandle = null;
+
             OnSystemStateUpdated?.Invoke();
 
             lastUpdateChanged = !(lastState?.Equals(CurrentState) ?? false);
