@@ -29,6 +29,10 @@ namespace LSystem.Runtime.SystemRuntime
         public ushort replacementSymbolLength;
         public int replacementSymbolStartIndex;
 
+        public ushort replacementParameterCount;
+        public int replacementParameterStartIndex;
+
+
         public LSystemMatchErrorCode errorCode;
     }
 

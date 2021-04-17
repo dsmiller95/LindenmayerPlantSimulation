@@ -13,5 +13,6 @@ public class SymbolStringTest
         Assert.AreEqual(convertedSymbols[1], 65);
         Assert.AreEqual(convertedSymbols[2], 66);
         Assert.AreEqual(convertedSymbols[3], 65);
+        symbolFromString.Dispose();
     }
 }

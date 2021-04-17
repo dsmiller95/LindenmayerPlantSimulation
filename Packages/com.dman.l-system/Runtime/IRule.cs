@@ -63,13 +63,11 @@ namespace Dman.LSystem
         /// <returns>a list of captured parameters. null if no match</returns>
         public void WriteReplacementSymbols(
             T[] globalParameters,
-            byte selectedReplacementPattern,
-            NativeArray<T> parameters,
-            int originIndexInParameters,
-            int totalMatchedParameters,
-            SymbolString<T> targetSymbols,
-            int originIndexInSymbols,
-            ushort expectedReplacementSymbolLength
+            NativeArray<T> sourceParams,
+            NativeArray<int> targetSymbols,
+            NativeArray<SymbolString<float>.JaggedIndexing> targetParameterIndexes,
+            NativeArray<float> targetParams,
+            LSystemStepMatchIntermediate matchSingletonData
             );
     }
 }

@@ -1,5 +1,7 @@
+using Dman.LSystem.SystemRuntime;
 using ProceduralToolkit;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -42,11 +44,17 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultTheta = defaultTheta;
             }
 
-            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(
+                TurtleState initialState,
+                NativeArray<float> parameters,
+                SymbolString<float>.JaggedIndexing parameterIndexing,
+                TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
-                if (parameters.Length != 1 || !(parameters[0] is float theta))
+                var p0 = parameterIndexing.Start;
+                float theta = defaultTheta;
+                if (parameterIndexing.length == 1)
                 {
-                    theta = defaultTheta;
+                    theta = parameters[p0 + 0];
                 }
                 initialState.transformation *= Matrix4x4.Rotate(Quaternion.Euler(theta * unitEulerRotation));
                 return initialState;

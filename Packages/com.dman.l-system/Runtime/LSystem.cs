@@ -34,7 +34,7 @@ namespace Dman.LSystem
         }
     }
 
-    public class LSystemState<T>
+    public class LSystemState<T> where T : unmanaged
     {
         public SymbolString<T> currentSymbols { get; set; }
         public Unity.Mathematics.Random randomProvider;
@@ -116,10 +116,18 @@ namespace Dman.LSystem
                 maxParameterCapturePerSymbol[symbol] = maxParamsAtSymbool;
             }
         }
-        public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null)
+        public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null, bool disposeOldSystem = true)
         {
-            var result = StepSystemJob(systemState, globalParameters);
-            return result.CompleteJobAndGetNextState();
+            var stepper = StepSystemJob(systemState, globalParameters);
+            stepper.CompleteIntermediateAndPerformAllocations();
+            var result = stepper.CompleteJobAndGetNextState();
+
+            if (disposeOldSystem)
+            {
+                systemState.currentSymbols.Dispose();
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -222,62 +230,77 @@ namespace Dman.LSystem
             // 4.
             UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
 
+            var totalSymbolLength = new NativeArray<int>(1, Allocator.Persistent);
+            var totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
+            tempState.totalSymbolCount = totalSymbolLength;
+            tempState.totalSymbolParameterCount = totalSymbolParameterCount;
+
             var totalSymbolLengthJob = new RuleReplacementSizeJob
             {
                 matchSingletonData = matchSingletonData,
-                tmpSteppingStateHandle = tempStateHandle
+                totalResultSymbolCount = totalSymbolLength,
+                totalResultParameterCount = totalSymbolParameterCount,
+
+                tmpSteppingStateHandle = tempStateHandle,
             };
             //totalSymbolLengthJob.Run();
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchJobHandle);
 
+            tempState.preAllocationStep = totalSymbolLengthDependency;
+
             UnityEngine.Profiling.Profiler.EndSample();
+
+            tempState.matchSingletonData = matchSingletonData;
+            tempState.parameterMemory = parameterMemory;
+            tempState.globalParamNative = globalParamNative;
+            tempState.tempStateHandle = tempStateHandle;
 
             // 5
-            UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
+            //UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
 
 
-            var replacementJob = new RuleReplacementJob
-            {
-                matchSingletonData = matchSingletonData,
-                parameterMatchMemory = parameterMemory,
+            //var replacementJob = new RuleReplacementJob
+            //{
+            //    matchSingletonData = matchSingletonData,
+            //    parameterMatchMemory = parameterMemory,
 
-                globalParametersArray = globalParamNative,
+            //    globalParametersArray = globalParamNative,
 
-                tmpSteppingStateHandle = tempStateHandle
-            };
+            //    tmpSteppingStateHandle = tempStateHandle
+            //};
 
-            var parallelRun = true;
-            JobHandle replacementDependency = default;
-            if (parallelRun)
-            {
-                replacementDependency = replacementJob.Schedule(
-                    matchSingletonData.Length,
-                    100,
-                    totalSymbolLengthDependency
-                );
-            }
-            else
-            {
-                totalSymbolLengthDependency.Complete();
-                for (int i = 0; i < matchSingletonData.Length; i++)
-                {
-                    replacementJob.Execute(i);
-                }
-                globalParamNative.Dispose();
-                matchSingletonData.Dispose();
-                parameterMemory.Dispose();
-            }
-            //replacementJob.Run(matchSingletonData.Length);
-            UnityEngine.Profiling.Profiler.EndSample();
+            //var parallelRun = true;
+            //JobHandle replacementDependency = default;
+            //if (parallelRun)
+            //{
+            //    replacementDependency = replacementJob.Schedule(
+            //        matchSingletonData.Length,
+            //        100,
+            //        totalSymbolLengthDependency
+            //    );
+            //}
+            //else
+            //{
+            //    totalSymbolLengthDependency.Complete();
+            //    for (int i = 0; i < matchSingletonData.Length; i++)
+            //    {
+            //        replacementJob.Execute(i);
+            //    }
+            //    globalParamNative.Dispose();
+            //    matchSingletonData.Dispose();
+            //    parameterMemory.Dispose();
+            //}
+            ////replacementJob.Run(matchSingletonData.Length);
+            //UnityEngine.Profiling.Profiler.EndSample();
 
-            var cleanupJob = new LSystemStepCleanupJob
-            {
-                tmpSteppingStateHandle = tempStateHandle
-            };
+            //var cleanupJob = new LSystemStepCleanupJob
+            //{
+            //    tmpSteppingStateHandle = tempStateHandle
+            //};
 
-            var dependency = cleanupJob.Schedule(replacementDependency);
+            //var dependency = cleanupJob.Schedule(replacementDependency);
 
-            tempState.processingHandle = dependency;
+            //tempState.finalDependency = dependency;
 
             //var nextState = new LSystemState<float>()
             //{
@@ -287,46 +310,6 @@ namespace Dman.LSystem
             //nextState.currentSymbols = SymbolString<float>.ConcatAll(resultString);
             UnityEngine.Profiling.Profiler.EndSample();
             return tempState;
-        }
-
-        private SymbolString<float>[] GenerateNextSymbols(SymbolString<float> symbolState, ref Unity.Mathematics.Random random, float[] globalParameters)
-        {
-            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, ignoredCharacters);
-            tmpBranchingCache.SetTargetSymbolString(symbolState);
-
-            var resultArray = new SymbolString<float>[symbolState.symbols.Length];
-            for (int symbolIndex = 0; symbolIndex < symbolState.symbols.Length; symbolIndex++)
-            {
-                var symbol = symbolState.symbols[symbolIndex];
-                var parameters = symbolState.parameters[symbolIndex];
-                var ruleApplied = false;
-                if (rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) && ruleList != null && ruleList.Count > 0)
-                {
-                    foreach (var rule in ruleList)
-                    {
-                        // check if match
-                        var result = rule.ApplyRule(
-                            tmpBranchingCache,
-                            symbolState,
-                            symbolIndex,
-                            ref random,
-                            globalParameters);// todo
-                        if (result != null)
-                        {
-                            resultArray[symbolIndex] = result;
-                            ruleApplied = true;
-                            break;
-                        }
-                    }
-                }
-                if (!ruleApplied)
-                {
-                    // if none of the rules match, which could happen if all of the matches for this char require additional subsequent characters
-                    // or if there are no rules
-                    resultArray[symbolIndex] = new SymbolString<float>(symbol, parameters);
-                }
-            }
-            return resultArray;
         }
 
         public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)
@@ -346,20 +329,94 @@ namespace Dman.LSystem
     {
         public SymbolStringBranchingCache branchingCache;
         public SymbolString<float> sourceSymbolString;
-        public SymbolString<float> nextSymbolString;
         public IDictionary<int, IList<IRule<float>>> rulesByTargetSymbol;
         public Unity.Mathematics.Random randResult;
 
-        public JobHandle processingHandle;
+        /// <summary>
+        /// A job handle too the <see cref="RuleReplacementSizeJob"/> which will count up the total replacement size
+        /// </summary>
+        public JobHandle preAllocationStep;
+        public JobHandle finalDependency;
+        private StepState stepState = StepState.MATCHING;
+
+
+        public NativeArray<int> totalSymbolCount;
+        public NativeArray<int> totalSymbolParameterCount;
+
+        private SymbolString<float> target;
+
+        public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
+        public NativeArray<float> parameterMemory;
+        public NativeArray<float> globalParamNative;
+        public GCHandle tempStateHandle; // LSystemSteppingState. self
+
+
+        private enum StepState
+        {
+            MATCHING,
+            REPLACING,
+            COMPLETE
+        }
+
+        public void CompleteIntermediateAndPerformAllocations()
+        {
+            if(stepState != StepState.MATCHING)
+            {
+                throw new System.Exception("stepper state not compatible");
+            }
+            preAllocationStep.Complete();
+            var totalNewSymbolSize = totalSymbolCount[0];
+            var totalNewParamSize = totalSymbolParameterCount[0];
+            this.target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
+            totalSymbolCount.Dispose();
+            totalSymbolParameterCount.Dispose();
+
+            // 5
+            UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
+
+            var replacementJob = new RuleReplacementJob
+            {
+                tmpSteppingStateHandle = tempStateHandle,
+                globalParametersArray = globalParamNative,
+
+                parameterMatchMemory = parameterMemory,
+                matchSingletonData = matchSingletonData,
+
+                targetSymbols = target.symbols,
+                targetParameterIndexes = target.parameterIndexes,
+                targetParameters = target.parameters
+            };
+
+            JobHandle replacementDependency = replacementJob.Schedule(
+                matchSingletonData.Length,
+                100
+            );
+
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            var cleanupJob = new LSystemStepCleanupJob
+            {
+                tmpSteppingStateHandle = tempStateHandle
+            };
+
+            finalDependency = cleanupJob.Schedule(replacementDependency);
+            stepState = StepState.REPLACING;
+        }
 
         public LSystemState<float> CompleteJobAndGetNextState()
         {
-            processingHandle.Complete();
-            return new LSystemState<float>
+            if (stepState != StepState.REPLACING)
+            {
+                throw new System.Exception("stepper state not compatible");
+            }
+            finalDependency.Complete();
+            var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
-                currentSymbols = nextSymbolString
+                currentSymbols = this.target
             };
+            stepState = StepState.COMPLETE;
+            return newResult;
         }
     }
 
@@ -382,19 +439,20 @@ namespace Dman.LSystem
             var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
 
             var matchSingleton = matchSingletonData[indexInSymbols];
+            var sourceSymbolString = tmpSteppingState.sourceSymbolString;
             if (matchSingleton.isTrivial)
             {
-                // if match is trivial, then no parameters are captured
+                // if match is trivial, then no parameters are captured. the rest of the algo will read directly from the source index
                 //  and no transformation will take place.
                 return;
             }
             var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
-            var sourceSymbolString = tmpSteppingState.sourceSymbolString;
             var symbol = sourceSymbolString.symbols[indexInSymbols];
 
             if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
             {
                 matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_MATCH_TIME;
+                matchSingletonData[indexInSymbols] = matchSingleton;
                 return;
                 // could recover gracefully. but for now, going to force a failure
                 //matchSingleton.isTrivial = true;
@@ -426,8 +484,6 @@ namespace Dman.LSystem
             }
             if (ruleMatched == false)
             {
-                matchSingleton.matchedParametersCount = 0;
-                matchSingleton.replacementSymbolLength = 1;
                 matchSingleton.isTrivial = true;
             }
             matchSingletonData[indexInSymbols] = matchSingleton;
@@ -436,30 +492,36 @@ namespace Dman.LSystem
     public struct RuleReplacementSizeJob : IJob
     {
         public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
+        public NativeArray<int> totalResultSymbolCount;
+        public NativeArray<int> totalResultParameterCount;
         public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
         public void Execute()
         {
-            var totalSymbolSize = 0;
+            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
+            var sourceSymbols = tmpSteppingState.sourceSymbolString;
+
+            var totalResultSymbolSize = 0;
+            var totalResultParamSize = 0;
             for (int i = 0; i < matchSingletonData.Length; i++)
             {
                 var singleton = matchSingletonData[i];
-                singleton.replacementSymbolStartIndex = totalSymbolSize;
+                singleton.replacementSymbolStartIndex = totalResultSymbolSize;
+                singleton.replacementParameterStartIndex = totalResultParamSize;
                 matchSingletonData[i] = singleton;
                 if (singleton.isTrivial)
                 {
-                    totalSymbolSize += 1;
+                    totalResultSymbolSize += 1;
+                    totalResultParamSize += sourceSymbols.parameterIndexes[i].length;
                 }
                 else
                 {
-                    totalSymbolSize += singleton.replacementSymbolLength;
+                    totalResultSymbolSize += singleton.replacementSymbolLength;
+                    totalResultParamSize += singleton.replacementParameterCount;
                 }
             }
 
-            var nextSymbols = new int[totalSymbolSize];
-            var nextParameters = new float[totalSymbolSize][];
-            var generatedSymbols = new SymbolString<float>(nextSymbols, nextParameters);
-            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
-            tmpSteppingState.nextSymbolString = generatedSymbols;
+            totalResultSymbolCount[0] = totalResultSymbolSize;
+            totalResultParameterCount[0] = totalResultParamSize;
         }
     }
 
@@ -477,12 +539,19 @@ namespace Dman.LSystem
         [DeallocateOnJobCompletion]
         public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
 
+
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> targetSymbols;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<SymbolString<float>.JaggedIndexing> targetParameterIndexes;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float> targetParameters;
+
         public void Execute(int indexInSymbols)
         {
             var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
 
             var sourceSymbolString = tmpSteppingState.sourceSymbolString;
-            var targetSymbolString = tmpSteppingState.nextSymbolString;
 
             var matchSingleton = matchSingletonData[indexInSymbols];
             var symbol = sourceSymbolString.symbols[indexInSymbols];
@@ -490,8 +559,22 @@ namespace Dman.LSystem
             {
                 // if match is trivial, just copy the symbol over, nothing else.
                 var targetIndex = matchSingleton.replacementSymbolStartIndex;
-                targetSymbolString.symbols[targetIndex] = symbol;
-                targetSymbolString.parameters[targetIndex] = sourceSymbolString.parameters[indexInSymbols];
+                targetSymbols[targetIndex] = symbol;
+                var sourceParams = sourceSymbolString.parameters;
+                var sourceParamIndexer = sourceSymbolString.parameterIndexes[indexInSymbols];
+                targetParameterIndexes[targetIndex] = new SymbolString<float>.JaggedIndexing
+                {
+                    index = matchSingleton.replacementParameterStartIndex,
+                    length = sourceParamIndexer.length
+                };
+                // when trivial, copy out of the source param array directly. As opposed to reading parameters out oof the parameterMatchMemory when evaluating
+                //      a non-trivial match
+                for (int i = 0; i < sourceParamIndexer.length; i++)
+                {
+                    var sourceIndex = sourceParamIndexer.index + i;
+                    var targetParamIndex = matchSingleton.replacementParameterStartIndex + i;
+                    targetParameters[targetParamIndex] = sourceParams[sourceIndex];
+                }
                 return;
             }
 
@@ -510,13 +593,11 @@ namespace Dman.LSystem
 
             rule.WriteReplacementSymbols(
                 globalParameters,
-                matchSingleton.selectedReplacementPattern,
                 parameterMatchMemory,
-                matchSingleton.parametersStartIndex,
-                matchSingleton.matchedParametersCount,
-                targetSymbolString,
-                matchSingleton.replacementSymbolStartIndex,
-                matchSingleton.replacementSymbolLength
+                targetSymbols,
+                targetParameterIndexes,
+                targetParameters,
+                matchSingleton
                 );
         }
     }
@@ -526,7 +607,6 @@ namespace Dman.LSystem
         public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
         public void Execute()
         {
-            //var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
             tmpSteppingStateHandle.Free();
         }
     }

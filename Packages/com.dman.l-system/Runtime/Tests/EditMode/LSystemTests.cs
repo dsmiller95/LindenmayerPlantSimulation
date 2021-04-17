@@ -17,9 +17,13 @@ public class LSystemTests
         var systemState = new DefaultLSystemState("B");
 
         Assert.AreEqual("B", systemState.currentSymbols.ToString());
-        Assert.AreEqual(new float[][]{
-            new float[0]
-            }, systemState.currentSymbols.parameters);
+        Assert.AreEqual(new SymbolString<float>.JaggedIndexing
+        {
+            index = 0,
+            length = 0
+        }, systemState.currentSymbols.parameterIndexes[0]);
+        Assert.AreEqual(0, systemState.currentSymbols.parameters.Length);
+        systemState.currentSymbols.Dispose();
     }
     [Test]
     public void LSystemAppliesBasicRules()
@@ -40,6 +44,7 @@ public class LSystemTests
         Assert.AreEqual("ABA", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ABAAB", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
     [Test]
@@ -64,6 +69,7 @@ public class LSystemTests
         Assert.AreEqual("ABCDCCACCABC", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ABCDCCACCABCCABCDCC", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
     [Test]
     public void LSystemAppliesFlatContextualRules()
@@ -91,6 +97,7 @@ public class LSystemTests
         Assert.AreEqual("ABAABAAB", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ABABABA", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
     [Test]
@@ -112,6 +119,7 @@ public class LSystemTests
         Assert.AreEqual("BABAB", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ABAAABAAABA", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
     [Test]
@@ -132,12 +140,12 @@ public class LSystemTests
         Assert.AreEqual("ACBCA", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ACBCACACB", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
     [Test]
     public void LSystemAppliesStochasticRule()
     {
-        LSystemState<float> state = new DefaultLSystemState("C");
         var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "A -> AC",
             "P(0.5) | C -> A",
@@ -171,6 +179,7 @@ public class LSystemTests
         Assert.AreEqual("ACAAC", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("ACAACACA", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
     [Test]
@@ -190,6 +199,7 @@ public class LSystemTests
         Assert.AreEqual("A(4)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("A(5)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
     [Test]
@@ -209,9 +219,10 @@ public class LSystemTests
         Assert.AreEqual("A(5, 6)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("A(11, 30)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
-    [Test]
+    [Test, Ignore("bigg")]
     public void ContextLSystemDoesManyManySteps()
     {
         LSystemState<float> state = new DefaultLSystemState("C");
@@ -263,9 +274,10 @@ public class LSystemTests
         var expectedResult = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC";
         Assert.AreEqual(expectedResult.Length, state.currentSymbols.Length);
         Assert.AreEqual(expectedResult, state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
-    [Test]
+    [Test, Ignore("bigg")]
     public void ContextLSystemGetsVeryBigPredictably()
     {
         LSystemState<float> state = new DefaultLSystemState("A(0)");
@@ -316,6 +328,7 @@ public class LSystemTests
             "[B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]]][B(379)A(292)[B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]][B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]]]][B(1197)A(952)[B(379)A(292)[B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]][B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]]][B(379)A(292)[B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]][B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]]]]][B(3859)A(3052)[B(1197)A(952)[B(379)A(292)[B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]][B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]]][B(379)A(292)[B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]][B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]]]][B(1197)A(952)[B(379)A(292)[B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]][B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]]][B(379)A(292)[B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]][B(117)A(96)[B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]][B(35)A(28)[B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]][B(13)A(8)[B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]][B(3)A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]]]]]]]]]]]";
         Assert.AreEqual(28665, state.currentSymbols.Length);
         Assert.AreEqual(expectedResult, state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
     [Test]
     public void LSystemDoesAFibbonachi()
@@ -337,6 +350,7 @@ public class LSystemTests
         Assert.AreEqual("A(8)B(5)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("A(13)B(8)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
     [Test]
@@ -358,6 +372,7 @@ public class LSystemTests
         Assert.AreEqual("A(6)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("A(6)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
 
@@ -384,6 +399,7 @@ public class LSystemTests
         Assert.AreEqual("A(6, -615)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(-614, -3685)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
 
@@ -414,6 +430,7 @@ public class LSystemTests
         var nextGlobalParams = new float[] { 4 };
         state = basicLSystem.StepSystem(state, nextGlobalParams);
         Assert.AreEqual("A(4)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
     [Test]
     public void LSystemSelectsRuleToApplyBasedOnConditional()
@@ -443,6 +460,7 @@ public class LSystemTests
         Assert.AreEqual("A(2)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
     [Test]
     public void LSystemSelectsStochasticRuleToApplyBasedOnConditional()
@@ -560,16 +578,22 @@ public class LSystemTests
             if (i == 5)
             {
                 systemCopyAt5 = state;
+                state = basicLSystem.StepSystem(state, defaultGlobalParams, false);
             }
-            state = basicLSystem.StepSystem(state, defaultGlobalParams);
+            else
+            {
+                state = basicLSystem.StepSystem(state, defaultGlobalParams);
+            }
             resultSequence.Add(state.currentSymbols.ToString());
         }
+        state.currentSymbols.Dispose();
 
         for (int i = 5; i < resultSampleSize; i++)
         {
             systemCopyAt5 = basicLSystem.StepSystem(systemCopyAt5, defaultGlobalParams);
             Assert.AreEqual(resultSequence[i], systemCopyAt5.currentSymbols.ToString(), $"Index {i}");
         }
+        systemCopyAt5.currentSymbols.Dispose();
     }
 
     [Test]
@@ -587,6 +611,7 @@ public class LSystemTests
         Assert.AreEqual("AABCD", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("FBBCD", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
     [Test]
     public void LSystemAppliesContextualRulesStochasticly()
@@ -616,6 +641,7 @@ public class LSystemTests
         Assert.AreEqual("AAA", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("BBC", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
 
         state = new DefaultLSystemState("AAA");
         basicLSystem = LSystemBuilder.FloatSystem(new string[] {
@@ -625,6 +651,7 @@ public class LSystemTests
         Assert.AreEqual("AAA", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("BCC", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
     [Test]
     public void LSystemIgnoresIgnoredCharachters()
@@ -648,6 +675,7 @@ public class LSystemTests
         Assert.AreEqual("3A1B213A4213A1B2424", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("3A1B213A4213542136B713A42424", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
     }
 
     [Test]
@@ -705,6 +733,7 @@ public class LSystemTests
             LSystemState<float> state = new DefaultLSystemState(axiom, attemptSeeder.NextUInt());
             state = system.StepSystem(state, globalParams);
             resultSet.Add(state.currentSymbols.ToString());
+            state.currentSymbols.Dispose();
         }
         Assert.AreEqual(expectedResults.Length, resultSet.Count);
         for (int i = 0; i < expectedResults.Length; i++)

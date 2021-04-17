@@ -18,6 +18,11 @@ namespace Dman.LSystem.SystemRuntime
             evaluators = evaluatorExpressions.ToArray();
         }
 
+        public int GeneratedParameterCount()
+        {
+            return evaluators.Length;
+        }
+
         public float[] EvaluateNewParameters(object[] matchedParameters)
         {
             // TODO: make the dynamic lambda operate on and return floats instead of doubles?

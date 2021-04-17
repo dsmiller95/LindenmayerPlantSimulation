@@ -1,5 +1,7 @@
+using Dman.LSystem.SystemRuntime;
 using ProceduralToolkit;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -32,11 +34,17 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultBendFactor = defaultTheta;
             }
 
-            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(
+                TurtleState initialState,
+                NativeArray<float> parameters,
+                SymbolString<float>.JaggedIndexing parameterIndexing,
+                TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
-                if (parameters.Length != 1 || !(parameters[0] is float bendFactor))
+                var p0 = parameterIndexing.Start;
+                float bendFactor = defaultBendFactor;
+                if (parameterIndexing.length == 1)
                 {
-                    bendFactor = defaultBendFactor;
+                    bendFactor = parameters[p0];
                 }
                 var localBendDirection = initialState.transformation.inverse.MultiplyVector(worldBendDirection);
                 var adjustment = (bendFactor) * (Vector3.Cross(localBendDirection, Vector3.right));

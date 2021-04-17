@@ -1,4 +1,6 @@
+using Dman.LSystem.SystemRuntime;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -35,20 +37,25 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultScale = defaultScale;
             }
 
-            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(
+                TurtleState initialState,
+                NativeArray<float> parameters,
+                SymbolString<float>.JaggedIndexing parameterIndexing,
+                TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
-                if (parameters.Length == 0)
+                var p0 = parameterIndexing.Start;
+                if (parameterIndexing.length == 0)
                 {
                     initialState.thickness *= defaultScale;
                 }
                 else
-                if (parameters.Length == 1)
+                if (parameterIndexing.length == 1)
                 {
-                    initialState.thickness *= parameters[0];
+                    initialState.thickness *= parameters[p0 + 0];
                 }
                 else
                 {
-                    Debug.LogError($"Invalid scale parameter length: {parameters.Length}");
+                    Debug.LogError($"Invalid scale parameter length: {parameterIndexing.length}");
                 }
                 return initialState;
             }
@@ -66,25 +73,30 @@ namespace Dman.LSystem.UnityObjects
                 this.defaultScale = defaultScale;
             }
 
-            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(
+                TurtleState initialState,
+                NativeArray<float> parameters,
+                SymbolString<float>.JaggedIndexing parameterIndexing,
+                TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
-                if (parameters.Length == 0)
+                var p0 = parameterIndexing.Start;
+                if (parameterIndexing.length== 0)
                 {
                     initialState.transformation *= Matrix4x4.Scale(defaultScale * scale);
                 }
                 else
-                if (parameters.Length == 1)
+                if (parameterIndexing.length == 1)
                 {
-                    initialState.transformation *= Matrix4x4.Scale(parameters[0] * scale);
+                    initialState.transformation *= Matrix4x4.Scale(parameters[p0 + 0] * scale);
                 }
                 else
-                if (parameters.Length == 3)
+                if (parameterIndexing.length == 3)
                 {
-                    initialState.transformation *= Matrix4x4.Scale(new Vector3(parameters[0], parameters[1], parameters[2]));
+                    initialState.transformation *= Matrix4x4.Scale(new Vector3(parameters[p0 + 0], parameters[p0 + 1], parameters[p0 + 2]));
                 }
                 else
                 {
-                    Debug.LogError($"Invalid scale parameter length: {parameters.Length}");
+                    Debug.LogError($"Invalid scale parameter length: {parameterIndexing.length}");
                 }
                 return initialState;
             }

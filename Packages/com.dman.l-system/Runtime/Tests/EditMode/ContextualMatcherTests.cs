@@ -16,51 +16,59 @@ public class ContextualMatcherTests
         bool testOrderingInvariant = true,
         IEnumerable<int> ignoreSymbols = null)
     {
+
         var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
         seriesMatcher.ComputeGraphIndexes('[', ']');
         var targetString = new SymbolString<float>(target);
-        var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
-        branchingCache.SetTargetSymbolString(targetString);
-
-        if (testOrderingInvariant && shouldMatch && !testOrderingAgnostict.HasValue)
+        try
         {
-            // if an invariant matches, agnostic should match too.
-            testOrderingAgnostict = true;
-        }
+            var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
+            branchingCache.SetTargetSymbolString(targetString);
 
-        if (testOrderingAgnostict.HasValue && testOrderingAgnostict.Value)
-        {
-            var matchPairings = branchingCache.MatchesForward(indexInTarget, seriesMatcher, true);
-            var matches = matchPairings != null;
-            if (shouldMatch != matches)
+            if (testOrderingInvariant && shouldMatch && !testOrderingAgnostict.HasValue)
             {
-                Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards ignoring order from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
+                // if an invariant matches, agnostic should match too.
+                testOrderingAgnostict = true;
             }
-            if (shouldMatch && expectedMatchToTargetMapping != null)
+
+            if (testOrderingAgnostict.HasValue && testOrderingAgnostict.Value)
             {
-                foreach (var expectedMatch in expectedMatchToTargetMapping)
+                var matchPairings = branchingCache.MatchesForward(indexInTarget, seriesMatcher, true);
+                var matches = matchPairings != null;
+                if (shouldMatch != matches)
                 {
-                    Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
-                    Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+                    Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards ignoring order from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
+                }
+                if (shouldMatch && expectedMatchToTargetMapping != null)
+                {
+                    foreach (var expectedMatch in expectedMatchToTargetMapping)
+                    {
+                        Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
+                        Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+                    }
+                }
+            }
+            if (testOrderingInvariant)
+            {
+                var matchPairings = branchingCache.MatchesForward(indexInTarget, seriesMatcher, false);
+                var matches = matchPairings != null;
+                if (shouldMatch != matches)
+                {
+                    Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards retaining order from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
+                }
+                if (shouldMatch && expectedMatchToTargetMapping != null)
+                {
+                    foreach (var expectedMatch in expectedMatchToTargetMapping)
+                    {
+                        Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
+                        Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+                    }
                 }
             }
         }
-        if (testOrderingInvariant)
+        finally
         {
-            var matchPairings = branchingCache.MatchesForward(indexInTarget, seriesMatcher, false);
-            var matches = matchPairings != null;
-            if (shouldMatch != matches)
-            {
-                Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards retaining order from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
-            }
-            if (shouldMatch && expectedMatchToTargetMapping != null)
-            {
-                foreach (var expectedMatch in expectedMatchToTargetMapping)
-                {
-                    Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
-                    Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
-                }
-            }
+            targetString.Dispose();
         }
     }
 
@@ -76,23 +84,30 @@ public class ContextualMatcherTests
     {
         var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
         var targetString = new SymbolString<float>(target);
-        var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
-        branchingCache.SetTargetSymbolString(targetString);
+        try
+        {
+            var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
+            branchingCache.SetTargetSymbolString(targetString);
 
-        var realIndex = indexInTarget < 0 ? indexInTarget + targetString.Length : indexInTarget;
-        var matchPairings = branchingCache.MatchesBackwards(realIndex, seriesMatcher);
-        var matches = matchPairings != null;
-        if (shouldMatch != matches)
-        {
-            Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match backwards from {indexInTarget} in '{target}'");
-        }
-        if (shouldMatch && expectedMatchToTargetMapping != null)
-        {
-            foreach (var expectedMatch in expectedMatchToTargetMapping)
+            var realIndex = indexInTarget < 0 ? indexInTarget + targetString.Length : indexInTarget;
+            var matchPairings = branchingCache.MatchesBackwards(realIndex, seriesMatcher);
+            var matches = matchPairings != null;
+            if (shouldMatch != matches)
             {
-                Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
-                Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+                Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match backwards from {indexInTarget} in '{target}'");
             }
+            if (shouldMatch && expectedMatchToTargetMapping != null)
+            {
+                foreach (var expectedMatch in expectedMatchToTargetMapping)
+                {
+                    Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
+                    Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+                }
+            }
+        }
+        finally
+        {
+            targetString.Dispose();
         }
     }
     [Test]
@@ -201,6 +216,7 @@ public class ContextualMatcherTests
         Assert.AreEqual(8, branchingCache.FindOpeningBranchIndexReadonly(18));
         Assert.AreEqual(10, branchingCache.FindOpeningBranchIndexReadonly(17));
         Assert.AreEqual(1, branchingCache.FindOpeningBranchIndexReadonly(4));
+        targetString.Dispose();
     }
     [Test]
     public void FindsClosingBranchLinks()
@@ -211,6 +227,7 @@ public class ContextualMatcherTests
         Assert.AreEqual(4, branchingCache.FindClosingBranchIndexReadonly(1));
         Assert.AreEqual(17, branchingCache.FindClosingBranchIndexReadonly(10));
         Assert.AreEqual(18, branchingCache.FindClosingBranchIndexReadonly(8));
+        targetString.Dispose();
     }
     [Test]
     public void FindsBranchClosingLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
@@ -220,6 +237,7 @@ public class ContextualMatcherTests
         branchingCache.SetTargetSymbolString(targetString);
         Assert.AreEqual(87, branchingCache.FindClosingBranchIndexReadonly(69));
         Assert.AreEqual(98, branchingCache.FindClosingBranchIndexReadonly(91));
+        targetString.Dispose();
     }
     [Test]
     public void FindsBranchForwardLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
@@ -229,6 +247,7 @@ public class ContextualMatcherTests
         branchingCache.SetTargetSymbolString(targetString);
         Assert.AreEqual(64, branchingCache.FindOpeningBranchIndexReadonly(82));
         Assert.AreEqual(86, branchingCache.FindOpeningBranchIndexReadonly(93));
+        targetString.Dispose();
     }
     #endregion
 

@@ -1,7 +1,9 @@
+using Dman.LSystem.SystemRuntime;
 using Dman.MeshDraftExtensions;
 using ProceduralToolkit;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -79,22 +81,28 @@ namespace Dman.LSystem.UnityObjects
                 this.thickness = thickness;
             }
 
-            public TurtleState Operate(TurtleState initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+            public TurtleState Operate(
+                TurtleState initialState,
+                NativeArray<float> parameters,
+                SymbolString<float>.JaggedIndexing parameterIndexing,
+                TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
+                var p0 = parameterIndexing.Start;
+
                 var meshTransform = initialState.transformation;
 
                 var selectedMesh = generatedMeshes[0];
-                if (generatedMeshes.Length > 1 && parameters.Length > 0)
+                if (generatedMeshes.Length > 1 && parameterIndexing.length > 0)
                 {
-                    var index = ((int)parameters[0]) % generatedMeshes.Length;
+                    var index = ((int)parameters[p0 + 0]) % generatedMeshes.Length;
                     selectedMesh = generatedMeshes[index];
                 }
 
 
                 var scaleIndex = generatedMeshes.Length <= 1 ? 0 : 1;
-                if (scaling && parameters.Length > scaleIndex)
+                if (scaling && parameterIndexing.length > scaleIndex)
                 {
-                    var scale = parameters[scaleIndex];
+                    var scale = parameters[p0 + scaleIndex];
                     meshTransform *= Matrix4x4.Scale(scalePerParameter * scale);
                 }
                 if (thickness)

@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.DOTSRenderer;
+﻿using Dman.LSystem.SystemRuntime;
+using Dman.LSystem.SystemRuntime.DOTSRenderer;
 using ProceduralToolkit;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,11 @@ namespace Dman.LSystem
     public interface ITurtleOperator<T>
     {
         char TargetSymbol { get; }
-        T Operate(T initialState, float[] parameters, TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft);
+        T Operate(
+            T initialState,
+            NativeArray<float> parameters,
+            SymbolString<float>.JaggedIndexing parameterIndexing,
+            TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft);
     }
 
     public class TurtleEntityPrototypeOrganTemplate

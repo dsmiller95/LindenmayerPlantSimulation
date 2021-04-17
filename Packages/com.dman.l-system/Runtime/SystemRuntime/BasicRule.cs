@@ -29,11 +29,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             _targetSymbolWithParameters = parsedInfo.coreSymbol;
             possibleOutcomes = new RuleOutcome[] {
-                new RuleOutcome
-                {
-                    probability = 1,
-                    replacementSymbols = parsedInfo.replacementSymbols
-                }
+                new RuleOutcome(1, parsedInfo.replacementSymbols)
             };
 
             conditionalChecker = parsedInfo.conditionalMatch;
@@ -54,11 +50,9 @@ namespace Dman.LSystem.SystemRuntime
         public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules, int branchOpenSymbol = '[', int branchCloseSymbol = ']')
         {
             possibleOutcomes = parsedRules
-                .Select(x => new RuleOutcome
-                {
-                    probability = x.probability,
-                    replacementSymbols = x.replacementSymbols
-                }).ToArray();
+                .Select(x =>
+                    new RuleOutcome(x.probability, x.replacementSymbols)
+                ).ToArray();
             var firstOutcome = parsedRules.First();
             _targetSymbolWithParameters = firstOutcome.coreSymbol;
 
@@ -78,6 +72,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="symbol">the symbol to be replaced</param>
         /// <param name="symbolParameters">the parameters applied to the symbol. Could be null if no parameters.</param>
         /// <returns></returns>
+        [System.Obsolete("Use the stepwise functions with manually managed memory")]
         public SymbolString<float> ApplyRule(
             SymbolStringBranchingCache branchingCache,
             SymbolString<float> symbols,
@@ -111,24 +106,26 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         continue;
                     }
-                    var nextSymbol = symbols.parameters[matchingTargetIndex];
-                    foreach (var paramValue in nextSymbol)
+                    var parametersIndexing = symbols.parameterIndexes[matchingTargetIndex];
+                    for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
                     {
+                        var paramValue = symbols.parameters[i];
                         orderedMatchedParameters.Add(paramValue);
                     }
                 }
             }
 
-            var coreParameter = symbols.parameters[indexInSymbols];
-            if ((coreParameter?.Length ?? 0) != target.parameterLength)
+            var coreParametersIndexing = symbols.parameterIndexes[indexInSymbols];
+            if(coreParametersIndexing.length != target.parameterLength)
             {
                 return null;
             }
-            if (coreParameter != null)
+            if(coreParametersIndexing.length > 0)
             {
-                for (int parameterIndex = 0; parameterIndex < coreParameter.Length; parameterIndex++)
+                for (int i = coreParametersIndexing.Start; i < coreParametersIndexing.End; i++)
                 {
-                    orderedMatchedParameters.Add(coreParameter[parameterIndex]);
+                    var paramValue = symbols.parameters[i];
+                    orderedMatchedParameters.Add(paramValue);
                 }
             }
 
@@ -145,9 +142,10 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         continue;
                     }
-                    var nextSymbol = symbols.parameters[matchingTargetIndex];
-                    foreach (var paramValue in nextSymbol)
+                    var parametersIndexing = symbols.parameterIndexes[matchingTargetIndex];
+                    for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
                     {
+                        var paramValue = symbols.parameters[i];
                         orderedMatchedParameters.Add(paramValue);
                     }
                 }
@@ -230,27 +228,30 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         continue;
                     }
-                    var nextSymbol = symbols.parameters[matchingTargetIndex];
-                    foreach (var paramValue in nextSymbol)
+                    var parametersIndexing = symbols.parameterIndexes[matchingTargetIndex];
+                    for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
                     {
+                        var paramValue = symbols.parameters[i];
+
                         parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
                     }
                 }
             }
 
-            var coreParameter = symbols.parameters[indexInSymbols];
-            if ((coreParameter?.Length ?? 0) != target.parameterLength)
+
+            var coreParametersIndexing = symbols.parameterIndexes[indexInSymbols];
+            if (coreParametersIndexing.length != target.parameterLength)
             {
-                // if core symbol doesn't have the same number of parameters as the target core symbol
-                //  then fail the match attempt
                 return false;
             }
-            if (coreParameter != null)
+            if (coreParametersIndexing.length > 0)
             {
-                for (int parameterIndex = 0; parameterIndex < coreParameter.Length; parameterIndex++)
+                for (int i = coreParametersIndexing.Start; i < coreParametersIndexing.End; i++)
                 {
-                    parameterMemory[parameterStartIndex + matchedParameterNum] = coreParameter[parameterIndex];
+                    var paramValue = symbols.parameters[i];
+
+                    parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                     matchedParameterNum++;
                 }
             }
@@ -269,9 +270,12 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         continue;
                     }
-                    var nextSymbol = symbols.parameters[matchingTargetIndex];
-                    foreach (var paramValue in nextSymbol)
+
+                    var parametersIndexing = symbols.parameterIndexes[matchingTargetIndex];
+                    for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
                     {
+                        var paramValue = symbols.parameters[i];
+
                         parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
                     }
@@ -300,8 +304,10 @@ namespace Dman.LSystem.SystemRuntime
             // stochastic selection
             matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random);
             var outcomeObject = possibleOutcomes[matchSingletonData.selectedReplacementPattern];
-            matchSingletonData.replacementSymbolLength = outcomeObject.ReplacementSymbolSize();
             matchSingletonData.matchedParametersCount = matchedParameterNum;
+
+            matchSingletonData.replacementSymbolLength = outcomeObject.ReplacementSymbolCount();
+            matchSingletonData.replacementParameterCount = outcomeObject.ReplacementParameterCount();
 
             return true;
         }
@@ -327,14 +333,23 @@ namespace Dman.LSystem.SystemRuntime
 
         public void WriteReplacementSymbols(
             float[] globalParameters,
-            byte selectedReplacementPattern,
-            NativeArray<float> parameters,
-            int originIndexInParameters,
-            int totalMatchedParameters,
-            SymbolString<float> targetSymbols,
-            int originIndexInSymbols,
-            ushort expectedReplacementSymbolLength)
+            NativeArray<float> sourceParams,
+            NativeArray<int> targetSymbols,
+            NativeArray<SymbolString<float>.JaggedIndexing> targetParameterIndexes,
+            NativeArray<float> targetParams,
+            LSystemStepMatchIntermediate matchSingletonData)
         {
+            var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
+
+            var indexInMatchedParameters = matchSingletonData.parametersStartIndex;
+            var totalMatchedParameters = matchSingletonData.matchedParametersCount;
+
+            var indexInReplacementSymbols = matchSingletonData.replacementSymbolStartIndex;
+            var expectedReplacementSymbolLength = matchSingletonData.replacementSymbolLength;
+
+            var indexInReplacementParameters = matchSingletonData.replacementParameterStartIndex;
+            var expectedReplacementParameterLength = matchSingletonData.replacementParameterCount;
+
             var orderedMatchedParameters = new object[globalParameters.Length + totalMatchedParameters];
             for (int i = 0; i < globalParameters.Length; i++)
             {
@@ -342,7 +357,7 @@ namespace Dman.LSystem.SystemRuntime
             }
             for (int i = 0; i < totalMatchedParameters; i++)
             {
-                orderedMatchedParameters[globalParameters.Length + i] = parameters[originIndexInParameters + i];
+                orderedMatchedParameters[globalParameters.Length + i] = sourceParams[indexInMatchedParameters + i];
             }
             var outcome = possibleOutcomes[selectedReplacementPattern];
 
@@ -351,10 +366,29 @@ namespace Dman.LSystem.SystemRuntime
             {
                 throw new System.Exception("Unexpected state: replacement symbol size differs from expected");
             }
+
+            int totalReplacedParameters = 0;
             for (int i = 0; i < replacement.Length; i++)
             {
-                targetSymbols.symbols[originIndexInSymbols + i] = replacement.symbols[i];
-                targetSymbols.parameters[originIndexInSymbols + i] = replacement.parameters[i];
+                var replacementSymbolIndex = indexInReplacementSymbols + i;
+                targetSymbols[replacementSymbolIndex] = replacement.symbols[i];
+
+                var replacementParamIndexing = replacement.parameterIndexes[i];
+                targetParameterIndexes[replacementSymbolIndex] = new SymbolString<float>.JaggedIndexing
+                {
+                    index = indexInReplacementParameters + totalReplacedParameters,
+                    length = replacementParamIndexing.length
+                };
+                // TODO: replace this copy with a simpler loop through the entire replacement parameter array
+                for (int j = replacementParamIndexing.Start; j < replacementParamIndexing.End; j++)
+                {
+                    targetParams[indexInReplacementParameters + totalReplacedParameters] = replacement.parameters[j];
+                    totalReplacedParameters++;
+                }
+            }
+            if (totalReplacedParameters != expectedReplacementParameterLength)
+            {
+                throw new System.Exception("Unexpected state: replacement paremeter size differs from expected");
             }
             return;
         }

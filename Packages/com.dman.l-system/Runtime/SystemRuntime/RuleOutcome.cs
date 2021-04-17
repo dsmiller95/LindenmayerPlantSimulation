@@ -1,13 +1,27 @@
+using System.Linq;
+
 namespace Dman.LSystem.SystemRuntime
 {
     internal struct RuleOutcome
     {
         public double probability;
         public ReplacementSymbolGenerator[] replacementSymbols;
+        private ushort replacementParameterCount;
 
-        public ushort ReplacementSymbolSize()
+        public RuleOutcome(double prob, ReplacementSymbolGenerator[] replacements)
+        {
+            probability = prob;
+            replacementSymbols = replacements;
+            replacementParameterCount = (ushort)replacementSymbols.Select(x => x.GeneratedParameterCount()).Sum();
+        }
+
+        public ushort ReplacementSymbolCount()
         {
             return (ushort)replacementSymbols.Length;
+        }
+        public ushort ReplacementParameterCount()
+        {
+            return replacementParameterCount;
         }
 
         public SymbolString<float> GenerateReplacement(object[] matchedParameters)
@@ -22,7 +36,7 @@ namespace Dman.LSystem.SystemRuntime
                 replacedParams[symbolIndex] = replacementExpression.EvaluateNewParameters(matchedParameters);
             }
 
-            return new SymbolString<float>(replacedSymbols, replacedParams);
+            return new SymbolString<float>(replacedSymbols, replacedParams, Unity.Collections.Allocator.Temp);
         }
     }
 }
