@@ -1,14 +1,11 @@
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using LSystem.Runtime.SystemRuntime;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
-using Unity.Jobs.LowLevel.Unsafe;
 
 namespace Dman.LSystem
 {
@@ -45,8 +42,8 @@ namespace Dman.LSystem
 
     public class DefaultLSystemState : LSystemState<float>
     {
-        public DefaultLSystemState(string axiom, int seed): this(axiom, (uint)seed)
-        {}
+        public DefaultLSystemState(string axiom, int seed) : this(axiom, (uint)seed)
+        { }
         public DefaultLSystemState(string axiom, uint seed = 1)
         {
             currentSymbols = new SymbolString<float>(axiom);
@@ -112,12 +109,18 @@ namespace Dman.LSystem
                     .OrderByDescending(x => (x.ContextPrefix?.targetSymbolSeries?.Length ?? 0) + (x.ContextSuffix?.targetSymbolSeries?.Length ?? 0))
                     .ToList();
                 var maxParamsAtSymbool = rulesByTargetSymbol[symbol].Max(x => x.CapturedLocalParameterCount);
-                if(maxParamsAtSymbool > byte.MaxValue)
+                if (maxParamsAtSymbool > byte.MaxValue)
                 {
                     throw new LSystemRuntimeException($"Rules with more than {byte.MaxValue} captured local parameters are not supported");
                 }
                 maxParameterCapturePerSymbol[symbol] = maxParamsAtSymbool;
             }
+        }
+        public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null)
+        {
+            var result = StepSystem(systemState, out var dep, globalParameters);
+            dep.Complete();
+            return result;
         }
 
         /// <summary>
@@ -134,10 +137,10 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="systemState">The entire state of the L-system. no modifications are made to this object or the contained properties.</param>
         /// <param name="globalParameters">The global parameters, if any</param>
-        public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null)
+        public LSystemState<float> StepSystem(LSystemState<float> systemState, out JobHandle dependency, float[] globalParameters = null)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
-            if(globalParameters == null)
+            if (globalParameters == null)
             {
                 globalParameters = new float[0];
             }
@@ -160,11 +163,12 @@ namespace Dman.LSystem
                 {
                     parametersStartIndex = parameterTotalSum
                 };
-                if(this.maxParameterCapturePerSymbol.TryGetValue(symbol, out var maxParameterCount))
+                if (maxParameterCapturePerSymbol.TryGetValue(symbol, out var maxParameterCount))
                 {
-                    parameterTotalSum += this.maxParameterCapturePerSymbol[symbol];
+                    parameterTotalSum += maxParameterCount;
                     matchData.isTrivial = false;
-                }else
+                }
+                else
                 {
                     matchData.isTrivial = true;
                     matchData.matchedParametersCount = 0;
@@ -180,15 +184,21 @@ namespace Dman.LSystem
             // 3.
             UnityEngine.Profiling.Profiler.BeginSample("matching");
             UnityEngine.Profiling.Profiler.BeginSample("branch cache");
-            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, this.ignoredCharacters);
+            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, ignoredCharacters);
             tmpBranchingCache.SetTargetSymbolString(systemState.currentSymbols);
             UnityEngine.Profiling.Profiler.EndSample();
 
             var random = systemState.randomProvider;
 
-            var rulesByTargetSymbolHandle = GCHandle.Alloc(rulesByTargetSymbol);
-            var sourceSymbolStringHandle = GCHandle.Alloc(systemState.currentSymbols);
-            var branchingCacheHandle = GCHandle.Alloc(tmpBranchingCache);
+
+            var tempState = new LSystemSteppingState
+            {
+                branchingCache = tmpBranchingCache,
+                sourceSymbolString = systemState.currentSymbols,
+                rulesByTargetSymbol = rulesByTargetSymbol
+            };
+            var tempStateHandle = GCHandle.Alloc(tempState);
+
             var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
 
             var matchingJob = new RuleMatchJob
@@ -196,86 +206,80 @@ namespace Dman.LSystem
                 globalParametersArray = globalParamNative,
                 matchSingletonData = matchSingletonData,
                 parameterMatchMemory = parameterMemory,
-                rulesByTargetSymbolHandle = rulesByTargetSymbolHandle,
-                sourceSymbolStringHandle = sourceSymbolStringHandle,
-                branchingCacheHandle = branchingCacheHandle,
+
+                tmpSteppingStateHandle = tempStateHandle,
 
                 seed = random.NextUInt()
             };
 
-            var parallelRun = true;
 
-            JobHandle matchJobHandle = default;
-            if (parallelRun)
-            {
-                //matchingJob.Run(matchSingletonData.Length);
-                matchJobHandle = matchingJob.Schedule(
-                    matchSingletonData.Length,
-                    100
-                );
-            }
-            else
-            {
-                for (int i = 0; i < matchSingletonData.Length; i++)
-                {
-                    matchingJob.Execute(i);
-                }
-            }
+            var matchJobHandle = matchingJob.Schedule(
+                matchSingletonData.Length,
+                100
+            );
             UnityEngine.Profiling.Profiler.EndSample();
 
             // 4.
             UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
-            var nextSymbolLength = new NativeArray<int>(1, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
             var totalSymbolLengthJob = new RuleReplacementSizeJob
             {
                 matchSingletonData = matchSingletonData,
-                replacementSymbolSizeOutput = nextSymbolLength
+                tmpSteppingStateHandle = tempStateHandle
             };
             //totalSymbolLengthJob.Run();
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchJobHandle);
-            totalSymbolLengthDependency.Complete();
+            //totalSymbolLengthDependency.Complete();
 
-            var nextSymbolSize = nextSymbolLength[0];
-            nextSymbolLength.Dispose();
             UnityEngine.Profiling.Profiler.EndSample();
 
             // 5
             UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
-            var nextSymbols = new int[nextSymbolSize];
-            var nextParameters = new float[nextSymbolSize][];
-            var generatedSymbols = new SymbolString<float>(nextSymbols, nextParameters);
+
 
             var replacementJob = new RuleReplacementJob
             {
                 matchSingletonData = matchSingletonData,
                 parameterMatchMemory = parameterMemory,
 
-                globalParameters = globalParameters,
-                rulesByTargetSymbol = rulesByTargetSymbol,
-                sourceSymbolString = systemState.currentSymbols,
-                targetSymbolString = generatedSymbols
+                globalParametersArray = globalParamNative,
+
+                tmpSteppingStateHandle = tempStateHandle
             };
 
-            //var replacementDependency = replacementJob.Schedule(
-            //    matchSingletonData.Length,
-            //    100,
-            //    totalSymbolLengthDependency
-            //);
-            //replacementDependency.Complete();
-            //replacementJob.Run(matchSingletonData.Length);
-            for (int i = 0; i < matchSingletonData.Length; i++)
+            var parallelRun = true;
+            JobHandle replacementDependency = default;
+            if (parallelRun)
             {
-                replacementJob.Execute(i);
+                replacementDependency = replacementJob.Schedule(
+                    matchSingletonData.Length,
+                    100,
+                    totalSymbolLengthDependency
+                );
+                replacementDependency.Complete();
             }
+            else
+            {
+                totalSymbolLengthDependency.Complete();
+                for (int i = 0; i < matchSingletonData.Length; i++)
+                {
+                    replacementJob.Execute(i);
+                }
+                globalParamNative.Dispose();
+                matchSingletonData.Dispose();
+                parameterMemory.Dispose();
+            }
+            //replacementJob.Run(matchSingletonData.Length);
             UnityEngine.Profiling.Profiler.EndSample();
 
-            branchingCacheHandle.Free();
-            rulesByTargetSymbolHandle.Free();
-            sourceSymbolStringHandle.Free();
-            globalParamNative.Dispose();
-            matchSingletonData.Dispose();
-            parameterMemory.Dispose();
+            var cleanupJob = new LSystemStepCleanupJob
+            {
+                tmpSteppingStateHandle = tempStateHandle
+            };
 
+            dependency = cleanupJob.Schedule(replacementDependency);
+
+            var generatedSymbols = tempState.nextSymbolString;
             var realNextState = new LSystemState<float>()
             {
                 randomProvider = random,
@@ -294,7 +298,7 @@ namespace Dman.LSystem
 
         private SymbolString<float>[] GenerateNextSymbols(SymbolString<float> symbolState, ref Unity.Mathematics.Random random, float[] globalParameters)
         {
-            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, this.ignoredCharacters);
+            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, ignoredCharacters);
             tmpBranchingCache.SetTargetSymbolString(symbolState);
 
             var resultArray = new SymbolString<float>[symbolState.symbols.Length];
@@ -341,11 +345,21 @@ namespace Dman.LSystem
         }
     }
 
+    /// <summary>
+    /// Class used to track intermediate state during the lsystem step. accessed from multiple job threads
+    /// beware of multithreading
+    /// </summary>
+    public class LSystemSteppingState
+    {
+        public SymbolStringBranchingCache branchingCache;
+        public SymbolString<float> sourceSymbolString;
+        public SymbolString<float> nextSymbolString;
+        public IDictionary<int, IList<IRule<float>>> rulesByTargetSymbol;
+    }
+
     public struct RuleMatchJob : IJobParallelFor
     {
-        public GCHandle rulesByTargetSymbolHandle; // IDictionary<int, IList<IRule<float>>>
-        public GCHandle sourceSymbolStringHandle; // SymbolString<float> 
-        public GCHandle branchingCacheHandle; // SymbolStringBranchingCache
+        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
 
         public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
 
@@ -357,9 +371,10 @@ namespace Dman.LSystem
 
         public uint seed;
 
-
         public void Execute(int indexInSymbols)
         {
+            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
+
             var matchSingleton = matchSingletonData[indexInSymbols];
             if (matchSingleton.isTrivial)
             {
@@ -367,8 +382,8 @@ namespace Dman.LSystem
                 //  and no transformation will take place.
                 return;
             }
-            var rulesByTargetSymbol = (IDictionary<int, IList<IRule<float>>>)rulesByTargetSymbolHandle.Target;
-            var sourceSymbolString = (SymbolString<float>)sourceSymbolStringHandle.Target;
+            var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
+            var sourceSymbolString = tmpSteppingState.sourceSymbolString;
             var symbol = sourceSymbolString.symbols[indexInSymbols];
 
             if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
@@ -381,7 +396,7 @@ namespace Dman.LSystem
                 //matchSingletonData[indexInSymbols] = matchSingleton;
                 //return;
             }
-            var branchingCache = (SymbolStringBranchingCache)branchingCacheHandle.Target;
+            var branchingCache = tmpSteppingState.branchingCache;
             var rnd = LSystem.RandomFromIndexAndSeed(((uint)indexInSymbols) + 1, seed);
             var globalParameters = globalParametersArray.ToArray();
             var ruleMatched = false;
@@ -403,7 +418,7 @@ namespace Dman.LSystem
                     break;
                 }
             }
-            if(ruleMatched == false)
+            if (ruleMatched == false)
             {
                 matchSingleton.matchedParametersCount = 0;
                 matchSingleton.replacementSymbolLength = 1;
@@ -415,7 +430,7 @@ namespace Dman.LSystem
     public struct RuleReplacementSizeJob : IJob
     {
         public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
-        public NativeArray<int> replacementSymbolSizeOutput;
+        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
         public void Execute()
         {
             var totalSymbolSize = 0;
@@ -427,28 +442,42 @@ namespace Dman.LSystem
                 if (singleton.isTrivial)
                 {
                     totalSymbolSize += 1;
-                }else
+                }
+                else
                 {
                     totalSymbolSize += singleton.replacementSymbolLength;
                 }
             }
-            replacementSymbolSizeOutput[0] = totalSymbolSize;
+
+            var nextSymbols = new int[totalSymbolSize];
+            var nextParameters = new float[totalSymbolSize][];
+            var generatedSymbols = new SymbolString<float>(nextSymbols, nextParameters);
+            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
+            tmpSteppingState.nextSymbolString = generatedSymbols;
         }
     }
 
     public struct RuleReplacementJob : IJobParallelFor
     {
-        public float[] globalParameters;
-
-        public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
+        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
         [ReadOnly]
+        [DeallocateOnJobCompletion]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float> globalParametersArray;
+        [ReadOnly]
+        [DeallocateOnJobCompletion]
+        [NativeDisableParallelForRestriction]
         public NativeArray<float> parameterMatchMemory;
-        public IDictionary<int, IList<IRule<float>>> rulesByTargetSymbol;
-        public SymbolString<float> sourceSymbolString;
-        public SymbolString<float> targetSymbolString;
+        [DeallocateOnJobCompletion]
+        public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
 
         public void Execute(int indexInSymbols)
         {
+            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
+
+            var sourceSymbolString = tmpSteppingState.sourceSymbolString;
+            var targetSymbolString = tmpSteppingState.nextSymbolString;
+
             var matchSingleton = matchSingletonData[indexInSymbols];
             var symbol = sourceSymbolString.symbols[indexInSymbols];
             if (matchSingleton.isTrivial)
@@ -460,6 +489,7 @@ namespace Dman.LSystem
                 return;
             }
 
+            var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
             if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
             {
                 matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME;
@@ -469,6 +499,8 @@ namespace Dman.LSystem
             }
 
             var rule = ruleList[matchSingleton.matchedRuleIndexInPossible];
+
+            var globalParameters = globalParametersArray.ToArray();
 
             rule.WriteReplacementSymbols(
                 globalParameters,
@@ -480,6 +512,16 @@ namespace Dman.LSystem
                 matchSingleton.replacementSymbolStartIndex,
                 matchSingleton.replacementSymbolLength
                 );
+        }
+    }
+
+    public struct LSystemStepCleanupJob : IJob
+    {
+        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
+        public void Execute()
+        {
+            //var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
+            tmpSteppingStateHandle.Free();
         }
     }
 }
