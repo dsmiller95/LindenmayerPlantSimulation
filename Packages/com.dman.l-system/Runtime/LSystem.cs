@@ -185,11 +185,6 @@ namespace Dman.LSystem
             UnityEngine.Profiling.Profiler.EndSample();
 
             var random = systemState.randomProvider;
-            var randGens = new NativeArray<Unity.Mathematics.Random>(JobsUtility.MaxJobThreadCount, Allocator.TempJob);
-            for (int i = 0; i < randGens.Length; i++)
-            {
-                randGens[i] = new Unity.Mathematics.Random(random.NextUInt());
-            }
 
             var rulesByTargetSymbolHandle = GCHandle.Alloc(rulesByTargetSymbol);
             var sourceSymbolStringHandle = GCHandle.Alloc(systemState.currentSymbols);
@@ -205,7 +200,7 @@ namespace Dman.LSystem
                 sourceSymbolStringHandle = sourceSymbolStringHandle,
                 branchingCacheHandle = branchingCacheHandle,
 
-                RandomGenerator = randGens
+                seed = random.NextUInt()
             };
 
             var parallelRun = true;
@@ -239,10 +234,6 @@ namespace Dman.LSystem
             //totalSymbolLengthJob.Run();
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchJobHandle);
             totalSymbolLengthDependency.Complete();
-            if (!parallelRun)
-            {
-                randGens.Dispose();
-            }
 
             var nextSymbolSize = nextSymbolLength[0];
             nextSymbolLength.Dispose();
@@ -340,6 +331,14 @@ namespace Dman.LSystem
             }
             return resultArray;
         }
+
+        public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)
+        {
+            var r = new Unity.Mathematics.Random(index);
+            r.NextUInt();
+            r.state = r.state ^ seed;
+            return r;
+        }
     }
 
     public struct RuleMatchJob : IJobParallelFor
@@ -356,26 +355,11 @@ namespace Dman.LSystem
         [ReadOnly]
         public NativeArray<float> globalParametersArray;
 
-
-        [NativeSetThreadIndex]
-#pragma warning disable IDE0044 // Add readonly modifier
-        private int threadIndex;
-#pragma warning restore IDE0044 // Add readonly modifier
-
-        [NativeDisableParallelForRestriction]
-        [DeallocateOnJobCompletion]
-        public NativeArray<Unity.Mathematics.Random> RandomGenerator;
+        public uint seed;
 
 
         public void Execute(int indexInSymbols)
         {
-            var branchingCache = (SymbolStringBranchingCache) branchingCacheHandle.Target;
-            var rulesByTargetSymbol = (IDictionary<int, IList<IRule<float>>>)rulesByTargetSymbolHandle.Target;
-            var sourceSymbolString = (SymbolString<float>)sourceSymbolStringHandle.Target;
-            var globalParameters = globalParametersArray.ToArray();
-
-            var rnd = RandomGenerator[threadIndex];
-
             var matchSingleton = matchSingletonData[indexInSymbols];
             if (matchSingleton.isTrivial)
             {
@@ -383,6 +367,8 @@ namespace Dman.LSystem
                 //  and no transformation will take place.
                 return;
             }
+            var rulesByTargetSymbol = (IDictionary<int, IList<IRule<float>>>)rulesByTargetSymbolHandle.Target;
+            var sourceSymbolString = (SymbolString<float>)sourceSymbolStringHandle.Target;
             var symbol = sourceSymbolString.symbols[indexInSymbols];
 
             if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
@@ -395,6 +381,9 @@ namespace Dman.LSystem
                 //matchSingletonData[indexInSymbols] = matchSingleton;
                 //return;
             }
+            var branchingCache = (SymbolStringBranchingCache)branchingCacheHandle.Target;
+            var rnd = LSystem.RandomFromIndexAndSeed(((uint)indexInSymbols) + 1, seed);
+            var globalParameters = globalParametersArray.ToArray();
             var ruleMatched = false;
             for (byte i = 0; i < ruleList.Count; i++)
             {
@@ -421,7 +410,6 @@ namespace Dman.LSystem
                 matchSingleton.isTrivial = true;
             }
             matchSingletonData[indexInSymbols] = matchSingleton;
-            RandomGenerator[threadIndex] = rnd;
         }
     }
     public struct RuleReplacementSizeJob : IJob

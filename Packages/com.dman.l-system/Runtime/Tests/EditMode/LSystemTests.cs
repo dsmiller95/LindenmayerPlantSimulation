@@ -1,7 +1,9 @@
 using Dman.LSystem;
+using Dman.LSystem.Packages.Tests.EditMode;
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -477,6 +479,60 @@ public class LSystemTests
                 "A(3)",
                 "A(2.5)"
                 }, defaultGlobalParams);
+    }
+
+    /// <summary>
+    /// Test to ensure that the random seeder, which seeds based off of a sequential index and a 
+    ///     single seed value, is well distributed
+    /// </summary>
+    [Test]
+    public void RandomNumTest()
+    {
+        var indexCount = 100;
+        var seedCount = 100;
+
+        var perfectDistribution = Enumerable.Range(0, 100).Select(x => x / 100d).StdDev(out var mean);
+
+        var indexes = Enumerable.Range(1, indexCount).Select(x => (uint)x);
+        var randomGen = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
+        var seeds = Enumerable.Repeat(0, seedCount).Select((x) =>
+        {
+            return (uint)randomGen.Next(int.MinValue, int.MaxValue);
+        });
+        var randomByIndexesThenBySeed = indexes.Select(x =>
+        {
+            return seeds.Select(seed =>
+            {
+                var r = Dman.LSystem.LSystem.RandomFromIndexAndSeed(x, seed);
+                return r.NextUInt();
+            }).ToArray();
+        }).ToArray();
+
+        var statsAcrossIndexes = Enumerable.Range(0, indexCount)
+            .Select(index => randomByIndexesThenBySeed[index]
+                .GetStats()
+            ).ToArray().GetMetaStats();
+        var statsAcrossSeeds = Enumerable.Range(0, seedCount)
+            .Select(index => randomByIndexesThenBySeed
+                .Select(x => x[index])
+                .ToList()
+                .GetStats()
+            ).ToArray().GetMetaStats();
+
+        UnityEngine.Debug.Log($"perfect stdDev:{perfectDistribution:P1}");
+        UnityEngine.Debug.Log($"stats across indexes:\n{statsAcrossIndexes}");
+        UnityEngine.Debug.Log($"stats across seeds:\n{statsAcrossSeeds}");
+
+        // ensure even distribution across seeds, and across indexes within seeds
+        Assert.AreEqual(0, statsAcrossIndexes.minStats.MeanRel, 0.02);
+        Assert.AreEqual(1, statsAcrossIndexes.maxStats.MeanRel, 0.02);
+        Assert.AreEqual(0, statsAcrossIndexes.stdDevStats.StdDevRel, 0.02);
+        Assert.AreEqual(perfectDistribution, statsAcrossIndexes.stdDevStats.MeanRel, 0.02);
+
+        Assert.AreEqual(0, statsAcrossSeeds.minStats.MeanRel, 0.02);
+        Assert.AreEqual(1, statsAcrossSeeds.maxStats.MeanRel, 0.02);
+        Assert.AreEqual(0, statsAcrossSeeds.stdDevStats.StdDevRel, 0.02);
+        Assert.AreEqual(perfectDistribution, statsAcrossSeeds.stdDevStats.MeanRel, 0.02);
     }
 
     [Test]
