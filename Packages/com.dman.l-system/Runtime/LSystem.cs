@@ -120,15 +120,16 @@ namespace Dman.LSystem
         public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null, bool disposeOldSystem = true)
         {
             var stepper = StepSystemJob(systemState, globalParameters);
-            stepper.CompleteIntermediateAndPerformAllocations();
-            var result = stepper.CompleteJobAndGetNextState();
-
+            LSystemState<float> nextState = null;
+            while (nextState == null)
+            {
+                nextState = stepper.StepToNextState();
+            }
             if (disposeOldSystem)
             {
                 systemState.currentSymbols.Dispose();
             }
-
-            return result;
+            return nextState;
         }
 
         /// <summary>
@@ -362,7 +363,27 @@ namespace Dman.LSystem
             COMPLETE
         }
 
-        public void CompleteIntermediateAndPerformAllocations()
+        /// <summary>
+        /// Completes the currently pending job, and perform setup for the next, if it exists.
+        ///     will return the complete state if the last job was completed
+        /// </summary>
+        /// <returns></returns>
+        public LSystemState<float> StepToNextState()
+        {
+            switch (stepState)
+            {
+                case StepState.MATCHING:
+                    this.CompleteIntermediateAndPerformAllocations();
+                    return null;
+                case StepState.REPLACING:
+                    return this.CompleteJobAndGetNextState();
+                case StepState.COMPLETE:
+                default:
+                    throw new System.Exception("stepper state is complete. no more steps");
+            }
+        }
+
+        private void CompleteIntermediateAndPerformAllocations()
         {
             if(stepState != StepState.MATCHING)
             {
@@ -412,7 +433,7 @@ namespace Dman.LSystem
             stepState = StepState.REPLACING;
         }
 
-        public LSystemState<float> CompleteJobAndGetNextState()
+        private LSystemState<float> CompleteJobAndGetNextState()
         {
             if (stepState != StepState.REPLACING)
             {

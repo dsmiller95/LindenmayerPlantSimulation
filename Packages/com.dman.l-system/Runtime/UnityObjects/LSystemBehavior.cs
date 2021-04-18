@@ -103,6 +103,8 @@ namespace Dman.LSystem.UnityObjects
         private long targetFrameToComplete;
         private LSystemSteppingState queuedNextStateHandle;
 
+        private static readonly int FrameDelayBetweenLSystemPhases = 1;
+
         /// <summary>
         /// step the Lsystem forward one tick. when CompleteInLateUpdate is true, be very careful with changes to the L-system
         ///     it is not perfectly protected against threading race conditions, so be sure not to make any mutations to 
@@ -113,7 +115,8 @@ namespace Dman.LSystem.UnityObjects
         public void StepSystem(bool CompleteInLateUpdate = true)
         {
             if (queuedNextStateHandle != null) {
-                Debug.LogError("System is already waiting for an update!! To many!!");
+                //Debug.LogError("System is already waiting for an update!! To many!!");
+                return;
             }
             try
             {
@@ -127,10 +130,15 @@ namespace Dman.LSystem.UnityObjects
             }
             if (!CompleteInLateUpdate)
             {
-                this.ForceWaitForStepComplete();
+                LSystemState<float> nextState = null;
+                while (nextState == null)
+                {
+                    nextState = queuedNextStateHandle.StepToNextState();
+                }
+                this.RenderNextState(nextState);
             }else
             {
-                targetFrameToComplete = Time.frameCount + 1;
+                targetFrameToComplete = Time.frameCount + FrameDelayBetweenLSystemPhases;
             }
         }
 
@@ -138,17 +146,21 @@ namespace Dman.LSystem.UnityObjects
         {
             if (queuedNextStateHandle != null && Time.frameCount >= targetFrameToComplete)
             {
-                this.ForceWaitForStepComplete();
+                var nextState = queuedNextStateHandle.StepToNextState();
+                if (nextState == null)
+                {
+                    targetFrameToComplete = Time.frameCount + FrameDelayBetweenLSystemPhases;
+                }
+                else
+                {
+                    this.RenderNextState(nextState);
+                }
             }
         }
 
-        private void ForceWaitForStepComplete()
+        private void RenderNextState(LSystemState<float> nextState)
         {
-            if(queuedNextStateHandle == null)
-            {
-                Debug.LogError("queued handle is null :(");
-            }
-            systemState = queuedNextStateHandle.CompleteJobAndGetNextState();
+            systemState = nextState;
             queuedNextStateHandle = null;
 
             OnSystemStateUpdated?.Invoke();
