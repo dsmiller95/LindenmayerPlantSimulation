@@ -45,12 +45,6 @@ namespace Dman.LSystem.SystemRuntime
             return seriesMatch.targetSymbolSeries.All(x => x.targetSymbol != defaultBranchOpenSymbol && x.targetSymbol != defaultBranchCloseSymbol);
         }
 
-        struct MatchCheckPoint
-        {
-            public int nextIndexInTargetToCheck;
-            public int nextIndexInMatchToCheck;
-        }
-
         /// <summary>
         /// partial, semi-ordered tree matching algorithm.
         /// 
@@ -65,7 +59,6 @@ namespace Dman.LSystem.SystemRuntime
         public IDictionary<int, int> MatchesForward(
             int indexInSymbolTarget,
             SymbolSeriesMatcher seriesMatch,
-            bool orderingAgnostict,
             NativeArray<int> symbolHandle,
             NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
         {
@@ -79,45 +72,25 @@ namespace Dman.LSystem.SystemRuntime
             // keep count of how many more matches are required at each level of the tree.
             //  starts out as a copy of the child count array. each leaf will be at 0, and will go negative when matched.
             //var remainingMatchesAtIndexes = seriesMatch.childrenCounts.Clone() as int[];
-
-            if (orderingAgnostict)
-            {
-                var remappedSymbols = ImmutableDictionary<int, int>.Empty;
-                var matchedSet = MatchesAtIndexOrderAgnostic(new MatchCheckPoint
-                {
-                    nextIndexInMatchToCheck = -1,
-                    nextIndexInTargetToCheck = indexInSymbolTarget
-                },
+            var targetSymbolToMatchSymbol = MatchesAtIndexOrderingInvariant(
+                indexInSymbolTarget,
                 seriesMatch,
-                remappedSymbols,
                 symbolHandle,
                 parameterIndexingHandle);
-
-                // invert the dictionary here, switching from mapping from target string into matcher string
-                // to mapping from the matcher string into the target string
-                return matchedSet?.ToDictionary(x => x.Value, x => x.Key);
-            } else
+            // order by target symbol, then aggregate to dictionary. there will be duplicates of match indexes,
+            //  ordering this way guarantees that the only last duplicate in the target sting will be preserved.
+            //  Since the method is order invariant, it is guaranteed that the match with the highest index in the target
+            //  string is the correct match.
+            if (targetSymbolToMatchSymbol == null)
             {
-                var targetSymbolToMatchSymbol = MatchesAtIndexOrderingInvariant(
-                    indexInSymbolTarget,
-                    seriesMatch,
-                    symbolHandle,
-                    parameterIndexingHandle);
-                // order by target symbol, then aggregate to dictionary. there will be duplicates of match indexes,
-                //  ordering this way guarantees that the only last duplicate in the target sting will be preserved.
-                //  Since the method is order invariant, it is guaranteed that the match with the highest index in the target
-                //  string is the correct match.
-                if (targetSymbolToMatchSymbol == null)
-                {
-                    return null;
-                }
-                var resultBuilder = ImmutableDictionary<int, int>.Empty.ToBuilder();
-                foreach (var kvp in targetSymbolToMatchSymbol.OrderBy(x => x.Key))
-                {
-                    resultBuilder[kvp.Value] = kvp.Key;
-                }
-                return resultBuilder.ToImmutable();
+                return null;
             }
+            var resultBuilder = ImmutableDictionary<int, int>.Empty.ToBuilder();
+            foreach (var kvp in targetSymbolToMatchSymbol.OrderBy(x => x.Key))
+            {
+                resultBuilder[kvp.Value] = kvp.Key;
+            }
+            return resultBuilder.ToImmutable();
         }
         /// <summary>
         /// 
@@ -241,125 +214,6 @@ namespace Dman.LSystem.SystemRuntime
             if (openingIndexes.Count != 0)
             {
                 throw new SyntaxException("Too many opening branch symbols. malformed symbol string.");
-            }
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <param name="nextCheck"></param>
-        /// <param name="seriesMatch"></param>
-        /// <param name="consumedTargetIndexes">
-        ///     indexes of symbols in the target string which have been matched against. These indexes will never be used as
-        ///     part of any match
-        /// </param>
-        /// <returns>
-        ///     a dictionary of the indexes in the target which have been consumed as a result of the matches, mapped to the index of the symbol in the matching pattern.
-        ///     null if no match.
-        /// </returns>
-        private ImmutableDictionary<int, int> MatchesAtIndexOrderAgnostic(
-            MatchCheckPoint nextCheck,
-            SymbolSeriesMatcher seriesMatch,
-            ImmutableDictionary<int, int> consumedTargetIndexes,
-            NativeArray<int> symbolHandle,
-            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
-        {
-            if (nextCheck.nextIndexInTargetToCheck >= symbolHandle.Length)
-            {
-                return null;
-            }
-            if (consumedTargetIndexes.ContainsKey(nextCheck.nextIndexInTargetToCheck))
-            {
-                return null;
-            }
-            int nextTargetSymbol = symbolHandle[nextCheck.nextIndexInTargetToCheck];
-            if (ignoreSymbols.Contains(nextTargetSymbol) && nextCheck.nextIndexInMatchToCheck != -1)
-            {
-                return MatchesAtIndexOrderAgnostic(
-                    new MatchCheckPoint
-                    {
-                        nextIndexInTargetToCheck = nextCheck.nextIndexInTargetToCheck + 1,
-                        nextIndexInMatchToCheck = nextCheck.nextIndexInMatchToCheck
-                    },
-                    seriesMatch,
-                    consumedTargetIndexes,
-                    symbolHandle,
-                    parameterIndexingHandle);
-            }
-            if (nextTargetSymbol == branchOpenSymbol)
-            {
-                // branch open. don't compare against matcher, just advance.
-                //   only forward through matcher indexes
-                // for every branching structure in target,
-                //  check if any matches starting at the matcher index passed in
-                foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck, symbolHandle))
-                {
-                    var matchesAtChild = MatchesAtIndexOrderAgnostic(
-                        new MatchCheckPoint
-                        {
-                            nextIndexInTargetToCheck = childIndexInTarget,
-                            nextIndexInMatchToCheck = nextCheck.nextIndexInMatchToCheck
-                        },
-                        seriesMatch,
-                        consumedTargetIndexes,
-                        symbolHandle,
-                        parameterIndexingHandle);
-                    if (matchesAtChild != null)
-                    {
-                        return consumedTargetIndexes.AddRange(matchesAtChild);
-                    }
-                }
-                return null;
-            }
-            else
-            {
-                if (nextCheck.nextIndexInMatchToCheck != -1)
-                {
-                    // if its the Origin symbol, don't even check if match. assume it does, proceed to children checking.
-                    var matchingSymbol = seriesMatch.targetSymbolSeries[nextCheck.nextIndexInMatchToCheck];
-                    if (
-                        matchingSymbol.targetSymbol != nextTargetSymbol || 
-                        matchingSymbol.parameterLength != parameterIndexingHandle[nextCheck.nextIndexInTargetToCheck].length)
-                    {
-                        return null;
-                    }
-                }
-                var childrenBranchesToMatch = seriesMatch.graphChildPointers[nextCheck.nextIndexInMatchToCheck + 1].Select(x => x - 1).ToArray();
-                bool[] matchedChildren = new bool[childrenBranchesToMatch.Length];
-
-                foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck, symbolHandle))
-                {
-                    // TODO: early exit if all branches matched
-                    for (int branchMatchIndex = 0; branchMatchIndex < childrenBranchesToMatch.Length; branchMatchIndex++)
-                    {
-                        if (matchedChildren[branchMatchIndex])
-                            continue; // if branch matched already, skip.
-                        var consumedMatchesHere = MatchesAtIndexOrderAgnostic(
-                            new MatchCheckPoint
-                            {
-                                nextIndexInMatchToCheck = childrenBranchesToMatch[branchMatchIndex],
-                                nextIndexInTargetToCheck = childIndexInTarget
-                            },
-                            seriesMatch,
-                            consumedTargetIndexes,
-                            symbolHandle,
-                            parameterIndexingHandle);
-                        if (consumedMatchesHere != null)
-                        {
-                            matchedChildren[branchMatchIndex] = true;
-                            // tracking consumed targets here is necessary because each branch is capable of matching multiple matcher patterns,
-                            //  by containing internal nesting.for example a target string of A[[B]B][B] will match a matching pattern of A[B][B][B].
-                            //  consumed symbols is used to ensure all 3 of the unique branches in the pattern do not match on the same first occurence of B
-                            consumedTargetIndexes = consumedTargetIndexes.AddRange(consumedMatchesHere);
-                        }
-                    }
-                }
-
-                if (matchedChildren.All(x => x))
-                {
-                    // all branches matched. success!
-                    return consumedTargetIndexes.Add(nextCheck.nextIndexInTargetToCheck, nextCheck.nextIndexInMatchToCheck);
-                }
-                return null;
             }
         }
 
@@ -516,39 +370,6 @@ namespace Dman.LSystem.SystemRuntime
                 }
             }
             return false;
-        }
-
-        /// <summary>
-        /// returns indexes of all structures which can be children of the symbol at <paramref name="originIndex"/>
-        /// will return 1, 4 when run starting at 0 for string: "A[B]CD"
-        /// </summary>
-        /// <param name="originIndex"></param>
-        /// <returns></returns>
-        private IEnumerable<int> GetIndexesInTargetOfAllChildren(
-            int originIndex,
-            NativeArray<int> symbolHandle)
-        {
-            int childStructureIndexInTarget = originIndex + 1;
-            while (childStructureIndexInTarget < symbolHandle.Length && ignoreSymbols.Contains(symbolHandle[childStructureIndexInTarget]))
-            {
-                childStructureIndexInTarget++;
-            }
-            // for every branching structure in target,
-            //  check if any matches starting at the matcher index passed in
-            while (childStructureIndexInTarget < symbolHandle.Length
-                && symbolHandle[childStructureIndexInTarget] == branchOpenSymbol)
-            {
-                yield return childStructureIndexInTarget;
-                childStructureIndexInTarget = FindClosingBranchIndexReadonly(childStructureIndexInTarget) + 1;
-                while (childStructureIndexInTarget < symbolHandle.Length && ignoreSymbols.Contains(symbolHandle[childStructureIndexInTarget]))
-                {
-                    childStructureIndexInTarget++;
-                }
-            }
-            if (childStructureIndexInTarget < symbolHandle.Length)
-            {
-                yield return childStructureIndexInTarget;
-            }
         }
        
     }

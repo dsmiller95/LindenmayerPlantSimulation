@@ -138,7 +138,6 @@ namespace Dman.LSystem.SystemRuntime
                 var forwardMatch = branchingCache.MatchesForward(
                     indexInSymbols,
                     ContextSuffix,
-                    false,
                     symbols.symbols,
                     symbols.parameterIndexes);
                 if (forwardMatch == null)
@@ -277,7 +276,6 @@ namespace Dman.LSystem.SystemRuntime
                 var forwardMatch = branchingCache.MatchesForward(
                     indexInSymbols,
                     ContextSuffix,
-                    false,
                     sourceSymbols,
                     sourceParameterIndexes);
                 if (forwardMatch == null)

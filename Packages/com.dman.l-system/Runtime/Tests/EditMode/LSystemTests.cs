@@ -222,7 +222,7 @@ public class LSystemTests
         state.currentSymbols.Dispose();
     }
 
-    [Test]
+    [Test, Ignore("bigg")]
     public void ContextLSystemDoesManyManySteps()
     {
         LSystemState<float> state = new DefaultLSystemState("C");

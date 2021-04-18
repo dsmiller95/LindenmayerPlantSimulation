@@ -12,65 +12,30 @@ public class ContextualMatcherTests
         int indexInTarget = 0,
         string message = null,
         IEnumerable<(int, int)> expectedMatchToTargetMapping = null,
-        bool? testOrderingAgnostict = null,
-        bool testOrderingInvariant = true,
         IEnumerable<int> ignoreSymbols = null)
     {
-
         var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
         seriesMatcher.ComputeGraphIndexes('[', ']');
         using var targetString = new SymbolString<float>(target);
         var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
 
-        if (testOrderingInvariant && shouldMatch && !testOrderingAgnostict.HasValue)
+        var matchPairings = branchingCache.MatchesForward(
+            indexInTarget,
+            seriesMatcher,
+            targetString.symbols,
+            targetString.parameterIndexes);
+        var matches = matchPairings != null;
+        if (shouldMatch != matches)
         {
-            // if an invariant matches, agnostic should match too.
-            testOrderingAgnostict = true;
+            Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards retaining order from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
         }
-
-        if (testOrderingAgnostict.HasValue && testOrderingAgnostict.Value)
+        if (shouldMatch && expectedMatchToTargetMapping != null)
         {
-            var matchPairings = branchingCache.MatchesForward(
-                indexInTarget,
-                seriesMatcher,
-                true,
-                targetString.symbols,
-                targetString.parameterIndexes);
-            var matches = matchPairings != null;
-            if (shouldMatch != matches)
+            foreach (var expectedMatch in expectedMatchToTargetMapping)
             {
-                Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards ignoring order from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
-            }
-            if (shouldMatch && expectedMatchToTargetMapping != null)
-            {
-                foreach (var expectedMatch in expectedMatchToTargetMapping)
-                {
-                    Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
-                    Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
-                }
-            }
-        }
-        if (testOrderingInvariant)
-        {
-            var matchPairings = branchingCache.MatchesForward(
-                indexInTarget,
-                seriesMatcher,
-                false,
-                targetString.symbols,
-                targetString.parameterIndexes);
-            var matches = matchPairings != null;
-            if (shouldMatch != matches)
-            {
-                Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards retaining order from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
-            }
-            if (shouldMatch && expectedMatchToTargetMapping != null)
-            {
-                foreach (var expectedMatch in expectedMatchToTargetMapping)
-                {
-                    Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
-                    Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
-                }
+                Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
+                Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
             }
         }
     }
@@ -420,70 +385,10 @@ public class ContextualMatcherTests
     [Test]
     public void ForwardMatchSelectsForCorrectParameterSize()
     {
-        AssertForwardsMatch("EAB", "AB(x)", false, testOrderingAgnostict: true);
+        AssertForwardsMatch("EAB", "AB(x)", false);
         AssertForwardsMatch("EA[B][B(1)]", "AB(x)", true, expectedMatchToTargetMapping: new[] { (0, 1), (1, 6) });
-        AssertForwardsMatch("EA[B][B(2)]", "AB(x, y)", false, testOrderingAgnostict: true);
+        AssertForwardsMatch("EA[B][B(2)]", "AB(x, y)", false);
         AssertForwardsMatch("EA[B][B(3)]B(2, 3)", "AB(x, y)", true, expectedMatchToTargetMapping: new[] { (0, 1), (1, 8) });
-    }
-
-    #endregion
-
-    #region Ordering-agnosting boolean forward symbol matching
-
-    [Test]
-    public void ForwardsDoubleMatchTreeStructureWhenIndividualsNotNestedAndSwapped()
-    {
-        AssertForwardsMatch("EA[B]C", "A[B][C]", true, testOrderingAgnostict: true, testOrderingInvariant: true);
-        AssertForwardsMatch("EA[C]B", "A[B][C]", true, testOrderingAgnostict: true, testOrderingInvariant: false);
-    }
-
-    [Test]
-    public void ForwardsMatchLongTreeStructureShuffled()
-    {
-        AssertForwardsMatch("EA[DF][B][C]", "A[B][C]DF", true, testOrderingAgnostict: true, testOrderingInvariant: false);
-        AssertForwardsMatch("EA[D[F]][C][B]", "A[B][C]DF", true, testOrderingAgnostict: true, testOrderingInvariant: false);
-        AssertForwardsMatch("EA[D[F][C][B]]", "A[B][C]DF", false, testOrderingAgnostict: true, testOrderingInvariant: false);
-    }
-    [Test]
-    public void ForwardsDoubleMatchTreeStructureFailsWhenDisorderedOrderAgnostic()
-    {
-        AssertForwardsMatch("EA[B[C]]", "A[B][C]", false, testOrderingAgnostict: true, testOrderingInvariant: true);
-        AssertForwardsMatch("EAB[C]", "A[B][C]", false, testOrderingAgnostict: true, testOrderingInvariant: true);
-        AssertForwardsMatch("EAC[B]", "A[B][C]", false, testOrderingAgnostict: true, testOrderingInvariant: false);
-    }
-    [Test]
-    public void ForwardMatchTreeStructureShuffledMatch()
-    {
-        AssertForwardsMatch("EA[C][B]", "A[B][C]", true, testOrderingAgnostict: true, testOrderingInvariant: false);
-        AssertForwardsMatch("EA[C[B]]", "A[B][C]", false, testOrderingAgnostict: true, testOrderingInvariant: false);
-        AssertForwardsMatch("EA[[C]B]", "A[B][C]", true, testOrderingAgnostict: true, testOrderingInvariant: false);
-        AssertForwardsMatch("EA[A[C]B]", "A[B][C]", false, testOrderingAgnostict: true, testOrderingInvariant: false);
-
-        AssertForwardsMatch("EA[C][B]", "A[[B]C]", true, testOrderingAgnostict: true, testOrderingInvariant: false);
-    }
-
-    /// <summary>
-    ///TODO: partial child matches will fail inconsistently based on ordering of children.
-    ///  should be sufficient for most systems. must keep in mind that order matters,
-    ///  under very specific circumstances
-    /// Perhaps a completely seperate matching approach, which consolidates the matching pattern sections together,
-    ///  would solve this problem.
-    /// </summary>
-    [Test, Ignore("Disordered matching restriction accepted")]
-    public void ForwardBranchHandlesSubsetsInMatchString()
-    {
-        AssertForwardsMatch("EA[BC][B][BCD]", "A[BCD][BC][B]", true);
-        AssertForwardsMatch("EA[BC][B][BCD]", "A[B][BC][BCD]", true);
-        AssertForwardsMatch("EA[BC][BCD]", "A[B][BC][BCD]", false);
-        AssertForwardsMatch("EA[BC][[B]BCD]", "A[B][BC][BCD]", true);
-        AssertForwardsMatch("EA[B][BCD]", "A[B][BC][BCD]", false);
-    }
-    [Test, Ignore("Disordered matching restriction accepted")]
-    public void ForwardBranchHandlesEqualComplexityMultipleMatches()
-    {
-        AssertForwardsMatch("EA[B[D][C]][B[D][C]]", "A[BC][BD]", true);
-        AssertForwardsMatch("EA[B[D][C]][B[D]]", "A[BC][BD]", true);
-        AssertForwardsMatch("EA[B[D][C]][B[C]]", "A[BC][BD]", true);
     }
 
     #endregion
@@ -502,7 +407,6 @@ public class ContextualMatcherTests
     {
         AssertForwardsMatch("EA[B][C]", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 3), (5, 6) });
         AssertForwardsMatch("EA[[B]C]", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 4), (5, 6) });
-        AssertForwardsMatch("EA[C]B", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 5), (5, 3) }, testOrderingAgnostict: true, testOrderingInvariant: false);
     }
     [Test]
     public void ForwardBranchMultipleIdenticleBranchesMapped()
