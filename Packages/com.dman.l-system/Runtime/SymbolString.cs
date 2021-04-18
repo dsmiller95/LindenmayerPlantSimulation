@@ -88,7 +88,7 @@ namespace Dman.LSystem.SystemRuntime
                     index = (int)paramSum,
                     length = (ushort)paramArray[i].Length
                 };
-                paramSum += paramArray.Length;
+                paramSum += paramArray[i].Length;
                 paramList.AddRange(paramArray[i]);
             }
             parameters = new NativeArray<ParamType>(paramList.ToArray(), allocator);

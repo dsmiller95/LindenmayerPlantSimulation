@@ -1,4 +1,5 @@
 using System.Linq;
+using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
 {
@@ -24,7 +25,7 @@ namespace Dman.LSystem.SystemRuntime
             return replacementParameterCount;
         }
 
-        public SymbolString<float> GenerateReplacement(object[] matchedParameters)
+        public SymbolString<float> GenerateReplacement(object[] matchedParameters, Allocator allocator = Allocator.Temp)
         {
             var replacedSymbols = new int[replacementSymbols.Length];
             var replacedParams = new float[replacementSymbols.Length][];
@@ -36,7 +37,7 @@ namespace Dman.LSystem.SystemRuntime
                 replacedParams[symbolIndex] = replacementExpression.EvaluateNewParameters(matchedParameters);
             }
 
-            return new SymbolString<float>(replacedSymbols, replacedParams, Unity.Collections.Allocator.Temp);
+            return new SymbolString<float>(replacedSymbols, replacedParams, allocator);
         }
     }
 }

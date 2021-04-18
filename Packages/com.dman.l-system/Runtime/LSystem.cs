@@ -4,6 +4,7 @@ using LSystem.Runtime.SystemRuntime;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 
@@ -192,7 +193,7 @@ namespace Dman.LSystem
             UnityEngine.Profiling.Profiler.BeginSample("matching");
             UnityEngine.Profiling.Profiler.BeginSample("branch cache");
             var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, ignoredCharacters);
-            tmpBranchingCache.SetTargetSymbolString(systemState.currentSymbols);
+            tmpBranchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols.symbols);
             UnityEngine.Profiling.Profiler.EndSample();
 
             var random = systemState.randomProvider;
@@ -215,6 +216,10 @@ namespace Dman.LSystem
                 parameterMatchMemory = parameterMemory,
 
                 tmpSteppingStateHandle = tempStateHandle,
+
+                sourceSymbols = systemState.currentSymbols.symbols,
+                sourceParameterIndexes = systemState.currentSymbols.parameterIndexes,
+                sourceParameters = systemState.currentSymbols.parameters,
 
                 seed = random.NextUInt()
             };
@@ -240,8 +245,7 @@ namespace Dman.LSystem
                 matchSingletonData = matchSingletonData,
                 totalResultSymbolCount = totalSymbolLength,
                 totalResultParameterCount = totalSymbolParameterCount,
-
-                tmpSteppingStateHandle = tempStateHandle,
+                sourceParameterIndexes = systemState.currentSymbols.parameterIndexes,
             };
             //totalSymbolLengthJob.Run();
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchJobHandle);
@@ -382,6 +386,11 @@ namespace Dman.LSystem
                 parameterMatchMemory = parameterMemory,
                 matchSingletonData = matchSingletonData,
 
+
+                sourceSymbols = sourceSymbolString.symbols,
+                sourceParameterIndexes = sourceSymbolString.parameterIndexes,
+                sourceParameters = sourceSymbolString.parameters,
+
                 targetSymbols = target.symbols,
                 targetParameterIndexes = target.parameterIndexes,
                 targetParameters = target.parameters
@@ -432,6 +441,18 @@ namespace Dman.LSystem
         [ReadOnly]
         public NativeArray<float> globalParametersArray;
 
+
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> sourceSymbols;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<SymbolString<float>.JaggedIndexing> sourceParameterIndexes;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float> sourceParameters;
+
+
         public uint seed;
 
         public void Execute(int indexInSymbols)
@@ -439,7 +460,6 @@ namespace Dman.LSystem
             var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
 
             var matchSingleton = matchSingletonData[indexInSymbols];
-            var sourceSymbolString = tmpSteppingState.sourceSymbolString;
             if (matchSingleton.isTrivial)
             {
                 // if match is trivial, then no parameters are captured. the rest of the algo will read directly from the source index
@@ -447,7 +467,7 @@ namespace Dman.LSystem
                 return;
             }
             var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
-            var symbol = sourceSymbolString.symbols[indexInSymbols];
+            var symbol = sourceSymbols[indexInSymbols];
 
             if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
             {
@@ -469,7 +489,9 @@ namespace Dman.LSystem
                 var rule = ruleList[i];
                 var success = rule.PreMatchCapturedParameters(
                     branchingCache,
-                    sourceSymbolString,
+                    sourceSymbols,
+                    sourceParameterIndexes,
+                    sourceParameters,
                     indexInSymbols,
                     globalParameters,
                     parameterMatchMemory,
@@ -489,17 +511,17 @@ namespace Dman.LSystem
             matchSingletonData[indexInSymbols] = matchSingleton;
         }
     }
+
+    [BurstCompile]
     public struct RuleReplacementSizeJob : IJob
     {
         public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
         public NativeArray<int> totalResultSymbolCount;
         public NativeArray<int> totalResultParameterCount;
-        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
+
+        public NativeArray<SymbolString<float>.JaggedIndexing> sourceParameterIndexes;
         public void Execute()
         {
-            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
-            var sourceSymbols = tmpSteppingState.sourceSymbolString;
-
             var totalResultSymbolSize = 0;
             var totalResultParamSize = 0;
             for (int i = 0; i < matchSingletonData.Length; i++)
@@ -511,7 +533,7 @@ namespace Dman.LSystem
                 if (singleton.isTrivial)
                 {
                     totalResultSymbolSize += 1;
-                    totalResultParamSize += sourceSymbols.parameterIndexes[i].length;
+                    totalResultParamSize += sourceParameterIndexes[i].length;
                 }
                 else
                 {
@@ -540,6 +562,16 @@ namespace Dman.LSystem
         public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
 
 
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> sourceSymbols;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<SymbolString<float>.JaggedIndexing> sourceParameterIndexes;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float> sourceParameters;
+
         [NativeDisableParallelForRestriction]
         public NativeArray<int> targetSymbols;
         [NativeDisableParallelForRestriction]
@@ -551,17 +583,14 @@ namespace Dman.LSystem
         {
             var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
 
-            var sourceSymbolString = tmpSteppingState.sourceSymbolString;
-
             var matchSingleton = matchSingletonData[indexInSymbols];
-            var symbol = sourceSymbolString.symbols[indexInSymbols];
+            var symbol = sourceSymbols[indexInSymbols];
             if (matchSingleton.isTrivial)
             {
                 // if match is trivial, just copy the symbol over, nothing else.
                 var targetIndex = matchSingleton.replacementSymbolStartIndex;
                 targetSymbols[targetIndex] = symbol;
-                var sourceParams = sourceSymbolString.parameters;
-                var sourceParamIndexer = sourceSymbolString.parameterIndexes[indexInSymbols];
+                var sourceParamIndexer = sourceParameterIndexes[indexInSymbols];
                 targetParameterIndexes[targetIndex] = new SymbolString<float>.JaggedIndexing
                 {
                     index = matchSingleton.replacementParameterStartIndex,
@@ -573,7 +602,7 @@ namespace Dman.LSystem
                 {
                     var sourceIndex = sourceParamIndexer.index + i;
                     var targetParamIndex = matchSingleton.replacementParameterStartIndex + i;
-                    targetParameters[targetParamIndex] = sourceParams[sourceIndex];
+                    targetParameters[targetParamIndex] = sourceParameters[sourceIndex];
                 }
                 return;
             }

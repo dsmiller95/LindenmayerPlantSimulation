@@ -1,304 +1,399 @@
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
+using LSystem.Runtime.SystemRuntime;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 
 public class BasicRuleTests
 {
+    private void AssertRuleReplacement(
+        string ruleText,
+        int[] sourceSymbols = null,
+        float[][] sourceParameters = null,
+        string expectedReplacementText = null,
+        string axiom = null,
+        int ruleParamMemoryStartIndex = 0,
+        int matchIndex = 0,
+        int paramTempMemorySize = 0,
+        float[] globalParams = null,
+        string[] globalParamNames = null,
+        int expectedReplacementPatternIndex = 0
+        //int[] expectedReplacementSymbols = null,
+        //float[] expectedReplacementParameters = null,
+        //SymbolString<float>.JaggedIndexing[] expectedReplacementIndexing = null
+        )
+    {
+        globalParamNames = globalParamNames ?? new string[0];
+        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
+        using var expectedReplacement = new SymbolString<float>(expectedReplacementText, Allocator.Persistent);
+
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
+        globalParams = globalParams ?? new float[0];
+
+
+        //expectedReplacementSymbols = expectedReplacementSymbols ?? new int[0];
+        //expectedReplacementParameters = expectedReplacementParameters ?? new float[0];
+        //expectedReplacementIndexing = expectedReplacementIndexing ?? expectedReplacementSymbols.Select(x => new SymbolString<float>.JaggedIndexing
+        //{
+        //    length = 0,
+        //    index = 0
+        //}).ToArray();
+        var expectedTotalParamReplacement = expectedReplacement.parameters.Length;
+
+        using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
+        var branchCache = new SymbolStringBranchingCache();
+        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+        var random = new Unity.Mathematics.Random();
+        var matchSingleData = new LSystemStepMatchIntermediate
+        {
+            isTrivial = false,
+            parametersStartIndex = ruleParamMemoryStartIndex
+        };
+
+        var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            branchCache,
+            symbols.symbols,
+            symbols.parameterIndexes,
+            symbols.parameters,
+            matchIndex,
+            globalParams,
+            paramMemory,
+            ref random,
+            ref matchSingleData
+            );
+        Assert.IsTrue(preMatchSuccess);
+        Assert.AreEqual(expectedReplacementPatternIndex, matchSingleData.selectedReplacementPattern);
+        Assert.AreEqual(paramTempMemorySize, matchSingleData.matchedParametersCount);
+        Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacementSymbolLength);
+        Assert.AreEqual(expectedReplacement.parameters.Length, matchSingleData.replacementParameterCount);
+
+        matchSingleData.replacementSymbolStartIndex = 0;
+        matchSingleData.replacementParameterStartIndex = 0;
+
+        using var resultSymbols = new SymbolString<float>(
+                expectedReplacement.symbols.Length,
+                expectedReplacement.parameters.Length,
+                Allocator.Persistent);
+        ruleFromString.WriteReplacementSymbols(
+            globalParams,
+            paramMemory,
+            resultSymbols.symbols,
+            resultSymbols.parameterIndexes,
+            resultSymbols.parameters,
+            matchSingleData
+            );
+
+        Assert.AreEqual(expectedReplacementText, resultSymbols.ToString());
+        Assert.IsTrue(expectedReplacement.Equals(resultSymbols));
+    }
+    private void AssertRuleDoesNotMatch(
+        string ruleText,
+        int[] sourceSymbols = null,
+        float[][] sourceParameters = null,
+        string axiom = null,
+        int ruleParamMemoryStartIndex = 0,
+        int matchIndex = 0,
+        int paramTempMemorySize = 0,
+        float[] globalParams = null
+        )
+    {
+        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText));
+        globalParams = globalParams ?? new float[0];
+
+        using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
+        var branchCache = new SymbolStringBranchingCache();
+        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+        var random = new Unity.Mathematics.Random();
+        var matchSingleData = new LSystemStepMatchIntermediate
+        {
+            isTrivial = false,
+            parametersStartIndex = ruleParamMemoryStartIndex
+        };
+
+        var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            branchCache,
+            symbols.symbols,
+            symbols.parameterIndexes,
+            symbols.parameters,
+            matchIndex,
+            globalParams,
+            paramMemory,
+            ref random,
+            ref matchSingleData
+            );
+        Assert.IsFalse(preMatchSuccess);
+    }
+
     [Test]
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
-        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
-        try
+        using var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
+        var globalParams = new float[0];
+        using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
+        var branchCache = new SymbolStringBranchingCache();
+        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+        var random = new Unity.Mathematics.Random();
+        var matchSingleData = new LSystemStepMatchIntermediate
         {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
+            isTrivial = false,
+            parametersStartIndex = 0
+        };
 
-            var random = new Unity.Mathematics.Random();
-            Assert.IsNotNull(ruleFromString.ApplyRule(branchCache, symbols, 0, ref random));
-            symbols.parameterIndexes[0] = new SymbolString<float>.JaggedIndexing
-            {
-                index = 0,
-                length = 1
-            };
-            Assert.IsNotNull(ruleFromString.ApplyRule(branchCache, symbols, 0, ref random));
-            symbols.parameters.Dispose();
-            symbols.parameters = new Unity.Collections.NativeArray<float>(new float[] { 1 }, Unity.Collections.Allocator.Persistent);
-            Assert.IsNull(ruleFromString.ApplyRule(branchCache, symbols, 0, ref random));
-        }
-        finally
+        var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            branchCache,
+            symbols.symbols,
+            symbols.parameterIndexes,
+            symbols.parameters,
+            0,
+            globalParams,
+            paramMemory,
+            ref random,
+            ref matchSingleData
+            );
+        Assert.IsTrue(preMatchSuccess);
+        Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
+        Assert.AreEqual(0, matchSingleData.matchedParametersCount);
+        Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
+        Assert.AreEqual(0, matchSingleData.replacementParameterCount);
+
+        symbols.parameterIndexes[0] = new SymbolString<float>.JaggedIndexing
         {
-            symbols.Dispose();
-        }
+            index = 0,
+            length = 1
+        };
+
+        matchSingleData = new LSystemStepMatchIntermediate
+        {
+            isTrivial = false,
+            parametersStartIndex = 0
+        };
+        preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            branchCache,
+            symbols.symbols,
+            symbols.parameterIndexes,
+            symbols.parameters,
+            0,
+            globalParams,
+            paramMemory,
+            ref random,
+            ref matchSingleData
+            );
+        Assert.IsFalse(preMatchSuccess);
+
+
+        symbols.parameters.Dispose();
+        symbols.parameters = new Unity.Collections.NativeArray<float>(new float[] { 1 }, Unity.Collections.Allocator.Persistent);
+
+        matchSingleData = new LSystemStepMatchIntermediate
+        {
+            isTrivial = false,
+            parametersStartIndex = 0
+        };
+        preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            branchCache,
+            symbols.symbols,
+            symbols.parameterIndexes,
+            symbols.parameters,
+            0,
+            globalParams,
+            paramMemory,
+            ref random,
+            ref matchSingleData
+            );
+        Assert.IsFalse(preMatchSuccess);
     }
     [Test]
     public void BasicRuleReplacesSelfWithReplacement()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
-        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
-        try
+        using var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
+        var globalParams = new float[0];
+        using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
+        var branchCache = new SymbolStringBranchingCache();
+        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+        var random = new Unity.Mathematics.Random();
+        var matchSingleData = new LSystemStepMatchIntermediate
         {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
+            isTrivial = false,
+            parametersStartIndex = 0
+        };
 
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
-            Assert.AreEqual("AB", replacement.ToString());
-            var expectedParameters = new float[][]
-            {
-                new float[0],
-                new float[0]
-            };
-            Assert.AreEqual(expectedParameters, replacement.parameters);
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            branchCache,
+            symbols.symbols,
+            symbols.parameterIndexes,
+            symbols.parameters,
+            0,
+            globalParams,
+            paramMemory,
+            ref random,
+            ref matchSingleData
+            );
+        Assert.IsTrue(preMatchSuccess);
+        Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
+        Assert.AreEqual(0, matchSingleData.matchedParametersCount);
+        Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
+        Assert.AreEqual(0, matchSingleData.replacementParameterCount);
+
+        matchSingleData.replacementSymbolStartIndex = 0;
+        matchSingleData.replacementParameterStartIndex = 0;
+
+        using var targetSymbols = new SymbolString<float>(2, 0, Allocator.Persistent);
+
+        ruleFromString.WriteReplacementSymbols(
+            globalParams,
+            paramMemory,
+            targetSymbols.symbols,
+            targetSymbols.parameterIndexes,
+            targetSymbols.parameters,
+            matchSingleData
+            );
+
+        Assert.AreEqual("AB", targetSymbols.ToString());
+        Assert.AreEqual(2, targetSymbols.parameterIndexes.Length);
+        Assert.AreEqual(0, targetSymbols.parameters.Length);
     }
     [Test]
     public void BasicRuleReplacesParameters()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
-        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 20, 1 } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
-            Assert.AreEqual("B(21)C(20)A(1, 20)", replacement.ToString());
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleReplacement(
+            "A(x, y) -> B(y + x)C(x)A(y, x)",
+            new int[] { 'A' },
+            new float[][] { new float[] { 20, 1 } },
+            "B(21)C(20)A(1, 20)",
+            paramTempMemorySize: 2
+            );
     }
     [Test]
     public void BasicRuleDifferentParametersNoMatch()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x, y) -> B(y + x)C(x)A(y, x)"));
-        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 20 } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
-            Assert.IsNull(replacement);
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleDoesNotMatch(
+            "A(x, y) -> B(y + x)C(x)A(y, x)",
+            new int[] { 'A' },
+            new float[][] { new float[] { 20 } }
+            );
     }
     [Test]
     public void ParametricConditionalNoMatch()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
-        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 20 } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
-            Assert.IsNull(replacement);
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleDoesNotMatch(
+            "A(x) : x < 10 -> A(x + 1)",
+            new int[] { 'A' },
+            new float[][] { new float[] { 20 } },
+            paramTempMemorySize: 1
+            );
     }
     [Test]
     public void ParametricConditionalMatch()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) : x < 10 -> A(x + 1)"));
-        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 6 } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
-            Assert.IsNotNull(replacement);
-            Assert.AreEqual("A(7)", replacement.ToString());
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleReplacement(
+            "A(x) : x < 10 -> A(x + 1)",
+            new int[] { 'A' },
+            new float[][] { new float[] { 6 } },
+            "A(7)",
+            paramTempMemorySize: 1
+            );
     }
     [Test]
     public void BasicRuleReplacesParametersAndGlobalParameters()
     {
-        var globalParameters = new string[] { "global" };
-
-        var ruleFromString = new BasicRule(
-            RuleParser.ParseToRule("A(x, y) -> B(global + x)C(y)",
-            globalParameters));
-        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[] { 20, 1 } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache,
-                symbols, 0,
-                ref random,
-                new float[] { 7 });
-            Assert.AreEqual("B(27)C(1)", replacement.ToString());
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleReplacement(
+            "A(x, y) -> B(global + x)C(y)",
+            new int[] { 'A' },
+            new float[][] { new [] { 20f, 1f } },
+            "B(27)C(1)",
+            paramTempMemorySize: 2,
+            globalParamNames: new [] { "global" },
+            globalParams: new [] { 7f }
+            );
     }
     [Test]
     public void ContextualRuleRequiresContextToMatch()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("B < A > B -> B"));
-        var symbols = new SymbolString<float>("BAABAB".Select(x => (int)x).ToArray(), new float[][] { new float[] { 20 }, new float[0] { }, new float[0] { }, new float[0] { }, new float[0] { }, new float[0] { } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
+        AssertRuleDoesNotMatch(
+            "B < A > B -> B",
+            axiom: "B(20)AABAB",
+            paramTempMemorySize: 0,
+            matchIndex: 1
+            );
 
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 1, ref random);
-            Assert.IsNull(replacement);
-            replacement = ruleFromString.ApplyRule(branchCache, symbols, 4, ref random);
-            Assert.IsNotNull(replacement);
-            Assert.AreEqual("B", replacement.ToString());
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleReplacement(
+            "B < A > B -> B",
+            axiom: "B(20)AABAB",
+            expectedReplacementText: "B",
+            paramTempMemorySize: 0,
+            matchIndex: 4
+            );
     }
     [Test]
     public void ContextualRuleCapturesParametersFromSuffix()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) > B(y) -> B(x - y)"));
-        var symbols = new SymbolString<float>("AB".Select(x => (int)x).ToArray(), new float[][] { new[] { 20.0f }, new[] { 3.1f } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
-            Assert.IsNotNull(replacement);
-            Assert.AreEqual("B(16.9)", replacement.ToString());
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleReplacement(
+            "A(x) > B(y) -> B(x - y)",
+            axiom: "A(20)B(3.1)",
+            expectedReplacementText: "B(16.9)",
+            paramTempMemorySize: 2,
+            matchIndex: 0
+            );
     }
     [Test]
     public void ContextualRuleCapturesParametersFromPrefix()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("B(x) < A(y) -> B(x - y)"));
-        var symbols = new SymbolString<float>("BA".Select(x => (int)x).ToArray(), new float[][] { new[] { 20.0f }, new[] { 3.1f } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 1, ref random);
-            Assert.IsNotNull(replacement);
-            Assert.AreEqual("B(16.9)", replacement.ToString());
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleReplacement(
+            "B(x) < A(y) -> B(x - y)",
+            axiom: "B(20)A(3.1)",
+            expectedReplacementText: "B(16.9)",
+            paramTempMemorySize: 2,
+            matchIndex: 1
+            );
     }
     [Test]
     public void ContextualRuleCapturesParametersFromPrefixAndSuffix()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("B(x) < A(y) > B(z) -> B((x - y)/z)"));
-        var symbols = new SymbolString<float>("BAB".Select(x => (int)x).ToArray(), new float[][] { new[] { 20.0f }, new[] { 3.1f }, new[] { 2.0f } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 1, ref random);
-            Assert.IsNotNull(replacement);
-            Assert.AreEqual("B(8.45)", replacement.ToString());
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleReplacement(
+            "B(x) < A(y) > B(z) -> B((x - y)/z)",
+            axiom: "B(20)A(3.1)B(2)",
+            expectedReplacementText: "B(8.45)",
+            paramTempMemorySize: 3,
+            matchIndex: 1
+            );
     }
 
     [Test]
     public void ContextualRulePrefixNoMatchWhenParameterMismatch()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("B(x) < A(y) -> B(x - y)"));
-        var symbols = new SymbolString<float>("BA".Select(x => (int)x).ToArray(), new float[][] { new float[0], new[] { 3.1f } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 1, ref random);
-            Assert.IsNull(replacement);
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleDoesNotMatch(
+            "B(x) < A(y) -> B(x - y)",
+            axiom: "BA(3.1)",
+            paramTempMemorySize: 2,
+            matchIndex: 1
+            );
     }
     [Test]
     public void ContextualRuleSuffixNoMatchWhenParameterMismatch()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) > B(y) -> B(x - y)"));
-        var symbols = new SymbolString<float>("AB".Select(x => (int)x).ToArray(), new float[][] { new[] { 3.1f }, new float[0] });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
-
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
-            Assert.IsNull(replacement);
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
+        AssertRuleDoesNotMatch(
+            "A(x) > B(y) -> B(x - y)",
+            axiom: "A(3.1)B",
+            paramTempMemorySize: 2,
+            matchIndex: 0
+            );
     }
     [Test]
     public void ContextualRuleSuffixFindsMatchBySkipIfPossible()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A(x) > B(y) -> B(x - y)"));
-        var symbols = new SymbolString<float>("A[B]B".Select(x => (int)x).ToArray(), new float[][] { new[] { 3.1f }, new float[0], new float[0], new float[0], new[] { 20.0f } });
-        try
-        {
-            var branchCache = new SymbolStringBranchingCache();
-            branchCache.SetTargetSymbolString(symbols);
+        AssertRuleReplacement(
+            "A(x) > B(y) -> B(x - y)",
+            axiom: "A(3.1)[B]B(20)",
+            expectedReplacementText: "B(-16.9)",
+            paramTempMemorySize: 2,
+            matchIndex: 0
+            );
 
-            var random = new Unity.Mathematics.Random();
-            var replacement = ruleFromString.ApplyRule(branchCache, symbols, 0, ref random);
-            Assert.IsNotNull(replacement);
-            Assert.AreEqual("B(-16.9)", replacement.ToString());
-        }
-        finally
-        {
-            symbols.Dispose();
-        }
     }
 }

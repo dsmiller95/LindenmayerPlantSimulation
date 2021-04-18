@@ -95,7 +95,11 @@ namespace Dman.LSystem.SystemRuntime
             // context match
             if (ContextPrefix != null && ContextPrefix.targetSymbolSeries?.Length > 0)
             {
-                var backwardMatchMapping = branchingCache.MatchesBackwards(indexInSymbols, ContextPrefix);
+                var backwardMatchMapping = branchingCache.MatchesBackwards(
+                    indexInSymbols, 
+                    ContextPrefix, 
+                    symbols.symbols,
+                    symbols.parameterIndexes);
                 if (backwardMatchMapping == null)
                 {
                     return null;
@@ -131,7 +135,12 @@ namespace Dman.LSystem.SystemRuntime
 
             if (ContextSuffix != null && ContextSuffix.targetSymbolSeries?.Length > 0)
             {
-                var forwardMatch = branchingCache.MatchesForward(indexInSymbols, ContextSuffix, false);
+                var forwardMatch = branchingCache.MatchesForward(
+                    indexInSymbols,
+                    ContextSuffix,
+                    false,
+                    symbols.symbols,
+                    symbols.parameterIndexes);
                 if (forwardMatch == null)
                 {
                     return null;
@@ -175,7 +184,7 @@ namespace Dman.LSystem.SystemRuntime
             RuleOutcome outcome = SelectOutcome(ref random);
 
             // replacement
-            return outcome.GenerateReplacement(paramArray);
+            return outcome.GenerateReplacement(paramArray, Allocator.Persistent);
         }
 
         private RuleOutcome SelectOutcome(ref Unity.Mathematics.Random rand)
@@ -199,7 +208,9 @@ namespace Dman.LSystem.SystemRuntime
 
         public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
-            SymbolString<float> symbols,
+            NativeArray<int> sourceSymbols,
+            NativeArray<SymbolString<float>.JaggedIndexing> sourceParameterIndexes,
+            NativeArray<float> sourceParameters,
             int indexInSymbols,
             float[] globalParameters,
             NativeArray<float> parameterMemory,
@@ -216,7 +227,12 @@ namespace Dman.LSystem.SystemRuntime
             // context match
             if (ContextPrefix != null && ContextPrefix.targetSymbolSeries?.Length > 0)
             {
-                var backwardMatchMapping = branchingCache.MatchesBackwards(indexInSymbols, ContextPrefix);
+                var backwardMatchMapping = branchingCache.MatchesBackwards(
+                    indexInSymbols,
+                    ContextPrefix,
+                    sourceSymbols,
+                    sourceParameterIndexes
+                    );
                 if (backwardMatchMapping == null)
                 {
                     // if backwards match exists, and does not match, then fail this match attempt.
@@ -228,10 +244,10 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         continue;
                     }
-                    var parametersIndexing = symbols.parameterIndexes[matchingTargetIndex];
+                    var parametersIndexing = sourceParameterIndexes[matchingTargetIndex];
                     for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
                     {
-                        var paramValue = symbols.parameters[i];
+                        var paramValue = sourceParameters[i];
 
                         parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
@@ -240,7 +256,7 @@ namespace Dman.LSystem.SystemRuntime
             }
 
 
-            var coreParametersIndexing = symbols.parameterIndexes[indexInSymbols];
+            var coreParametersIndexing = sourceParameterIndexes[indexInSymbols];
             if (coreParametersIndexing.length != target.parameterLength)
             {
                 return false;
@@ -249,7 +265,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 for (int i = coreParametersIndexing.Start; i < coreParametersIndexing.End; i++)
                 {
-                    var paramValue = symbols.parameters[i];
+                    var paramValue = sourceParameters[i];
 
                     parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                     matchedParameterNum++;
@@ -258,7 +274,12 @@ namespace Dman.LSystem.SystemRuntime
 
             if (ContextSuffix != null && ContextSuffix.targetSymbolSeries?.Length > 0)
             {
-                var forwardMatch = branchingCache.MatchesForward(indexInSymbols, ContextSuffix, false);
+                var forwardMatch = branchingCache.MatchesForward(
+                    indexInSymbols,
+                    ContextSuffix,
+                    false,
+                    sourceSymbols,
+                    sourceParameterIndexes);
                 if (forwardMatch == null)
                 {
                     // if forwards match exists, and does not match, then fail this match attempt.
@@ -271,10 +292,10 @@ namespace Dman.LSystem.SystemRuntime
                         continue;
                     }
 
-                    var parametersIndexing = symbols.parameterIndexes[matchingTargetIndex];
+                    var parametersIndexing = sourceParameterIndexes[matchingTargetIndex];
                     for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
                     {
-                        var paramValue = symbols.parameters[i];
+                        var paramValue = sourceParameters[i];
 
                         parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
@@ -333,7 +354,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public void WriteReplacementSymbols(
             float[] globalParameters,
-            NativeArray<float> sourceParams,
+            NativeArray<float> paramTempMemorySpace,
             NativeArray<int> targetSymbols,
             NativeArray<SymbolString<float>.JaggedIndexing> targetParameterIndexes,
             NativeArray<float> targetParams,
@@ -357,7 +378,7 @@ namespace Dman.LSystem.SystemRuntime
             }
             for (int i = 0; i < totalMatchedParameters; i++)
             {
-                orderedMatchedParameters[globalParameters.Length + i] = sourceParams[indexInMatchedParameters + i];
+                orderedMatchedParameters[globalParameters.Length + i] = paramTempMemorySpace[indexInMatchedParameters + i];
             }
             var outcome = possibleOutcomes[selectedReplacementPattern];
 

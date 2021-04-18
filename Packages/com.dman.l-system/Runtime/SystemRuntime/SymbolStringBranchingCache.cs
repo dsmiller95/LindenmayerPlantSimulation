@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime
@@ -14,7 +15,6 @@ namespace Dman.LSystem.SystemRuntime
         public int branchOpenSymbol;
         public int branchCloseSymbol;
 
-        private ISymbolString symbolStringTarget;
         private ISet<int> ignoreSymbols;
         /// <summary>
         /// Contains a caches set of indexes, mapping each branching symbol to its matching closing/opening symbol.
@@ -29,11 +29,10 @@ namespace Dman.LSystem.SystemRuntime
             this.ignoreSymbols = ignoreSymbols;
         }
 
-        public void SetTargetSymbolString(ISymbolString symbols)
+        public void BuildJumpIndexesFromSymbols(NativeArray<int> symbols)
         {
-            symbolStringTarget = symbols;
             branchingJumpIndexes = new Dictionary<int, int>();
-            CacheAllBranchJumpIndexes();
+            CacheAllBranchJumpIndexes(symbols);
 
         }
 
@@ -63,7 +62,12 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="indexInSymbolTarget"></param>
         /// <param name="seriesMatch"></param>
         /// <returns>a mapping from all symbols in seriesMatch back into the target string</returns>
-        public IDictionary<int, int> MatchesForward(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch, bool orderingAgnostict)
+        public IDictionary<int, int> MatchesForward(
+            int indexInSymbolTarget,
+            SymbolSeriesMatcher seriesMatch,
+            bool orderingAgnostict,
+            NativeArray<int> symbolHandle,
+            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
         {
             if (seriesMatch.graphChildPointers == null)
             {
@@ -85,14 +89,20 @@ namespace Dman.LSystem.SystemRuntime
                     nextIndexInTargetToCheck = indexInSymbolTarget
                 },
                 seriesMatch,
-                remappedSymbols);
+                remappedSymbols,
+                symbolHandle,
+                parameterIndexingHandle);
 
                 // invert the dictionary here, switching from mapping from target string into matcher string
                 // to mapping from the matcher string into the target string
                 return matchedSet?.ToDictionary(x => x.Value, x => x.Key);
             } else
             {
-                var targetSymbolToMatchSymbol = MatchesAtIndexOrderingInvariant(indexInSymbolTarget, seriesMatch);
+                var targetSymbolToMatchSymbol = MatchesAtIndexOrderingInvariant(
+                    indexInSymbolTarget,
+                    seriesMatch,
+                    symbolHandle,
+                    parameterIndexingHandle);
                 // order by target symbol, then aggregate to dictionary. there will be duplicates of match indexes,
                 //  ordering this way guarantees that the only last duplicate in the target sting will be preserved.
                 //  Since the method is order invariant, it is guaranteed that the match with the highest index in the target
@@ -115,7 +125,11 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="indexInSymbolTarget"></param>
         /// <param name="seriesMatch"></param>
         /// <returns>A dictionary mapping indexes in the matcher to indexes in the symbol target, based on what symbols were matched</returns>
-        public IDictionary<int, int> MatchesBackwards(int indexInSymbolTarget, SymbolSeriesMatcher seriesMatch)
+        public IDictionary<int, int> MatchesBackwards(
+            int indexInSymbolTarget,
+            SymbolSeriesMatcher seriesMatch,
+            NativeArray<int> symbolHandle,
+            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
         {
             indexInSymbolTarget--;
             int matchingIndex = seriesMatch.targetSymbolSeries.Length - 1;
@@ -127,7 +141,7 @@ namespace Dman.LSystem.SystemRuntime
                 var symbolToMatch = seriesMatch.targetSymbolSeries[matchingIndex];
                 while (indexInSymbolTarget >= 0)
                 {
-                    var currentSymbol = symbolStringTarget[indexInSymbolTarget];
+                    var currentSymbol = symbolHandle[indexInSymbolTarget];
                     if (ignoreSymbols.Contains(currentSymbol) || currentSymbol == branchOpenSymbol)
                     {
                         indexInSymbolTarget--;
@@ -137,7 +151,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                     else if (
                         currentSymbol == symbolToMatch.targetSymbol &&
-                        symbolToMatch.parameterLength == symbolStringTarget.ParameterSize(indexInSymbolTarget))
+                        symbolToMatch.parameterLength == parameterIndexingHandle[indexInSymbolTarget].length)
                     {
                         if(matcherIndexToTargetIndex == null)
                         {
@@ -202,13 +216,13 @@ namespace Dman.LSystem.SystemRuntime
         ///     assumes no branches are cached already
         /// </summary>
         /// <returns></returns>
-        public void CacheAllBranchJumpIndexes()
+        public void CacheAllBranchJumpIndexes(NativeArray<int> symbols)
         {
             var openingIndexes = new Stack<int>();
 
-            for (int indexInString = 0; indexInString < symbolStringTarget.Length; indexInString++)
+            for (int indexInString = 0; indexInString < symbols.Length; indexInString++)
             {
-                var symbol = symbolStringTarget[indexInString];
+                var symbol = symbols[indexInString];
                 if (symbol == branchOpenSymbol)
                 {
                     openingIndexes.Push(indexInString);
@@ -245,9 +259,11 @@ namespace Dman.LSystem.SystemRuntime
         private ImmutableDictionary<int, int> MatchesAtIndexOrderAgnostic(
             MatchCheckPoint nextCheck,
             SymbolSeriesMatcher seriesMatch,
-            ImmutableDictionary<int, int> consumedTargetIndexes)
+            ImmutableDictionary<int, int> consumedTargetIndexes,
+            NativeArray<int> symbolHandle,
+            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
         {
-            if (nextCheck.nextIndexInTargetToCheck >= symbolStringTarget.Length)
+            if (nextCheck.nextIndexInTargetToCheck >= symbolHandle.Length)
             {
                 return null;
             }
@@ -255,7 +271,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 return null;
             }
-            int nextTargetSymbol = symbolStringTarget[nextCheck.nextIndexInTargetToCheck];
+            int nextTargetSymbol = symbolHandle[nextCheck.nextIndexInTargetToCheck];
             if (ignoreSymbols.Contains(nextTargetSymbol) && nextCheck.nextIndexInMatchToCheck != -1)
             {
                 return MatchesAtIndexOrderAgnostic(
@@ -265,7 +281,9 @@ namespace Dman.LSystem.SystemRuntime
                         nextIndexInMatchToCheck = nextCheck.nextIndexInMatchToCheck
                     },
                     seriesMatch,
-                    consumedTargetIndexes);
+                    consumedTargetIndexes,
+                    symbolHandle,
+                    parameterIndexingHandle);
             }
             if (nextTargetSymbol == branchOpenSymbol)
             {
@@ -273,7 +291,7 @@ namespace Dman.LSystem.SystemRuntime
                 //   only forward through matcher indexes
                 // for every branching structure in target,
                 //  check if any matches starting at the matcher index passed in
-                foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck))
+                foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck, symbolHandle))
                 {
                     var matchesAtChild = MatchesAtIndexOrderAgnostic(
                         new MatchCheckPoint
@@ -282,7 +300,9 @@ namespace Dman.LSystem.SystemRuntime
                             nextIndexInMatchToCheck = nextCheck.nextIndexInMatchToCheck
                         },
                         seriesMatch,
-                        consumedTargetIndexes);
+                        consumedTargetIndexes,
+                        symbolHandle,
+                        parameterIndexingHandle);
                     if (matchesAtChild != null)
                     {
                         return consumedTargetIndexes.AddRange(matchesAtChild);
@@ -298,7 +318,7 @@ namespace Dman.LSystem.SystemRuntime
                     var matchingSymbol = seriesMatch.targetSymbolSeries[nextCheck.nextIndexInMatchToCheck];
                     if (
                         matchingSymbol.targetSymbol != nextTargetSymbol || 
-                        matchingSymbol.parameterLength != symbolStringTarget.ParameterSize(nextCheck.nextIndexInTargetToCheck))
+                        matchingSymbol.parameterLength != parameterIndexingHandle[nextCheck.nextIndexInTargetToCheck].length)
                     {
                         return null;
                     }
@@ -306,7 +326,7 @@ namespace Dman.LSystem.SystemRuntime
                 var childrenBranchesToMatch = seriesMatch.graphChildPointers[nextCheck.nextIndexInMatchToCheck + 1].Select(x => x - 1).ToArray();
                 bool[] matchedChildren = new bool[childrenBranchesToMatch.Length];
 
-                foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck))
+                foreach (var childIndexInTarget in GetIndexesInTargetOfAllChildren(nextCheck.nextIndexInTargetToCheck, symbolHandle))
                 {
                     // TODO: early exit if all branches matched
                     for (int branchMatchIndex = 0; branchMatchIndex < childrenBranchesToMatch.Length; branchMatchIndex++)
@@ -320,7 +340,9 @@ namespace Dman.LSystem.SystemRuntime
                                 nextIndexInTargetToCheck = childIndexInTarget
                             },
                             seriesMatch,
-                            consumedTargetIndexes);
+                            consumedTargetIndexes,
+                            symbolHandle,
+                            parameterIndexingHandle);
                         if (consumedMatchesHere != null)
                         {
                             matchedChildren[branchMatchIndex] = true;
@@ -357,7 +379,9 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns></returns>
         private ImmutableDictionary<int, int> MatchesAtIndexOrderingInvariant(
             int originIndexInTarget,
-            SymbolSeriesMatcher seriesMatch)
+            SymbolSeriesMatcher seriesMatch,
+            NativeArray<int> symbolHandle,
+            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
         {
             var targetParentIndexStack = new Stack<BranchEventData>();
             int currentParentIndexInTarget = originIndexInTarget;
@@ -373,9 +397,9 @@ namespace Dman.LSystem.SystemRuntime
 
 
 
-            for (int indexInTarget = originIndexInTarget + 1; indexInTarget < symbolStringTarget.Length; indexInTarget++)
+            for (int indexInTarget = originIndexInTarget + 1; indexInTarget < symbolHandle.Length; indexInTarget++)
             {
-                var targetSymbol = symbolStringTarget[indexInTarget];
+                var targetSymbol = symbolHandle[indexInTarget];
 
                 if (ignoreSymbols.Contains(targetSymbol))
                 {
@@ -421,7 +445,9 @@ namespace Dman.LSystem.SystemRuntime
                         targetIndexesToMatchIndexes,
                         currentParentIndexInTarget,
                         indexInTarget,
-                        indexInMatch);
+                        indexInMatch,
+                        symbolHandle,
+                        parameterIndexingHandle);
                     if (currentTargetMatchesMatcher)
                     {
                         targetIndexesToMatchIndexes = targetIndexesToMatchIndexes.Add(indexInTarget, indexInMatch);
@@ -464,13 +490,15 @@ namespace Dman.LSystem.SystemRuntime
             ImmutableDictionary<int, int> targetIndexesToMatchIndexes,
             int currentParentIndexInTarget,
             int currentIndexInTarget,
-            int currentIndexInMatch
+            int currentIndexInMatch,
+            NativeArray<int> symbolHandle,
+            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle
             )
         {
             var symbolInMatch = seriesMatch.targetSymbolSeries[currentIndexInMatch];
             if (
-                symbolInMatch.targetSymbol == symbolStringTarget[currentIndexInTarget] &&
-                symbolInMatch.parameterLength == symbolStringTarget.ParameterSize(currentIndexInTarget))
+                symbolInMatch.targetSymbol == symbolHandle[currentIndexInTarget] &&
+                symbolInMatch.parameterLength == parameterIndexingHandle[currentIndexInTarget].length)
             {
                 var parentIndexInMatch = seriesMatch.graphParentPointers[currentIndexInMatch];
                 if(parentIndexInMatch == -1)
@@ -496,26 +524,28 @@ namespace Dman.LSystem.SystemRuntime
         /// </summary>
         /// <param name="originIndex"></param>
         /// <returns></returns>
-        private IEnumerable<int> GetIndexesInTargetOfAllChildren(int originIndex)
+        private IEnumerable<int> GetIndexesInTargetOfAllChildren(
+            int originIndex,
+            NativeArray<int> symbolHandle)
         {
             int childStructureIndexInTarget = originIndex + 1;
-            while (childStructureIndexInTarget < symbolStringTarget.Length && ignoreSymbols.Contains(symbolStringTarget[childStructureIndexInTarget]))
+            while (childStructureIndexInTarget < symbolHandle.Length && ignoreSymbols.Contains(symbolHandle[childStructureIndexInTarget]))
             {
                 childStructureIndexInTarget++;
             }
             // for every branching structure in target,
             //  check if any matches starting at the matcher index passed in
-            while (childStructureIndexInTarget < symbolStringTarget.Length
-                && symbolStringTarget[childStructureIndexInTarget] == branchOpenSymbol)
+            while (childStructureIndexInTarget < symbolHandle.Length
+                && symbolHandle[childStructureIndexInTarget] == branchOpenSymbol)
             {
                 yield return childStructureIndexInTarget;
                 childStructureIndexInTarget = FindClosingBranchIndexReadonly(childStructureIndexInTarget) + 1;
-                while (childStructureIndexInTarget < symbolStringTarget.Length && ignoreSymbols.Contains(symbolStringTarget[childStructureIndexInTarget]))
+                while (childStructureIndexInTarget < symbolHandle.Length && ignoreSymbols.Contains(symbolHandle[childStructureIndexInTarget]))
                 {
                     childStructureIndexInTarget++;
                 }
             }
-            if (childStructureIndexInTarget < symbolStringTarget.Length)
+            if (childStructureIndexInTarget < symbolHandle.Length)
             {
                 yield return childStructureIndexInTarget;
             }

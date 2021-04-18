@@ -46,7 +46,9 @@ namespace Dman.LSystem
         /// <returns>a list of captured parameters. null if no match</returns>
         public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
-            SymbolString<T> symbols,
+            NativeArray<int> sourceSymbols,
+            NativeArray<SymbolString<float>.JaggedIndexing> sourceParameterIndexes,
+            NativeArray<float> sourceParameters,
             int indexInSymbols,
             float[] globalParameters,
             NativeArray<float> parameterMemory,

@@ -52,9 +52,9 @@ public class LSystemTests
     {
         LSystemState<float> state = new DefaultLSystemState("A");
         var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-            "A -> AB",
-            "B -> CDC",
-            "D > C -> A",
+            "    A     -> AB",
+            "    B     -> CDC",
+            "    D > C -> A",
             "D < C > D -> B"
         });
 
@@ -222,7 +222,7 @@ public class LSystemTests
         state.currentSymbols.Dispose();
     }
 
-    [Test, Ignore("bigg")]
+    [Test]
     public void ContextLSystemDoesManyManySteps()
     {
         LSystemState<float> state = new DefaultLSystemState("C");
@@ -277,7 +277,7 @@ public class LSystemTests
         state.currentSymbols.Dispose();
     }
 
-    [Test, Ignore("bigg")]
+    [Test]
     public void ContextLSystemGetsVeryBigPredictably()
     {
         LSystemState<float> state = new DefaultLSystemState("A(0)");
