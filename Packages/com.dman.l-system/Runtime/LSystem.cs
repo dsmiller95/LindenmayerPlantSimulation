@@ -495,11 +495,6 @@ namespace Dman.LSystem
                 matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_MATCH_TIME;
                 matchSingletonData[indexInSymbols] = matchSingleton;
                 return;
-                // could recover gracefully. but for now, going to force a failure
-                //matchSingleton.isTrivial = true;
-                //matchSingleton.matchedParametersCount = 0;
-                //matchSingletonData[indexInSymbols] = matchSingleton;
-                //return;
             }
             var branchingCache = tmpSteppingState.branchingCache;
             var rnd = LSystem.RandomFromIndexAndSeed(((uint)indexInSymbols) + 1, seed);

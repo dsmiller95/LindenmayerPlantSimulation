@@ -290,14 +290,11 @@
     <Reference Include="System.Collections.Immutable">
       <HintPath>Packages\com.dman.l-system\Runtime\Plugin\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@2.0.0-preview\Runtime\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="System.Buffers">
+      <HintPath>Packages\com.dman.l-system\Runtime\Plugin\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Memory">
       <HintPath>Packages\com.dman.l-system\Runtime\Plugin\System.Memory.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Buffers">
-      <HintPath>Packages\com.dman.l-system\Runtime\Plugin\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>Packages\com.dman.l-system\Runtime\Plugin\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
