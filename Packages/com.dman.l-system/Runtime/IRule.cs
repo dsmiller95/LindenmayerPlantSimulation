@@ -25,18 +25,13 @@ namespace Dman.LSystem
         /// Attempts to match this rule against the symbol string, and return success
         ///     will write match data to the intermediate match struct
         /// </summary>
-        /// <param name="branchingCache"></param>
-        /// <param name="symbols"></param>
-        /// <param name="indexInSymbols"></param>
         /// <returns>a list of captured parameters. null if no match</returns>
         public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
-            NativeArray<int> sourceSymbols,
-            NativeArray<JaggedIndexing> sourceParameterIndexes,
-            NativeArray<float> sourceParameters,
+            SymbolString<T> source,
             int indexInSymbols,
-            float[] globalParameters,
-            NativeArray<float> parameterMemory,
+            NativeArray<T> globalParameters,
+            NativeArray<T> parameterMemory,
             ref Unity.Mathematics.Random random,
             ref LSystemStepMatchIntermediate matchSingletonData
             );
@@ -44,14 +39,11 @@ namespace Dman.LSystem
         /// Writes the replacement symbols into the target symbols arrays, beginning at <paramref name="originIndexInSymbols"/>.
         ///     should write exactly <paramref name="expectedReplacementSymbolLength"/> symbols
         /// </summary>
-        /// <param name="branchingCache"></param>
-        /// <param name="symbols"></param>
-        /// <param name="indexInSymbols"></param>
         /// <returns>a list of captured parameters. null if no match</returns>
         public void WriteReplacementSymbols(
-            T[] globalParameters,
+            NativeArray<T> globalParameters,
             NativeArray<T> sourceParams,
-            SymbolString<float> target,
+            SymbolString<T> target,
             LSystemStepMatchIntermediate matchSingletonData
             );
     }

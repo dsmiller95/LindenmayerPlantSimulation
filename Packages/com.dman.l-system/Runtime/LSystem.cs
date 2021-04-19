@@ -431,18 +431,15 @@ namespace Dman.LSystem
             }
             var branchingCache = tmpSteppingState.branchingCache;
             var rnd = LSystem.RandomFromIndexAndSeed(((uint)indexInSymbols) + 1, seed);
-            var globalParameters = globalParametersArray.ToArray();
             var ruleMatched = false;
             for (byte i = 0; i < ruleList.Count; i++)
             {
                 var rule = ruleList[i];
                 var success = rule.PreMatchCapturedParameters(
                     branchingCache,
-                    sourceData.symbols,
-                    sourceData.parameterIndexes,
-                    sourceData.parameters,
+                    sourceData,
                     indexInSymbols,
-                    globalParameters,
+                    globalParametersArray,
                     parameterMatchMemory,
                     ref rnd,
                     ref matchSingleton);
@@ -556,10 +553,8 @@ namespace Dman.LSystem
 
             var rule = ruleList[matchSingleton.matchedRuleIndexInPossible];
 
-            var globalParameters = globalParametersArray.ToArray();
-
             rule.WriteReplacementSymbols(
-                globalParameters,
+                globalParametersArray,
                 parameterMatchMemory,
                 targetData,
                 matchSingleton

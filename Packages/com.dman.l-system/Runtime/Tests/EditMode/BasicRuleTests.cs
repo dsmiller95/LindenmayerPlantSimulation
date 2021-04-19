@@ -29,6 +29,7 @@ public class BasicRuleTests
 
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
         globalParams = globalParams ?? new float[0];
+        using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
 
 
         //expectedReplacementSymbols = expectedReplacementSymbols ?? new int[0];
@@ -52,11 +53,9 @@ public class BasicRuleTests
 
         var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
             branchCache,
-            symbols.symbols,
-            symbols.parameterIndexes,
-            symbols.parameters,
+            symbols,
             matchIndex,
-            globalParams,
+            globalNative,
             paramMemory,
             ref random,
             ref matchSingleData
@@ -75,7 +74,7 @@ public class BasicRuleTests
                 expectedReplacement.parameters.Length,
                 Allocator.Persistent);
         ruleFromString.WriteReplacementSymbols(
-            globalParams,
+            globalNative,
             paramMemory,
             resultSymbols,
             matchSingleData
@@ -98,6 +97,7 @@ public class BasicRuleTests
         using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText));
         globalParams = globalParams ?? new float[0];
+        using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
         var branchCache = new SymbolStringBranchingCache();
@@ -111,11 +111,9 @@ public class BasicRuleTests
 
         var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
             branchCache,
-            symbols.symbols,
-            symbols.parameterIndexes,
-            symbols.parameters,
+            symbols,
             matchIndex,
-            globalParams,
+            globalNative,
             paramMemory,
             ref random,
             ref matchSingleData
@@ -130,8 +128,8 @@ public class BasicRuleTests
         var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
         try
         {
-
             var globalParams = new float[0];
+            using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
             using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
             var branchCache = new SymbolStringBranchingCache();
             branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
@@ -144,11 +142,9 @@ public class BasicRuleTests
 
             var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
                 branchCache,
-                symbols.symbols,
-                symbols.parameterIndexes,
-                symbols.parameters,
+                symbols,
                 0,
-                globalParams,
+                globalNative,
                 paramMemory,
                 ref random,
                 ref matchSingleData
@@ -172,11 +168,9 @@ public class BasicRuleTests
             };
             preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
                 branchCache,
-                symbols.symbols,
-                symbols.parameterIndexes,
-                symbols.parameters,
+                symbols,
                 0,
-                globalParams,
+                globalNative,
                 paramMemory,
                 ref random,
                 ref matchSingleData
@@ -194,11 +188,9 @@ public class BasicRuleTests
             };
             preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
                 branchCache,
-                symbols.symbols,
-                symbols.parameterIndexes,
-                symbols.parameters,
+                symbols,
                 0,
-                globalParams,
+                globalNative,
                 paramMemory,
                 ref random,
                 ref matchSingleData
@@ -216,6 +208,7 @@ public class BasicRuleTests
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
         using var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
         var globalParams = new float[0];
+        using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
         using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
         var branchCache = new SymbolStringBranchingCache();
         branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
@@ -228,11 +221,9 @@ public class BasicRuleTests
 
         var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
             branchCache,
-            symbols.symbols,
-            symbols.parameterIndexes,
-            symbols.parameters,
+            symbols,
             0,
-            globalParams,
+            globalNative,
             paramMemory,
             ref random,
             ref matchSingleData
@@ -249,7 +240,7 @@ public class BasicRuleTests
         using var targetSymbols = new SymbolString<float>(2, 0, Allocator.Persistent);
 
         ruleFromString.WriteReplacementSymbols(
-            globalParams,
+            globalNative,
             paramMemory,
             targetSymbols,
             matchSingleData

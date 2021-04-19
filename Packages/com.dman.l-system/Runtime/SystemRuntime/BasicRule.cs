@@ -87,11 +87,9 @@ namespace Dman.LSystem.SystemRuntime
 
         public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
-            NativeArray<int> sourceSymbols,
-            NativeArray<JaggedIndexing> sourceParameterIndexes,
-            NativeArray<float> sourceParameters,
+            SymbolString<float> source,
             int indexInSymbols,
-            float[] globalParameters,
+            NativeArray<float> globalParameters,
             NativeArray<float> parameterMemory,
             ref Unity.Mathematics.Random random,
             ref LSystemStepMatchIntermediate matchSingletonData)
@@ -109,8 +107,8 @@ namespace Dman.LSystem.SystemRuntime
                 var backwardMatchMapping = branchingCache.MatchesBackwards(
                     indexInSymbols,
                     ContextPrefix,
-                    sourceSymbols,
-                    sourceParameterIndexes
+                    source.symbols,
+                    source.parameterIndexes
                     );
                 if (backwardMatchMapping == null)
                 {
@@ -123,10 +121,10 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         continue;
                     }
-                    var parametersIndexing = sourceParameterIndexes[matchingTargetIndex];
+                    var parametersIndexing = source.parameterIndexes[matchingTargetIndex];
                     for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
                     {
-                        var paramValue = sourceParameters[i];
+                        var paramValue = source.parameters[i];
 
                         parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
@@ -135,7 +133,7 @@ namespace Dman.LSystem.SystemRuntime
             }
 
 
-            var coreParametersIndexing = sourceParameterIndexes[indexInSymbols];
+            var coreParametersIndexing = source.parameterIndexes[indexInSymbols];
             if (coreParametersIndexing.length != target.parameterLength)
             {
                 return false;
@@ -144,7 +142,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 for (int i = coreParametersIndexing.Start; i < coreParametersIndexing.End; i++)
                 {
-                    var paramValue = sourceParameters[i];
+                    var paramValue = source.parameters[i];
 
                     parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                     matchedParameterNum++;
@@ -156,8 +154,8 @@ namespace Dman.LSystem.SystemRuntime
                 var forwardMatch = branchingCache.MatchesForward(
                     indexInSymbols,
                     ContextSuffix,
-                    sourceSymbols,
-                    sourceParameterIndexes);
+                    source.symbols,
+                    source.parameterIndexes);
                 if (forwardMatch == null)
                 {
                     // if forwards match exists, and does not match, then fail this match attempt.
@@ -170,10 +168,10 @@ namespace Dman.LSystem.SystemRuntime
                         continue;
                     }
 
-                    var parametersIndexing = sourceParameterIndexes[matchingTargetIndex];
+                    var parametersIndexing = source.parameterIndexes[matchingTargetIndex];
                     for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
                     {
-                        var paramValue = sourceParameters[i];
+                        var paramValue = source.parameters[i];
 
                         parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
@@ -237,7 +235,7 @@ namespace Dman.LSystem.SystemRuntime
         }
 
         public void WriteReplacementSymbols(
-            float[] globalParameters,
+            NativeArray<float> globalParameters,
             NativeArray<float> paramTempMemorySpace,
             SymbolString<float> target,
             LSystemStepMatchIntermediate matchSingletonData)
