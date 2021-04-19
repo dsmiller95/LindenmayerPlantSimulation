@@ -257,59 +257,6 @@ namespace Dman.LSystem
             tempState.globalParamNative = globalParamNative;
             tempState.tempStateHandle = tempStateHandle;
 
-            // 5
-            //UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
-
-
-            //var replacementJob = new RuleReplacementJob
-            //{
-            //    matchSingletonData = matchSingletonData,
-            //    parameterMatchMemory = parameterMemory,
-
-            //    globalParametersArray = globalParamNative,
-
-            //    tmpSteppingStateHandle = tempStateHandle
-            //};
-
-            //var parallelRun = true;
-            //JobHandle replacementDependency = default;
-            //if (parallelRun)
-            //{
-            //    replacementDependency = replacementJob.Schedule(
-            //        matchSingletonData.Length,
-            //        100,
-            //        totalSymbolLengthDependency
-            //    );
-            //}
-            //else
-            //{
-            //    totalSymbolLengthDependency.Complete();
-            //    for (int i = 0; i < matchSingletonData.Length; i++)
-            //    {
-            //        replacementJob.Execute(i);
-            //    }
-            //    globalParamNative.Dispose();
-            //    matchSingletonData.Dispose();
-            //    parameterMemory.Dispose();
-            //}
-            ////replacementJob.Run(matchSingletonData.Length);
-            //UnityEngine.Profiling.Profiler.EndSample();
-
-            //var cleanupJob = new LSystemStepCleanupJob
-            //{
-            //    tmpSteppingStateHandle = tempStateHandle
-            //};
-
-            //var dependency = cleanupJob.Schedule(replacementDependency);
-
-            //tempState.finalDependency = dependency;
-
-            //var nextState = new LSystemState<float>()
-            //{
-            //    randomProvider = systemState.randomProvider
-            //};
-            //var resultString = GenerateNextSymbols(systemState.currentSymbols, ref nextState.randomProvider, globalParameters).ToList();
-            //nextState.currentSymbols = SymbolString<float>.ConcatAll(resultString);
             UnityEngine.Profiling.Profiler.EndSample();
             return tempState;
         }

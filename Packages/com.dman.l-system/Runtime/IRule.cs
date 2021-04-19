@@ -22,21 +22,6 @@ namespace Dman.LSystem
         public int CapturedLocalParameterCount { get; }
 
         /// <summary>
-        /// retrun the symbol string to replace the rule's matching symbols with. return null if no match
-        /// </summary>
-        /// <param name="parameters">the parameters applied to the symbol,
-        ///     indexed based on matches inside the target symbol series.
-        ///     Could be an array of null if no parameters.
-        ///     Will always be the same length as what is returned from TargetSymbolSeries</param>
-        /// <returns></returns>
-        public SymbolString<T> ApplyRule(
-            SymbolStringBranchingCache branchingCache,
-            SymbolString<T> symbols,
-            int indexInSymbols,
-            ref Unity.Mathematics.Random random,
-            T[] globalParameters);
-
-        /// <summary>
         /// Attempts to match this rule against the symbol string, and return success
         ///     will write match data to the intermediate match struct
         /// </summary>
