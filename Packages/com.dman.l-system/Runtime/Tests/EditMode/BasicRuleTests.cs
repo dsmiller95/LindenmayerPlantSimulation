@@ -2,9 +2,6 @@ using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using LSystem.Runtime.SystemRuntime;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Unity.Collections;
 
 public class BasicRuleTests
@@ -80,9 +77,7 @@ public class BasicRuleTests
         ruleFromString.WriteReplacementSymbols(
             globalParams,
             paramMemory,
-            resultSymbols.symbols,
-            resultSymbols.parameterIndexes,
-            resultSymbols.parameters,
+            resultSymbols,
             matchSingleData
             );
 
@@ -132,80 +127,88 @@ public class BasicRuleTests
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
-        using var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
-        var globalParams = new float[0];
-        using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
-        var branchCache = new SymbolStringBranchingCache();
-        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
-        var random = new Unity.Mathematics.Random();
-        var matchSingleData = new LSystemStepMatchIntermediate
+        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
+        try
         {
-            isTrivial = false,
-            parametersStartIndex = 0
-        };
 
-        var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
-            branchCache,
-            symbols.symbols,
-            symbols.parameterIndexes,
-            symbols.parameters,
-            0,
-            globalParams,
-            paramMemory,
-            ref random,
-            ref matchSingleData
-            );
-        Assert.IsTrue(preMatchSuccess);
-        Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
-        Assert.AreEqual(0, matchSingleData.matchedParametersCount);
-        Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
-        Assert.AreEqual(0, matchSingleData.replacementParameterCount);
+            var globalParams = new float[0];
+            using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
+            var branchCache = new SymbolStringBranchingCache();
+            branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+            var random = new Unity.Mathematics.Random();
+            var matchSingleData = new LSystemStepMatchIntermediate
+            {
+                isTrivial = false,
+                parametersStartIndex = 0
+            };
 
-        symbols.parameterIndexes[0] = new SymbolString<float>.JaggedIndexing
+            var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+                branchCache,
+                symbols.symbols,
+                symbols.parameterIndexes,
+                symbols.parameters,
+                0,
+                globalParams,
+                paramMemory,
+                ref random,
+                ref matchSingleData
+                );
+            Assert.IsTrue(preMatchSuccess);
+            Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
+            Assert.AreEqual(0, matchSingleData.matchedParametersCount);
+            Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
+            Assert.AreEqual(0, matchSingleData.replacementParameterCount);
+
+            symbols.parameterIndexes[0] = new JaggedIndexing
+            {
+                index = 0,
+                length = 1
+            };
+
+            matchSingleData = new LSystemStepMatchIntermediate
+            {
+                isTrivial = false,
+                parametersStartIndex = 0
+            };
+            preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+                branchCache,
+                symbols.symbols,
+                symbols.parameterIndexes,
+                symbols.parameters,
+                0,
+                globalParams,
+                paramMemory,
+                ref random,
+                ref matchSingleData
+                );
+            Assert.IsFalse(preMatchSuccess);
+
+
+            symbols.parameters.Dispose();
+            symbols.parameters = new Unity.Collections.NativeArray<float>(new float[] { 1 }, Unity.Collections.Allocator.Persistent);
+
+            matchSingleData = new LSystemStepMatchIntermediate
+            {
+                isTrivial = false,
+                parametersStartIndex = 0
+            };
+            preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+                branchCache,
+                symbols.symbols,
+                symbols.parameterIndexes,
+                symbols.parameters,
+                0,
+                globalParams,
+                paramMemory,
+                ref random,
+                ref matchSingleData
+                );
+            Assert.IsFalse(preMatchSuccess);
+        }
+        finally
         {
-            index = 0,
-            length = 1
-        };
-
-        matchSingleData = new LSystemStepMatchIntermediate
-        {
-            isTrivial = false,
-            parametersStartIndex = 0
-        };
-        preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
-            branchCache,
-            symbols.symbols,
-            symbols.parameterIndexes,
-            symbols.parameters,
-            0,
-            globalParams,
-            paramMemory,
-            ref random,
-            ref matchSingleData
-            );
-        Assert.IsFalse(preMatchSuccess);
-
-
-        symbols.parameters.Dispose();
-        symbols.parameters = new Unity.Collections.NativeArray<float>(new float[] { 1 }, Unity.Collections.Allocator.Persistent);
-
-        matchSingleData = new LSystemStepMatchIntermediate
-        {
-            isTrivial = false,
-            parametersStartIndex = 0
-        };
-        preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
-            branchCache,
-            symbols.symbols,
-            symbols.parameterIndexes,
-            symbols.parameters,
-            0,
-            globalParams,
-            paramMemory,
-            ref random,
-            ref matchSingleData
-            );
-        Assert.IsFalse(preMatchSuccess);
+            symbols.Dispose();
+        }
     }
     [Test]
     public void BasicRuleReplacesSelfWithReplacement()
@@ -248,9 +251,7 @@ public class BasicRuleTests
         ruleFromString.WriteReplacementSymbols(
             globalParams,
             paramMemory,
-            targetSymbols.symbols,
-            targetSymbols.parameterIndexes,
-            targetSymbols.parameters,
+            targetSymbols,
             matchSingleData
             );
 
@@ -305,11 +306,11 @@ public class BasicRuleTests
         AssertRuleReplacement(
             "A(x, y) -> B(global + x)C(y)",
             new int[] { 'A' },
-            new float[][] { new [] { 20f, 1f } },
+            new float[][] { new[] { 20f, 1f } },
             "B(27)C(1)",
             paramTempMemorySize: 2,
-            globalParamNames: new [] { "global" },
-            globalParams: new [] { 7f }
+            globalParamNames: new[] { "global" },
+            globalParams: new[] { 7f }
             );
     }
     [Test]

@@ -6,39 +6,40 @@ using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public class SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>, ISymbolString, IDisposable where ParamType: unmanaged
+    public struct JaggedIndexing : IEquatable<JaggedIndexing>
     {
+        public int index;
+        public ushort length;
 
-        public NativeArray<int> symbols;
-        public NativeArray<JaggedIndexing> parameterIndexes;
-        public NativeArray<ParamType> parameters;
+        public int Start => index;
+        public int End => index + length;
 
-        public struct JaggedIndexing : IEquatable<JaggedIndexing>
+        public bool Equals(JaggedIndexing other)
         {
-            public int index;
-            public ushort length;
-
-            public int Start => index;
-            public int End => index + length;
-
-            public bool Equals(JaggedIndexing other)
-            {
-               return other.index == index && other.length == length;
-            }
-            public override bool Equals(object obj)
-            {
-                if (obj is JaggedIndexing indexing)
-                {
-                    return this.Equals(indexing);
-                }
-                return false;
-            }
-            public override int GetHashCode()
-            {
-                return index << 31 | length;
-            }
+            return other.index == index && other.length == length;
         }
+        public override bool Equals(object obj)
+        {
+            if (obj is JaggedIndexing indexing)
+            {
+                return this.Equals(indexing);
+            }
+            return false;
+        }
+        public override int GetHashCode()
+        {
+            return index << 31 | length;
+        }
+    }
 
+    public struct SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>, ISymbolString, IDisposable where ParamType: unmanaged
+    {
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> symbols;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<JaggedIndexing> parameterIndexes;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<ParamType> parameters;
         public int Length => symbols.Length;
 
         public int this[int index] => symbols[index];
@@ -105,14 +106,36 @@ namespace Dman.LSystem.SystemRuntime
             parameterIndexes = new NativeArray<JaggedIndexing>(other.parameterIndexes, newAllocator);
             parameters = new NativeArray<ParamType>(other.parameters, newAllocator);
         }
-        private SymbolString()
-        {
-
-        }
 
         public int ParameterSize(int index)
         {
             return parameterIndexes[index].length;
+        }
+
+        /// <summary>
+        /// copy all symbols and parameters in <paramref name="source"/>, into this symbol string at <paramref name="targetIndex"/>
+        ///     Also blindly copies the parameters into <paramref name="targetParamIndex"/>
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="targetIndex"></param>
+        public void CopyFrom(SymbolString<ParamType> source, int targetIndex, int targetParamIndex)
+        {
+            for (int i = 0; i < source.Length; i++)
+            {
+                var replacementSymbolIndex = targetIndex + i;
+                symbols[replacementSymbolIndex] = source.symbols[i];
+
+                var replacementParamIndexing = source.parameterIndexes[i];
+                parameterIndexes[replacementSymbolIndex] = new JaggedIndexing
+                {
+                    index = targetParamIndex + replacementParamIndexing.index,
+                    length = replacementParamIndexing.length
+                };
+            }
+            for (int i = 0; i < source.parameters.Length; i++)
+            {
+                parameters[targetParamIndex + i] = source.parameters[i];
+            }
         }
 
         public override string ToString()
@@ -142,13 +165,21 @@ namespace Dman.LSystem.SystemRuntime
             return builder.ToString();
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is SymbolString<ParamType> other)
+            {
+                return Equals(other);
+            }
+            return false;
+        }
 
+        public override int GetHashCode()
+        {
+            return symbols.Length.GetHashCode();
+        }
         public bool Equals(SymbolString<ParamType> other)
         {
-            if (other == null)
-            {
-                return false;
-            }
             if (other.symbols.Length != symbols.Length)
             {
                 return false;
@@ -175,20 +206,6 @@ namespace Dman.LSystem.SystemRuntime
                 }
             }
             return true;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is SymbolString<ParamType> other)
-            {
-                return Equals(other);
-            }
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return symbols.Length.GetHashCode();
         }
 
         public void Dispose()

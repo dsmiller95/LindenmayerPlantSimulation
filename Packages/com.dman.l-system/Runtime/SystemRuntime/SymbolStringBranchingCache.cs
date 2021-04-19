@@ -60,7 +60,7 @@ namespace Dman.LSystem.SystemRuntime
             int indexInSymbolTarget,
             SymbolSeriesMatcher seriesMatch,
             NativeArray<int> symbolHandle,
-            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
+            NativeArray<JaggedIndexing> parameterIndexingHandle)
         {
             if (seriesMatch.graphChildPointers == null)
             {
@@ -102,7 +102,7 @@ namespace Dman.LSystem.SystemRuntime
             int indexInSymbolTarget,
             SymbolSeriesMatcher seriesMatch,
             NativeArray<int> symbolHandle,
-            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
+            NativeArray<JaggedIndexing> parameterIndexingHandle)
         {
             indexInSymbolTarget--;
             int matchingIndex = seriesMatch.targetSymbolSeries.Length - 1;
@@ -235,7 +235,7 @@ namespace Dman.LSystem.SystemRuntime
             int originIndexInTarget,
             SymbolSeriesMatcher seriesMatch,
             NativeArray<int> symbolHandle,
-            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle)
+            NativeArray<JaggedIndexing> parameterIndexingHandle)
         {
             var targetParentIndexStack = new Stack<BranchEventData>();
             int currentParentIndexInTarget = originIndexInTarget;
@@ -346,7 +346,7 @@ namespace Dman.LSystem.SystemRuntime
             int currentIndexInTarget,
             int currentIndexInMatch,
             NativeArray<int> symbolHandle,
-            NativeArray<SymbolString<float>.JaggedIndexing> parameterIndexingHandle
+            NativeArray<JaggedIndexing> parameterIndexingHandle
             )
         {
             var symbolInMatch = seriesMatch.targetSymbolSeries[currentIndexInMatch];

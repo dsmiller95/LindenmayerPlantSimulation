@@ -3,11 +3,8 @@ using Dman.LSystem.Packages.Tests.EditMode;
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using UnityEngine;
 
 using Unity.PerformanceTesting;
 
@@ -19,7 +16,7 @@ public class LSystemTests
         var systemState = new DefaultLSystemState("B");
 
         Assert.AreEqual("B", systemState.currentSymbols.ToString());
-        Assert.AreEqual(new SymbolString<float>.JaggedIndexing
+        Assert.AreEqual(new JaggedIndexing
         {
             index = 0,
             length = 0
@@ -323,6 +320,23 @@ public class LSystemTests
     }
 
     [Test, Performance]
+    public void TrivialSystemPerformance()
+    {
+        LSystemState<float> state = new DefaultLSystemState("A");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+        });
+        Measure.Method(() =>
+        {
+            using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+            Assert.AreEqual("A", nextState.ToString());
+        })
+            .WarmupCount(5)
+            .MeasurementCount(10)
+            .IterationsPerMeasurement(10)
+            .GC()
+            .Run();
+    }
+    [Test, Performance]
     public void SmallInputPerformance()
     {
         LSystemState<float> state = new DefaultLSystemState("A(0)");
@@ -332,7 +346,6 @@ public class LSystemTests
             "    A(x)        -> A(x)[B(1)][B(1)]",
             "    B(x)        -> B(x)A(0)",
         });
-        // TODO: use better methods for this. should be methods that run in the order of ms, noot seconds
         Measure.Method(() =>
         {
             using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
@@ -346,7 +359,7 @@ public class LSystemTests
     }
 
     [Test, Performance]
-    public void SmallInputFastGrowthPerformance()
+    public void SlightlyBiggerInputFastGrowthPerformance()
     {
         LSystemState<float> state = new DefaultLSystemState("A(0)");
         var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
@@ -355,12 +368,12 @@ public class LSystemTests
             "    A(x)        -> A(x)[B(1)][B(1)]",
             "    B(x)        -> B(x)A(0)",
         });
+        state = basicLSystem.StepSystem(state);
+        state = basicLSystem.StepSystem(state);
         // TODO: use better methods for this. should be methods that run in the order of ms, noot seconds
         Measure.Method(() =>
         {
-            var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false);
-            nextState = basicLSystem.StepSystem(nextState);
-            using var lastSymbols = basicLSystem.StepSystem(nextState).currentSymbols;
+            using var lastSymbols = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
             Assert.AreEqual("A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]", lastSymbols.ToString());
         })
             .WarmupCount(5)
@@ -471,6 +484,35 @@ public class LSystemTests
         state = basicLSystem.StepSystem(state, nextGlobalParams);
         Assert.AreEqual("A(4)", state.currentSymbols.ToString());
         state.currentSymbols.Dispose();
+    }
+    [Test, Performance]
+    public void SimpleConditionalReplacementWithGlobalParameters()
+    {
+        var globalParameters = new string[] { "global" };
+
+        LSystemState<float> state = new DefaultLSystemState("A(0)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+            "A(x) : x < global -> A(x + 1)",
+            "A(x) : x >= global -> A(x - 1)",
+        }, globalParameters);
+
+        var defaultGlobalParams = new float[] { 3 };
+        try
+        {
+            Measure.Method(() =>
+            {
+                state = basicLSystem.StepSystem(state, defaultGlobalParams);
+            })
+                .WarmupCount(5)
+                .MeasurementCount(10)
+                .IterationsPerMeasurement(10)
+                .GC()
+                .Run();
+        }
+        finally
+        {
+            state.currentSymbols.Dispose();
+        }
     }
     [Test]
     public void LSystemSelectsRuleToApplyBasedOnConditional()

@@ -89,7 +89,7 @@ namespace Dman.LSystem.UnityObjects
         public void ResetState(int? newSeed = null)
         {
             _compiledSystem = null;
-            lastState = null;
+            lastState = default;
             totalSteps = 0;
             lastUpdateChanged = true;
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
@@ -165,7 +165,7 @@ namespace Dman.LSystem.UnityObjects
 
             OnSystemStateUpdated?.Invoke();
 
-            lastUpdateChanged = !(lastState?.Equals(CurrentState) ?? false);
+            lastUpdateChanged = !lastState.Equals(CurrentState);
             lastState = CurrentState;
             totalSteps++;
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0, 0.1f);

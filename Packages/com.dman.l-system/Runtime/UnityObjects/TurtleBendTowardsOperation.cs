@@ -37,7 +37,7 @@ namespace Dman.LSystem.UnityObjects
             public TurtleState Operate(
                 TurtleState initialState,
                 NativeArray<float> parameters,
-                SymbolString<float>.JaggedIndexing parameterIndexing,
+                JaggedIndexing parameterIndexing,
                 TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
             {
                 var p0 = parameterIndexing.Start;

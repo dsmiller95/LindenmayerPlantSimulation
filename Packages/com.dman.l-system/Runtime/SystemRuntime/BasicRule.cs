@@ -102,7 +102,7 @@ namespace Dman.LSystem.SystemRuntime
                     symbols.parameterIndexes);
                 if (backwardMatchMapping == null)
                 {
-                    return null;
+                    return default;
                 }
                 for (int indexInPrefix = 0; indexInPrefix < ContextPrefix.targetSymbolSeries.Length; indexInPrefix++)
                 {
@@ -122,7 +122,7 @@ namespace Dman.LSystem.SystemRuntime
             var coreParametersIndexing = symbols.parameterIndexes[indexInSymbols];
             if(coreParametersIndexing.length != target.parameterLength)
             {
-                return null;
+                return default;
             }
             if(coreParametersIndexing.length > 0)
             {
@@ -142,7 +142,7 @@ namespace Dman.LSystem.SystemRuntime
                     symbols.parameterIndexes);
                 if (forwardMatch == null)
                 {
-                    return null;
+                    return default;
                 }
                 for (int indexInSuffix = 0; indexInSuffix < ContextSuffix.targetSymbolSeries.Length; indexInSuffix++)
                 {
@@ -175,7 +175,7 @@ namespace Dman.LSystem.SystemRuntime
                 var conditionalResult = boolResult;
                 if (!conditionalResult)
                 {
-                    return null;
+                    return default;
                 }
             }
 
@@ -208,7 +208,7 @@ namespace Dman.LSystem.SystemRuntime
         public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
             NativeArray<int> sourceSymbols,
-            NativeArray<SymbolString<float>.JaggedIndexing> sourceParameterIndexes,
+            NativeArray<JaggedIndexing> sourceParameterIndexes,
             NativeArray<float> sourceParameters,
             int indexInSymbols,
             float[] globalParameters,
@@ -304,9 +304,15 @@ namespace Dman.LSystem.SystemRuntime
             // conditional
             if (conditionalChecker != null)
             {
-                var paramArray = globalParameters.Concat(
-                        Enumerable.Range(0, matchedParameterNum).Select(x => parameterMemory[parameterStartIndex + x])
-                    ).Cast<object>().ToArray();
+                var paramArray = new object[globalParameters.Length + matchedParameterNum];
+                for (int i = 0; i < globalParameters.Length; i++)
+                {
+                    paramArray[i] = globalParameters[i];
+                }
+                for (int i = 0; i < matchedParameterNum; i++)
+                {
+                    paramArray[i + globalParameters.Length] = parameterMemory[parameterStartIndex + i];
+                }
                 var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
                 if (!(invokeResult is bool boolResult))
                 {
@@ -353,9 +359,7 @@ namespace Dman.LSystem.SystemRuntime
         public void WriteReplacementSymbols(
             float[] globalParameters,
             NativeArray<float> paramTempMemorySpace,
-            NativeArray<int> targetSymbols,
-            NativeArray<SymbolString<float>.JaggedIndexing> targetParameterIndexes,
-            NativeArray<float> targetParams,
+            SymbolString<float> target,
             LSystemStepMatchIntermediate matchSingletonData)
         {
             var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
@@ -380,36 +384,17 @@ namespace Dman.LSystem.SystemRuntime
             }
             var outcome = possibleOutcomes[selectedReplacementPattern];
 
-            var replacement = outcome.GenerateReplacement(orderedMatchedParameters.ToArray());
+            var replacement = outcome.GenerateReplacement(orderedMatchedParameters);
             if(replacement.Length != expectedReplacementSymbolLength)
             {
                 throw new System.Exception("Unexpected state: replacement symbol size differs from expected");
             }
-
-            int totalReplacedParameters = 0;
-            for (int i = 0; i < replacement.Length; i++)
-            {
-                var replacementSymbolIndex = indexInReplacementSymbols + i;
-                targetSymbols[replacementSymbolIndex] = replacement.symbols[i];
-
-                var replacementParamIndexing = replacement.parameterIndexes[i];
-                targetParameterIndexes[replacementSymbolIndex] = new SymbolString<float>.JaggedIndexing
-                {
-                    index = indexInReplacementParameters + totalReplacedParameters,
-                    length = replacementParamIndexing.length
-                };
-                // TODO: replace this copy with a simpler loop through the entire replacement parameter array
-                for (int j = replacementParamIndexing.Start; j < replacementParamIndexing.End; j++)
-                {
-                    targetParams[indexInReplacementParameters + totalReplacedParameters] = replacement.parameters[j];
-                    totalReplacedParameters++;
-                }
-            }
-            if (totalReplacedParameters != expectedReplacementParameterLength)
+            if (replacement.parameters.Length != expectedReplacementParameterLength)
             {
                 throw new System.Exception("Unexpected state: replacement paremeter size differs from expected");
             }
-            return;
+
+            target.CopyFrom(replacement, indexInReplacementSymbols, indexInReplacementParameters);
         }
     }
 }

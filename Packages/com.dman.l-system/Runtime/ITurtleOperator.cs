@@ -18,7 +18,7 @@ namespace Dman.LSystem
         T Operate(
             T initialState,
             NativeArray<float> parameters,
-            SymbolString<float>.JaggedIndexing parameterIndexing,
+            JaggedIndexing parameterIndexing,
             TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft);
     }
 

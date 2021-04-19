@@ -47,7 +47,7 @@ namespace Dman.LSystem
         public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
             NativeArray<int> sourceSymbols,
-            NativeArray<SymbolString<float>.JaggedIndexing> sourceParameterIndexes,
+            NativeArray<JaggedIndexing> sourceParameterIndexes,
             NativeArray<float> sourceParameters,
             int indexInSymbols,
             float[] globalParameters,
@@ -66,9 +66,7 @@ namespace Dman.LSystem
         public void WriteReplacementSymbols(
             T[] globalParameters,
             NativeArray<T> sourceParams,
-            NativeArray<int> targetSymbols,
-            NativeArray<SymbolString<float>.JaggedIndexing> targetParameterIndexes,
-            NativeArray<float> targetParams,
+            SymbolString<float> target,
             LSystemStepMatchIntermediate matchSingletonData
             );
     }
