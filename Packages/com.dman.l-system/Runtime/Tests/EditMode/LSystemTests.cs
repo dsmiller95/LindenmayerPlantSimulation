@@ -20,8 +20,8 @@ public class LSystemTests
         {
             index = 0,
             length = 0
-        }, systemState.currentSymbols.parameterIndexes[0]);
-        Assert.AreEqual(0, systemState.currentSymbols.parameters.Length);
+        }, systemState.currentSymbols.newParameters.indexing[0]);
+        Assert.AreEqual(0, systemState.currentSymbols.newParameters.data.Length);
         systemState.currentSymbols.Dispose();
     }
     [Test]

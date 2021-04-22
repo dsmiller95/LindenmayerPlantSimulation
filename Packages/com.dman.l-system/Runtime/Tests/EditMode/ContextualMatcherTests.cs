@@ -24,7 +24,7 @@ public class ContextualMatcherTests
             indexInTarget,
             seriesMatcher,
             targetString.symbols,
-            targetString.parameterIndexes);
+            targetString.newParameters.indexing);
         var matches = matchPairings != null;
         if (shouldMatch != matches)
         {
@@ -60,7 +60,7 @@ public class ContextualMatcherTests
             realIndex,
             seriesMatcher,
             targetString.symbols,
-            targetString.parameterIndexes);
+            targetString.newParameters.indexing);
         var matches = matchPairings != null;
         if (shouldMatch != matches)
         {

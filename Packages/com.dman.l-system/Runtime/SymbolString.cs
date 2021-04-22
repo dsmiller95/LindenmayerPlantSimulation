@@ -6,40 +6,13 @@ using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public struct JaggedIndexing : IEquatable<JaggedIndexing>
-    {
-        public int index;
-        public ushort length;
-
-        public int Start => index;
-        public int End => index + length;
-
-        public bool Equals(JaggedIndexing other)
-        {
-            return other.index == index && other.length == length;
-        }
-        public override bool Equals(object obj)
-        {
-            if (obj is JaggedIndexing indexing)
-            {
-                return this.Equals(indexing);
-            }
-            return false;
-        }
-        public override int GetHashCode()
-        {
-            return index << 31 | length;
-        }
-    }
 
     public struct SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>, ISymbolString, IDisposable where ParamType: unmanaged
     {
         [NativeDisableParallelForRestriction]
         public NativeArray<int> symbols;
         [NativeDisableParallelForRestriction]
-        public NativeArray<JaggedIndexing> parameterIndexes;
-        [NativeDisableParallelForRestriction]
-        public NativeArray<ParamType> parameters;
+        public JaggedNativeArray<ParamType> newParameters;
         public int Length => symbols.Length;
 
         public int this[int index] => symbols[index];
@@ -49,25 +22,14 @@ namespace Dman.LSystem.SystemRuntime
             var symbolMatch = ReplacementSymbolGeneratorParser.ParseReplacementSymbolGenerators(
                 symbolString,
                 new string[0]).ToArray();
-            symbols = new NativeArray<int>(symbolMatch.Length, allocator);
-            parameterIndexes = new NativeArray<JaggedIndexing>(symbolMatch.Length, allocator);
-            var paramList = new List<ParamType>();
-            var paramSum = 0;
-            for (int i = 0; i < symbolMatch.Length; i++)
-            {
-                var match = symbolMatch[i];
-                symbols[i] = match.targetSymbol;
-                var parameters = match.evaluators.Select(x => (ParamType)x.DynamicInvoke()).ToArray();
-                parameterIndexes[i] = new JaggedIndexing
-                {
-                    index = (int)paramSum,
-                    length = (ushort)parameters.Length
-                };
-                paramSum += parameters.Length;
+            symbols = new NativeArray<int>(
+                symbolMatch.Select(x => x.targetSymbol).ToArray(),
+                allocator);
 
-                paramList.AddRange(parameters);
-            }
-            parameters = new NativeArray<ParamType>(paramList.ToArray(), allocator);
+            var jaggedParameters = symbolMatch
+                .Select(x => x.evaluators.Select(y => (ParamType)y.DynamicInvoke()).ToArray())
+                .ToArray();
+            newParameters = new JaggedNativeArray<ParamType>(jaggedParameters, allocator);
         }
         public SymbolString(int symbol, ParamType[] parameters) :
             this(new int[] { symbol }, new ParamType[][] { parameters })
@@ -79,37 +41,22 @@ namespace Dman.LSystem.SystemRuntime
         public SymbolString(int[] symbols, ParamType[][] paramArray, Allocator allocator = Allocator.Persistent)
         {
             this.symbols = new NativeArray<int>(symbols, allocator);
-            parameterIndexes = new NativeArray<JaggedIndexing>(symbols.Length, allocator, NativeArrayOptions.UninitializedMemory);
-            var paramSum = 0;
-            var paramList = new List<ParamType>();
-            for (int i = 0; i < paramArray.Length; i++)
-            {
-                parameterIndexes[i] = new JaggedIndexing
-                {
-                    index = (int)paramSum,
-                    length = (ushort)paramArray[i].Length
-                };
-                paramSum += paramArray[i].Length;
-                paramList.AddRange(paramArray[i]);
-            }
-            parameters = new NativeArray<ParamType>(paramList.ToArray(), allocator);
+            this.newParameters = new JaggedNativeArray<ParamType>(paramArray, allocator);
         }
         public SymbolString(int symbolsTotal, int parametersTotal, Allocator allocator)
         {
             symbols = new NativeArray<int>(symbolsTotal, allocator, NativeArrayOptions.UninitializedMemory);
-            parameterIndexes = new NativeArray<JaggedIndexing>(symbolsTotal, allocator, NativeArrayOptions.UninitializedMemory);
-            parameters = new NativeArray<ParamType>(parametersTotal, allocator, NativeArrayOptions.UninitializedMemory);
+            newParameters = new JaggedNativeArray<ParamType>(symbolsTotal, parametersTotal, allocator);
         }
         public SymbolString(SymbolString<ParamType> other, Allocator newAllocator)
         {
             symbols = new NativeArray<int>(other.symbols, newAllocator);
-            parameterIndexes = new NativeArray<JaggedIndexing>(other.parameterIndexes, newAllocator);
-            parameters = new NativeArray<ParamType>(other.parameters, newAllocator);
+            newParameters = new JaggedNativeArray<ParamType>(other.newParameters, newAllocator);
         }
 
         public int ParameterSize(int index)
         {
-            return parameterIndexes[index].length;
+            return newParameters[index].length;
         }
 
         /// <summary>
@@ -124,18 +71,9 @@ namespace Dman.LSystem.SystemRuntime
             {
                 var replacementSymbolIndex = targetIndex + i;
                 symbols[replacementSymbolIndex] = source.symbols[i];
+            }
 
-                var replacementParamIndexing = source.parameterIndexes[i];
-                parameterIndexes[replacementSymbolIndex] = new JaggedIndexing
-                {
-                    index = targetParamIndex + replacementParamIndexing.index,
-                    length = replacementParamIndexing.length
-                };
-            }
-            for (int i = 0; i < source.parameters.Length; i++)
-            {
-                parameters[targetParamIndex + i] = source.parameters[i];
-            }
+            newParameters.CopyFrom(source.newParameters, targetIndex, targetParamIndex);
         }
 
         public override string ToString()
@@ -144,17 +82,17 @@ namespace Dman.LSystem.SystemRuntime
             for (int i = 0; i < symbols.Length; i++)
             {
                 builder.Append((char)symbols[i]);
-                var paramIndexing = parameterIndexes[i];
-                if (paramIndexing.length <= 0)
+                var iIndex = newParameters[i];
+                if (iIndex.length <= 0)
                 {
                     continue;
                 }
                 builder.Append("(");
-                for (int j = 0; j < paramIndexing.length; j++)
+                for (int j = 0; j < iIndex.length; j++)
                 {
-                    var paramValue = parameters[paramIndexing.index + j];
+                    var paramValue = newParameters[iIndex, j];
                     builder.Append(paramValue.ToString());
-                    if (j < paramIndexing.length - 1)
+                    if (j < iIndex.length - 1)
                     {
                         builder.Append(", ");
                     }
@@ -184,34 +122,23 @@ namespace Dman.LSystem.SystemRuntime
             {
                 return false;
             }
-            var paramTypeComparer = EqualityComparer<ParamType>.Default;
             for (int i = 0; i < symbols.Length; i++)
             {
                 if (other.symbols[i] != symbols[i])
                 {
                     return false;
                 }
-                if (!other.parameterIndexes[i].Equals(parameterIndexes[i]))
-                {
-                    return false;
-                }
-                var paramIndexer = parameterIndexes[i];
-                for (int j = 0; j < paramIndexer.length; j++)
-                {
-                    var index = paramIndexer.index + j;
-                    if (!paramTypeComparer.Equals(other.parameters[index], parameters[index]))
-                    {
-                        return false;
-                    }
-                }
+            }
+            if (!newParameters.Equals(other.newParameters))
+            {
+                return false;
             }
             return true;
         }
 
         public void Dispose()
         {
-            this.parameterIndexes.Dispose();
-            this.parameters.Dispose();
+            this.newParameters.Dispose();
             this.symbols.Dispose();
         }
     }

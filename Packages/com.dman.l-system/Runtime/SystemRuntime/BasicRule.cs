@@ -108,7 +108,7 @@ namespace Dman.LSystem.SystemRuntime
                     indexInSymbols,
                     ContextPrefix,
                     source.symbols,
-                    source.parameterIndexes
+                    source.newParameters.indexing
                     );
                 if (backwardMatchMapping == null)
                 {
@@ -121,10 +121,10 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         continue;
                     }
-                    var parametersIndexing = source.parameterIndexes[matchingTargetIndex];
-                    for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
+                    var parametersIndexing = source.newParameters[matchingTargetIndex];
+                    for (int i = 0; i < parametersIndexing.length; i++)
                     {
-                        var paramValue = source.parameters[i];
+                        var paramValue = source.newParameters[parametersIndexing, i];
 
                         parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
@@ -133,16 +133,16 @@ namespace Dman.LSystem.SystemRuntime
             }
 
 
-            var coreParametersIndexing = source.parameterIndexes[indexInSymbols];
+            var coreParametersIndexing = source.newParameters[indexInSymbols];
             if (coreParametersIndexing.length != target.parameterLength)
             {
                 return false;
             }
             if (coreParametersIndexing.length > 0)
             {
-                for (int i = coreParametersIndexing.Start; i < coreParametersIndexing.End; i++)
+                for (int i = 0; i < coreParametersIndexing.length; i++)
                 {
-                    var paramValue = source.parameters[i];
+                    var paramValue = source.newParameters[coreParametersIndexing, i];
 
                     parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                     matchedParameterNum++;
@@ -155,7 +155,7 @@ namespace Dman.LSystem.SystemRuntime
                     indexInSymbols,
                     ContextSuffix,
                     source.symbols,
-                    source.parameterIndexes);
+                    source.newParameters.indexing);
                 if (forwardMatch == null)
                 {
                     // if forwards match exists, and does not match, then fail this match attempt.
@@ -168,10 +168,10 @@ namespace Dman.LSystem.SystemRuntime
                         continue;
                     }
 
-                    var parametersIndexing = source.parameterIndexes[matchingTargetIndex];
-                    for (int i = parametersIndexing.Start; i < parametersIndexing.End; i++)
+                    var parametersIndexing = source.newParameters[matchingTargetIndex];
+                    for (int i = 0; i < parametersIndexing.length; i++)
                     {
-                        var paramValue = source.parameters[i];
+                        var paramValue = source.newParameters[parametersIndexing, i];
 
                         parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
@@ -267,7 +267,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 throw new System.Exception("Unexpected state: replacement symbol size differs from expected");
             }
-            if (replacement.parameters.Length != expectedReplacementParameterLength)
+            if (replacement.newParameters.data.Length != expectedReplacementParameterLength)
             {
                 throw new System.Exception("Unexpected state: replacement paremeter size differs from expected");
             }

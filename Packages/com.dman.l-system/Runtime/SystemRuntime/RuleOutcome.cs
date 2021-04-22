@@ -27,6 +27,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public SymbolString<float> GenerateReplacement(object[] matchedParameters, Allocator allocator = Allocator.Temp)
         {
+            // TODO: less garbage
             var replacedSymbols = new int[replacementSymbols.Length];
             var replacedParams = new float[replacementSymbols.Length][];
             for (int symbolIndex = 0; symbolIndex < replacementSymbols.Length; symbolIndex++)

@@ -243,7 +243,7 @@ namespace Dman.LSystem
                 matchSingletonData = matchSingletonData,
                 totalResultSymbolCount = totalSymbolLength,
                 totalResultParameterCount = totalSymbolParameterCount,
-                sourceParameterIndexes = systemState.currentSymbols.parameterIndexes,
+                sourceParameterIndexes = systemState.currentSymbols.newParameters.indexing,
             };
             //totalSymbolLengthJob.Run();
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchJobHandle);
@@ -525,8 +525,8 @@ namespace Dman.LSystem
                 // if match is trivial, just copy the symbol over, nothing else.
                 var targetIndex = matchSingleton.replacementSymbolStartIndex;
                 targetData.symbols[targetIndex] = symbol;
-                var sourceParamIndexer = sourceData.parameterIndexes[indexInSymbols];
-                targetData.parameterIndexes[targetIndex] = new JaggedIndexing
+                var sourceParamIndexer = sourceData.newParameters[indexInSymbols];
+                var targetDataIndexer = targetData.newParameters[targetIndex] = new JaggedIndexing
                 {
                     index = matchSingleton.replacementParameterStartIndex,
                     length = sourceParamIndexer.length
@@ -535,9 +535,7 @@ namespace Dman.LSystem
                 //      a non-trivial match
                 for (int i = 0; i < sourceParamIndexer.length; i++)
                 {
-                    var sourceIndex = sourceParamIndexer.index + i;
-                    var targetParamIndex = matchSingleton.replacementParameterStartIndex + i;
-                    targetData.parameters[targetParamIndex] = sourceData.parameters[sourceIndex];
+                    targetData.newParameters[targetDataIndexer, i] = sourceData.newParameters[sourceParamIndexer, i];
                 }
                 return;
             }

@@ -39,7 +39,7 @@ public class BasicRuleTests
         //    length = 0,
         //    index = 0
         //}).ToArray();
-        var expectedTotalParamReplacement = expectedReplacement.parameters.Length;
+        var expectedTotalParamReplacement = expectedReplacement.newParameters.data.Length;
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
         var branchCache = new SymbolStringBranchingCache();
@@ -64,14 +64,14 @@ public class BasicRuleTests
         Assert.AreEqual(expectedReplacementPatternIndex, matchSingleData.selectedReplacementPattern);
         Assert.AreEqual(paramTempMemorySize, matchSingleData.matchedParametersCount);
         Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacementSymbolLength);
-        Assert.AreEqual(expectedReplacement.parameters.Length, matchSingleData.replacementParameterCount);
+        Assert.AreEqual(expectedReplacement.newParameters.data.Length, matchSingleData.replacementParameterCount);
 
         matchSingleData.replacementSymbolStartIndex = 0;
         matchSingleData.replacementParameterStartIndex = 0;
 
         using var resultSymbols = new SymbolString<float>(
                 expectedReplacement.symbols.Length,
-                expectedReplacement.parameters.Length,
+                expectedReplacement.newParameters.data.Length,
                 Allocator.Persistent);
         ruleFromString.WriteReplacementSymbols(
             globalNative,
@@ -155,7 +155,7 @@ public class BasicRuleTests
             Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
             Assert.AreEqual(0, matchSingleData.replacementParameterCount);
 
-            symbols.parameterIndexes[0] = new JaggedIndexing
+            symbols.newParameters[0] = new JaggedIndexing
             {
                 index = 0,
                 length = 1
@@ -178,8 +178,8 @@ public class BasicRuleTests
             Assert.IsFalse(preMatchSuccess);
 
 
-            symbols.parameters.Dispose();
-            symbols.parameters = new Unity.Collections.NativeArray<float>(new float[] { 1 }, Unity.Collections.Allocator.Persistent);
+            symbols.newParameters.data.Dispose();
+            symbols.newParameters.data = new Unity.Collections.NativeArray<float>(new float[] { 1 }, Unity.Collections.Allocator.Persistent);
 
             matchSingleData = new LSystemStepMatchIntermediate
             {
@@ -247,8 +247,8 @@ public class BasicRuleTests
             );
 
         Assert.AreEqual("AB", targetSymbols.ToString());
-        Assert.AreEqual(2, targetSymbols.parameterIndexes.Length);
-        Assert.AreEqual(0, targetSymbols.parameters.Length);
+        Assert.AreEqual(2, targetSymbols.newParameters.indexing.Length);
+        Assert.AreEqual(0, targetSymbols.newParameters.data.Length);
     }
     [Test]
     public void BasicRuleReplacesParameters()

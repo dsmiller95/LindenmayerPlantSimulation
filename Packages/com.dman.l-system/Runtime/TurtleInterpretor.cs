@@ -90,8 +90,8 @@ namespace Dman.LSystem
                 {
                     currentState.turtleBaseState = operation.Operate(
                         currentState.turtleBaseState,
-                        symbols.parameters,
-                        symbols.parameterIndexes[symbolIndex],
+                        symbols.newParameters.data,
+                        symbols.newParameters[symbolIndex],
                         meshInstanceTracker);
                 }
             }
