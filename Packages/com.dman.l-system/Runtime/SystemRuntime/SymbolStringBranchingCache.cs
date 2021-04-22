@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime
 {
+    // TODO: make struct, use native data structures
     public class SymbolStringBranchingCache
     {
         public static int defaultBranchOpenSymbol = '[';
@@ -72,7 +73,7 @@ namespace Dman.LSystem.SystemRuntime
             // keep count of how many more matches are required at each level of the tree.
             //  starts out as a copy of the child count array. each leaf will be at 0, and will go negative when matched.
             //var remainingMatchesAtIndexes = seriesMatch.childrenCounts.Clone() as int[];
-            var targetSymbolToMatchSymbol = MatchesAtIndexOrderingInvariant(
+            var targetSymbolToMatchSymbol = MatchesForwardsAtIndexOrderingInvariant(
                 indexInSymbolTarget,
                 seriesMatch,
                 symbolHandle,
@@ -231,7 +232,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="seriesMatch"></param>
         /// <param name="consumedTargetIndexes"></param>
         /// <returns></returns>
-        private ImmutableDictionary<int, int> MatchesAtIndexOrderingInvariant(
+        private ImmutableDictionary<int, int> MatchesForwardsAtIndexOrderingInvariant(
             int originIndexInTarget,
             SymbolSeriesMatcher seriesMatch,
             NativeArray<int> symbolHandle,

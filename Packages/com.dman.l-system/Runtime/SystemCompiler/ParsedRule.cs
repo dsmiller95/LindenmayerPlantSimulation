@@ -58,7 +58,7 @@ namespace Dman.LSystem.SystemCompiler
             var result = new List<string>();
             foreach (var targetSymbol in backwardsMatch.Append(coreSymbol).Concat(forwardsMatch))
             {
-                if (targetSymbol?.parameterLength >= 0)
+                if (targetSymbol.parameterLength >= 0)
                 {
                     result.AddRange(targetSymbol.parameterNames);
                 }

@@ -1,25 +1,26 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Dman.LSystem.SystemRuntime
 {
     /// <summary>
     /// represents a single target matcher. Used to match input symbols and input parameters
     /// </summary>
-    public class InputSymbol : System.IEquatable<InputSymbol>
+    public struct InputSymbol : System.IEquatable<InputSymbol>
     {
         public int targetSymbol { get; private set; }
-        public int parameterLength => namedParameters.Length;
+        public int parameterLength { get; private set; }
         public IEnumerable<string> parameterNames => namedParameters;
+        [NativeSetClassTypeToNullOnSchedule]
         private string[] namedParameters;
 
         public InputSymbol(int targetSymbol, IEnumerable<string> namedParams)
         {
             this.targetSymbol = targetSymbol;
             namedParameters = namedParams.ToArray();
+            parameterLength = namedParameters.Length;
         }
-
-
 
         public override string ToString()
         {
@@ -43,10 +44,7 @@ namespace Dman.LSystem.SystemRuntime
         public override int GetHashCode()
         {
             var hash = targetSymbol.GetHashCode();
-            foreach (var parameter in namedParameters)
-            {
-                hash ^= parameter.GetHashCode();
-            }
+            hash ^= parameterLength << 32;
             return hash;
         }
 

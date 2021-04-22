@@ -87,6 +87,33 @@ public class SymbolSeriesGraphTests
             );
     }
     [Test]
+    public void DepthFirstTraverseReverseOriginBranchesYieldsInCorrectOrder()
+    {
+        var seriesMatcher = SymbolSeriesMatcher.Parse("[B[E]][C]D[[E]F]");
+        seriesMatcher.ComputeGraphIndexes('[', ']');
+        Assert.AreEqual(
+            "BECDEF".Select(x => (int)x).ToArray(),
+            seriesMatcher
+            .GetDepthFirstEnumerator()
+            .Select(x => seriesMatcher.targetSymbolSeries[x].targetSymbol)
+            .Take(15) // infinite loop protection
+            .ToArray()
+            );
+
+        var dfsIterator = seriesMatcher.GetImmutableDepthFirstIterationState();
+
+        var partial = dfsIterator.TakeNNext(10).ToArray();
+        Assert.AreEqual(
+            "BECDEF".Select(x => (int)x).ToArray(),
+            partial.Select(x => seriesMatcher.targetSymbolSeries[x.currentIndex].targetSymbol).ToArray()
+            );
+        partial = partial[partial.Length - 1].TakeNPrevious(10).ToArray();
+        Assert.AreEqual(
+            "EDCEB\0".Select(x => (int)x).ToArray(),
+            partial.Select(x => x.currentIndex == -1 ? 0 : seriesMatcher.targetSymbolSeries[x.currentIndex].targetSymbol).ToArray()
+            );
+    }
+    [Test]
     public void DepthFirstTraverseForwardAndReverse()
     {
         var seriesMatcher = SymbolSeriesMatcher.Parse("A[B[C][D[E][F]][G[H][I]][J[K][L]]");

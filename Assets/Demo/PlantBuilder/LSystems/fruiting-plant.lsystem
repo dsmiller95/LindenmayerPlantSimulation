@@ -1,67 +1,80 @@
 #axiom S(0)
-#iterations 40
+#iterations 70
 
-#define terminalBudGrowth 6
+#ignore /\&^F$`@
+
+
+## first step: identify minimal match identity
+## 	contains an ID of the matched rule. which requires context matches
+##	already contains a mapping from match into symbols. used to extract parameters.
+##	can store either captured parameters directly. or matched symbol mapping. both are of unknown length 
+	
+
+## flags set based on the pollination state
+#runtime hasAnther 1
+#runtime isPollinated 0
+
+## composition definitions. define directives evaluate in-order, these directives rely on subsequent definitions to complete
+#define flowerMeshIndex (flowerColorOuterIndex + flowerColorInnerIndex * 3)
+
+## variables controlled by genes
+#define primaryBranchInternodes 7
+#define flowerFailureChance 0.25
+#define stamenSize 0.6
+## ranges from 0 to 2. 0 is least ripe, 2 is most ripe.
+#define fruitColorIndex 1
+#define flowerColorInnerIndex 1
+#define flowerColorOuterIndex 1
+#define primaryAngularSeparation 137
+
+
+## variables defined for utility
 #define shootHeight 5
-#define internodeHeight 6
-#define branchInternodes 3
+#define internodeHeight 3
 #define leafAge 3
 #define leavesPerPetiole 3
-#define petioleLeafAngularDist 110
-#define flowerAge 3
+#define petioleLeafAngularDist 50
 
-#define leafExpression [&&L][/(180)&&L]
-#define budBranchChanceFactor 0.4
-#define shootStemBranchingFactor 0.5
-#define flowerFailureChance 0.7
+#define flowerAge 7
+#define timeToFruit 10
 
 
 ## S is the Shoot symbol
-S(x) : x == 0 -> FS(x + 1)NT(-shootHeight)
+S(x) : x == 0 -> @FS(x + 1)NT(-shootHeight)
 S(x) : x < shootHeight && x > 0-> FS(x+1)
-S(x) : x == shootHeight -> []
+S(x) : x == shootHeight -> 
 
 ## T is the terminal bud
 T(x) : x < 0 -> T(x + 1)
-T(x) : x < terminalBudGrowth && x >= 0 -> I(internodeHeight)[&(60)B(x + 1)][\(180)&(60)B(x + 1)]\(137)T(x + 1)
-T(x) : x == terminalBudGrowth -> []
+T(x) : x < primaryBranchInternodes && x >= 0 -> I(internodeHeight)[&(60)B(x + 1)][\(180)&(60)B(x + 1)]\(primaryAngularSeparation)T(x + 1)
+T(x) : x >= primaryBranchInternodes -> J(internodeHeight)
 
 
 #define flowerStalkLength 6
 
 ## B is a bud off the main stem, and randomly chooses what it will become
-P(budBranchChanceFactor) | B(x) -> [^(50)V]R(x, 0)
-P(1 - budBranchChanceFactor) | B(x) -> [^(50)V]P(leavesPerPetiole)
+B(x) -> [^(50)V]petiole(leavesPerPetiole)
 
 ## V is a flowering bud
 P(flowerFailureChance) | V -> []
 P(1 - flowerFailureChance) | V -> V(flowerStalkLength)
-V(x) : x > 0 -> $(0.1)@FV(x - 1)
-V(x) : x <= 0 -> [``C(x)K(0)]
 
-#define timeToFruit 4
+        V(x) : x > 0 -> $(0.03)FV(x - 1)
+JI(a) < V(x) : x <= 0 -> C(x)[K(flowerMeshIndex, 1)][A(1)]
 
+## J is a signal which propigates from the apex, signaling flowering.
+J(x) : x > 0 -> J(x - 1)
+J(x) : x <= 0 -> J
+J ->
  
-## C is a flower controller
+## C is a fruiting controller. transitions to a fruit after waiting
 C(x) : x < timeToFruit -> C(x + 1)
-       C(x) > K(y) : x >= timeToFruit -> D(0)
-C(x) < K(y) : x >= timeToFruit ->
+C(x) : x >= timeToFruit -> [D(fruitColorIndex, 1)]
+$(y) > D(z, x) : x < fruitSize -> $(y * 1.3)
 
-#define fruiteSize 3
+#define fruitSize 5
 ## D is a fruiting body
-D(x) : x < fruiteSize -> D(x + 1)
-
-## R is a side branch terminal node.
-P(shootStemBranchingFactor) | R(x, y) : x < branchInternodes && y >= internodeHeight -> [-(75)^(20)N(x + 1)][+(75)^(20)N(x + 1)]R(x + 1, 0)
-P(1 - shootStemBranchingFactor) | R(x, y) : x < branchInternodes && y >= internodeHeight -> R(x + 1, 0)
-R(x, y) : x >= branchInternodes && y >= internodeHeight -> petiole(leavesPerPetiole)
-
-## rotate relative to world
-R(x, y) : y < internodeHeight -> $(0.02)@FR(x, y + 1)
-
-## N is a bud off the branch stem, and randomly chooses what it will become
-P(budBranchChanceFactor) | N(x) -> [^V]petiole(leavesPerPetiole)
-P(1 - budBranchChanceFactor) | N(x) -> [^V]FL
+D(y, x) : x < fruitSize -> D(y, x + 1)
 
 ## P is the petiole, x is number of leaves
 #define petiole( P(
@@ -70,11 +83,37 @@ petiole(x) : x > 0 -> L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
-I(x) : x > 0 -> I(x - 1)$(0.005)@F
+I(x) : x > 0 -> I(x - 1)$(0.003)@F
+I(x) > J     -> JI(x)
 
 ## organs
+
+#define leafExpression [&&L][/(180)&&L]
 N -> leafExpression
-L -> [`l(1, leafAge)]
-L(x) -> [`l(1, x)]
+
+## l is a leaf
+L -> [l(1, leafAge)]
+L(x) -> [l(1, x)]
 l(x, y) : x < y -> l(x + 1, y)
-K(x) : x < flowerAge -> K(x + 1)
+
+## K is a flower
+         K(y, x) : x < flowerAge -> K(y, x + 1)
+C(age) < K(y, x) : age >= timeToFruit ->
+
+## A is an anther
+         A(x) : (x < flowerAge * stamenSize) && (hasAnther > 0) -> A(x + stamenSize)
+         A(x) : hasAnther < 1 ->
+C(age) < A(y) : age >= timeToFruit ->
+
+
+
+
+
+
+
+
+
+
+
+
+

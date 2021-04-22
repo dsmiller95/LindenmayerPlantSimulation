@@ -26,6 +26,12 @@ namespace Dman.LSystem.SystemRuntime
         ///     -2 is invalid, and indicates a node with no parent.
         /// </summary>
         public int[] graphParentPointers;
+        /// <summary> 
+        /// A value for every node which has a parent, representing the position inside the parent's children array in which
+        ///     the node at that index resides
+        /// Values are undefined at indexes which have no parent (graphParentPointers[i] == -2)
+        /// </summary>
+        public int[] childIndexesInParentChildren;
         public void ComputeGraphIndexes(int branchOpen, int branchClose)
         {
             graphParentPointers = new int[targetSymbolSeries.Length];
@@ -103,6 +109,15 @@ namespace Dman.LSystem.SystemRuntime
             }
 
             graphChildPointers = childIndexes.Select(x => x.ToArray()).ToArray();
+
+            childIndexesInParentChildren = new int[graphParentPointers.Length];
+            for (int i = 0; i < graphParentPointers.Length; i++)
+            {
+                if(graphParentPointers[i] > -2)
+                {
+                    childIndexesInParentChildren[i] = this.GetCacheIndexInParentsChildren(i);
+                }
+            }
         }
 
         public IEnumerable<int> GetDepthFirstEnumerator()
@@ -117,21 +132,35 @@ namespace Dman.LSystem.SystemRuntime
 
         public DepthFirstSearchState GetImmutableDepthFirstIterationState()
         {
-            return new DepthFirstSearchState(this, -1, ImmutableStack<int>.Empty);
+            return new DepthFirstSearchState(this, -1);
+        }
+
+        private int GetCacheIndexInParentsChildren(int nodeIndex)
+        {
+            var parentIndex = graphParentPointers[nodeIndex];
+            var parentsChildren = graphChildPointers[parentIndex + 1];
+
+            // iterate through the parent's children array, till the current index is found
+            int slowerLastIndexInChildren = 0;
+            int nextIndexInChildrenMapping = nodeIndex + 1;
+            for (;
+                slowerLastIndexInChildren < parentsChildren.Length && parentsChildren[slowerLastIndexInChildren] != nextIndexInChildrenMapping;
+                slowerLastIndexInChildren++)
+            {
+            }
+
+            return slowerLastIndexInChildren;
         }
 
         public struct DepthFirstSearchState
         {
             public int currentIndex { get; private set; }
             private SymbolSeriesMatcher source;
-            private ImmutableStack<int> indexInAncestors;
 
-
-            public DepthFirstSearchState(SymbolSeriesMatcher source, int currentIndex, ImmutableStack<int> indexInAncenstors)
+            public DepthFirstSearchState(SymbolSeriesMatcher source, int currentIndex)
             {
                 this.source = source;
                 this.currentIndex = currentIndex;
-                indexInAncestors = indexInAncenstors;
             }
 
             public IEnumerable<DepthFirstSearchState> TakeNNext(int nextNum)
@@ -162,7 +191,6 @@ namespace Dman.LSystem.SystemRuntime
             public bool Next(out DepthFirstSearchState nextState)
             {
                 var nextIndex = currentIndex;
-                var nextAncestorsStack = indexInAncestors;
 
                 var children = source.graphChildPointers[nextIndex + 1];
                 var indexInChildren = 0;
@@ -170,44 +198,43 @@ namespace Dman.LSystem.SystemRuntime
 
                 while (indexInChildren >= children.Length && nextIndex >= 0)
                 {
+                    var lastIndexInChildren = source.childIndexesInParentChildren[nextIndex];
+
                     nextIndex = source.graphParentPointers[nextIndex];
                     children = source.graphChildPointers[nextIndex + 1];
-                    nextAncestorsStack = nextAncestorsStack.Pop(out var lastIndexInChildren);
                     indexInChildren = lastIndexInChildren + 1;
                 }
                 if (indexInChildren < children.Length)
                 {
-                    nextAncestorsStack = nextAncestorsStack.Push(indexInChildren);
                     nextIndex = children[indexInChildren] - 1;
-                    nextState = new DepthFirstSearchState(source, nextIndex, nextAncestorsStack);
+                    nextState = new DepthFirstSearchState(source, nextIndex);
                     return true;
                 }
                 nextState = default;
                 return false;
             }
+
             public bool Previous(out DepthFirstSearchState previousState)
             {
                 var nextNode = currentIndex;
-                var nextAncestorsStack = indexInAncestors;
-                if (nextAncestorsStack.IsEmpty)
+                if (nextNode < 0)
                 {
                     previousState = default;
                     return false;
                 }
 
-                nextAncestorsStack = nextAncestorsStack.Pop(out var currentChildIndex);
+                var currentChildIndex = source.childIndexesInParentChildren[nextNode];
                 currentChildIndex--;
                 nextNode = source.graphParentPointers[nextNode];
                 while (currentChildIndex >= 0)
                 {
                     // descend down the right-hand-side of the tree
-                    nextAncestorsStack = nextAncestorsStack.Push(currentChildIndex);
                     nextNode = source.graphChildPointers[nextNode + 1][currentChildIndex] - 1;
                     currentChildIndex = source.graphChildPointers[nextNode + 1].Length - 1;
                 }
                 if (currentChildIndex < 0)
                 {
-                    previousState = new DepthFirstSearchState(source, nextNode, nextAncestorsStack);
+                    previousState = new DepthFirstSearchState(source, nextNode);
                     return true;
                 }
 
@@ -232,7 +259,6 @@ namespace Dman.LSystem.SystemRuntime
             public void Reset()
             {
                 currentIndex = -1;
-                indexInAncestors.Clear();
             }
         }
 
