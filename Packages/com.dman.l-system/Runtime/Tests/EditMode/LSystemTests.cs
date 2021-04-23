@@ -353,6 +353,7 @@ public class LSystemTests
         Assert.AreEqual("A(3)", state.currentSymbols.ToString());
         state.currentSymbols.Dispose();
     }
+    
     [Test]
     public void LSystemSelectsStochasticRuleToApplyBasedOnConditional()
     {
@@ -566,6 +567,58 @@ public class LSystemTests
         Assert.AreEqual("3A1B213A4213A1B2424", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("3A1B213A4213542136B713A42424", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+    }
+
+    [Test]
+    public void LSystemMatchesParametricWithVariedConditionals()
+    {
+        var globalParameters = new string[] { "global" };
+
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+            "A(x, y) > B(z, a) : x <  global && y <= z -> A(x, y)",
+            "A(x, y) > B(z, a) : x <  global && y >  z -> B(x, y)",
+            "A(x, y) > B(z, a) : x >= global && y <= z -> A(z, a)",
+            "A(x, y) > B(z, a) : x >= global && y >  z -> B(z, a)",
+            "A(x)    > B(y, z) : x >= global && y <= z -> A(z, x)",
+            "A(x)    > B(y, z) : x >= global && y >  z -> B(z, x)",
+        }, globalParameters);
+
+        var defaultGlobalParams = new float[] { 3 };
+
+        LSystemState<float> state = new DefaultLSystemState("A(0, 5)B(10, 15)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(0, 5)B(10, 15)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(0, 5)B(3, 15)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("B(0, 5)B(3, 15)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(4, 5)B(10, 15)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(10, 15)B(10, 15)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(4, 5)B(3, 15)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("B(3, 15)B(3, 15)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(4)B(5, 10)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(10, 4)B(5, 10)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(4)B(10, 5)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("B(5, 4)B(10, 5)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(1)B(10, 5)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(1)B(10, 5)", state.currentSymbols.ToString());
         state.currentSymbols.Dispose();
     }
 

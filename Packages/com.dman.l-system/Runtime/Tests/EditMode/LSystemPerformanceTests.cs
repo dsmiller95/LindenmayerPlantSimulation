@@ -114,12 +114,13 @@ public class LSystemPerformanceTests
     public void TrivialSystemPerformance()
     {
         LSystemState<float> state = new DefaultLSystemState("A");
-        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-    });
+            var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+        });
+        using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+        Assert.AreEqual("A", nextState.ToString());
         Measure.Method(() =>
         {
             using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
-            Assert.AreEqual("A", nextState.ToString());
         })
             .WarmupCount(10)
             .MeasurementCount(10)
@@ -137,10 +138,11 @@ public class LSystemPerformanceTests
         "    A(x)        -> A(x)[B(1)][B(1)]",
         "    B(x)        -> B(x)A(0)",
     });
+        using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+        Assert.AreEqual("A(0)[B(1)][B(1)]", nextState.ToString());
         Measure.Method(() =>
         {
             using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
-            Assert.AreEqual("A(0)[B(1)][B(1)]", nextState.ToString());
         })
             .WarmupCount(10)
             .MeasurementCount(10)
@@ -154,18 +156,19 @@ public class LSystemPerformanceTests
     {
         LSystemState<float> state = new DefaultLSystemState("A(0)");
         var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-        "    A(x) > [B(y)][B(z)] -> A(x + y + z)",
-        "    B(x) > A(y) -> B(x + y)",
-        "    A(x)        -> A(x)[B(1)][B(1)]",
-        "    B(x)        -> B(x)A(0)",
-    });
+            "    A(x) > [B(y)][B(z)] -> A(x + y + z)",
+            "    B(x) > A(y) -> B(x + y)",
+            "    A(x)        -> A(x)[B(1)][B(1)]",
+            "    B(x)        -> B(x)A(0)",
+        });
         state = basicLSystem.StepSystem(state);
         state = basicLSystem.StepSystem(state);
+        using var lastSymbols = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+        Assert.AreEqual("A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]", lastSymbols.ToString());
         // TODO: use better methods for this. should be methods that run in the order of ms, noot seconds
         Measure.Method(() =>
         {
             using var lastSymbols = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
-            Assert.AreEqual("A(4)[B(1)A(0)[B(1)][B(1)]][B(1)A(0)[B(1)][B(1)]]", lastSymbols.ToString());
         })
             .WarmupCount(10)
             .MeasurementCount(10)
@@ -203,6 +206,34 @@ public class LSystemPerformanceTests
             state.currentSymbols.Dispose();
         }
     }
+
+    [Test, Performance]
+    public void BigParameterMultipleConditionalOptions()
+    {
+        var globalParameters = new string[] { "global" };
+        var defaultGlobalParams = new float[] { 3 };
+
+        LSystemState<float> state = new DefaultLSystemState("A(0, 5)B(10, 15)");
+        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+            "A(x, y) > B(z, a) : x <  global && y <= z -> A(x, y)",
+            "A(x, y) > B(z, a) : x <  global && y >  z -> B(x, y)",
+            "A(x, y) > B(z, a) : x >= global && y <= z -> A(z, a)",
+            "A(x, y) > B(z, a) : x >= global && y >  z -> B(z, a)",
+        }, globalParameters);
+        using var lastSymbols = basicLSystem.StepSystem(state, defaultGlobalParams, disposeOldSystem: false).currentSymbols;
+        Assert.AreEqual("A(0, 5)B(10, 15)", lastSymbols.ToString());
+        // TODO: use better methods for this. should be methods that run in the order of ms, noot seconds
+        Measure.Method(() =>
+        {
+            using var lastSymbols = basicLSystem.StepSystem(state, defaultGlobalParams, disposeOldSystem: false).currentSymbols;
+        })
+            .WarmupCount(10)
+            .MeasurementCount(10)
+            .IterationsPerMeasurement(10)
+            .GC()
+            .Run();
+    }
+
     [Test, Performance]
     public void RealSystemExampleTest()
     {
