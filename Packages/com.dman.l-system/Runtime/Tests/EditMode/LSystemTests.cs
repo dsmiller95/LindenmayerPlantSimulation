@@ -570,7 +570,6 @@ public class LSystemTests
         state.currentSymbols.Dispose();
     }
 
-    // TODO: write tests with a bunch of captured parameters, and conditional rules
     [Test]
     public void LSystemMatchesParametricWithVariedConditionals()
     {
@@ -581,6 +580,8 @@ public class LSystemTests
             "A(x, y) > B(z, a) : x <  global && y >  z -> B(x, y)",
             "A(x, y) > B(z, a) : x >= global && y <= z -> A(z, a)",
             "A(x, y) > B(z, a) : x >= global && y >  z -> B(z, a)",
+            "A(x)    > B(y, z) : x >= global && y <= z -> A(z, x)",
+            "A(x)    > B(y, z) : x >= global && y >  z -> B(z, x)",
         }, globalParameters);
 
         var defaultGlobalParams = new float[] { 3 };
@@ -603,6 +604,21 @@ public class LSystemTests
         state = new DefaultLSystemState("A(4, 5)B(3, 15)");
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
         Assert.AreEqual("B(3, 15)B(3, 15)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(4)B(5, 10)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(10, 4)B(5, 10)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(4)B(10, 5)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("B(5, 4)B(10, 5)", state.currentSymbols.ToString());
+        state.currentSymbols.Dispose();
+
+        state = new DefaultLSystemState("A(1)B(10, 5)");
+        state = basicLSystem.StepSystem(state, defaultGlobalParams);
+        Assert.AreEqual("A(1)B(10, 5)", state.currentSymbols.ToString());
         state.currentSymbols.Dispose();
     }
 
