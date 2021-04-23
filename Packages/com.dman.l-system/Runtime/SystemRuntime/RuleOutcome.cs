@@ -3,7 +3,7 @@ using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    internal struct RuleOutcome
+    public struct RuleOutcome
     {
         public double probability;
         public ReplacementSymbolGenerator[] replacementSymbols;
@@ -14,6 +14,22 @@ namespace Dman.LSystem.SystemRuntime
             probability = prob;
             replacementSymbols = replacements;
             replacementParameterCount = (ushort)replacementSymbols.Select(x => x.GeneratedParameterCount()).Sum();
+        }
+
+        public Blittable AsBlittable()
+        {
+            return new Blittable
+            {
+                probability = probability,
+                replacementSymbolSize = replacementSymbols.Length,
+                replacementParameterCount = replacementParameterCount
+            };
+        }
+        public struct Blittable
+        {
+            public double probability;
+            public int replacementSymbolSize;
+            public ushort replacementParameterCount;
         }
 
         public ushort ReplacementSymbolCount()

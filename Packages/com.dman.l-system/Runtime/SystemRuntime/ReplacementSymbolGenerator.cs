@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 namespace Dman.LSystem.SystemRuntime
 {
-    internal class ReplacementSymbolGenerator
+    public class ReplacementSymbolGenerator
     {
         public int targetSymbol;
         public Delegate[] evaluators;

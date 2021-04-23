@@ -10,10 +10,10 @@ public class SymbolSeriesGraphTests
         var seriesMatcher = SymbolSeriesMatcher.Parse("ABC");
         seriesMatcher.ComputeGraphIndexes('[', ']');
         Assert.AreEqual(4, seriesMatcher.graphChildPointers.Length);
-        Assert.AreEqual(1, seriesMatcher.graphChildPointers[0][0]);
-        Assert.AreEqual(2, seriesMatcher.graphChildPointers[1][0]);
-        Assert.AreEqual(3, seriesMatcher.graphChildPointers[2][0]);
-        Assert.AreEqual(0, seriesMatcher.graphChildPointers[3].Length);
+        Assert.AreEqual(1, seriesMatcher.graphChildPointers[0, 0]);
+        Assert.AreEqual(2, seriesMatcher.graphChildPointers[1, 0]);
+        Assert.AreEqual(3, seriesMatcher.graphChildPointers[2, 0]);
+        Assert.AreEqual(0, seriesMatcher.graphChildPointers[3].length);
     }
     [Test]
     public void ComputesGraphWithBranch()

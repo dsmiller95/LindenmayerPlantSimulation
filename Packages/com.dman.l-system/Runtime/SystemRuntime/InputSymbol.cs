@@ -7,7 +7,7 @@ namespace Dman.LSystem.SystemRuntime
     /// <summary>
     /// represents a single target matcher. Used to match input symbols and input parameters
     /// </summary>
-    public struct InputSymbol : System.IEquatable<InputSymbol>
+    public class InputSymbol : System.IEquatable<InputSymbol>
     {
         public int targetSymbol { get; private set; }
         public int parameterLength { get; private set; }
@@ -20,6 +20,22 @@ namespace Dman.LSystem.SystemRuntime
             this.targetSymbol = targetSymbol;
             namedParameters = namedParams.ToArray();
             parameterLength = namedParameters.Length;
+        }
+
+        public Blittable AsBlittable()
+        {
+            return new Blittable(targetSymbol, parameterLength);
+        }
+
+        public struct Blittable
+        {
+            public int targetSymbol { get; private set; }
+            public int parameterLength { get; private set; }
+            public Blittable(int targetSymbol, int parameterLength)
+            {
+                this.targetSymbol = targetSymbol;
+                this.parameterLength = parameterLength;
+            }
         }
 
         public override string ToString()

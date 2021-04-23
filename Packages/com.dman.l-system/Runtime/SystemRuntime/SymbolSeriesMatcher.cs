@@ -1,16 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public class SymbolSeriesMatcher
+    public struct SymbolSeriesMatcher: IDisposable
     {
-        public InputSymbol[] targetSymbolSeries;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<InputSymbol.Blittable> targetSymbolSeries;
 
         public SymbolSeriesMatcher(InputSymbol[] matchingSeries)
         {
-            this.targetSymbolSeries = matchingSeries;
+            this.targetSymbolSeries = new NativeArray<InputSymbol.Blittable>(
+                matchingSeries
+                    .Select(x => x.AsBlittable())
+                    .ToArray(),
+                Allocator.Persistent);
+            graphChildPointers = default;
+            childrenCounts = default;
+            graphParentPointers = default;
+            childIndexesInParentChildren = default;
+            IsCreated = true;
+            HasGraphIndexes = false;
         }
 
         /// <summary>
@@ -19,23 +33,36 @@ namespace Dman.LSystem.SystemRuntime
         ///     This array is shifted behind targetSymbolSeries by one. meaning that <see cref="graphChildPointers"/>[1]
         ///     refers to symbol <see cref="targetSymbolSeries"/>[0]
         /// </summary>
-        public int[][] graphChildPointers;
-        public int[] childrenCounts;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public JaggedNativeArray<int> graphChildPointers;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> childrenCounts;
         /// <summary> 
         /// Indexes of parents. -1 is valid, indicating the parent is the entry point to the graph.
         ///     -2 is invalid, and indicates a node with no parent.
         /// </summary>
-        public int[] graphParentPointers;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> graphParentPointers;
         /// <summary> 
         /// A value for every node which has a parent, representing the position inside the parent's children array in which
         ///     the node at that index resides
         /// Values are undefined at indexes which have no parent (graphParentPointers[i] == -2)
         /// </summary>
-        public int[] childIndexesInParentChildren;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> childIndexesInParentChildren;
+
+
+        public bool IsCreated { get; private set; }
+        public bool HasGraphIndexes { get; private set; }
+
         public void ComputeGraphIndexes(int branchOpen, int branchClose)
         {
-            graphParentPointers = new int[targetSymbolSeries.Length];
-            childrenCounts = new int[targetSymbolSeries.Length];
+            graphParentPointers = new NativeArray<int>(targetSymbolSeries.Length, Allocator.Persistent);
+            childrenCounts = new NativeArray<int>(targetSymbolSeries.Length, Allocator.Persistent);
             var parentIndexStack = new Stack<int>();
             parentIndexStack.Push(-1);
             for (int indexInSymbols = 0; indexInSymbols < targetSymbolSeries.Length; indexInSymbols++)
@@ -108,9 +135,9 @@ namespace Dman.LSystem.SystemRuntime
                 }
             }
 
-            graphChildPointers = childIndexes.Select(x => x.ToArray()).ToArray();
+            graphChildPointers = new JaggedNativeArray<int>(childIndexes.Select(x => x.ToArray()).ToArray(), Allocator.Persistent);
 
-            childIndexesInParentChildren = new int[graphParentPointers.Length];
+            childIndexesInParentChildren = new NativeArray<int>(graphParentPointers.Length, Allocator.Persistent);
             for (int i = 0; i < graphParentPointers.Length; i++)
             {
                 if(graphParentPointers[i] > -2)
@@ -118,6 +145,7 @@ namespace Dman.LSystem.SystemRuntime
                     childIndexesInParentChildren[i] = this.GetCacheIndexInParentsChildren(i);
                 }
             }
+            HasGraphIndexes = true;
         }
 
         public IEnumerable<int> GetDepthFirstEnumerator()
@@ -144,7 +172,7 @@ namespace Dman.LSystem.SystemRuntime
             int slowerLastIndexInChildren = 0;
             int nextIndexInChildrenMapping = nodeIndex + 1;
             for (;
-                slowerLastIndexInChildren < parentsChildren.Length && parentsChildren[slowerLastIndexInChildren] != nextIndexInChildrenMapping;
+                slowerLastIndexInChildren < parentsChildren.length && graphChildPointers[parentsChildren, slowerLastIndexInChildren] != nextIndexInChildrenMapping;
                 slowerLastIndexInChildren++)
             {
             }
@@ -196,7 +224,7 @@ namespace Dman.LSystem.SystemRuntime
                 var indexInChildren = 0;
 
 
-                while (indexInChildren >= children.Length && nextIndex >= 0)
+                while (indexInChildren >= children.length && nextIndex >= 0)
                 {
                     var lastIndexInChildren = source.childIndexesInParentChildren[nextIndex];
 
@@ -204,9 +232,9 @@ namespace Dman.LSystem.SystemRuntime
                     children = source.graphChildPointers[nextIndex + 1];
                     indexInChildren = lastIndexInChildren + 1;
                 }
-                if (indexInChildren < children.Length)
+                if (indexInChildren < children.length)
                 {
-                    nextIndex = children[indexInChildren] - 1;
+                    nextIndex = source.graphChildPointers[children, indexInChildren] - 1;
                     nextState = new DepthFirstSearchState(source, nextIndex);
                     return true;
                 }
@@ -229,8 +257,8 @@ namespace Dman.LSystem.SystemRuntime
                 while (currentChildIndex >= 0)
                 {
                     // descend down the right-hand-side of the tree
-                    nextNode = source.graphChildPointers[nextNode + 1][currentChildIndex] - 1;
-                    currentChildIndex = source.graphChildPointers[nextNode + 1].Length - 1;
+                    nextNode = source.graphChildPointers[nextNode + 1, currentChildIndex] - 1;
+                    currentChildIndex = source.graphChildPointers[nextNode + 1].length - 1;
                 }
                 if (currentChildIndex < 0)
                 {
@@ -266,5 +294,14 @@ namespace Dman.LSystem.SystemRuntime
         {
             return new SymbolSeriesMatcher(InputSymbolParser.ParseInputSymbols(symbolString));
         }
+        public void Dispose()
+        {
+            this.targetSymbolSeries.Dispose();
+            this.graphChildPointers.Dispose();
+            this.childrenCounts.Dispose();
+            this.graphParentPointers.Dispose();
+            this.childIndexesInParentChildren.Dispose();
+        }
+
     }
 }

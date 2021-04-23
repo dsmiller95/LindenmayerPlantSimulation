@@ -45,10 +45,10 @@ public class BasicRuleTests
         var branchCache = new SymbolStringBranchingCache();
         branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
         var random = new Unity.Mathematics.Random();
-        var matchSingleData = new LSystemStepMatchIntermediate
+        var matchSingleData = new LSystemSingleSymbolMatchData
         {
             isTrivial = false,
-            parametersStartIndex = ruleParamMemoryStartIndex
+            tmpParameterMatchStartIndex = ruleParamMemoryStartIndex
         };
 
         var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
@@ -62,7 +62,7 @@ public class BasicRuleTests
             );
         Assert.IsTrue(preMatchSuccess);
         Assert.AreEqual(expectedReplacementPatternIndex, matchSingleData.selectedReplacementPattern);
-        Assert.AreEqual(paramTempMemorySize, matchSingleData.matchedParametersCount);
+        Assert.AreEqual(paramTempMemorySize, matchSingleData.tmpParameterMatchedCount, "parameter temp memory size mismatch");
         Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacementSymbolLength);
         Assert.AreEqual(expectedReplacement.newParameters.data.Length, matchSingleData.replacementParameterCount);
 
@@ -103,10 +103,10 @@ public class BasicRuleTests
         var branchCache = new SymbolStringBranchingCache();
         branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
         var random = new Unity.Mathematics.Random();
-        var matchSingleData = new LSystemStepMatchIntermediate
+        var matchSingleData = new LSystemSingleSymbolMatchData
         {
             isTrivial = false,
-            parametersStartIndex = ruleParamMemoryStartIndex
+            tmpParameterMatchStartIndex = ruleParamMemoryStartIndex
         };
 
         var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
@@ -134,10 +134,10 @@ public class BasicRuleTests
             var branchCache = new SymbolStringBranchingCache();
             branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
             var random = new Unity.Mathematics.Random();
-            var matchSingleData = new LSystemStepMatchIntermediate
+            var matchSingleData = new LSystemSingleSymbolMatchData
             {
                 isTrivial = false,
-                parametersStartIndex = 0
+                tmpParameterMatchStartIndex = 0
             };
 
             var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
@@ -151,7 +151,7 @@ public class BasicRuleTests
                 );
             Assert.IsTrue(preMatchSuccess);
             Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
-            Assert.AreEqual(0, matchSingleData.matchedParametersCount);
+            Assert.AreEqual(0, matchSingleData.tmpParameterMatchedCount);
             Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
             Assert.AreEqual(0, matchSingleData.replacementParameterCount);
 
@@ -161,10 +161,10 @@ public class BasicRuleTests
                 length = 1
             };
 
-            matchSingleData = new LSystemStepMatchIntermediate
+            matchSingleData = new LSystemSingleSymbolMatchData
             {
                 isTrivial = false,
-                parametersStartIndex = 0
+                tmpParameterMatchStartIndex = 0
             };
             preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
                 branchCache,
@@ -181,10 +181,10 @@ public class BasicRuleTests
             symbols.newParameters.data.Dispose();
             symbols.newParameters.data = new Unity.Collections.NativeArray<float>(new float[] { 1 }, Unity.Collections.Allocator.Persistent);
 
-            matchSingleData = new LSystemStepMatchIntermediate
+            matchSingleData = new LSystemSingleSymbolMatchData
             {
                 isTrivial = false,
-                parametersStartIndex = 0
+                tmpParameterMatchStartIndex = 0
             };
             preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
                 branchCache,
@@ -213,10 +213,10 @@ public class BasicRuleTests
         var branchCache = new SymbolStringBranchingCache();
         branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
         var random = new Unity.Mathematics.Random();
-        var matchSingleData = new LSystemStepMatchIntermediate
+        var matchSingleData = new LSystemSingleSymbolMatchData
         {
             isTrivial = false,
-            parametersStartIndex = 0
+            tmpParameterMatchStartIndex = 0
         };
 
         var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
@@ -230,7 +230,7 @@ public class BasicRuleTests
             );
         Assert.IsTrue(preMatchSuccess);
         Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
-        Assert.AreEqual(0, matchSingleData.matchedParametersCount);
+        Assert.AreEqual(0, matchSingleData.tmpParameterMatchedCount);
         Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
         Assert.AreEqual(0, matchSingleData.replacementParameterCount);
 

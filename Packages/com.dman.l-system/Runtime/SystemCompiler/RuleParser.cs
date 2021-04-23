@@ -124,7 +124,7 @@ namespace Dman.LSystem.SystemCompiler
         }
 
 
-        public static IEnumerable<IRule<float>> CompileRules(IEnumerable<string> ruleStrings, string[] globalParameters = null)
+        public static IEnumerable<BasicRule> CompileRules(IEnumerable<string> ruleStrings, string[] globalParameters = null)
         {
             var parsedRules = ruleStrings
                 .Select(x => ParseToRule(x, globalParameters))

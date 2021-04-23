@@ -51,7 +51,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public int Length => indexing.Length;
 
-
+        public bool IsCreated => data.IsCreated && indexing.IsCreated;
         public JaggedIndexing this[int index]
         {
             get

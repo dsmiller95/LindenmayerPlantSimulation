@@ -63,10 +63,10 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<int> symbolHandle,
             NativeArray<JaggedIndexing> parameterIndexingHandle)
         {
-            if (seriesMatch.graphChildPointers == null)
+            if (!seriesMatch.HasGraphIndexes)
             {
                 // this should be done in the parsing/compiling phase. should only have to happen once for the whole system, per matching rule.
-                throw new System.Exception("graph indexes should be precomputer");
+                throw new System.Exception("graph indexes should be precomputed");
                 //seriesMatch.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
             }
 

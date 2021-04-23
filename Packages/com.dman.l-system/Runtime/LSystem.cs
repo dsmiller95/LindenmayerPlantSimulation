@@ -58,7 +58,7 @@ namespace Dman.LSystem
         /// structured data to store rules, in order of precidence, as follows:
         ///     first, order by size of the TargetSymbolSeries. Patterns which match more symbols always take precidence over patterns which match less symbols
         /// </summary>
-        private IDictionary<int, IList<IRule<float>>> rulesByTargetSymbol;
+        private IDictionary<int, IList<BasicRule>> rulesByTargetSymbol;
         /// <summary>
         /// Stores the maximum number of parameters that can be captured by each symbol
         /// </summary>
@@ -82,7 +82,7 @@ namespace Dman.LSystem
         public ISet<int> ignoredCharacters;
 
         public LSystem(
-            IEnumerable<IRule<float>> rules,
+            IEnumerable<BasicRule> rules,
             int expectedGlobalParameters = 0,
             int branchOpenSymbol = '[',
             int branchCloseSymbol = ']',
@@ -93,21 +93,23 @@ namespace Dman.LSystem
             this.branchCloseSymbol = branchCloseSymbol;
             this.ignoredCharacters = ignoredCharacters == null ? new HashSet<int>() : ignoredCharacters;
 
-            rulesByTargetSymbol = new Dictionary<int, IList<IRule<float>>>();
+            rulesByTargetSymbol = new Dictionary<int, IList<BasicRule>>();
             maxParameterCapturePerSymbol = new Dictionary<int, int>();
             foreach (var rule in rules)
             {
                 var targetSymbols = rule.TargetSymbol;
                 if (!rulesByTargetSymbol.TryGetValue(targetSymbols, out var ruleList))
                 {
-                    rulesByTargetSymbol[targetSymbols] = ruleList = new List<IRule<float>>();
+                    rulesByTargetSymbol[targetSymbols] = ruleList = new List<BasicRule>();
                 }
                 ruleList.Add(rule);
             }
             foreach (var symbol in rulesByTargetSymbol.Keys.ToList())
             {
                 rulesByTargetSymbol[symbol] = rulesByTargetSymbol[symbol]
-                    .OrderByDescending(x => (x.ContextPrefix?.targetSymbolSeries?.Length ?? 0) + (x.ContextSuffix?.targetSymbolSeries?.Length ?? 0))
+                    .OrderByDescending(x => 
+                        (x.ContextPrefix.IsCreated ? x.ContextPrefix.targetSymbolSeries.Length : 0) +
+                        (x.ContextSuffix.IsCreated ? x.ContextSuffix.targetSymbolSeries.Length : 0))
                     .ToList();
                 var maxParamsAtSymbool = rulesByTargetSymbol[symbol].Max(x => x.CapturedLocalParameterCount);
                 if (maxParamsAtSymbool > byte.MaxValue)
@@ -135,9 +137,15 @@ namespace Dman.LSystem
         /// <summary>
         /// Step the given <paramref name="systemState"/>. returning the new system state. No modifications are made the the system sate
         /// Rough system step process:
-        ///     1. iterate through the current system state, retrieving the maximum # of parameters needed for each symbol.
+        ///     1. iterate through the current system state, retrieving the maximum # of parameters that can be captured for each symbol.
+        ///         Track symbols with conditionals seperately. during the match phase, every rule which is a conditional will match if possible
+        ///         and if no higher-ranking rule has matched yet.
         ///     2. allocate memory to store any parameters captured during the symbol matching process, based on the sum of the counts from #1
-        ///     3. batch process the symbols in parallel, each symbol writing an identifier of the specific rule which was matched and all the captured local parameters
+        ///     3. batch process each potential match, and each possible conditional. stop processing rules for a specific symbol once any non-conditional
+        ///         rule matches. write all matched parameters for every matched rule into temporary parameter memory space.
+        ///         TODO: will have to store the "range" of rules which have matched. it is gauranteed to be contiguous. For this reason, delay stochastic selection
+        ///         until later, to avoid storing any extra per-rule data
+        ///     4. batch process the symbols in parallel, each symbol writing an identifier of the specific rule which was matched and all the captured local parameters
         ///         into pre-allocated memory. Also write the size of the replacement symbols to memory. Stochastic rule selection does happen in this step,
         ///         since stochastic rules in a set may have different replacement symbol sizes
         ///     4. Sum up the new symbol string length, and allocate memory for it.
@@ -163,14 +171,14 @@ namespace Dman.LSystem
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
-            var matchSingletonData = new NativeArray<LSystemStepMatchIntermediate>(systemState.currentSymbols.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var parameterTotalSum = 0;
             for (int i = 0; i < systemState.currentSymbols.Length; i++)
             {
                 var symbol = systemState.currentSymbols[i];
-                var matchData = new LSystemStepMatchIntermediate()
+                var matchData = new LSystemSingleSymbolMatchData()
                 {
-                    parametersStartIndex = parameterTotalSum
+                    tmpParameterMatchStartIndex = parameterTotalSum
                 };
                 if (maxParameterCapturePerSymbol.TryGetValue(symbol, out var maxParameterCount))
                 {
@@ -180,7 +188,7 @@ namespace Dman.LSystem
                 else
                 {
                     matchData.isTrivial = true;
-                    matchData.matchedParametersCount = 0;
+                    matchData.tmpParameterMatchedCount = 0;
                 }
                 matchSingletonData[i] = matchData;
             }
@@ -278,7 +286,7 @@ namespace Dman.LSystem
     {
         public SymbolStringBranchingCache branchingCache;
         public SymbolString<float> sourceSymbolString;
-        public IDictionary<int, IList<IRule<float>>> rulesByTargetSymbol;
+        public IDictionary<int, IList<BasicRule>> rulesByTargetSymbol;
         public Unity.Mathematics.Random randResult;
 
         /// <summary>
@@ -294,7 +302,7 @@ namespace Dman.LSystem
 
         private SymbolString<float> target;
 
-        public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
+        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
         public NativeArray<float> parameterMemory;
         public NativeArray<float> globalParamNative;
         public GCHandle tempStateHandle; // LSystemSteppingState. self
@@ -389,11 +397,70 @@ namespace Dman.LSystem
         }
     }
 
+    //public struct RulePrematchJob: IJobParallelFor
+    //{
+    //    public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
+    //    public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
+    //    [ReadOnly]
+    //    [NativeDisableParallelForRestriction]
+    //    public SymbolString<float> sourceData;
+    //    [NativeDisableParallelForRestriction]
+    //    public NativeArray<float> parameterMatchMemory;
+    //    public void Execute(int indexInSymbols)
+    //    {
+    //        var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
+    //        var matchSingleton = matchSingletonData[indexInSymbols];
+
+    //        var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
+    //        var symbol = sourceData.symbols[indexInSymbols];
+
+    //        if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
+    //        {
+    //            matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_MATCH_TIME;
+    //            matchSingletonData[indexInSymbols] = matchSingleton;
+    //            return;
+    //        }
+    //        var blittableRules = ruleList.Select(x => x.AsBlittable()).ToArray();
+    //        var branchingCache = tmpSteppingState.branchingCache;
+    //        var rnd = LSystem.RandomFromIndexAndSeed(((uint)indexInSymbols) + 1, seed);
+    //        var ruleMatched = false;
+    //        for (byte i = 0; i < blittableRules.Length; i++)
+    //        {
+    //            var rule = blittableRules[i];
+    //            var success = rule.PreMatchCapturedParametersWithoutConditional(
+    //                branchingCache,
+    //                sourceData,
+    //                indexInSymbols,
+    //                parameterMatchMemory
+    //                )
+    //            var success = rule.PreMatchCapturedParameters(
+    //                branchingCache,
+    //                sourceData,
+    //                indexInSymbols,
+    //                globalParametersArray,
+    //                parameterMatchMemory,
+    //                ref rnd,
+    //                ref matchSingleton);
+    //            if (success)
+    //            {
+    //                matchSingleton.matchedRuleIndexInPossible = i;
+    //                ruleMatched = true;
+    //                break;
+    //            }
+    //        }
+    //        if (ruleMatched == false)
+    //        {
+    //            matchSingleton.isTrivial = true;
+    //        }
+    //        matchSingletonData[indexInSymbols] = matchSingleton;
+    //    }
+    //}
+
     public struct RuleMatchJob : IJobParallelFor
     {
         public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
 
-        public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
+        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
         [NativeDisableParallelForRestriction]
         public NativeArray<float> parameterMatchMemory;
@@ -461,7 +528,7 @@ namespace Dman.LSystem
     [BurstCompile]
     public struct RuleReplacementSizeJob : IJob
     {
-        public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
+        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
         public NativeArray<int> totalResultSymbolCount;
         public NativeArray<int> totalResultParameterCount;
 
@@ -505,7 +572,7 @@ namespace Dman.LSystem
         [NativeDisableParallelForRestriction]
         public NativeArray<float> parameterMatchMemory;
         [DeallocateOnJobCompletion]
-        public NativeArray<LSystemStepMatchIntermediate> matchSingletonData;
+        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
         [ReadOnly]
         [NativeDisableParallelForRestriction]

@@ -7,7 +7,7 @@ using Unity.Mathematics;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    internal class BasicRule : IRule<float>
+    public class BasicRule
     {
         /// <summary>
         /// the symbol which this rule will replace. Apply rule will only ever be called with this symbol.
@@ -34,8 +34,10 @@ namespace Dman.LSystem.SystemRuntime
 
             conditionalChecker = parsedInfo.conditionalMatch;
             ContextPrefix = new SymbolSeriesMatcher(parsedInfo.backwardsMatch);
-            ContextSuffix = new SymbolSeriesMatcher(parsedInfo.forwardsMatch);
-            ContextSuffix.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
+            var suffix = new SymbolSeriesMatcher(parsedInfo.forwardsMatch);
+            // property getters do weird things when they are backing structs
+            suffix.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
+            ContextSuffix = suffix;
 
             CapturedLocalParameterCount = _targetSymbolWithParameters.parameterLength +
                 ContextPrefix.targetSymbolSeries.Sum(x => x.parameterLength) +
@@ -58,32 +60,157 @@ namespace Dman.LSystem.SystemRuntime
 
             conditionalChecker = firstOutcome.conditionalMatch;
             ContextPrefix = new SymbolSeriesMatcher(firstOutcome.backwardsMatch);
-            ContextSuffix = new SymbolSeriesMatcher(firstOutcome.forwardsMatch);
-            ContextSuffix.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
+            var suffix = new SymbolSeriesMatcher(firstOutcome.forwardsMatch);
+            // property getters do weird things when they are backing structs
+            suffix.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
+            ContextSuffix = suffix;
 
             CapturedLocalParameterCount = _targetSymbolWithParameters.parameterLength +
                 ContextPrefix.targetSymbolSeries.Sum(x => x.parameterLength) +
                 ContextSuffix.targetSymbolSeries.Sum(x => x.parameterLength);
         }
 
-        private RuleOutcome SelectOutcome(ref Unity.Mathematics.Random rand)
-        {
-            if (possibleOutcomes.Length > 1)
-            {
-                var sample = rand.NextDouble();
-                double currentPartition = 0;
-                foreach (var possibleOutcome in possibleOutcomes)
-                {
-                    currentPartition += possibleOutcome.probability;
-                    if (sample <= currentPartition)
-                    {
-                        return possibleOutcome;
-                    }
-                }
-                throw new LSystemRuntimeException("possible outcome probabilities do not sum to 1");
-            }
-            return possibleOutcomes[0];
-        }
+        //public Blittable AsBlittable()
+        //{
+        //    return new Blittable
+        //    {
+        //        contextPrefix = ContextPrefix,
+        //        contextSuffix = ContextSuffix,
+        //        targetSymbolWithParameters = _targetSymbolWithParameters.AsBlittable(),
+        //        capturedLocalParameterCount = CapturedLocalParameterCount,
+        //        possibleOutcomes = possibleOutcomes.Select(x => x.AsBlittable()).ToArray(),
+        //        hasConditional = conditionalChecker != null
+        //    };
+        //}
+
+        //public struct Blittable
+        //{
+        //    public SymbolSeriesMatcher contextPrefix;
+        //    public SymbolSeriesMatcher contextSuffix;
+        //    public InputSymbol.Blittable targetSymbolWithParameters;
+        //    public int capturedLocalParameterCount;
+        //    public RuleOutcome.Blittable[] possibleOutcomes;
+        //    public bool hasConditional;
+
+        //    private byte SelectOutcomeIndex(ref Unity.Mathematics.Random rand)
+        //    {
+        //        if (possibleOutcomes.Length > 1)
+        //        {
+        //            var sample = rand.NextDouble();
+        //            double currentPartition = 0;
+        //            for (byte i = 0; i < possibleOutcomes.Length; i++)
+        //            {
+        //                var possibleOutcome = possibleOutcomes[i];
+        //                currentPartition += possibleOutcome.probability;
+        //                if (sample <= currentPartition)
+        //                {
+        //                    return i;
+        //                }
+        //            }
+        //            throw new LSystemRuntimeException("possible outcome probabilities do not sum to 1");
+        //        }
+        //        return 0;
+        //    }
+
+        //    public bool PreMatchCapturedParametersWithoutConditional(
+        //        SymbolStringBranchingCache branchingCache,
+        //        SymbolString<float> source,
+        //        int indexInSymbols,
+        //        NativeArray<float> parameterMemory,
+        //        ref LSystemSingleSymbolMatchData matchSingletonData)
+        //    {
+        //        var target = targetSymbolWithParameters;
+
+        //        var parameterStartIndex = matchSingletonData.tmpParameterMatchStartIndex;
+
+        //        // parameters
+        //        byte matchedParameterNum = 0;
+
+        //        // context match
+        //        if (contextPrefix.IsCreated && contextPrefix.targetSymbolSeries.Length > 0)
+        //        {
+        //            var backwardMatchMapping = branchingCache.MatchesBackwards(
+        //                indexInSymbols,
+        //                contextPrefix,
+        //                source.symbols,
+        //                source.newParameters.indexing
+        //                );
+        //            if (backwardMatchMapping == null)
+        //            {
+        //                // if backwards match exists, and does not match, then fail this match attempt.
+        //                return false;
+        //            }
+        //            for (int indexInPrefix = 0; indexInPrefix < contextPrefix.targetSymbolSeries.Length; indexInPrefix++)
+        //            {
+        //                if (!backwardMatchMapping.TryGetValue(indexInPrefix, out var matchingTargetIndex))
+        //                {
+        //                    continue;
+        //                }
+        //                var parametersIndexing = source.newParameters[matchingTargetIndex];
+        //                for (int i = 0; i < parametersIndexing.length; i++)
+        //                {
+        //                    var paramValue = source.newParameters[parametersIndexing, i];
+
+        //                    parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
+        //                    matchedParameterNum++;
+        //                }
+        //            }
+        //        }
+
+        //        var coreParametersIndexing = source.newParameters[indexInSymbols];
+        //        if (coreParametersIndexing.length != target.parameterLength)
+        //        {
+        //            return false;
+        //        }
+        //        if (coreParametersIndexing.length > 0)
+        //        {
+        //            for (int i = 0; i < coreParametersIndexing.length; i++)
+        //            {
+        //                var paramValue = source.newParameters[coreParametersIndexing, i];
+
+        //                parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
+        //                matchedParameterNum++;
+        //            }
+        //        }
+
+        //        if (contextSuffix.IsCreated && contextSuffix.targetSymbolSeries.Length > 0)
+        //        {
+        //            var forwardMatch = branchingCache.MatchesForward(
+        //                indexInSymbols,
+        //                contextSuffix,
+        //                source.symbols,
+        //                source.newParameters.indexing);
+        //            if (forwardMatch == null)
+        //            {
+        //                // if forwards match exists, and does not match, then fail this match attempt.
+        //                return false;
+        //            }
+        //            for (int indexInSuffix = 0; indexInSuffix < contextSuffix.targetSymbolSeries.Length; indexInSuffix++)
+        //            {
+        //                if (!forwardMatch.TryGetValue(indexInSuffix, out var matchingTargetIndex))
+        //                {
+        //                    continue;
+        //                }
+
+        //                var parametersIndexing = source.newParameters[matchingTargetIndex];
+        //                for (int i = 0; i < parametersIndexing.length; i++)
+        //                {
+        //                    var paramValue = source.newParameters[parametersIndexing, i];
+
+        //                    parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
+        //                    matchedParameterNum++;
+        //                }
+        //            }
+        //        }
+
+        //        // stochastic selection
+        //        matchSingletonData.tmpParameterMatchedCount = matchedParameterNum;
+        //        matchSingletonData.replacementSymbolLength = (ushort)outcomeObject.replacementSymbolSize;
+        //        matchSingletonData.replacementParameterCount = outcomeObject.replacementParameterCount;
+
+        //        return true;
+        //    }
+        //}
 
         public bool PreMatchCapturedParameters(
             SymbolStringBranchingCache branchingCache,
@@ -92,17 +219,17 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<float> globalParameters,
             NativeArray<float> parameterMemory,
             ref Unity.Mathematics.Random random,
-            ref LSystemStepMatchIntermediate matchSingletonData)
+            ref LSystemSingleSymbolMatchData matchSingletonData)
         {
             var target = _targetSymbolWithParameters;
 
-            var parameterStartIndex = matchSingletonData.parametersStartIndex;
+            var parameterStartIndex = matchSingletonData.tmpParameterMatchStartIndex;
 
             // parameters
             byte matchedParameterNum = 0;
 
             // context match
-            if (ContextPrefix != null && ContextPrefix.targetSymbolSeries?.Length > 0)
+            if (ContextPrefix.IsCreated && ContextPrefix.targetSymbolSeries.Length > 0)
             {
                 var backwardMatchMapping = branchingCache.MatchesBackwards(
                     indexInSymbols,
@@ -149,7 +276,7 @@ namespace Dman.LSystem.SystemRuntime
                 }
             }
 
-            if (ContextSuffix != null && ContextSuffix.targetSymbolSeries?.Length > 0)
+            if (ContextSuffix.IsCreated && ContextSuffix.targetSymbolSeries.Length > 0)
             {
                 var forwardMatch = branchingCache.MatchesForward(
                     indexInSymbols,
@@ -207,7 +334,7 @@ namespace Dman.LSystem.SystemRuntime
             // stochastic selection
             matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random);
             var outcomeObject = possibleOutcomes[matchSingletonData.selectedReplacementPattern];
-            matchSingletonData.matchedParametersCount = matchedParameterNum;
+            matchSingletonData.tmpParameterMatchedCount = matchedParameterNum;
 
             matchSingletonData.replacementSymbolLength = outcomeObject.ReplacementSymbolCount();
             matchSingletonData.replacementParameterCount = outcomeObject.ReplacementParameterCount();
@@ -238,12 +365,12 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<float> globalParameters,
             NativeArray<float> paramTempMemorySpace,
             SymbolString<float> target,
-            LSystemStepMatchIntermediate matchSingletonData)
+            LSystemSingleSymbolMatchData matchSingletonData)
         {
             var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
 
-            var indexInMatchedParameters = matchSingletonData.parametersStartIndex;
-            var totalMatchedParameters = matchSingletonData.matchedParametersCount;
+            var indexInMatchedParameters = matchSingletonData.tmpParameterMatchStartIndex;
+            var totalMatchedParameters = matchSingletonData.tmpParameterMatchedCount;
 
             var indexInReplacementSymbols = matchSingletonData.replacementSymbolStartIndex;
             var expectedReplacementSymbolLength = matchSingletonData.replacementSymbolLength;
