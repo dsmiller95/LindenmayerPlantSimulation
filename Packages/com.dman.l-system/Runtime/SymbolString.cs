@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Dman.LSystem.SystemRuntime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Unity.Collections;
 
-namespace Dman.LSystem.SystemRuntime
+namespace Dman.LSystem
 {
 
     public struct SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>, ISymbolString, IDisposable where ParamType: unmanaged

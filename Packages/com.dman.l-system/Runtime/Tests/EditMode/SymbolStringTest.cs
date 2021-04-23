@@ -1,4 +1,4 @@
-using Dman.LSystem.SystemRuntime;
+using Dman.LSystem;
 using NUnit.Framework;
 
 public class SymbolStringTest

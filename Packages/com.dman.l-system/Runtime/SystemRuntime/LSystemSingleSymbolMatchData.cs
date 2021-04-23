@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LSystem.Runtime.SystemRuntime
+namespace Dman.LSystem.SystemRuntime
 {
     public struct LSystemSingleSymbolMatchData
     {

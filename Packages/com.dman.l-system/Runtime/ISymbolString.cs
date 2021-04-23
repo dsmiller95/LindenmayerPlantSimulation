@@ -1,4 +1,4 @@
-﻿namespace Dman.LSystem.SystemRuntime
+﻿namespace Dman.LSystem
 {
     public interface ISymbolString
     {
