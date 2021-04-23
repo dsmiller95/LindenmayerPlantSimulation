@@ -136,10 +136,30 @@ namespace Dman.LSystem.SystemRuntime
 
     public struct JaggedIndexing : IEquatable<JaggedIndexing>
     {
+        /// <summary>
+        /// -1 is used for invalid/not populated
+        /// </summary>
         public int index;
         public ushort length;
         public int Start => index;
         public int End => index + length;
+
+        public static JaggedIndexing GetWithNoLength(int index)
+        {
+            return new JaggedIndexing
+            {
+                index = index,
+                length = 0
+            };
+        }
+        public static JaggedIndexing GetWithOnlyLength(ushort length)
+        {
+            return new JaggedIndexing
+            {
+                index = -1,
+                length = length
+            };
+        }
 
         public T GetValue<T>(NativeArray<T> array, ushort indexInSelf) where T: unmanaged
         {

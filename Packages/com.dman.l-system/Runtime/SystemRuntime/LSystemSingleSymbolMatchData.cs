@@ -9,53 +9,80 @@ namespace LSystem.Runtime.SystemRuntime
 {
     public struct LSystemSingleSymbolMatchData
     {
+        ////// #1 memory allocation step //////
 
-        ////// Possible match step //////
+        /// <summary>
+        /// Indexing inside the captured parameter memory
+        /// step #1 will populate the index in such a way that
+        ///     reserves enough space for the largest possible allocation.
+        /// Step #3 will modify the index and true size based on the specific match which is selected
+        /// </summary>
+        public JaggedIndexing tmpParameterMemorySpace;
+        /// <summary>
+        /// indexing inside the possible match memory
+        /// step #1 will populate the index in such a way that
+        ///     reserves enough space for the largest possible allocation.
+        /// Step #2 will populate the true length of the range, as it matches all possible matches based
+        ///     on context, ignoring conditionals
+        /// </summary>
+        public JaggedIndexing possibleMatchSpace;
 
         /// <summary>
         /// Set to true if there are no rules which apply to this symbol.
         ///     Used to save time when batching over this symbol later on
+        /// Can be set to true at several points through the batching process, at any point where
+        ///     it is determined that there remain no rules which match this symbol
         /// </summary>
         public bool isTrivial;
 
-        public int tmpParameterMatchStartIndex;
-        public byte tmpParameterMatchedCount;
+        ////// #2 finding all potential match step //////
+
         /// <summary>
         /// the index of the rule inside the structured L-system rule structure,
-        ///     after indexing by the symbol
+        ///     after indexing by the symbol.
+        ///     populated by step #3, and used to represent the index of the rule selected as the True Match
         /// </summary>
         public byte matchedRuleIndexInPossible;
+
+        ////// #3 selecting specific match step //////
+
         /// <summary>
-        /// the ID of the stochastically selected replacement pattern
+        /// the ID of the stochastically selected replacement pattern. Populated by step #3, after
+        ///     the single matched rule is identified
         /// </summary>
         public byte selectedReplacementPattern;
 
-        public ushort replacementSymbolLength;
-        public int replacementSymbolStartIndex;
+        /// <summary>
+        /// the memory space reserved for replacement symbols
+        ///     length is Populated by step #3 based on the specific rule selected.
+        ///     index is populated by step #4, ensuring enough space for all replacement symbols
+        /// </summary>
+        public JaggedIndexing replacementSymbolIndexing;
 
-        public ushort replacementParameterCount;
-        public int replacementParameterStartIndex;
+        /// <summary>
+        /// the memory space reserved for replacement parameters
+        ///     length is Populated by step #3 based on the specific rule selected.
+        ///     index is populated by step #4, ensuring enough space for all replacement parameters
+        /// </summary>
+        public JaggedIndexing replacementParameterIndexing;
 
         public LSystemMatchErrorCode errorCode;
     }
 
-    //public struct LSystemPotentialMatchData
-    //{
-    //    /// <summary>
-    //    /// the index of the rule inside the structured L-system rule structure,
-    //    ///     after indexing by the symbol
-    //    /// </summary>
-    //    public byte matchedRuleIndexInPossible;
-
-    //    /// <summary>
-    //    /// memory space required to store parameters matched by this possible match
-    //    /// </summary>
-    //    public JaggedIndexing matchedParameters;
-    //    /// <summary>
-    //    /// memory space required to store parameters matched by this possible match
-    //    /// </summary>
-    //    public JaggedIndexing matchedParameters;
-    //}
+    public struct LSystemPotentialMatchData
+    {
+        /// <summary>
+        /// the index of the rule inside the structured L-system rule structure,
+        ///     after indexing by the symbol.
+        ///     Populated by #2, and used to represent the specific rule matched
+        /// </summary>
+        public byte matchedRuleIndexInPossible;
+        /// <summary>
+        /// reference to tmp parameter capture memory space, indicating the parameters captured by this specific match
+        /// Step #2 populates the index and length, based on the rule match
+        /// </summary>
+        public JaggedIndexing matchedParameters;
+    }
 
     public enum LSystemMatchErrorCode
     {

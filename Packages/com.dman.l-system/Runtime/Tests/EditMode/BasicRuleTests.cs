@@ -18,9 +18,6 @@ public class BasicRuleTests
         float[] globalParams = null,
         string[] globalParamNames = null,
         int expectedReplacementPatternIndex = 0
-        //int[] expectedReplacementSymbols = null,
-        //float[] expectedReplacementParameters = null,
-        //SymbolString<float>.JaggedIndexing[] expectedReplacementIndexing = null
         )
     {
         globalParamNames = globalParamNames ?? new string[0];
@@ -31,14 +28,6 @@ public class BasicRuleTests
         globalParams = globalParams ?? new float[0];
         using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
 
-
-        //expectedReplacementSymbols = expectedReplacementSymbols ?? new int[0];
-        //expectedReplacementParameters = expectedReplacementParameters ?? new float[0];
-        //expectedReplacementIndexing = expectedReplacementIndexing ?? expectedReplacementSymbols.Select(x => new SymbolString<float>.JaggedIndexing
-        //{
-        //    length = 0,
-        //    index = 0
-        //}).ToArray();
         var expectedTotalParamReplacement = expectedReplacement.newParameters.data.Length;
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
@@ -48,26 +37,35 @@ public class BasicRuleTests
         var matchSingleData = new LSystemSingleSymbolMatchData
         {
             isTrivial = false,
-            tmpParameterMatchStartIndex = ruleParamMemoryStartIndex
+            tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(ruleParamMemoryStartIndex)
         };
 
-        var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+        var potentialMatch = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
             branchCache,
             symbols,
             matchIndex,
+            paramMemory,
+            matchSingleData.tmpParameterMemorySpace.index,
+            out var specificMatchDetails
+            );
+
+        Assert.IsTrue(potentialMatch);
+
+        var postMatchWithConditional = ruleFromString.TryMatchSpecificMatch(
             globalNative,
             paramMemory,
+            specificMatchDetails.matchedParameters,
             ref random,
             ref matchSingleData
             );
-        Assert.IsTrue(preMatchSuccess);
+        Assert.IsTrue(postMatchWithConditional);
         Assert.AreEqual(expectedReplacementPatternIndex, matchSingleData.selectedReplacementPattern);
-        Assert.AreEqual(paramTempMemorySize, matchSingleData.tmpParameterMatchedCount, "parameter temp memory size mismatch");
-        Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacementSymbolLength);
-        Assert.AreEqual(expectedReplacement.newParameters.data.Length, matchSingleData.replacementParameterCount);
+        Assert.AreEqual(paramTempMemorySize, matchSingleData.tmpParameterMemorySpace.length, "parameter temp memory size mismatch");
+        Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacementSymbolIndexing.length, "replacement symbols size mismatch");
+        Assert.AreEqual(expectedReplacement.newParameters.data.Length, matchSingleData.replacementParameterIndexing.length, "replacement parameter size mismatch");
 
-        matchSingleData.replacementSymbolStartIndex = 0;
-        matchSingleData.replacementParameterStartIndex = 0;
+        matchSingleData.replacementSymbolIndexing.index = 0;
+        matchSingleData.replacementParameterIndexing.index = 0;
 
         using var resultSymbols = new SymbolString<float>(
                 expectedReplacement.symbols.Length,
@@ -83,7 +81,7 @@ public class BasicRuleTests
         Assert.AreEqual(expectedReplacementText, resultSymbols.ToString());
         Assert.IsTrue(expectedReplacement.Equals(resultSymbols));
     }
-    private void AssertRuleDoesNotMatch(
+    private void AssertRuleDoesNotMatchCondtitional(
         string ruleText,
         int[] sourceSymbols = null,
         float[][] sourceParameters = null,
@@ -106,19 +104,64 @@ public class BasicRuleTests
         var matchSingleData = new LSystemSingleSymbolMatchData
         {
             isTrivial = false,
-            tmpParameterMatchStartIndex = ruleParamMemoryStartIndex
+            tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(ruleParamMemoryStartIndex)
         };
 
-        var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+        var potentialMatch = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
             branchCache,
             symbols,
             matchIndex,
+            paramMemory,
+            matchSingleData.tmpParameterMemorySpace.index,
+            out var specificMatchDetails
+            );
+
+        Assert.IsTrue(potentialMatch);
+
+        var postMatchWithConditional = ruleFromString.TryMatchSpecificMatch(
             globalNative,
             paramMemory,
+            specificMatchDetails.matchedParameters,
             ref random,
             ref matchSingleData
             );
-        Assert.IsFalse(preMatchSuccess);
+        Assert.IsFalse(postMatchWithConditional);
+    }
+    private void AssertRuleDoesNotMatchBeforeConditional(
+        string ruleText,
+        int[] sourceSymbols = null,
+        float[][] sourceParameters = null,
+        string axiom = null,
+        int ruleParamMemoryStartIndex = 0,
+        int matchIndex = 0,
+        int paramTempMemorySize = 0,
+        float[] globalParams = null
+        )
+    {
+        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText));
+        globalParams = globalParams ?? new float[0];
+        using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
+
+        using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
+        var branchCache = new SymbolStringBranchingCache();
+        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+        var matchSingleData = new LSystemSingleSymbolMatchData
+        {
+            isTrivial = false,
+            tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(ruleParamMemoryStartIndex)
+        };
+
+        var potentialMatch = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
+            branchCache,
+            symbols,
+            matchIndex,
+            paramMemory,
+            matchSingleData.tmpParameterMemorySpace.index,
+            out var specificMatchDetails
+            );
+
+        Assert.IsFalse(potentialMatch);
     }
 
     [Test]
@@ -137,23 +180,30 @@ public class BasicRuleTests
             var matchSingleData = new LSystemSingleSymbolMatchData
             {
                 isTrivial = false,
-                tmpParameterMatchStartIndex = 0
+                tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(0)
             };
 
-            var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            var preMatchSuccess = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
                 branchCache,
                 symbols,
                 0,
+                paramMemory,
+                matchSingleData.tmpParameterMemorySpace.index,
+                out var specificMatchDetails
+                );
+            Assert.IsTrue(preMatchSuccess);
+            var postMatchWithConditional = ruleFromString.TryMatchSpecificMatch(
                 globalNative,
                 paramMemory,
+                specificMatchDetails.matchedParameters,
                 ref random,
                 ref matchSingleData
                 );
-            Assert.IsTrue(preMatchSuccess);
+            Assert.IsTrue(postMatchWithConditional);
             Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
-            Assert.AreEqual(0, matchSingleData.tmpParameterMatchedCount);
-            Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
-            Assert.AreEqual(0, matchSingleData.replacementParameterCount);
+            Assert.AreEqual(0, matchSingleData.tmpParameterMemorySpace.length);
+            Assert.AreEqual(2, matchSingleData.replacementSymbolIndexing.length);
+            Assert.AreEqual(0, matchSingleData.replacementParameterIndexing.length);
 
             symbols.newParameters[0] = new JaggedIndexing
             {
@@ -164,16 +214,15 @@ public class BasicRuleTests
             matchSingleData = new LSystemSingleSymbolMatchData
             {
                 isTrivial = false,
-                tmpParameterMatchStartIndex = 0
+                tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(0)
             };
-            preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            preMatchSuccess = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
                 branchCache,
                 symbols,
                 0,
-                globalNative,
                 paramMemory,
-                ref random,
-                ref matchSingleData
+                matchSingleData.tmpParameterMemorySpace.index,
+                out specificMatchDetails
                 );
             Assert.IsFalse(preMatchSuccess);
 
@@ -184,16 +233,15 @@ public class BasicRuleTests
             matchSingleData = new LSystemSingleSymbolMatchData
             {
                 isTrivial = false,
-                tmpParameterMatchStartIndex = 0
+                tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(0)
             };
-            preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
+            preMatchSuccess = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
                 branchCache,
                 symbols,
                 0,
-                globalNative,
                 paramMemory,
-                ref random,
-                ref matchSingleData
+                matchSingleData.tmpParameterMemorySpace.index,
+                out specificMatchDetails
                 );
             Assert.IsFalse(preMatchSuccess);
         }
@@ -205,50 +253,12 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleReplacesSelfWithReplacement()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
-        using var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
-        var globalParams = new float[0];
-        using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
-        using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
-        var branchCache = new SymbolStringBranchingCache();
-        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
-        var random = new Unity.Mathematics.Random();
-        var matchSingleData = new LSystemSingleSymbolMatchData
-        {
-            isTrivial = false,
-            tmpParameterMatchStartIndex = 0
-        };
-
-        var preMatchSuccess = ruleFromString.PreMatchCapturedParameters(
-            branchCache,
-            symbols,
-            0,
-            globalNative,
-            paramMemory,
-            ref random,
-            ref matchSingleData
+        AssertRuleReplacement(
+            "A -> AB",
+            new int[] { 'A' },
+            new float[][] { new float[0] },
+            "AB"
             );
-        Assert.IsTrue(preMatchSuccess);
-        Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
-        Assert.AreEqual(0, matchSingleData.tmpParameterMatchedCount);
-        Assert.AreEqual(2, matchSingleData.replacementSymbolLength);
-        Assert.AreEqual(0, matchSingleData.replacementParameterCount);
-
-        matchSingleData.replacementSymbolStartIndex = 0;
-        matchSingleData.replacementParameterStartIndex = 0;
-
-        using var targetSymbols = new SymbolString<float>(2, 0, Allocator.Persistent);
-
-        ruleFromString.WriteReplacementSymbols(
-            globalNative,
-            paramMemory,
-            targetSymbols,
-            matchSingleData
-            );
-
-        Assert.AreEqual("AB", targetSymbols.ToString());
-        Assert.AreEqual(2, targetSymbols.newParameters.indexing.Length);
-        Assert.AreEqual(0, targetSymbols.newParameters.data.Length);
     }
     [Test]
     public void BasicRuleReplacesParameters()
@@ -264,7 +274,7 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleDifferentParametersNoMatch()
     {
-        AssertRuleDoesNotMatch(
+        AssertRuleDoesNotMatchBeforeConditional(
             "A(x, y) -> B(y + x)C(x)A(y, x)",
             new int[] { 'A' },
             new float[][] { new float[] { 20 } }
@@ -273,7 +283,7 @@ public class BasicRuleTests
     [Test]
     public void ParametricConditionalNoMatch()
     {
-        AssertRuleDoesNotMatch(
+        AssertRuleDoesNotMatchCondtitional(
             "A(x) : x < 10 -> A(x + 1)",
             new int[] { 'A' },
             new float[][] { new float[] { 20 } },
@@ -307,7 +317,7 @@ public class BasicRuleTests
     [Test]
     public void ContextualRuleRequiresContextToMatch()
     {
-        AssertRuleDoesNotMatch(
+        AssertRuleDoesNotMatchBeforeConditional(
             "B < A > B -> B",
             axiom: "B(20)AABAB",
             paramTempMemorySize: 0,
@@ -359,7 +369,7 @@ public class BasicRuleTests
     [Test]
     public void ContextualRulePrefixNoMatchWhenParameterMismatch()
     {
-        AssertRuleDoesNotMatch(
+        AssertRuleDoesNotMatchBeforeConditional(
             "B(x) < A(y) -> B(x - y)",
             axiom: "BA(3.1)",
             paramTempMemorySize: 2,
@@ -369,7 +379,7 @@ public class BasicRuleTests
     [Test]
     public void ContextualRuleSuffixNoMatchWhenParameterMismatch()
     {
-        AssertRuleDoesNotMatch(
+        AssertRuleDoesNotMatchBeforeConditional(
             "A(x) > B(y) -> B(x - y)",
             axiom: "A(3.1)B",
             paramTempMemorySize: 2,

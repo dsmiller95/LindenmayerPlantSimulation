@@ -75,10 +75,10 @@ public class LSystemTests
     {
         LSystemState<float> state = new DefaultLSystemState("B");
         var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-            "A -> AB",
-            "B -> A",
-            "A > A ->",
-            "A < A -> B"
+            "    A     -> AB",
+            "    B     -> A",
+            "    A > A ->",
+            "A < A     -> B"
         });
 
         Assert.AreEqual("B", state.currentSymbols.ToString());
@@ -545,7 +545,7 @@ public class LSystemTests
         state.currentSymbols.Dispose();
     }
     [Test]
-    public void LSystemIgnoresIgnoredCharachters()
+    public void LSystemIgnoresIgnoredCharatchers()
     {
         LSystemState<float> state = new DefaultLSystemState("B");
         var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
