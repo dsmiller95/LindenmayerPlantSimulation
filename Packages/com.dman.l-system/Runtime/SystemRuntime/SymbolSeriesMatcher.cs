@@ -39,7 +39,6 @@ namespace Dman.LSystem.SystemRuntime
                     .ToArray(),
                 Allocator.Persistent);
             graphChildPointers = default;
-            childIndexesInParentChildren = default;
             IsCreated = true;
             HasGraphIndexes = false;
 
@@ -61,14 +60,6 @@ namespace Dman.LSystem.SystemRuntime
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public JaggedNativeArray<int> graphChildPointers;
-        /// <summary> 
-        /// A value for every node which has a parent, representing the position inside the parent's children array in which
-        ///     the node at that index resides
-        /// Values are undefined at indexes which have no parent (graphParentPointers[i] == -2)
-        /// </summary>
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<int> childIndexesInParentChildren;
 
 
         public bool IsCreated { get; private set; }
@@ -162,12 +153,13 @@ namespace Dman.LSystem.SystemRuntime
 
             graphChildPointers = new JaggedNativeArray<int>(childIndexes.Select(x => x.ToArray()).ToArray(), Allocator.Persistent);
 
-            childIndexesInParentChildren = new NativeArray<int>(nodes.Length, Allocator.Persistent);
             for (int i = 0; i < nodes.Length; i++)
             {
+                var node = nodes[i];
                 if(nodes[i].parentIndex > -2)
                 {
-                    childIndexesInParentChildren[i] = this.GetCacheIndexInParentsChildren(i);
+                    node.myIndexInParentChildren = this.GetCacheIndexInParentsChildren(i);
+                    nodes[i] = node;
                 }
             }
             HasGraphIndexes = true;
@@ -251,9 +243,10 @@ namespace Dman.LSystem.SystemRuntime
 
                 while (indexInChildren >= children.length && nextIndex >= 0)
                 {
-                    var lastIndexInChildren = source.childIndexesInParentChildren[nextIndex];
+                    var currentNode = source.nodes[nextIndex];
+                    var lastIndexInChildren = currentNode.myIndexInParentChildren;
 
-                    nextIndex = source.nodes[nextIndex].parentIndex;
+                    nextIndex = currentNode.parentIndex;
                     children = source.graphChildPointers[nextIndex + 1];
                     indexInChildren = lastIndexInChildren + 1;
                 }
@@ -269,25 +262,26 @@ namespace Dman.LSystem.SystemRuntime
 
             public bool Previous(out DepthFirstSearchState previousState)
             {
-                var nextNode = currentIndex;
-                if (nextNode < 0)
+                var nextNodeIndex = currentIndex;
+                if (nextNodeIndex < 0)
                 {
                     previousState = default;
                     return false;
                 }
 
-                var currentChildIndex = source.childIndexesInParentChildren[nextNode];
+                var nextNode = source.nodes[nextNodeIndex];
+                var currentChildIndex = nextNode.myIndexInParentChildren;
                 currentChildIndex--;
-                nextNode = source.nodes[nextNode].parentIndex;
+                nextNodeIndex = nextNode.parentIndex;
                 while (currentChildIndex >= 0)
                 {
                     // descend down the right-hand-side of the tree
-                    nextNode = source.graphChildPointers[nextNode + 1, currentChildIndex] - 1;
-                    currentChildIndex = source.graphChildPointers[nextNode + 1].length - 1;
+                    nextNodeIndex = source.graphChildPointers[nextNodeIndex + 1, currentChildIndex] - 1;
+                    currentChildIndex = source.graphChildPointers[nextNodeIndex + 1].length - 1;
                 }
                 if (currentChildIndex < 0)
                 {
-                    previousState = new DepthFirstSearchState(source, nextNode);
+                    previousState = new DepthFirstSearchState(source, nextNodeIndex);
                     return true;
                 }
 
@@ -323,7 +317,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             this.targetSymbolSeries.Dispose();
             this.graphChildPointers.Dispose();
-            this.childIndexesInParentChildren.Dispose();
+            this.nodes.Dispose();
         }
 
     }
