@@ -1,97 +1,113 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public struct JaggedNativeArray<T> : System.IEquatable<JaggedNativeArray<T>>, IDisposable  where T: unmanaged
+    public struct JaggedNativeArray<TData> : System.IEquatable<JaggedNativeArray<TData>>, IDisposable where TData : unmanaged
     {
         [NativeDisableParallelForRestriction]
-        public NativeArray<T> data;
+        public NativeArray<TData> data;
         [NativeDisableParallelForRestriction]
         public NativeArray<JaggedIndexing> indexing;
 
-        public JaggedNativeArray(JaggedNativeArray<T> jaggedData, Allocator allocator)
+        public int Length => indexing.Length;
+        public bool IsCreated => data.IsCreated && indexing.IsCreated;
+
+        public JaggedIndexing this[int index]
+        {
+            get => indexing[index];
+            set => indexing[index] = value;
+        }
+        public TData this[int index, int indexInJagged]
+        {
+            get
+            {
+                var jagged = indexing[index];
+                var realIndex = jagged.index + indexInJagged;
+                return data[realIndex];
+            }
+            set
+            {
+                var jagged = indexing[index];
+                var realIndex = jagged.index + indexInJagged;
+                data[realIndex] = value;
+            }
+        }
+        public TData this[JaggedIndexing jagged, int indexInJagged]
+        {
+            get
+            {
+                var realIndex = jagged.index + indexInJagged;
+                return data[realIndex];
+            }
+            set
+            {
+                var realIndex = jagged.index + indexInJagged;
+                data[realIndex] = value;
+            }
+        }
+
+        public JaggedNativeArray(JaggedNativeArray<TData> jaggedData, Allocator allocator)
         {
             indexing = new NativeArray<JaggedIndexing>(jaggedData.indexing, allocator);
-            data = new NativeArray<T>(jaggedData.data, allocator);
+            data = new NativeArray<TData>(jaggedData.data, allocator);
         }
 
         public JaggedNativeArray(int firstDimensionSize, int totalDataSize, Allocator allocator, NativeArrayOptions initializationOptions = NativeArrayOptions.UninitializedMemory)
         {
             indexing = new NativeArray<JaggedIndexing>(firstDimensionSize, allocator, initializationOptions);
-            data = new NativeArray<T>(totalDataSize, allocator, initializationOptions);
+            data = new NativeArray<TData>(totalDataSize, allocator, initializationOptions);
         }
 
-        public JaggedNativeArray(T[][] jaggedData, Allocator allocator)
+        public JaggedNativeArray(TData[][] jaggedData, Allocator allocator)
         {
             indexing = new NativeArray<JaggedIndexing>(jaggedData.Length, allocator, NativeArrayOptions.UninitializedMemory);
 
             var paramSum = jaggedData.Select(x => x.Length).Sum();
-            data = new NativeArray<T>(paramSum, allocator, NativeArrayOptions.UninitializedMemory);
+            data = new NativeArray<TData>(paramSum, allocator, NativeArrayOptions.UninitializedMemory);
 
-            paramSum = 0;
+            WriteJaggedIndexing(
+                indexing,
+                (data, index) => index,
+                jaggedData,
+                data
+                );
+        }
+
+        public static void WriteJaggedIndexing<TIndexer>(
+            NativeArray<TIndexer> indexerArray,
+            Func<TIndexer, JaggedIndexing, TIndexer> indexWriter,
+            TData[][] jaggedData,
+            NativeArray<TData> dataArray,
+            int originInDataArray = 0) where TIndexer : unmanaged
+        {
+            var myDataSum = jaggedData.Select(x => x.Length).Sum();
+            if(dataArray.Length + originInDataArray < myDataSum)
+            {
+                throw new Exception("data array not big enough");
+            }
+
+            myDataSum = 0;
             for (int i = 0; i < jaggedData.Length; i++)
             {
-                indexing[i] = new JaggedIndexing
+                var indexInData = myDataSum + originInDataArray;
+                var newIndexing = new JaggedIndexing
                 {
-                    index = (int)paramSum,
+                    index = indexInData,
                     length = (ushort)jaggedData[i].Length
                 };
+                indexerArray[i] = indexWriter(indexerArray[i], newIndexing);
                 for (int j = 0; j < jaggedData[i].Length; j++)
                 {
-                    data[paramSum + j] = jaggedData[i][j];
+                    dataArray[indexInData + j] = jaggedData[i][j];
                 }
-                paramSum += jaggedData[i].Length;
+                myDataSum += jaggedData[i].Length;
             }
+
         }
 
-        public int Length => indexing.Length;
-
-        public bool IsCreated => data.IsCreated && indexing.IsCreated;
-        public JaggedIndexing this[int index]
-        {
-            get
-            {
-                return indexing[index];
-            }
-            set
-            {
-                indexing[index] = value;
-            }
-        }
-        public T this[int index, int indexInJagged]
-        {
-            get
-            {
-                var jagged = indexing[index];
-                var realIndex = jagged.index + indexInJagged;
-                return data[realIndex];
-            }
-            set
-            {
-                var jagged = indexing[index];
-                var realIndex = jagged.index + indexInJagged;
-                data[realIndex] = value;
-            }
-        }
-        public T this[JaggedIndexing jagged, int indexInJagged]
-        {
-            get
-            {
-                var realIndex = jagged.index + indexInJagged;
-                return data[realIndex];
-            }
-            set
-            {
-                var realIndex = jagged.index + indexInJagged;
-                data[realIndex] = value;
-            }
-        }
-        public void CopyFrom(JaggedNativeArray<T> source, int targetIndex, int targetParamIndex)
+        public void CopyFrom(JaggedNativeArray<TData> source, int targetIndex, int targetParamIndex)
         {
             for (int i = 0; i < source.Length; i++)
             {
@@ -109,7 +125,7 @@ namespace Dman.LSystem.SystemRuntime
             }
         }
 
-        public bool Equals(JaggedNativeArray<T> other)
+        public bool Equals(JaggedNativeArray<TData> other)
         {
             for (int i = 0; i < data.Length; i++)
             {
@@ -129,8 +145,8 @@ namespace Dman.LSystem.SystemRuntime
         }
         public void Dispose()
         {
-            this.data.Dispose();
-            this.indexing.Dispose();
+            data.Dispose();
+            indexing.Dispose();
         }
     }
 
@@ -161,7 +177,7 @@ namespace Dman.LSystem.SystemRuntime
             };
         }
 
-        public T GetValue<T>(NativeArray<T> array, ushort indexInSelf) where T: unmanaged
+        public T GetValue<T>(NativeArray<T> array, ushort indexInSelf) where T : unmanaged
         {
             return array[indexInSelf + index];
         }
@@ -174,7 +190,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             if (obj is JaggedIndexing indexing)
             {
-                return this.Equals(indexing);
+                return Equals(indexing);
             }
             return false;
         }

@@ -65,6 +65,10 @@ namespace Dman.LSystem
         ///     first, order by size of the TargetSymbolSeries. Patterns which match more symbols always take precidence over patterns which match less symbols
         /// </summary>
         private IDictionary<int, IList<BasicRule>> rulesByTargetSymbol;
+
+        // TODO
+        //private NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
+
         /// <summary>
         /// Stores the maximum number of parameters that could be captured by each symbol's maximum number of possible alternative matches
         /// </summary>

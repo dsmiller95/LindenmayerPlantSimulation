@@ -355,7 +355,7 @@ namespace Dman.LSystem.SystemRuntime
                 symbolInMatch.targetSymbol == symbolHandle[currentIndexInTarget] &&
                 symbolInMatch.parameterLength == parameterIndexingHandle[currentIndexInTarget].length)
             {
-                var parentIndexInMatch = seriesMatch.graphParentPointers[currentIndexInMatch];
+                var parentIndexInMatch = seriesMatch.nodes[currentIndexInMatch].parentIndex;
                 if(parentIndexInMatch == -1)
                 {
                     // if the parent is the origin, always match.
