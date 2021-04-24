@@ -38,7 +38,6 @@ namespace Dman.LSystem.SystemRuntime
                     .Select(x => x.AsBlittable())
                     .ToArray(),
                 Allocator.Persistent);
-            graphChildPointers = default;
             IsCreated = true;
             HasGraphIndexes = false;
 
@@ -50,16 +49,6 @@ namespace Dman.LSystem.SystemRuntime
         public NativeArray<int> childrenDataArray;
         public JaggedIndexing childrenOfRoot;
         public NativeArray<SymbolMatcherGraphNode> nodes;
-
-        /// <summary>
-        /// Jagged array used to represent the branching structure of <see cref="targetSymbolSeries"/>. 
-        /// First element is entry point into the symbols, and does not represent any symbol in itself.
-        ///     This array is shifted behind targetSymbolSeries by one. meaning that <see cref="graphChildPointers"/>[1]
-        ///     refers to symbol <see cref="targetSymbolSeries"/>[0]
-        /// </summary>
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public JaggedNativeArray<int> graphChildPointers;
 
 
         public bool IsCreated { get; private set; }
@@ -139,27 +128,73 @@ namespace Dman.LSystem.SystemRuntime
             }
             childrenCounts.Dispose();
 
-            var childIndexes = new SortedSet<int>[targetSymbolSeries.Length + 1];
-            childIndexes[0] = new SortedSet<int>();
-            for (int graphIndex = 1; graphIndex < childIndexes.Length; graphIndex++)
+            var childIndexes = new SortedSet<int>[targetSymbolSeries.Length];
+            var rootChildren = new SortedSet<int>();
+            for (int graphIndex = 0; graphIndex < childIndexes.Length; graphIndex++)
             {
                 childIndexes[graphIndex] = new SortedSet<int>();
-                var parentIndex = nodes[graphIndex - 1].parentIndex + 1;
+                var parentIndex = nodes[graphIndex].parentIndex;
                 if (parentIndex >= 0)
                 {
                     childIndexes[parentIndex].Add(graphIndex);
+                }else if (parentIndex == -1)
+                {
+                    rootChildren.Add(graphIndex);
                 }
             }
 
-            graphChildPointers = new JaggedNativeArray<int>(childIndexes.Select(x => x.ToArray()).ToArray(), Allocator.Persistent);
+            var childrenAsArray = childIndexes.Select(x => x.ToArray()).ToArray();
+            var rootChildrenCount = rootChildren.Count;
+            var otherChildrenCount = childrenAsArray.Sum(x => x.Length);
+            childrenDataArray = new NativeArray<int>(rootChildrenCount + otherChildrenCount, Allocator.Persistent);
 
+            var indexInChildrenArray = 0;
+            foreach (var rootChild in rootChildren)
+            {
+                childrenDataArray[indexInChildrenArray] = rootChild;
+                indexInChildrenArray++;
+            }
+            childrenOfRoot = new JaggedIndexing
+            {
+                index = 0,
+                length = (ushort)rootChildrenCount
+            };
+            JaggedNativeArray<int>.WriteJaggedIndexing(
+                nodes,
+                (node, indexing) =>
+                {
+                    node.childrenIndexing = indexing;
+                    return node;
+                },
+                childrenAsArray,
+                childrenDataArray,
+                indexInChildrenArray
+                );
+
+            //graphChildPointers = new JaggedNativeArray<int>(childIndexes.Select(x => x.ToArray()).ToArray(), Allocator.Persistent);
+
+            if(childrenOfRoot.length != 0)
+            {
+                for (int child = 0; child < childrenOfRoot.length; child++)
+                {
+                    var childIndex = childrenDataArray[child + childrenOfRoot.index];
+                    var childNode = nodes[childIndex];
+                    childNode.myIndexInParentChildren = child;
+                    nodes[childIndex] = childNode;
+                }
+            }
             for (int i = 0; i < nodes.Length; i++)
             {
                 var node = nodes[i];
-                if(nodes[i].parentIndex > -2)
+                if(node.childrenIndexing.length > 0)
                 {
-                    node.myIndexInParentChildren = this.GetCacheIndexInParentsChildren(i);
-                    nodes[i] = node;
+                    for (int child = 0; child < node.childrenIndexing.length; child++)
+                    {
+                        var childIndex = childrenDataArray[child + node.childrenIndexing.index];
+                        var childNode = nodes[childIndex];
+                        childNode.myIndexInParentChildren = child;
+                        nodes[childIndex] = childNode;
+                    }
                 }
             }
             HasGraphIndexes = true;
@@ -180,21 +215,17 @@ namespace Dman.LSystem.SystemRuntime
             return new DepthFirstSearchState(this, -1);
         }
 
-        private int GetCacheIndexInParentsChildren(int nodeIndex)
+        private JaggedIndexing ChildrenForNode(int nodeIndex)
         {
-            var parentIndex = nodes[nodeIndex].parentIndex;
-            var parentsChildren = graphChildPointers[parentIndex + 1];
-
-            // iterate through the parent's children array, till the current index is found
-            int slowerLastIndexInChildren = 0;
-            int nextIndexInChildrenMapping = nodeIndex + 1;
-            for (;
-                slowerLastIndexInChildren < parentsChildren.length && graphChildPointers[parentsChildren, slowerLastIndexInChildren] != nextIndexInChildrenMapping;
-                slowerLastIndexInChildren++)
+            if (nodeIndex >= 0)
             {
+                return nodes[nodeIndex].childrenIndexing;
             }
-
-            return slowerLastIndexInChildren;
+            else if (nodeIndex == -1)
+            {
+                return childrenOfRoot;
+            }
+            throw new Exception("invalid node index: " + nodeIndex);
         }
 
         public struct DepthFirstSearchState
@@ -236,9 +267,8 @@ namespace Dman.LSystem.SystemRuntime
             public bool Next(out DepthFirstSearchState nextState)
             {
                 var nextIndex = currentIndex;
-
-                var children = source.graphChildPointers[nextIndex + 1];
                 var indexInChildren = 0;
+                var children = source.ChildrenForNode(nextIndex);
 
 
                 while (indexInChildren >= children.length && nextIndex >= 0)
@@ -247,12 +277,12 @@ namespace Dman.LSystem.SystemRuntime
                     var lastIndexInChildren = currentNode.myIndexInParentChildren;
 
                     nextIndex = currentNode.parentIndex;
-                    children = source.graphChildPointers[nextIndex + 1];
+                    children = source.ChildrenForNode(nextIndex);
                     indexInChildren = lastIndexInChildren + 1;
                 }
                 if (indexInChildren < children.length)
                 {
-                    nextIndex = source.graphChildPointers[children, indexInChildren] - 1;
+                    nextIndex = source.childrenDataArray[children.index + indexInChildren];
                     nextState = new DepthFirstSearchState(source, nextIndex);
                     return true;
                 }
@@ -269,15 +299,17 @@ namespace Dman.LSystem.SystemRuntime
                     return false;
                 }
 
-                var nextNode = source.nodes[nextNodeIndex];
-                var currentChildIndex = nextNode.myIndexInParentChildren;
+                var currentChildIndex = source.nodes[nextNodeIndex].myIndexInParentChildren;
                 currentChildIndex--;
-                nextNodeIndex = nextNode.parentIndex;
+                nextNodeIndex = source.nodes[nextNodeIndex].parentIndex;
                 while (currentChildIndex >= 0)
                 {
                     // descend down the right-hand-side of the tree
-                    nextNodeIndex = source.graphChildPointers[nextNodeIndex + 1, currentChildIndex] - 1;
-                    currentChildIndex = source.graphChildPointers[nextNodeIndex + 1].length - 1;
+                    var childrenIndexing = source.ChildrenForNode(nextNodeIndex);
+                    nextNodeIndex = source.childrenDataArray[childrenIndexing.index + currentChildIndex];
+                    //nextNode = source.nodes[nextNodeIndex];
+                    childrenIndexing = source.ChildrenForNode(nextNodeIndex);
+                    currentChildIndex = childrenIndexing.length - 1;
                 }
                 if (currentChildIndex < 0)
                 {
@@ -316,7 +348,7 @@ namespace Dman.LSystem.SystemRuntime
         public void Dispose()
         {
             this.targetSymbolSeries.Dispose();
-            this.graphChildPointers.Dispose();
+            this.childrenDataArray.Dispose();
             this.nodes.Dispose();
         }
 

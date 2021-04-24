@@ -9,11 +9,21 @@ public class SymbolSeriesGraphTests
     {
         var seriesMatcher = SymbolSeriesMatcher.Parse("ABC");
         seriesMatcher.ComputeGraphIndexes('[', ']');
-        Assert.AreEqual(4, seriesMatcher.graphChildPointers.Length);
-        Assert.AreEqual(1, seriesMatcher.graphChildPointers[0, 0]);
-        Assert.AreEqual(2, seriesMatcher.graphChildPointers[1, 0]);
-        Assert.AreEqual(3, seriesMatcher.graphChildPointers[2, 0]);
-        Assert.AreEqual(0, seriesMatcher.graphChildPointers[3].length);
+        Assert.AreEqual(3, seriesMatcher.childrenDataArray.Length);
+        Assert.AreEqual(1, seriesMatcher.childrenOfRoot.length);
+        Assert.AreEqual(0, seriesMatcher.childrenOfRoot.index);
+        Assert.AreEqual(0, seriesMatcher.childrenDataArray[0]);
+
+        Assert.AreEqual(1, seriesMatcher.nodes[0].childrenIndexing.length);
+        Assert.AreEqual(1, seriesMatcher.nodes[0].childrenIndexing.index);
+        Assert.AreEqual(1, seriesMatcher.childrenDataArray[1]);
+
+        Assert.AreEqual(1, seriesMatcher.nodes[1].childrenIndexing.length);
+        Assert.AreEqual(2, seriesMatcher.nodes[1].childrenIndexing.index);
+        Assert.AreEqual(2, seriesMatcher.childrenDataArray[2]);
+
+        Assert.AreEqual(0, seriesMatcher.nodes[2].childrenIndexing.length);
+        Assert.AreEqual(3, seriesMatcher.nodes[2].childrenIndexing.index);
     }
     [Test]
     public void ComputesGraphWithBranch()
@@ -73,17 +83,47 @@ public class SymbolSeriesGraphTests
         Assert.IsTrue(seriesMatcher.nodes.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, 0, -2, 2, -2, -2 }));
     }
     [Test]
+    public void CorrectlyLabelsIndexesInParentChildren()
+    {
+        using var seriesMatcher = SymbolSeriesMatcher.Parse("[B[E]][C]D[[E]F]");
+        seriesMatcher.ComputeGraphIndexes('[', ']');
+
+
+        for (int rootChild = 0; rootChild < seriesMatcher.childrenOfRoot.length; rootChild++)
+        {
+            var childIndex = seriesMatcher.childrenDataArray[seriesMatcher.childrenOfRoot.index + rootChild];
+            var childNode = seriesMatcher.nodes[childIndex];
+            Assert.AreEqual(rootChild, childNode.myIndexInParentChildren, "Child's index in parent children list mismatch");
+        }
+
+        for (int nodeIndex = 0; nodeIndex < seriesMatcher.nodes.Length; nodeIndex++)
+        {
+            var node = seriesMatcher.nodes[nodeIndex];
+            if(node.childrenIndexing.length > 0)
+            {
+                for (int child = 0; child < node.childrenIndexing.length; child++)
+                {
+                    var childIndex = seriesMatcher.childrenDataArray[node.childrenIndexing.index + child];
+                    var childNode = seriesMatcher.nodes[childIndex];
+                    Assert.AreEqual(child, childNode.myIndexInParentChildren, "Child's index in parent children list mismatch");
+                }
+            }
+        }
+    }
+    [Test]
     public void DepthFirstTraversYieldsInCorrectOrder()
     {
         var seriesMatcher = SymbolSeriesMatcher.Parse("A[B[E]][C]D[[E]F]");
         seriesMatcher.ComputeGraphIndexes('[', ']');
-        Assert.AreEqual(
-            new int[] { 'A', 'B', 'E', 'C', 'D', 'E', 'F' },
+        var resultCharaterString =
             seriesMatcher
             .GetDepthFirstEnumerator()
             .Select(x => seriesMatcher.targetSymbolSeries[x].targetSymbol)
             .Take(10) // infinite loop protection
-            .ToArray()
+            .ToArray();
+        Assert.AreEqual(
+            new int[] { 'A', 'B', 'E', 'C', 'D', 'E', 'F' },
+            resultCharaterString
             );
     }
     [Test]
@@ -91,13 +131,16 @@ public class SymbolSeriesGraphTests
     {
         var seriesMatcher = SymbolSeriesMatcher.Parse("[B[E]][C]D[[E]F]");
         seriesMatcher.ComputeGraphIndexes('[', ']');
-        Assert.AreEqual(
-            "BECDEF".Select(x => (int)x).ToArray(),
+
+        var result =
             seriesMatcher
             .GetDepthFirstEnumerator()
             .Select(x => seriesMatcher.targetSymbolSeries[x].targetSymbol)
             .Take(15) // infinite loop protection
-            .ToArray()
+            .ToArray();
+        Assert.AreEqual(
+            "BECDEF".Select(x => (int)x).ToArray(),
+            result
             );
 
         var dfsIterator = seriesMatcher.GetImmutableDepthFirstIterationState();
