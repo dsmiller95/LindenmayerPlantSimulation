@@ -21,13 +21,16 @@ namespace Dman.LSystem.SystemRuntime
         /// Contains a caches set of indexes, mapping each branching symbol to its matching closing/opening symbol.
         /// </summary>
         private Dictionary<int, int> branchingJumpIndexes;
+        private SymbolSeriesMatcherNativeDataArray nativeRuleData; // todo: will have to pass this in instead of attach, maybe
 
-        public SymbolStringBranchingCache() : this(defaultBranchOpenSymbol, defaultBranchCloseSymbol, new HashSet<int>()) { }
-        public SymbolStringBranchingCache(int open, int close, ISet<int> ignoreSymbols)
+        public SymbolStringBranchingCache(SymbolSeriesMatcherNativeDataArray nativeRuleData)
+            : this(defaultBranchOpenSymbol, defaultBranchCloseSymbol, new HashSet<int>(), nativeRuleData) { }
+        public SymbolStringBranchingCache(int open, int close, ISet<int> ignoreSymbols, SymbolSeriesMatcherNativeDataArray nativeRuleData)
         {
             branchOpenSymbol = open;
             branchCloseSymbol = close;
             this.ignoreSymbols = ignoreSymbols;
+            this.nativeRuleData = nativeRuleData;
         }
 
         public void BuildJumpIndexesFromSymbols(NativeArray<int> symbols)
@@ -37,11 +40,11 @@ namespace Dman.LSystem.SystemRuntime
 
         }
 
-        public bool ValidForwardMatch(SymbolSeriesMatcher seriesMatch)
+        public bool ValidForwardMatch(SymbolSeriesSuffixMatcher seriesMatch)
         {
             return true;
         }
-        public bool ValidBackwardsMatch(SymbolSeriesMatcher seriesMatch)
+        public bool ValidBackwardsMatch(SymbolSeriesPrefixMatcher seriesMatch)
         {
             return seriesMatch.targetSymbolSeries.All(x => x.targetSymbol != defaultBranchOpenSymbol && x.targetSymbol != defaultBranchCloseSymbol);
         }
@@ -59,7 +62,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns>a mapping from all symbols in seriesMatch back into the target string</returns>
         public IDictionary<int, int> MatchesForward(
             int indexInSymbolTarget,
-            SymbolSeriesMatcher seriesMatch,
+            SymbolSeriesSuffixMatcher seriesMatch,
             NativeArray<int> symbolHandle,
             NativeArray<JaggedIndexing> parameterIndexingHandle)
         {
@@ -101,7 +104,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns>A dictionary mapping indexes in the matcher to indexes in the symbol target, based on what symbols were matched</returns>
         public IDictionary<int, int> MatchesBackwards(
             int indexInSymbolTarget,
-            SymbolSeriesMatcher seriesMatch,
+            SymbolSeriesPrefixMatcher seriesMatch,
             NativeArray<int> symbolHandle,
             NativeArray<JaggedIndexing> parameterIndexingHandle)
         {
@@ -222,7 +225,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             public int currentParentIndex;
             public int openBranchSymbolIndex;
-            public SymbolSeriesMatcher.DepthFirstSearchState matcherSymbolBranchingSearchState;
+            public SymbolSeriesSuffixMatcher.DepthFirstSearchState matcherSymbolBranchingSearchState;
         }
 
         /// <summary>
@@ -234,7 +237,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns></returns>
         private ImmutableDictionary<int, int> MatchesForwardsAtIndexOrderingInvariant(
             int originIndexInTarget,
-            SymbolSeriesMatcher seriesMatch,
+            SymbolSeriesSuffixMatcher seriesMatch,
             NativeArray<int> symbolHandle,
             NativeArray<JaggedIndexing> parameterIndexingHandle)
         {
@@ -242,7 +245,7 @@ namespace Dman.LSystem.SystemRuntime
             int currentParentIndexInTarget = originIndexInTarget;
             var targetIndexesToMatchIndexes = ImmutableDictionary<int, int>.Empty;
 
-            var indexInMatchDFSState = seriesMatch.GetImmutableDepthFirstIterationState();
+            var indexInMatchDFSState = seriesMatch.GetImmutableDepthFirstIterationState(nativeRuleData);
             targetIndexesToMatchIndexes = targetIndexesToMatchIndexes.Add(originIndexInTarget, indexInMatchDFSState.currentIndex);
             if (!indexInMatchDFSState.Next(out indexInMatchDFSState))
             {
@@ -341,7 +344,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="currentIndexInMatch"></param>
         /// <returns></returns>
         private bool TargetSymbolMatchesAndParentMatches(
-            SymbolSeriesMatcher seriesMatch,
+            SymbolSeriesSuffixMatcher seriesMatch,
             ImmutableDictionary<int, int> targetIndexesToMatchIndexes,
             int currentParentIndexInTarget,
             int currentIndexInTarget,
@@ -350,12 +353,12 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<JaggedIndexing> parameterIndexingHandle
             )
         {
-            var symbolInMatch = seriesMatch.targetSymbolSeries[currentIndexInMatch];
+            var symbolInMatch = nativeRuleData.graphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].mySymbol;
             if (
                 symbolInMatch.targetSymbol == symbolHandle[currentIndexInTarget] &&
                 symbolInMatch.parameterLength == parameterIndexingHandle[currentIndexInTarget].length)
             {
-                var parentIndexInMatch = seriesMatch.nodes[currentIndexInMatch].parentIndex;
+                var parentIndexInMatch = nativeRuleData.graphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].parentIndex;
                 if(parentIndexInMatch == -1)
                 {
                     // if the parent is the origin, always match.

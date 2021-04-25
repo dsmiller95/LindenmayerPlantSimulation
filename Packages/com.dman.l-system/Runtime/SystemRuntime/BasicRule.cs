@@ -6,6 +6,7 @@ using Unity.Mathematics;
 
 namespace Dman.LSystem.SystemRuntime
 {
+
     public class BasicRule
     {
         /// <summary>
@@ -13,9 +14,8 @@ namespace Dman.LSystem.SystemRuntime
         /// </summary>
         public int TargetSymbol => _targetSymbolWithParameters.targetSymbol;
 
-        public SymbolSeriesMatcher ContextPrefix {get; private set;}
-
-        public SymbolSeriesMatcher ContextSuffix { get; private set; }
+        public SymbolSeriesPrefixMatcher ContextPrefix {get; private set;}
+        public SymbolSeriesSuffixMatcher ContextSuffix { get; private set; }
 
         public int CapturedLocalParameterCount { get; private set; }
 
@@ -25,6 +25,8 @@ namespace Dman.LSystem.SystemRuntime
 
         public RuleOutcome[] possibleOutcomes;
 
+        private SymbolSeriesPrefixBuilder backwardsMatchBuilder;
+        private SymbolSeriesSuffixBuilder forwardsMatchBuilder;
 
         public BasicRule(ParsedRule parsedInfo, int branchOpenSymbol = '[', int branchCloseSymbol = ']')
         {
@@ -34,15 +36,18 @@ namespace Dman.LSystem.SystemRuntime
             };
 
             conditionalChecker = parsedInfo.conditionalMatch;
-            ContextPrefix = new SymbolSeriesMatcher(parsedInfo.backwardsMatch);
-            var suffix = new SymbolSeriesMatcher(parsedInfo.forwardsMatch);
-            // property getters do weird things when they are backing structs
-            suffix.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
-            ContextSuffix = suffix;
+
+
+            backwardsMatchBuilder = new SymbolSeriesPrefixBuilder(parsedInfo.backwardsMatch);
+            ContextPrefix = backwardsMatchBuilder.BuildIntoManagedMemory();
+
+            forwardsMatchBuilder = new SymbolSeriesSuffixBuilder(parsedInfo.forwardsMatch);
+            forwardsMatchBuilder.BuildGraphIndexes(branchOpenSymbol, branchCloseSymbol);
+
 
             CapturedLocalParameterCount = _targetSymbolWithParameters.parameterLength +
                 ContextPrefix.targetSymbolSeries.Sum(x => x.parameterLength) +
-                ContextSuffix.targetSymbolSeries.Sum(x => x.parameterLength);
+                forwardsMatchBuilder.targetSymbolSeries.Sum(x => x.parameterLength);
         }
         /// <summary>
         /// Create a new basic rule with multiple random outcomes.
@@ -60,15 +65,27 @@ namespace Dman.LSystem.SystemRuntime
             _targetSymbolWithParameters = firstOutcome.coreSymbol;
 
             conditionalChecker = firstOutcome.conditionalMatch;
-            ContextPrefix = new SymbolSeriesMatcher(firstOutcome.backwardsMatch);
-            var suffix = new SymbolSeriesMatcher(firstOutcome.forwardsMatch);
-            // property getters do weird things when they are backing structs
-            suffix.ComputeGraphIndexes(branchOpenSymbol, branchCloseSymbol);
-            ContextSuffix = suffix;
+
+            backwardsMatchBuilder = new SymbolSeriesPrefixBuilder(firstOutcome.backwardsMatch);
+            ContextPrefix = backwardsMatchBuilder.BuildIntoManagedMemory();
+
+            forwardsMatchBuilder = new SymbolSeriesSuffixBuilder(firstOutcome.forwardsMatch);
+            forwardsMatchBuilder.BuildGraphIndexes(branchOpenSymbol, branchCloseSymbol);
 
             CapturedLocalParameterCount = _targetSymbolWithParameters.parameterLength +
                 ContextPrefix.targetSymbolSeries.Sum(x => x.parameterLength) +
-                ContextSuffix.targetSymbolSeries.Sum(x => x.parameterLength);
+                forwardsMatchBuilder.targetSymbolSeries.Sum(x => x.parameterLength);
+        }
+
+        public int RequiredGraphNodeMemSpace => forwardsMatchBuilder.RequiredGraphNodeMemSpace;
+        public int RequiredChildrenMemSpace => forwardsMatchBuilder.RequiredChildrenMemSpace;
+
+
+        public void WriteContextMatchesIntoMemory(
+            SymbolSeriesMatcherNativeDataArray dataArray,
+            SymbolSeriesMatcherNativeDataWriter dataWriter)
+        {
+            ContextSuffix = forwardsMatchBuilder.BuildIntoManagedMemory(dataArray, dataWriter);
         }
 
         public Blittable AsBlittable()
@@ -86,8 +103,8 @@ namespace Dman.LSystem.SystemRuntime
 
         public struct Blittable
         {
-            public SymbolSeriesMatcher contextPrefix;
-            public SymbolSeriesMatcher contextSuffix;
+            public SymbolSeriesPrefixMatcher contextPrefix;
+            public SymbolSeriesSuffixMatcher contextSuffix;
             public InputSymbol.Blittable targetSymbolWithParameters;
             public int capturedLocalParameterCount;
             public RuleOutcome.Blittable[] possibleOutcomes;
@@ -128,7 +145,7 @@ namespace Dman.LSystem.SystemRuntime
                 byte matchedParameterNum = 0;
 
                 // context match
-                if (contextPrefix.IsCreated && contextPrefix.targetSymbolSeries.Length > 0)
+                if (contextPrefix.IsValid && contextPrefix.targetSymbolSeries.Length > 0)
                 {
                     var backwardMatchMapping = branchingCache.MatchesBackwards(
                         indexInSymbols,
@@ -174,7 +191,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                 }
 
-                if (contextSuffix.IsCreated && contextSuffix.targetSymbolSeries.Length > 0)
+                if (contextSuffix.IsCreated && contextSuffix.graphNodeMemSpace.length > 0)
                 {
                     var forwardMatch = branchingCache.MatchesForward(
                         indexInSymbols,
@@ -186,7 +203,7 @@ namespace Dman.LSystem.SystemRuntime
                         // if forwards match exists, and does not match, then fail this match attempt.
                         return false;
                     }
-                    for (int indexInSuffix = 0; indexInSuffix < contextSuffix.targetSymbolSeries.Length; indexInSuffix++)
+                    for (int indexInSuffix = 0; indexInSuffix < contextSuffix.graphNodeMemSpace.length; indexInSuffix++)
                     {
                         if (!forwardMatch.TryGetValue(indexInSuffix, out var matchingTargetIndex))
                         {

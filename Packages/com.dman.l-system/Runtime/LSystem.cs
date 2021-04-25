@@ -24,11 +24,15 @@ namespace Dman.LSystem
            string[] globalParameters = null,
            string ignoredCharacters = "")
         {
-            return new LSystem(
-                RuleParser.CompileRules(
+            var compiledRules = RuleParser.CompileRules(
                         rules,
+                        out var nativeRuleData,
                         globalParameters
-                        ),
+                        );
+
+            return new LSystem(
+                compiledRules,
+                nativeRuleData,
                 globalParameters?.Length ?? 0,
                 ignoredCharacters: new HashSet<int>(ignoredCharacters.Select(x => (int)x))
             );
@@ -69,6 +73,8 @@ namespace Dman.LSystem
         // TODO
         //private NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
+        private SymbolSeriesMatcherNativeDataArray nativeRuleData;
+
         /// <summary>
         /// Stores the maximum number of parameters that could be captured by each symbol's maximum number of possible alternative matches
         /// </summary>
@@ -93,18 +99,20 @@ namespace Dman.LSystem
 
         public LSystem(
             IEnumerable<BasicRule> rules,
+            SymbolSeriesMatcherNativeDataArray nativeRuleData,
             int expectedGlobalParameters = 0,
             int branchOpenSymbol = '[',
             int branchCloseSymbol = ']',
             ISet<int> ignoredCharacters = null)
         {
             GlobalParameters = expectedGlobalParameters;
+            this.nativeRuleData = nativeRuleData;
+
             this.branchOpenSymbol = branchOpenSymbol;
             this.branchCloseSymbol = branchCloseSymbol;
             this.ignoredCharacters = ignoredCharacters == null ? new HashSet<int>() : ignoredCharacters;
 
             rulesByTargetSymbol = new Dictionary<int, IList<BasicRule>>();
-            maxMemoryRequirementsPerSymbol = new Dictionary<int, MaxMatchMemoryRequirements>();
             foreach (var rule in rules)
             {
                 var targetSymbols = rule.TargetSymbol;
@@ -114,12 +122,14 @@ namespace Dman.LSystem
                 }
                 ruleList.Add(rule);
             }
+
+            maxMemoryRequirementsPerSymbol = new Dictionary<int, MaxMatchMemoryRequirements>();
             foreach (var symbol in rulesByTargetSymbol.Keys.ToList())
             {
                 rulesByTargetSymbol[symbol] = rulesByTargetSymbol[symbol]
                     .OrderByDescending(x => 
-                        (x.ContextPrefix.IsCreated ? x.ContextPrefix.targetSymbolSeries.Length : 0) +
-                        (x.ContextSuffix.IsCreated ? x.ContextSuffix.targetSymbolSeries.Length : 0))
+                        (x.ContextPrefix.IsValid ? x.ContextPrefix.targetSymbolSeries.Length : 0) +
+                        (x.ContextSuffix.IsCreated ? x.ContextSuffix.graphNodeMemSpace.length : 0))
                     .ToList();
                 var conditionalRules = rulesByTargetSymbol[symbol].Where(x => x.HasConditional).ToArray();
                 // can potentially match all conditionals, plus one extra non-conditional
@@ -229,7 +239,11 @@ namespace Dman.LSystem
             // 2.
             UnityEngine.Profiling.Profiler.BeginSample("matching");
             UnityEngine.Profiling.Profiler.BeginSample("branch cache");
-            var tmpBranchingCache = new SymbolStringBranchingCache(branchOpenSymbol, branchCloseSymbol, ignoredCharacters);
+            var tmpBranchingCache = new SymbolStringBranchingCache(
+                branchOpenSymbol,
+                branchCloseSymbol,
+                ignoredCharacters,
+                nativeRuleData);
             tmpBranchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols.symbols);
             UnityEngine.Profiling.Profiler.EndSample();
 

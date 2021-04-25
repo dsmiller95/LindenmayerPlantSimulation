@@ -124,7 +124,10 @@ namespace Dman.LSystem.SystemCompiler
         }
 
 
-        public static IEnumerable<BasicRule> CompileRules(IEnumerable<string> ruleStrings, string[] globalParameters = null)
+        public static IEnumerable<BasicRule> CompileRules(
+            IEnumerable<string> ruleStrings,
+            out SymbolSeriesMatcherNativeDataArray ruleNativeData,
+            string[] globalParameters = null)
         {
             var parsedRules = ruleStrings
                 .Select(x => ParseToRule(x, globalParameters))
@@ -170,7 +173,16 @@ namespace Dman.LSystem.SystemCompiler
                 }).ToList();
 
 
-            return basicRules.Concat(stochasticRules);
+            var allRules = basicRules.Concat(stochasticRules).ToArray();
+            ruleNativeData = new SymbolSeriesMatcherNativeDataArray(allRules);
+            var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
+
+            foreach (var rule in allRules)
+            {
+                rule.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
+            }
+
+            return allRules;
         }
     }
 }

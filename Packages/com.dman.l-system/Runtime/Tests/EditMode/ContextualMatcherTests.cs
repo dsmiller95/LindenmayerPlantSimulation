@@ -15,10 +15,13 @@ public class ContextualMatcherTests
         IEnumerable<(int, int)> expectedMatchToTargetMapping = null,
         IEnumerable<int> ignoreSymbols = null)
     {
-        var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
-        seriesMatcher.ComputeGraphIndexes('[', ']');
+        var seriesMatcher = SymbolSeriesGraphTests.GenerateSingleMatcher(matcher, out var nativeData);
+        using var nativeDataDisposable = nativeData;
         using var targetString = new SymbolString<float>(target);
-        var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
+        var branchingCache = new SymbolStringBranchingCache(
+            '[', ']',
+            ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
+            nativeDataDisposable);
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
 
         var matchPairings = branchingCache.MatchesForward(
@@ -51,9 +54,16 @@ public class ContextualMatcherTests
         int indexInTarget = -1,
         IEnumerable<int> ignoreSymbols = null)
     {
-        var seriesMatcher = SymbolSeriesMatcher.Parse(matcher);
+        var prefixBuilder = SymbolSeriesPrefixBuilder.Parse(matcher);
+        using var nativeData = new SymbolSeriesMatcherNativeDataArray(new[] { prefixBuilder });
+
+        var seriesMatcher = prefixBuilder.BuildIntoManagedMemory();
         using var targetString = new SymbolString<float>(target);
-        var branchingCache = new SymbolStringBranchingCache('[', ']', ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols));
+        var branchingCache = new SymbolStringBranchingCache(
+            '[', ']', 
+            ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
+            nativeData);
+
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
 
         var realIndex = indexInTarget < 0 ? indexInTarget + targetString.Length : indexInTarget;
@@ -79,11 +89,11 @@ public class ContextualMatcherTests
     [Test]
     public void NoBranchingBackwardsMatch()
     {
-        var branchingCache = new SymbolStringBranchingCache();
-        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A")));
-        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("ABC")));
-        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("A[B]")));
-        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesMatcher.Parse("[A]")));
+        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
+        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesPrefixBuilder.Parse("A").BuildIntoManagedMemory()));
+        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesPrefixBuilder.Parse("ABC").BuildIntoManagedMemory()));
+        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesPrefixBuilder.Parse("A[B]").BuildIntoManagedMemory()));
+        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesPrefixBuilder.Parse("[A]").BuildIntoManagedMemory()));
     }
     [Test]
     public void BasicBackwardMatchesOnlyImmediateSiblingNoBranching()
@@ -177,7 +187,7 @@ public class ContextualMatcherTests
     public void FindsOpeningBranchLinks()
     {
         using var targetString = new SymbolString<float>("A[AA]AAA[A[AAA[A]]]A");
-        var branchingCache = new SymbolStringBranchingCache();
+        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(8, branchingCache.FindOpeningBranchIndexReadonly(18));
         Assert.AreEqual(10, branchingCache.FindOpeningBranchIndexReadonly(17));
@@ -187,7 +197,7 @@ public class ContextualMatcherTests
     public void FindsClosingBranchLinks()
     {
         using var targetString = new SymbolString<float>("A[AA]AAA[A[AAA[A]]]A");
-        var branchingCache = new SymbolStringBranchingCache();
+        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(4, branchingCache.FindClosingBranchIndexReadonly(1));
         Assert.AreEqual(17, branchingCache.FindClosingBranchIndexReadonly(10));
@@ -197,7 +207,7 @@ public class ContextualMatcherTests
     public void FindsBranchClosingLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
         using var targetString = new SymbolString<float>("EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
-        var branchingCache = new SymbolStringBranchingCache();
+        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(87, branchingCache.FindClosingBranchIndexReadonly(69));
         Assert.AreEqual(98, branchingCache.FindClosingBranchIndexReadonly(91));
@@ -206,7 +216,7 @@ public class ContextualMatcherTests
     public void FindsBranchForwardLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
         using var targetString = new SymbolString<float>("[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
-        var branchingCache = new SymbolStringBranchingCache();
+        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(64, branchingCache.FindOpeningBranchIndexReadonly(82));
         Assert.AreEqual(86, branchingCache.FindOpeningBranchIndexReadonly(93));

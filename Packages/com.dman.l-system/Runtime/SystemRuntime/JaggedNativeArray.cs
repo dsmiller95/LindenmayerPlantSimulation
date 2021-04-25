@@ -67,20 +67,23 @@ namespace Dman.LSystem.SystemRuntime
             var paramSum = jaggedData.Select(x => x.Length).Sum();
             data = new NativeArray<TData>(paramSum, allocator, NativeArrayOptions.UninitializedMemory);
 
+
+            var localIndexingArrayHandle = this.indexing;
             WriteJaggedIndexing(
-                indexing,
-                (data, index) => index,
+                (index, indexData) =>
+                {
+                    localIndexingArrayHandle[index] = indexData;
+                },
                 jaggedData,
                 data
                 );
         }
 
-        public static void WriteJaggedIndexing<TIndexer>(
-            NativeArray<TIndexer> indexerArray,
-            Func<TIndexer, JaggedIndexing, TIndexer> indexWriter,
+        public static void WriteJaggedIndexing(
+            Action<int, JaggedIndexing> writeIndexing,
             TData[][] jaggedData,
             NativeArray<TData> dataArray,
-            int originInDataArray = 0) where TIndexer : unmanaged
+            int originInDataArray = 0)
         {
             var myDataSum = jaggedData.Select(x => x.Length).Sum();
             if(dataArray.Length + originInDataArray < myDataSum)
@@ -97,7 +100,7 @@ namespace Dman.LSystem.SystemRuntime
                     index = indexInData,
                     length = (ushort)jaggedData[i].Length
                 };
-                indexerArray[i] = indexWriter(indexerArray[i], newIndexing);
+                writeIndexing(i, newIndexing);
                 for (int j = 0; j < jaggedData[i].Length; j++)
                 {
                     dataArray[indexInData + j] = jaggedData[i][j];
