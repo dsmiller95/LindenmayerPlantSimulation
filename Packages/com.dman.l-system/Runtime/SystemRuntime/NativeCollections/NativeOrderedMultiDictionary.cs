@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Collections;
 
-namespace Dman.LSystem.SystemRuntime
+namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
     public struct NativeOrderedMultiDictionary<TValue> : IDisposable where TValue: unmanaged
     {

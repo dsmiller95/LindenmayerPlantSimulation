@@ -1,6 +1,7 @@
 using Dman.LSystem;
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using Unity.Collections;
 

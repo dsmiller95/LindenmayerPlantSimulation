@@ -2,7 +2,7 @@
 using System.Linq;
 using Unity.Collections;
 
-namespace Dman.LSystem.SystemRuntime
+namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
     public struct JaggedNativeArray<TData> : System.IEquatable<JaggedNativeArray<TData>>, IDisposable where TData : unmanaged
     {

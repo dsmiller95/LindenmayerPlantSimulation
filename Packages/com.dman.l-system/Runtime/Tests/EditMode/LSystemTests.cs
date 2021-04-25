@@ -2,6 +2,7 @@ using Dman.LSystem;
 using Dman.LSystem.Packages.Tests.EditMode;
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
