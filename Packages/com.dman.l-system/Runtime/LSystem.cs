@@ -62,7 +62,7 @@ namespace Dman.LSystem
         public int maxPossibleMatches;
     }
 
-    public class LSystem
+    public class LSystem : System.IDisposable
     {
         /// <summary>
         /// structured data to store rules, in order of precidence, as follows:
@@ -342,6 +342,12 @@ namespace Dman.LSystem
             r.state = r.state ^ seed;
             return r;
         }
+
+        public void Dispose()
+        {
+            this.nativeRuleData.Dispose();
+            this.blittableRulesByTargetSymbol.Dispose();
+        }
     }
 
     /// <summary>
@@ -459,6 +465,7 @@ namespace Dman.LSystem
                 randomProvider = randResult,
                 currentSymbols = this.target
             };
+            tmpPossibleMatchMemory.Dispose();
             stepState = StepState.COMPLETE;
             return newResult;
         }

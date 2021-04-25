@@ -1,11 +1,6 @@
 ﻿using Dman.LSystem;
-using Dman.LSystem.Packages.Tests.EditMode;
-using Dman.LSystem.SystemCompiler;
-using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.UnityObjects;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Linq;
 
 using Unity.PerformanceTesting;
 using UnityEngine;
@@ -16,14 +11,14 @@ public class LSystemPerformanceTests
     public void ContextLSystemDoesManyManySteps()
     {
         LSystemState<float> state = new DefaultLSystemState("C");
-        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-        "    A > B -> B",
-        "C < A     -> C",
-        "A < B     -> A",
-        "    C > A -> A",
-        "    B     -> CA",
-        "    C     -> AB",
-    });
+        using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+            "    A > B -> B",
+            "C < A     -> C",
+            "A < B     -> A",
+            "    C > A -> A",
+            "    B     -> CA",
+            "    C     -> AB",
+        });
 
         Assert.AreEqual("C", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
@@ -68,12 +63,12 @@ public class LSystemPerformanceTests
     public void ContextLSystemGetsVeryBigPredictably()
     {
         LSystemState<float> state = new DefaultLSystemState("A(0)");
-        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-        "    A(x) > [B(y)][B(z)] -> A(x + y + z)",
-        "    B(x) > A(y) -> B(x + y)",
-        "    A(x)        -> A(x)[B(1)][B(1)]",
-        "    B(x)        -> B(x)A(0)",
-    });
+        using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+            "    A(x) > [B(y)][B(z)] -> A(x + y + z)",
+            "    B(x) > A(y) -> B(x + y)",
+            "    A(x)        -> A(x)[B(1)][B(1)]",
+            "    B(x)        -> B(x)A(0)",
+        });
 
         Assert.AreEqual("A(0)", state.currentSymbols.ToString());
         state = basicLSystem.StepSystem(state);
@@ -114,7 +109,7 @@ public class LSystemPerformanceTests
     public void TrivialSystemPerformance()
     {
         LSystemState<float> state = new DefaultLSystemState("A");
-            var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+        using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
         });
         using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
         Assert.AreEqual("A", nextState.ToString());
@@ -127,17 +122,18 @@ public class LSystemPerformanceTests
             .IterationsPerMeasurement(10)
             .GC()
             .Run();
+        state.currentSymbols.Dispose();
     }
     [Test, Performance]
     public void SmallInputPerformance()
     {
         LSystemState<float> state = new DefaultLSystemState("A(0)");
-        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-        "    A(x) > [B(y)][B(z)] -> A(x + y + z)",
-        "    B(x) > A(y) -> B(x + y)",
-        "    A(x)        -> A(x)[B(1)][B(1)]",
-        "    B(x)        -> B(x)A(0)",
-    });
+        using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+            "    A(x) > [B(y)][B(z)] -> A(x + y + z)",
+            "    B(x) > A(y) -> B(x + y)",
+            "    A(x)        -> A(x)[B(1)][B(1)]",
+            "    B(x)        -> B(x)A(0)",
+        });
         using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
         Assert.AreEqual("A(0)[B(1)][B(1)]", nextState.ToString());
         Measure.Method(() =>
@@ -149,13 +145,14 @@ public class LSystemPerformanceTests
             .IterationsPerMeasurement(10)
             .GC()
             .Run();
+        state.currentSymbols.Dispose();
     }
 
     [Test, Performance]
     public void BiggerInputFastGrowthPerformance()
     {
         LSystemState<float> state = new DefaultLSystemState("A(0)");
-        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+        using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "    A(x) > [B(y)][B(z)] -> A(x + y + z)",
             "    B(x) > A(y) -> B(x + y)",
             "    A(x)        -> A(x)[B(1)][B(1)]",
@@ -175,6 +172,7 @@ public class LSystemPerformanceTests
             .IterationsPerMeasurement(10)
             .GC()
             .Run();
+        state.currentSymbols.Dispose();
     }
 
     [Test, Performance]
@@ -183,10 +181,10 @@ public class LSystemPerformanceTests
         var globalParameters = new string[] { "global" };
 
         LSystemState<float> state = new DefaultLSystemState("A(0)");
-        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-        "A(x) : x < global -> A(x + 1)",
-        "A(x) : x >= global -> A(x - 1)",
-    }, globalParameters);
+        using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+            "A(x) : x < global -> A(x + 1)",
+            "A(x) : x >= global -> A(x - 1)",
+        }, globalParameters);
 
         var defaultGlobalParams = new float[] { 3 };
         try
@@ -214,24 +212,31 @@ public class LSystemPerformanceTests
         var defaultGlobalParams = new float[] { 3 };
 
         LSystemState<float> state = new DefaultLSystemState("A(0, 5)B(10, 15)");
-        var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
-            "A(x, y) > B(z, a) : x <  global && y <= z -> A(x, y)",
-            "A(x, y) > B(z, a) : x <  global && y >  z -> B(x, y)",
-            "A(x, y) > B(z, a) : x >= global && y <= z -> A(z, a)",
-            "A(x, y) > B(z, a) : x >= global && y >  z -> B(z, a)",
-        }, globalParameters);
-        using var lastSymbols = basicLSystem.StepSystem(state, defaultGlobalParams, disposeOldSystem: false).currentSymbols;
-        Assert.AreEqual("A(0, 5)B(10, 15)", lastSymbols.ToString());
-        // TODO: use better methods for this. should be methods that run in the order of ms, noot seconds
-        Measure.Method(() =>
+        try
         {
+            using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+                "A(x, y) > B(z, a) : x <  global && y <= z -> A(x, y)",
+                "A(x, y) > B(z, a) : x <  global && y >  z -> B(x, y)",
+                "A(x, y) > B(z, a) : x >= global && y <= z -> A(z, a)",
+                "A(x, y) > B(z, a) : x >= global && y >  z -> B(z, a)",
+            }, globalParameters);
             using var lastSymbols = basicLSystem.StepSystem(state, defaultGlobalParams, disposeOldSystem: false).currentSymbols;
-        })
-            .WarmupCount(10)
-            .MeasurementCount(10)
-            .IterationsPerMeasurement(10)
-            .GC()
-            .Run();
+            Assert.AreEqual("A(0, 5)B(10, 15)", lastSymbols.ToString());
+            // TODO: use better methods for this. should be methods that run in the order of ms, noot seconds
+            Measure.Method(() =>
+            {
+                using var lastSymbols = basicLSystem.StepSystem(state, defaultGlobalParams, disposeOldSystem: false).currentSymbols;
+            })
+                .WarmupCount(10)
+                .MeasurementCount(10)
+                .IterationsPerMeasurement(10)
+                .GC()
+                .Run();
+        }
+        finally
+        {
+            state.currentSymbols.Dispose();
+        }
     }
 
     [Test, Performance]
@@ -358,5 +363,7 @@ C(age) < A(y) : age >= timeToFruit ->
             .IterationsPerMeasurement(10)
             .GC()
             .Run();
+        state.currentSymbols.Dispose();
+        lSystem.Dispose();
     }
 }
