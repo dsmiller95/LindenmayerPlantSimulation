@@ -126,7 +126,7 @@ namespace Dman.LSystem.SystemCompiler
 
         public static IEnumerable<BasicRule> CompileRules(
             IEnumerable<string> ruleStrings,
-            out SymbolSeriesMatcherNativeDataArray ruleNativeData,
+            out SystemLevelRuleNativeData ruleNativeData,
             string[] globalParameters = null)
         {
             var parsedRules = ruleStrings
@@ -174,7 +174,7 @@ namespace Dman.LSystem.SystemCompiler
 
 
             var allRules = basicRules.Concat(stochasticRules).ToArray();
-            ruleNativeData = new SymbolSeriesMatcherNativeDataArray(allRules);
+            ruleNativeData = new SystemLevelRuleNativeData(allRules);
             var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
 
             foreach (var rule in allRules)

@@ -25,7 +25,7 @@ public class BasicRuleTests
         using var expectedReplacement = new SymbolString<float>(expectedReplacementText, Allocator.Persistent);
 
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
-        using var ruleNativeData = new SymbolSeriesMatcherNativeDataArray(new[] { ruleFromString });
+        using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
 
@@ -98,7 +98,7 @@ public class BasicRuleTests
     {
         using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText));
-        using var ruleNativeData = new SymbolSeriesMatcherNativeDataArray(new[] { ruleFromString });
+        using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
 
@@ -148,7 +148,7 @@ public class BasicRuleTests
     {
         using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText));
-        using var ruleNativeData = new SymbolSeriesMatcherNativeDataArray(new[] { ruleFromString });
+        using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
 
@@ -181,7 +181,7 @@ public class BasicRuleTests
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
-        using var ruleNativeData = new SymbolSeriesMatcherNativeDataArray(new[] { ruleFromString });
+        using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
 

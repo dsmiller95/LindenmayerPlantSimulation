@@ -73,7 +73,7 @@ namespace Dman.LSystem
         // TODO
         //private NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
-        private SymbolSeriesMatcherNativeDataArray nativeRuleData;
+        private SystemLevelRuleNativeData nativeRuleData;
 
         /// <summary>
         /// Stores the maximum number of parameters that could be captured by each symbol's maximum number of possible alternative matches
@@ -99,7 +99,7 @@ namespace Dman.LSystem
 
         public LSystem(
             IEnumerable<BasicRule> rules,
-            SymbolSeriesMatcherNativeDataArray nativeRuleData,
+            SystemLevelRuleNativeData nativeRuleData,
             int expectedGlobalParameters = 0,
             int branchOpenSymbol = '[',
             int branchCloseSymbol = ']',
@@ -128,7 +128,7 @@ namespace Dman.LSystem
             {
                 rulesByTargetSymbol[symbol] = rulesByTargetSymbol[symbol]
                     .OrderByDescending(x => 
-                        (x.ContextPrefix.IsValid ? x.ContextPrefix.targetSymbolSeries.Length : 0) +
+                        (x.ContextPrefix.IsValid ? x.ContextPrefix.graphNodeMemSpace.length : 0) +
                         (x.ContextSuffix.IsCreated ? x.ContextSuffix.graphNodeMemSpace.length : 0))
                     .ToList();
                 var conditionalRules = rulesByTargetSymbol[symbol].Where(x => x.HasConditional).ToArray();

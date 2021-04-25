@@ -6,12 +6,16 @@ public class SymbolSeriesGraphTests
 {
     public static SymbolSeriesSuffixMatcher GenerateSingleMatcher(
         string matchPattern,
-        out SymbolSeriesMatcherNativeDataArray nativeData)
+        out SystemLevelRuleNativeData nativeData)
     {
         var builder = SymbolSeriesSuffixBuilder.Parse(matchPattern);
         builder.BuildGraphIndexes('[', ']');
 
-        nativeData = new SymbolSeriesMatcherNativeDataArray(new[] { builder });
+        nativeData = new SystemLevelRuleNativeData(new RuleDataRequirements
+        {
+            suffixChildren = builder.RequiredChildrenMemSpace,
+            suffixGraphNodes = builder.RequiredGraphNodeMemSpace
+        });
         var writer = new SymbolSeriesMatcherNativeDataWriter();
         return builder.BuildIntoManagedMemory(nativeData, writer);
     }
@@ -23,21 +27,21 @@ public class SymbolSeriesGraphTests
         var seriesMatcher = GenerateSingleMatcher("ABC", out var tmpNativeData);
         using var nativeData = tmpNativeData;
 
-        Assert.AreEqual(3, nativeData.childrenDataArray.Length);
+        Assert.AreEqual(3, nativeData.suffixMatcherChildrenDataArray.Length);
         Assert.AreEqual(1, seriesMatcher.childrenOfRoot.length);
         Assert.AreEqual(0, seriesMatcher.childrenOfRoot.index);
-        Assert.AreEqual(0, nativeData.childrenDataArray[0]);
+        Assert.AreEqual(0, nativeData.suffixMatcherChildrenDataArray[0]);
 
-        Assert.AreEqual(1, nativeData.graphNodeData[0].childrenIndexing.length);
-        Assert.AreEqual(1, nativeData.graphNodeData[0].childrenIndexing.index);
-        Assert.AreEqual(1, nativeData.childrenDataArray[1]);
+        Assert.AreEqual(1, nativeData.suffixMatcherGraphNodeData[0].childrenIndexing.length);
+        Assert.AreEqual(1, nativeData.suffixMatcherGraphNodeData[0].childrenIndexing.index);
+        Assert.AreEqual(1, nativeData.suffixMatcherChildrenDataArray[1]);
 
-        Assert.AreEqual(1, nativeData.graphNodeData[1].childrenIndexing.length);
-        Assert.AreEqual(2, nativeData.graphNodeData[1].childrenIndexing.index);
-        Assert.AreEqual(2, nativeData.childrenDataArray[2]);
+        Assert.AreEqual(1, nativeData.suffixMatcherGraphNodeData[1].childrenIndexing.length);
+        Assert.AreEqual(2, nativeData.suffixMatcherGraphNodeData[1].childrenIndexing.index);
+        Assert.AreEqual(2, nativeData.suffixMatcherChildrenDataArray[2]);
 
-        Assert.AreEqual(0, nativeData.graphNodeData[2].childrenIndexing.length);
-        Assert.AreEqual(3, nativeData.graphNodeData[2].childrenIndexing.index);
+        Assert.AreEqual(0, nativeData.suffixMatcherGraphNodeData[2].childrenIndexing.length);
+        Assert.AreEqual(3, nativeData.suffixMatcherGraphNodeData[2].childrenIndexing.index);
     }
     [Test]
     public void ComputesGraphWithBranch()
@@ -45,7 +49,7 @@ public class SymbolSeriesGraphTests
         var seriesMatcher = GenerateSingleMatcher("A[B]C", out var tmpNativeData);
         using var nativeData = tmpNativeData;
 
-        Assert.IsTrue(nativeData.graphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, 0, -2, 0 }));
+        Assert.IsTrue(nativeData.suffixMatcherGraphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, 0, -2, 0 }));
     }
     [Test]
     public void ComputesGraphWithSeveralBranches()
@@ -53,21 +57,21 @@ public class SymbolSeriesGraphTests
         var seriesMatcher = GenerateSingleMatcher("A[B[E]][C]", out var tmpNativeData);
         using var nativeData = tmpNativeData;
 
-        Assert.IsTrue(nativeData.graphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, 0, -2, 2, -2, -2, -2, 0, -2 }));
+        Assert.IsTrue(nativeData.suffixMatcherGraphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, 0, -2, 2, -2, -2, -2, 0, -2 }));
     }
     [Test]
     public void ComputesGraphWithBranchesAtRoot()
     {
         var seriesMatcher = GenerateSingleMatcher("[B[E]][C]", out var tmpNativeData);
         using var nativeData = tmpNativeData;
-        Assert.IsTrue(nativeData.graphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -2, -1, -2, 1, -2, -2, -2, -1, -2 }));
+        Assert.IsTrue(nativeData.suffixMatcherGraphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -2, -1, -2, 1, -2, -2, -2, -1, -2 }));
     }
     [Test]
     public void SimplifiesSimpleDeeplyNestedBranches()
     {
         var seriesMatcher = GenerateSingleMatcher("A[[E]]", out var tmpNativeData);
         using var nativeData = tmpNativeData;
-        Assert.IsTrue(nativeData.graphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, -2, 0, -2, -2 }));
+        Assert.IsTrue(nativeData.suffixMatcherGraphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, -2, 0, -2, -2 }));
     }
 
     [Test]
@@ -75,7 +79,7 @@ public class SymbolSeriesGraphTests
     {
         var seriesMatcher = GenerateSingleMatcher("A[[E][B]]", out var tmpNativeData);
         using var nativeData = tmpNativeData;
-        Assert.IsTrue(nativeData.graphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, -2, 0, -2, -2, 0, -2, -2 }));
+        Assert.IsTrue(nativeData.suffixMatcherGraphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, -2, 0, -2, -2, 0, -2, -2 }));
     }
     [Test]
     public void SimplifiesComplexDeeplyNestedBranchesWithNoInitial()
@@ -83,14 +87,14 @@ public class SymbolSeriesGraphTests
         var seriesMatcher = GenerateSingleMatcher("[[E][B]]", out var tmpNativeData);
         using var nativeData = tmpNativeData;
 
-        Assert.IsTrue(nativeData.graphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -2, -2, -1, -2, -2, -1, -2, -2 }));
+        Assert.IsTrue(nativeData.suffixMatcherGraphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -2, -2, -1, -2, -2, -1, -2, -2 }));
     }
     [Test]
     public void SimplifiesOtherNestedBranches()
     {
         var seriesMatcher = GenerateSingleMatcher("A[[E]B]", out var tmpNativeData);
         using var nativeData = tmpNativeData;
-        Assert.IsTrue(nativeData.graphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, -2, 0, -2, 0, -2 }));
+        Assert.IsTrue(nativeData.suffixMatcherGraphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, -2, 0, -2, 0, -2 }));
     }
     [Test]
     public void PreservesNestedWithIntermediateSymbol()
@@ -98,7 +102,7 @@ public class SymbolSeriesGraphTests
         var seriesMatcher = GenerateSingleMatcher("A[B[E]]", out var tmpNativeData);
         using var nativeData = tmpNativeData;
 
-        Assert.IsTrue(nativeData.graphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, 0, -2, 2, -2, -2 }));
+        Assert.IsTrue(nativeData.suffixMatcherGraphNodeData.Select(x => x.parentIndex).SequenceEqual(new int[] { -1, -2, 0, -2, 2, -2, -2 }));
     }
     [Test]
     public void CorrectlyLabelsIndexesInParentChildren()
@@ -108,20 +112,20 @@ public class SymbolSeriesGraphTests
 
         for (int rootChild = 0; rootChild < seriesMatcher.childrenOfRoot.length; rootChild++)
         {
-            var childIndex = nativeData.childrenDataArray[seriesMatcher.childrenOfRoot.index + rootChild];
-            var childNode = nativeData.graphNodeData[childIndex];
+            var childIndex = nativeData.suffixMatcherChildrenDataArray[seriesMatcher.childrenOfRoot.index + rootChild];
+            var childNode = nativeData.suffixMatcherGraphNodeData[childIndex];
             Assert.AreEqual(rootChild, childNode.myIndexInParentChildren, "Child's index in parent children list mismatch");
         }
 
         for (int nodeIndex = 0; nodeIndex < seriesMatcher.graphNodeMemSpace.length; nodeIndex++)
         {
-            var node = nativeData.graphNodeData[nodeIndex];
+            var node = nativeData.suffixMatcherGraphNodeData[nodeIndex];
             if(node.childrenIndexing.length > 0)
             {
                 for (int child = 0; child < node.childrenIndexing.length; child++)
                 {
-                    var childIndex = nativeData.childrenDataArray[node.childrenIndexing.index + child];
-                    var childNode = nativeData.graphNodeData[childIndex];
+                    var childIndex = nativeData.suffixMatcherChildrenDataArray[node.childrenIndexing.index + child];
+                    var childNode = nativeData.suffixMatcherGraphNodeData[childIndex];
                     Assert.AreEqual(child, childNode.myIndexInParentChildren, "Child's index in parent children list mismatch");
                 }
             }
@@ -136,7 +140,7 @@ public class SymbolSeriesGraphTests
         var resultCharaterString =
             seriesMatcher
             .GetDepthFirstEnumerator(nativeData)
-            .Select(x => nativeData.graphNodeData[x].mySymbol.targetSymbol)
+            .Select(x => nativeData.suffixMatcherGraphNodeData[x].mySymbol.targetSymbol)
             .Take(10) // infinite loop protection
             .ToArray();
         Assert.AreEqual(
@@ -153,7 +157,7 @@ public class SymbolSeriesGraphTests
         var result =
             seriesMatcher
             .GetDepthFirstEnumerator(nativeData)
-            .Select(x => nativeData.graphNodeData[x].mySymbol.targetSymbol)
+            .Select(x => nativeData.suffixMatcherGraphNodeData[x].mySymbol.targetSymbol)
             .Take(15) // infinite loop protection
             .ToArray();
         Assert.AreEqual(
@@ -166,12 +170,12 @@ public class SymbolSeriesGraphTests
         var partial = dfsIterator.TakeNNext(10).ToArray();
         Assert.AreEqual(
             "BECDEF".Select(x => (int)x).ToArray(),
-            partial.Select(x => nativeData.graphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
+            partial.Select(x => nativeData.suffixMatcherGraphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
             );
         partial = partial[partial.Length - 1].TakeNPrevious(10).ToArray();
         Assert.AreEqual(
             "EDCEB\0".Select(x => (int)x).ToArray(),
-            partial.Select(x => x.currentIndex == -1 ? 0 : nativeData.graphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
+            partial.Select(x => x.currentIndex == -1 ? 0 : nativeData.suffixMatcherGraphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
             );
     }
     [Test]
@@ -184,7 +188,7 @@ public class SymbolSeriesGraphTests
             "ABCDEFGHIJKL".Select(x => (int)x).ToArray(),
             seriesMatcher
             .GetDepthFirstEnumerator(nativeData)
-            .Select(x => nativeData.graphNodeData[x].mySymbol.targetSymbol)
+            .Select(x => nativeData.suffixMatcherGraphNodeData[x].mySymbol.targetSymbol)
             .Take(15) // infinite loop protection
             .ToArray()
             );
@@ -194,34 +198,34 @@ public class SymbolSeriesGraphTests
         var partial = dfsIterator.TakeNNext(8).ToArray();
         Assert.AreEqual(
             "ABCDEFGH".Select(x => (int)x).ToArray(),
-            partial.Select(x => nativeData.graphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
+            partial.Select(x => nativeData.suffixMatcherGraphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
             );
         partial = partial[partial.Length - 1].TakeNPrevious(6).ToArray();
         Assert.AreEqual(
             "GFEDCB".Select(x => (int)x).ToArray(),
-            partial.Select(x => nativeData.graphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
+            partial.Select(x => nativeData.suffixMatcherGraphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
             );
 
         partial = partial[partial.Length - 1].TakeNPrevious(100).ToArray();
         Assert.AreEqual(
             "A\0".Select(x => (int)x).ToArray(),
-            partial.Select(x => x.currentIndex == -1 ? 0 : nativeData.graphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
+            partial.Select(x => x.currentIndex == -1 ? 0 : nativeData.suffixMatcherGraphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
             );
         partial = partial[partial.Length - 1].TakeNNext(20).ToArray();
         Assert.AreEqual(
             "ABCDEFGHIJKL".Select(x => (int)x).ToArray(),
-            partial.Select(x => nativeData.graphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
+            partial.Select(x => nativeData.suffixMatcherGraphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
             );
 
         partial = partial[partial.Length - 1].TakeNPrevious(6).ToArray();
         Assert.AreEqual(
             "KJIHGF".Select(x => (int)x).ToArray(),
-            partial.Select(x => nativeData.graphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
+            partial.Select(x => nativeData.suffixMatcherGraphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
             );
         partial = partial[partial.Length - 1].TakeNNext(6).ToArray();
         Assert.AreEqual(
             "GHIJKL".Select(x => (int)x).ToArray(),
-            partial.Select(x => nativeData.graphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
+            partial.Select(x => nativeData.suffixMatcherGraphNodeData[x.currentIndex].mySymbol.targetSymbol).ToArray()
             );
     }
 

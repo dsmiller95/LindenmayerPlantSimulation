@@ -39,14 +39,13 @@ namespace Dman.LSystem.SystemRuntime
 
 
             backwardsMatchBuilder = new SymbolSeriesPrefixBuilder(parsedInfo.backwardsMatch);
-            ContextPrefix = backwardsMatchBuilder.BuildIntoManagedMemory();
 
             forwardsMatchBuilder = new SymbolSeriesSuffixBuilder(parsedInfo.forwardsMatch);
             forwardsMatchBuilder.BuildGraphIndexes(branchOpenSymbol, branchCloseSymbol);
 
 
             CapturedLocalParameterCount = _targetSymbolWithParameters.parameterLength +
-                ContextPrefix.targetSymbolSeries.Sum(x => x.parameterLength) +
+                backwardsMatchBuilder.targetSymbolSeries.Sum(x => x.parameterLength) +
                 forwardsMatchBuilder.targetSymbolSeries.Sum(x => x.parameterLength);
         }
         /// <summary>
@@ -67,25 +66,29 @@ namespace Dman.LSystem.SystemRuntime
             conditionalChecker = firstOutcome.conditionalMatch;
 
             backwardsMatchBuilder = new SymbolSeriesPrefixBuilder(firstOutcome.backwardsMatch);
-            ContextPrefix = backwardsMatchBuilder.BuildIntoManagedMemory();
 
             forwardsMatchBuilder = new SymbolSeriesSuffixBuilder(firstOutcome.forwardsMatch);
             forwardsMatchBuilder.BuildGraphIndexes(branchOpenSymbol, branchCloseSymbol);
 
             CapturedLocalParameterCount = _targetSymbolWithParameters.parameterLength +
-                ContextPrefix.targetSymbolSeries.Sum(x => x.parameterLength) +
+                backwardsMatchBuilder.targetSymbolSeries.Sum(x => x.parameterLength) +
                 forwardsMatchBuilder.targetSymbolSeries.Sum(x => x.parameterLength);
         }
 
-        public int RequiredGraphNodeMemSpace => forwardsMatchBuilder.RequiredGraphNodeMemSpace;
-        public int RequiredChildrenMemSpace => forwardsMatchBuilder.RequiredChildrenMemSpace;
+        public RuleDataRequirements RequiredMemorySpace => new RuleDataRequirements
+        {
+            suffixChildren = forwardsMatchBuilder.RequiredChildrenMemSpace,
+            suffixGraphNodes = forwardsMatchBuilder.RequiredGraphNodeMemSpace,
+            prefixNodes = backwardsMatchBuilder.targetSymbolSeries.Length
+        };
 
 
         public void WriteContextMatchesIntoMemory(
-            SymbolSeriesMatcherNativeDataArray dataArray,
+            SystemLevelRuleNativeData dataArray,
             SymbolSeriesMatcherNativeDataWriter dataWriter)
         {
             ContextSuffix = forwardsMatchBuilder.BuildIntoManagedMemory(dataArray, dataWriter);
+            ContextPrefix = backwardsMatchBuilder.BuildIntoManagedMemory(dataArray, dataWriter);
         }
 
         public Blittable AsBlittable()
@@ -145,7 +148,7 @@ namespace Dman.LSystem.SystemRuntime
                 byte matchedParameterNum = 0;
 
                 // context match
-                if (contextPrefix.IsValid && contextPrefix.targetSymbolSeries.Length > 0)
+                if (contextPrefix.IsValid && contextPrefix.graphNodeMemSpace.length > 0)
                 {
                     var backwardMatchMapping = branchingCache.MatchesBackwards(
                         indexInSymbols,
@@ -158,7 +161,7 @@ namespace Dman.LSystem.SystemRuntime
                         // if backwards match exists, and does not match, then fail this match attempt.
                         return false;
                     }
-                    for (int indexInPrefix = 0; indexInPrefix < contextPrefix.targetSymbolSeries.Length; indexInPrefix++)
+                    for (int indexInPrefix = 0; indexInPrefix < contextPrefix.graphNodeMemSpace.length; indexInPrefix++)
                     {
                         if (!backwardMatchMapping.TryGetValue(indexInPrefix, out var matchingTargetIndex))
                         {

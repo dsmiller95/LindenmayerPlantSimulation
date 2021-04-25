@@ -21,11 +21,11 @@ namespace Dman.LSystem.SystemRuntime
         /// Contains a caches set of indexes, mapping each branching symbol to its matching closing/opening symbol.
         /// </summary>
         private Dictionary<int, int> branchingJumpIndexes;
-        private SymbolSeriesMatcherNativeDataArray nativeRuleData; // todo: will have to pass this in instead of attach, maybe
+        private SystemLevelRuleNativeData nativeRuleData; // todo: will have to pass this in instead of attach, maybe
 
-        public SymbolStringBranchingCache(SymbolSeriesMatcherNativeDataArray nativeRuleData)
+        public SymbolStringBranchingCache(SystemLevelRuleNativeData nativeRuleData)
             : this(defaultBranchOpenSymbol, defaultBranchCloseSymbol, new HashSet<int>(), nativeRuleData) { }
-        public SymbolStringBranchingCache(int open, int close, ISet<int> ignoreSymbols, SymbolSeriesMatcherNativeDataArray nativeRuleData)
+        public SymbolStringBranchingCache(int open, int close, ISet<int> ignoreSymbols, SystemLevelRuleNativeData nativeRuleData)
         {
             branchOpenSymbol = open;
             branchCloseSymbol = close;
@@ -38,15 +38,6 @@ namespace Dman.LSystem.SystemRuntime
             branchingJumpIndexes = new Dictionary<int, int>();
             CacheAllBranchJumpIndexes(symbols);
 
-        }
-
-        public bool ValidForwardMatch(SymbolSeriesSuffixMatcher seriesMatch)
-        {
-            return true;
-        }
-        public bool ValidBackwardsMatch(SymbolSeriesPrefixMatcher seriesMatch)
-        {
-            return seriesMatch.targetSymbolSeries.All(x => x.targetSymbol != defaultBranchOpenSymbol && x.targetSymbol != defaultBranchCloseSymbol);
         }
 
         /// <summary>
@@ -109,13 +100,13 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<JaggedIndexing> parameterIndexingHandle)
         {
             indexInSymbolTarget--;
-            int matchingIndex = seriesMatch.targetSymbolSeries.Length - 1;
+            int matchingIndex = seriesMatch.graphNodeMemSpace.length - 1;
 
             Dictionary<int, int>  matcherIndexToTargetIndex = null;
 
             for (; matchingIndex >= 0 && indexInSymbolTarget >= 0;)
             {
-                var symbolToMatch = seriesMatch.targetSymbolSeries[matchingIndex];
+                var symbolToMatch = nativeRuleData.prefixMatcherSymbols[matchingIndex + seriesMatch.graphNodeMemSpace.index];
                 while (indexInSymbolTarget >= 0)
                 {
                     var currentSymbol = symbolHandle[indexInSymbolTarget];
@@ -353,12 +344,12 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<JaggedIndexing> parameterIndexingHandle
             )
         {
-            var symbolInMatch = nativeRuleData.graphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].mySymbol;
+            var symbolInMatch = nativeRuleData.suffixMatcherGraphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].mySymbol;
             if (
                 symbolInMatch.targetSymbol == symbolHandle[currentIndexInTarget] &&
                 symbolInMatch.parameterLength == parameterIndexingHandle[currentIndexInTarget].length)
             {
-                var parentIndexInMatch = nativeRuleData.graphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].parentIndex;
+                var parentIndexInMatch = nativeRuleData.suffixMatcherGraphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].parentIndex;
                 if(parentIndexInMatch == -1)
                 {
                     // if the parent is the origin, always match.

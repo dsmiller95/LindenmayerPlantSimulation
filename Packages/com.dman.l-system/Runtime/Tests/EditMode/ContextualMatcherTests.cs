@@ -55,9 +55,13 @@ public class ContextualMatcherTests
         IEnumerable<int> ignoreSymbols = null)
     {
         var prefixBuilder = SymbolSeriesPrefixBuilder.Parse(matcher);
-        using var nativeData = new SymbolSeriesMatcherNativeDataArray(new[] { prefixBuilder });
+        using var nativeData = new SystemLevelRuleNativeData(new RuleDataRequirements
+        {
+            prefixNodes = prefixBuilder.RequiredNodeMemorySpace
+        });
+        var writer = new SymbolSeriesMatcherNativeDataWriter();
 
-        var seriesMatcher = prefixBuilder.BuildIntoManagedMemory();
+        var seriesMatcher = prefixBuilder.BuildIntoManagedMemory(nativeData, writer);
         using var targetString = new SymbolString<float>(target);
         var branchingCache = new SymbolStringBranchingCache(
             '[', ']', 
@@ -86,15 +90,7 @@ public class ContextualMatcherTests
             }
         }
     }
-    [Test]
-    public void NoBranchingBackwardsMatch()
-    {
-        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
-        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesPrefixBuilder.Parse("A").BuildIntoManagedMemory()));
-        Assert.IsTrue(branchingCache.ValidBackwardsMatch(SymbolSeriesPrefixBuilder.Parse("ABC").BuildIntoManagedMemory()));
-        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesPrefixBuilder.Parse("A[B]").BuildIntoManagedMemory()));
-        Assert.IsFalse(branchingCache.ValidBackwardsMatch(SymbolSeriesPrefixBuilder.Parse("[A]").BuildIntoManagedMemory()));
-    }
+    
     [Test]
     public void BasicBackwardMatchesOnlyImmediateSiblingNoBranching()
     {
@@ -187,7 +183,7 @@ public class ContextualMatcherTests
     public void FindsOpeningBranchLinks()
     {
         using var targetString = new SymbolString<float>("A[AA]AAA[A[AAA[A]]]A");
-        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
+        var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(8, branchingCache.FindOpeningBranchIndexReadonly(18));
         Assert.AreEqual(10, branchingCache.FindOpeningBranchIndexReadonly(17));
@@ -197,7 +193,7 @@ public class ContextualMatcherTests
     public void FindsClosingBranchLinks()
     {
         using var targetString = new SymbolString<float>("A[AA]AAA[A[AAA[A]]]A");
-        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
+        var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(4, branchingCache.FindClosingBranchIndexReadonly(1));
         Assert.AreEqual(17, branchingCache.FindClosingBranchIndexReadonly(10));
@@ -207,7 +203,7 @@ public class ContextualMatcherTests
     public void FindsBranchClosingLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
         using var targetString = new SymbolString<float>("EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
-        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
+        var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(87, branchingCache.FindClosingBranchIndexReadonly(69));
         Assert.AreEqual(98, branchingCache.FindClosingBranchIndexReadonly(91));
@@ -216,7 +212,7 @@ public class ContextualMatcherTests
     public void FindsBranchForwardLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
         using var targetString = new SymbolString<float>("[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
-        var branchingCache = new SymbolStringBranchingCache(new SymbolSeriesMatcherNativeDataArray());
+        var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(64, branchingCache.FindOpeningBranchIndexReadonly(82));
         Assert.AreEqual(86, branchingCache.FindOpeningBranchIndexReadonly(93));

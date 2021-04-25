@@ -7,51 +7,62 @@ using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public struct SymbolSeriesMatcherNativeDataArray: IDisposable
+    public struct SystemLevelRuleNativeData: IDisposable
     {
         [ReadOnly]
         [NativeDisableParallelForRestriction]
-        public NativeArray<int> childrenDataArray;
+        public NativeArray<int> suffixMatcherChildrenDataArray;
         [ReadOnly]
         [NativeDisableParallelForRestriction]
-        public NativeArray<SymbolMatcherGraphNode> graphNodeData;
-
+        public NativeArray<SymbolMatcherGraphNode> suffixMatcherGraphNodeData;
         [ReadOnly]
         [NativeDisableParallelForRestriction]
-        public NativeArray<SymbolSeriesSuffixMatcher> singletonStructData;
+        public NativeArray<InputSymbol.Blittable> prefixMatcherSymbols;
 
-        public SymbolSeriesMatcherNativeDataArray(IEnumerable<BasicRule> rulesToWrite)
+        public SystemLevelRuleNativeData(IEnumerable<BasicRule> rulesToWrite)
         {
             var allData = rulesToWrite.ToArray();
-            singletonStructData = new NativeArray<SymbolSeriesSuffixMatcher>(allData.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            graphNodeData = new NativeArray<SymbolMatcherGraphNode>(allData.Sum(x => x.RequiredGraphNodeMemSpace), Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            childrenDataArray = new NativeArray<int>(allData.Sum(x => x.RequiredChildrenMemSpace), Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var memReqs = allData.Aggregate(new RuleDataRequirements(), (agg, curr) => agg + curr.RequiredMemorySpace);
+            prefixMatcherSymbols = new NativeArray<InputSymbol.Blittable>(memReqs.prefixNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            suffixMatcherGraphNodeData = new NativeArray<SymbolMatcherGraphNode>(memReqs.suffixGraphNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            suffixMatcherChildrenDataArray = new NativeArray<int>(memReqs.suffixChildren, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         }
-        public SymbolSeriesMatcherNativeDataArray(IEnumerable<SymbolSeriesSuffixBuilder> matchers)
+        public SystemLevelRuleNativeData(RuleDataRequirements memReqs)
         {
-            var allData = matchers.ToArray();
-            singletonStructData = new NativeArray<SymbolSeriesSuffixMatcher>(allData.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            graphNodeData = new NativeArray<SymbolMatcherGraphNode>(allData.Sum(x => x.RequiredGraphNodeMemSpace), Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            childrenDataArray = new NativeArray<int>(allData.Sum(x => x.RequiredChildrenMemSpace), Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-        }
-        public SymbolSeriesMatcherNativeDataArray(IEnumerable<SymbolSeriesPrefixBuilder> matchers)
-        {
-            singletonStructData = new NativeArray<SymbolSeriesSuffixMatcher>(0, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            graphNodeData = new NativeArray<SymbolMatcherGraphNode>(0, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            childrenDataArray = new NativeArray<int>(0, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            prefixMatcherSymbols = new NativeArray<InputSymbol.Blittable>(memReqs.prefixNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            suffixMatcherGraphNodeData = new NativeArray<SymbolMatcherGraphNode>(memReqs.suffixGraphNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            suffixMatcherChildrenDataArray = new NativeArray<int>(memReqs.suffixChildren, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         }
 
         public void Dispose()
         {
-            childrenDataArray.Dispose();
-            graphNodeData.Dispose();
-            singletonStructData.Dispose();
+            suffixMatcherChildrenDataArray.Dispose();
+            suffixMatcherGraphNodeData.Dispose();
+            prefixMatcherSymbols.Dispose();
         }
     }
+
+    public struct RuleDataRequirements
+    {
+        public int suffixChildren;
+        public int suffixGraphNodes;
+        public int prefixNodes;
+
+        public static RuleDataRequirements operator +(RuleDataRequirements a, RuleDataRequirements b)
+        {
+            return new RuleDataRequirements
+            {
+                suffixGraphNodes = a.suffixGraphNodes + b.suffixGraphNodes,
+                suffixChildren = a.suffixChildren + b.suffixChildren,
+                prefixNodes = a.prefixNodes + b.prefixNodes,
+            };
+        }
+    }
+
     public class SymbolSeriesMatcherNativeDataWriter
     {
-        public int indexInChildren = 0;
-        public int indexInGraphNode = 0;
-        public int indexInSingletons = 0;
+        public int indexInSuffixChildren = 0;
+        public int indexInSuffixNodes = 0;
+        public int indexInPrefixNodes = 0;
     }
 }

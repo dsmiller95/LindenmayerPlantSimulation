@@ -31,19 +31,31 @@ namespace Dman.LSystem.SystemRuntime
     {
         public InputSymbol[] targetSymbolSeries;
 
+        public int RequiredNodeMemorySpace { get; private set; }
         public SymbolSeriesPrefixBuilder(InputSymbol[] matchingSeries)
         {
             this.targetSymbolSeries = matchingSeries;
+            RequiredNodeMemorySpace = matchingSeries.Length;
         }
-        public SymbolSeriesPrefixMatcher BuildIntoManagedMemory(Allocator allocator = Allocator.Persistent)
+        public SymbolSeriesPrefixMatcher BuildIntoManagedMemory(
+            SystemLevelRuleNativeData nativeData,
+            SymbolSeriesMatcherNativeDataWriter dataWriter, 
+            Allocator allocator = Allocator.Persistent)
         {
             var matcher = new SymbolSeriesPrefixMatcher();
 
-            matcher.targetSymbolSeries = new NativeArray<InputSymbol.Blittable>(
-                targetSymbolSeries
-                    .Select(x => x.AsBlittable())
-                    .ToArray(),
-                allocator);
+            matcher.graphNodeMemSpace = new JaggedIndexing
+            {
+                index = dataWriter.indexInPrefixNodes,
+                length = (ushort)RequiredNodeMemorySpace
+            };
+            dataWriter.indexInPrefixNodes += RequiredNodeMemorySpace;
+
+            for (int i = 0; i < targetSymbolSeries.Length; i++)
+            {
+                var symbol = targetSymbolSeries[i].AsBlittable();
+                nativeData.prefixMatcherSymbols[i + matcher.graphNodeMemSpace.index] = symbol;
+            }
 
             matcher.IsValid = targetSymbolSeries.Length > 0;
 
@@ -194,7 +206,7 @@ namespace Dman.LSystem.SystemRuntime
         }
 
         public SymbolSeriesSuffixMatcher BuildIntoManagedMemory(
-            SymbolSeriesMatcherNativeDataArray nativeData,
+            SystemLevelRuleNativeData nativeData,
             SymbolSeriesMatcherNativeDataWriter dataWriter,
             Allocator allocator = Allocator.Persistent)
         {
@@ -202,15 +214,15 @@ namespace Dman.LSystem.SystemRuntime
 
             matcher.graphNodeMemSpace = new JaggedIndexing
             {
-                index = dataWriter.indexInGraphNode,
+                index = dataWriter.indexInSuffixNodes,
                 length = (ushort)RequiredGraphNodeMemSpace
             };
 
-            dataWriter.indexInGraphNode += RequiredGraphNodeMemSpace;
+            dataWriter.indexInSuffixNodes += RequiredGraphNodeMemSpace;
             for (int i = 0; i < nodes.Count; i++)
             {
                 var sourceNode = nodes[i];
-                nativeData.graphNodeData[i + matcher.graphNodeMemSpace.index] = new SymbolMatcherGraphNode
+                nativeData.suffixMatcherGraphNodeData[i + matcher.graphNodeMemSpace.index] = new SymbolMatcherGraphNode
                 {
                     parentIndex = sourceNode.parentIndex,
                     myIndexInParentChildren = sourceNode.myIndexInParentChildren,
@@ -220,7 +232,7 @@ namespace Dman.LSystem.SystemRuntime
 
             matcher.childrenOfRoot = new JaggedIndexing
             {
-                index = dataWriter.indexInChildren,
+                index = dataWriter.indexInSuffixChildren,
                 length = (ushort)rootChildren.Count
             };
 
@@ -228,21 +240,21 @@ namespace Dman.LSystem.SystemRuntime
             var tmpIndexInChildren = 0;
             foreach (var rootChild in rootChildren)
             {
-                nativeData.childrenDataArray[tmpIndexInChildren + dataWriter.indexInChildren] = rootChild;
+                nativeData.suffixMatcherChildrenDataArray[tmpIndexInChildren + dataWriter.indexInSuffixChildren] = rootChild;
                 tmpIndexInChildren++;
             }
             JaggedNativeArray<int>.WriteJaggedIndexing(
                 (indexInJagged, jaggedIndexing) =>
                 {
-                    var node = nativeData.graphNodeData[indexInJagged + matcher.graphNodeMemSpace.index];
+                    var node = nativeData.suffixMatcherGraphNodeData[indexInJagged + matcher.graphNodeMemSpace.index];
                     node.childrenIndexing = jaggedIndexing;
-                    nativeData.graphNodeData[indexInJagged + matcher.graphNodeMemSpace.index] = node;
+                    nativeData.suffixMatcherGraphNodeData[indexInJagged + matcher.graphNodeMemSpace.index] = node;
                 },
                 childrenAsArray,
-                nativeData.childrenDataArray,
-                dataWriter.indexInChildren + tmpIndexInChildren
+                nativeData.suffixMatcherChildrenDataArray,
+                dataWriter.indexInSuffixChildren + tmpIndexInChildren
                 );
-            dataWriter.indexInChildren += RequiredChildrenMemSpace;
+            dataWriter.indexInSuffixChildren += RequiredChildrenMemSpace;
 
             matcher.HasGraphIndexes = true;
             matcher.IsCreated = true;
@@ -258,13 +270,10 @@ namespace Dman.LSystem.SystemRuntime
 
     public struct SymbolSeriesPrefixMatcher : IDisposable
     {
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<InputSymbol.Blittable> targetSymbolSeries;
+        public JaggedIndexing graphNodeMemSpace;
         public bool IsValid;
         public void Dispose()
         {
-            this.targetSymbolSeries.Dispose();
         }
     }
 
@@ -277,7 +286,7 @@ namespace Dman.LSystem.SystemRuntime
         public bool IsCreated { get; set;  }
         public bool HasGraphIndexes { get; set; }
 
-        public IEnumerable<int> GetDepthFirstEnumerator(SymbolSeriesMatcherNativeDataArray nativeData)
+        public IEnumerable<int> GetDepthFirstEnumerator(SystemLevelRuleNativeData nativeData)
         {
             var currentState = GetImmutableDepthFirstIterationState(nativeData);
             while (currentState.Next(out var nextState))
@@ -287,16 +296,16 @@ namespace Dman.LSystem.SystemRuntime
             }
         }
 
-        public DepthFirstSearchState GetImmutableDepthFirstIterationState(SymbolSeriesMatcherNativeDataArray nativeData)
+        public DepthFirstSearchState GetImmutableDepthFirstIterationState(SystemLevelRuleNativeData nativeData)
         {
             return new DepthFirstSearchState(this, -1, nativeData);
         }
 
-        private JaggedIndexing ChildrenForNode(int nodeIndex, SymbolSeriesMatcherNativeDataArray nativeData)
+        private JaggedIndexing ChildrenForNode(int nodeIndex, SystemLevelRuleNativeData nativeData)
         {
             if (nodeIndex >= 0)
             {
-                var node = nativeData.graphNodeData[nodeIndex + graphNodeMemSpace.index];
+                var node = nativeData.suffixMatcherGraphNodeData[nodeIndex + graphNodeMemSpace.index];
                 return node.childrenIndexing;
             }
             else if (nodeIndex == -1)
@@ -312,12 +321,12 @@ namespace Dman.LSystem.SystemRuntime
             private SymbolSeriesSuffixMatcher source;
             // Should be OK to store a pointer here. this cannot be copied over, but it is only used
             //  during job execution
-            private SymbolSeriesMatcherNativeDataArray nativeData;
+            private SystemLevelRuleNativeData nativeData;
 
             public DepthFirstSearchState(
                 SymbolSeriesSuffixMatcher source,
                 int currentIndex,
-                SymbolSeriesMatcherNativeDataArray nativeDataPointer)
+                SystemLevelRuleNativeData nativeDataPointer)
             {
                 this.source = source;
                 this.currentIndex = currentIndex;
@@ -358,7 +367,7 @@ namespace Dman.LSystem.SystemRuntime
 
                 while (indexInChildren >= children.length && nextIndex >= 0)
                 {
-                    var currentNode = nativeData.graphNodeData[nextIndex + source.graphNodeMemSpace.index];
+                    var currentNode = nativeData.suffixMatcherGraphNodeData[nextIndex + source.graphNodeMemSpace.index];
                     var lastIndexInChildren = currentNode.myIndexInParentChildren;
 
                     nextIndex = currentNode.parentIndex;
@@ -367,7 +376,7 @@ namespace Dman.LSystem.SystemRuntime
                 }
                 if (indexInChildren < children.length)
                 {
-                    nextIndex = nativeData.childrenDataArray[indexInChildren + children.index];
+                    nextIndex = nativeData.suffixMatcherChildrenDataArray[indexInChildren + children.index];
                     nextState = new DepthFirstSearchState(source, nextIndex, nativeData);
                     return true;
                 }
@@ -384,14 +393,14 @@ namespace Dman.LSystem.SystemRuntime
                     return false;
                 }
 
-                var currentChildIndex = nativeData.graphNodeData[nextNodeIndex + source.graphNodeMemSpace.index].myIndexInParentChildren;
+                var currentChildIndex = nativeData.suffixMatcherGraphNodeData[nextNodeIndex + source.graphNodeMemSpace.index].myIndexInParentChildren;
                 currentChildIndex--;
-                nextNodeIndex = nativeData.graphNodeData[nextNodeIndex + source.graphNodeMemSpace.index].parentIndex;
+                nextNodeIndex = nativeData.suffixMatcherGraphNodeData[nextNodeIndex + source.graphNodeMemSpace.index].parentIndex;
                 while (currentChildIndex >= 0)
                 {
                     // descend down the right-hand-side of the tree
                     var childrenIndexing = source.ChildrenForNode(nextNodeIndex, nativeData);
-                    nextNodeIndex = nativeData.childrenDataArray[childrenIndexing.index + currentChildIndex];
+                    nextNodeIndex = nativeData.suffixMatcherChildrenDataArray[childrenIndexing.index + currentChildIndex];
                     //nextNode = source.nodes[nextNodeIndex];
                     childrenIndexing = source.ChildrenForNode(nextNodeIndex, nativeData);
                     currentChildIndex = childrenIndexing.length - 1;
@@ -411,7 +420,7 @@ namespace Dman.LSystem.SystemRuntime
                 foundState = this;
                 do
                 {
-                    var parent = nativeData.graphNodeData[foundState.currentIndex + source.graphNodeMemSpace.index].parentIndex;
+                    var parent = nativeData.suffixMatcherGraphNodeData[foundState.currentIndex + source.graphNodeMemSpace.index].parentIndex;
                     if (parent == parentNode)
                     {
                         return true;
