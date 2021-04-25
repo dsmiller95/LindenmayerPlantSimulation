@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemCompiler;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -263,8 +264,7 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<float> parameterCopyMemory,
             out byte paramsCopiedToMem)
         {
-            var targetParentIndexStack = new NativeList<BranchEventData>(5, Allocator.Temp);// new Stack<BranchEventData>();
-            var nextIndexInTargetParentStack = 0;
+            var targetParentIndexStack = new TmpNativeStack<BranchEventData>(5);// new Stack<BranchEventData>();
 
             int currentParentIndexInTarget = originIndexInTarget;
             var targetIndexesToMatchIndexes = new NativeHashMap<int, int>(seriesMatch.graphNodeMemSpace.length, Allocator.Temp);// new Dictionary<int, int>();
@@ -290,24 +290,12 @@ namespace Dman.LSystem.SystemRuntime
                 }
                 if (targetSymbol == branchOpenSymbol)
                 {
-                    if(targetParentIndexStack.Capacity < nextIndexInTargetParentStack + 1)
-                    {
-                        targetParentIndexStack.Resize(targetParentIndexStack.Capacity + 5, NativeArrayOptions.UninitializedMemory);
-                    }
-                    var nextBranchEventData = new BranchEventData
+                    targetParentIndexStack.Push(new BranchEventData
                     {
                         currentParentIndex = currentParentIndexInTarget,
                         openBranchSymbolIndex = indexInTarget,
                         paramsCopiedAtThisPoint = paramsCopiedToMem
-                    };
-                    if (targetParentIndexStack.Length == nextIndexInTargetParentStack)
-                    {
-                        targetParentIndexStack.Add(nextBranchEventData);
-                    }else
-                    {
-                        targetParentIndexStack[nextIndexInTargetParentStack] = nextBranchEventData;
-                    }
-                    nextIndexInTargetParentStack++;
+                    });
                 }
                 else if (targetSymbol == branchCloseSymbol)
                 {
@@ -315,13 +303,12 @@ namespace Dman.LSystem.SystemRuntime
                     //  1. the branch in target has exactly matched the branch in the matcher, and we should just step down
                     //  2. the branch in target has terminated early, meaning we must step down the branch chain and also
                     //      reverse the matcher DFS back to a common ancenstor
-                    if (nextIndexInTargetParentStack <= 0)
+                    if (targetParentIndexStack.Count <= 0)
                     {
                         // if we encounter the end of the branch which contains the origin index before full match, fail.
                         return false;
                     }
-                    var lastBranch = targetParentIndexStack[nextIndexInTargetParentStack - 1];// targetParentIndexStack.Pop();
-                    nextIndexInTargetParentStack--;
+                    var lastBranch = targetParentIndexStack.Pop();
                     currentParentIndexInTarget = lastBranch.currentParentIndex;
                     //paramsCopiedToMem = lastBranch.paramsCopiedAtThisPoint;
 
@@ -374,13 +361,12 @@ namespace Dman.LSystem.SystemRuntime
                         // symbol in target isn't a valid match, so no further symbols in the current target branching structure can match.
                         // rewind back to the previous branching symbol, and skip this whole structure.
                         // Or if we're not in a nested structure, fail.
-                        if (nextIndexInTargetParentStack <= 0)
+                        if (targetParentIndexStack.Count <= 0)
                         {
                             return false;
                         }
 
-                        var lastBranch = targetParentIndexStack[nextIndexInTargetParentStack - 1];// targetParentIndexStack.Pop();
-                        nextIndexInTargetParentStack--;
+                        var lastBranch = targetParentIndexStack.Pop();
                         currentParentIndexInTarget = lastBranch.currentParentIndex;
                         //paramsCopiedToMem = lastBranch.paramsCopiedAtThisPoint;
                         indexInTarget = FindClosingBranchIndexReadonly(lastBranch.openBranchSymbolIndex);
