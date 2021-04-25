@@ -420,13 +420,17 @@ namespace Dman.LSystem.SystemRuntime
                 foundState = this;
                 do
                 {
-                    var parent = nativeData.suffixMatcherGraphNodeData[foundState.currentIndex + source.graphNodeMemSpace.index].parentIndex;
+                    var parent = foundState.GetParentIndex();
                     if (parent == parentNode)
                     {
                         return true;
                     }
                 } while (foundState.Previous(out foundState) && foundState.currentIndex >= 0);
                 return false;
+            }
+            public int GetParentIndex()
+            {
+                return nativeData.suffixMatcherGraphNodeData[currentIndex + source.graphNodeMemSpace.index].parentIndex;
             }
 
             public void Reset()

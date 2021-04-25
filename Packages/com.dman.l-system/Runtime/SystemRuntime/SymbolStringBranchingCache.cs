@@ -67,11 +67,14 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="indexInSymbolTarget"></param>
         /// <param name="seriesMatch"></param>
         /// <returns>a mapping from all symbols in seriesMatch back into the target string</returns>
-        public IDictionary<int, int> MatchesForward(
+        public bool MatchesForward(
             int indexInSymbolTarget,
             SymbolSeriesSuffixMatcher seriesMatch,
-            NativeArray<int> symbolHandle,
-            NativeArray<JaggedIndexing> parameterIndexingHandle)
+            SymbolString<float> symbolString,
+            int firstParameterCopyIndex,
+            NativeArray<float> parameterCopyMemory,
+            out byte paramsCopiedToMem
+            )
         {
             if (!seriesMatch.HasGraphIndexes)
             {
@@ -83,25 +86,13 @@ namespace Dman.LSystem.SystemRuntime
             // keep count of how many more matches are required at each level of the tree.
             //  starts out as a copy of the child count array. each leaf will be at 0, and will go negative when matched.
             //var remainingMatchesAtIndexes = seriesMatch.childrenCounts.Clone() as int[];
-            var targetSymbolToMatchSymbol = MatchesForwardsAtIndexOrderingInvariant(
+            return MatchesForwardsAtIndexOrderingInvariant(
                 indexInSymbolTarget,
                 seriesMatch,
-                symbolHandle,
-                parameterIndexingHandle);
-            // order by target symbol, then aggregate to dictionary. there will be duplicates of match indexes,
-            //  ordering this way guarantees that the only last duplicate in the target sting will be preserved.
-            //  Since the method is order invariant, it is guaranteed that the match with the highest index in the target
-            //  string is the correct match.
-            if (targetSymbolToMatchSymbol == null)
-            {
-                return null;
-            }
-            var resultBuilder = ImmutableDictionary<int, int>.Empty.ToBuilder();
-            foreach (var kvp in targetSymbolToMatchSymbol.OrderBy(x => x.Key))
-            {
-                resultBuilder[kvp.Value] = kvp.Key;
-            }
-            return resultBuilder.ToImmutable();
+                symbolString,
+                firstParameterCopyIndex,
+                parameterCopyMemory,
+                out paramsCopiedToMem);
         }
         /// <summary>
         /// 
@@ -254,7 +245,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             public int currentParentIndex;
             public int openBranchSymbolIndex;
-            public SymbolSeriesSuffixMatcher.DepthFirstSearchState matcherSymbolBranchingSearchState;
+            public byte paramsCopiedAtThisPoint;
         }
 
         /// <summary>
@@ -264,29 +255,32 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="seriesMatch"></param>
         /// <param name="consumedTargetIndexes"></param>
         /// <returns></returns>
-        private ImmutableDictionary<int, int> MatchesForwardsAtIndexOrderingInvariant(
+        private bool MatchesForwardsAtIndexOrderingInvariant(
             int originIndexInTarget,
             SymbolSeriesSuffixMatcher seriesMatch,
-            NativeArray<int> symbolHandle,
-            NativeArray<JaggedIndexing> parameterIndexingHandle)
+            SymbolString<float> symbolString,
+            int firstParameterCopyIndex,
+            NativeArray<float> parameterCopyMemory,
+            out byte paramsCopiedToMem)
         {
             var targetParentIndexStack = new Stack<BranchEventData>();
             int currentParentIndexInTarget = originIndexInTarget;
-            var targetIndexesToMatchIndexes = ImmutableDictionary<int, int>.Empty;
+            var targetIndexesToMatchIndexes = new Dictionary<int, int>();
+            paramsCopiedToMem = 0;
 
             var indexInMatchDFSState = seriesMatch.GetImmutableDepthFirstIterationState(nativeRuleData);
-            targetIndexesToMatchIndexes = targetIndexesToMatchIndexes.Add(originIndexInTarget, indexInMatchDFSState.currentIndex);
+            targetIndexesToMatchIndexes.Add(originIndexInTarget, indexInMatchDFSState.currentIndex);
             if (!indexInMatchDFSState.Next(out indexInMatchDFSState))
             {
+                return true;
                 // if the match is empty, automatically matches.
-                return targetIndexesToMatchIndexes;
+                //return targetIndexesToMatchIndexes;
             }
 
 
-
-            for (int indexInTarget = originIndexInTarget + 1; indexInTarget < symbolHandle.Length; indexInTarget++)
+            for (int indexInTarget = originIndexInTarget + 1; indexInTarget < symbolString.Length; indexInTarget++)
             {
-                var targetSymbol = symbolHandle[indexInTarget];
+                var targetSymbol = symbolString[indexInTarget];
 
                 if (ignoreSymbols.Contains(targetSymbol))
                 {
@@ -298,7 +292,7 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         currentParentIndex = currentParentIndexInTarget,
                         openBranchSymbolIndex = indexInTarget,
-                        matcherSymbolBranchingSearchState = indexInMatchDFSState
+                        paramsCopiedAtThisPoint = paramsCopiedToMem
                     });
                 }
                 else if (targetSymbol == branchCloseSymbol)
@@ -310,10 +304,19 @@ namespace Dman.LSystem.SystemRuntime
                     if (targetParentIndexStack.Count <= 0)
                     {
                         // if we encounter the end of the branch which contains the origin index before full match, fail.
-                        return null;
+                        return false;
                     }
                     var lastBranch = targetParentIndexStack.Pop();
                     currentParentIndexInTarget = lastBranch.currentParentIndex;
+                    //paramsCopiedToMem = lastBranch.paramsCopiedAtThisPoint;
+
+                    var parentInMatch = targetIndexesToMatchIndexes[currentParentIndexInTarget];
+                    var parentOfSearchState = indexInMatchDFSState.GetParentIndex();
+                    if(parentInMatch != parentOfSearchState)
+                    {
+                        // if the parents dont match, that means that the algo will be stepping backwards to the last branch sybmol.
+                        paramsCopiedToMem = lastBranch.paramsCopiedAtThisPoint;
+                    }
                 }
                 else
                 {
@@ -333,15 +336,22 @@ namespace Dman.LSystem.SystemRuntime
                         currentParentIndexInTarget,
                         indexInTarget,
                         indexInMatch,
-                        symbolHandle,
-                        parameterIndexingHandle);
+                        symbolString);
                     if (currentTargetMatchesMatcher)
                     {
-                        targetIndexesToMatchIndexes = targetIndexesToMatchIndexes.Add(indexInTarget, indexInMatch);
+                        targetIndexesToMatchIndexes.Add(indexInTarget, indexInMatch);
+
+                        var paramsToCopy = symbolString.newParameters[indexInTarget];
+                        for (int paramIndex = 0; paramIndex < paramsToCopy.length; paramIndex++)
+                        {
+                            parameterCopyMemory[firstParameterCopyIndex + paramsCopiedToMem] = symbolString.newParameters[paramsToCopy, paramIndex];
+                            paramsCopiedToMem++;
+                        }
+
                         currentParentIndexInTarget = indexInTarget; // series continuation includes implicit parenting
                         if (!indexInMatchDFSState.Next(out indexInMatchDFSState))
                         {
-                            return targetIndexesToMatchIndexes;
+                            return true;
                         }
                     }
                     else
@@ -351,15 +361,25 @@ namespace Dman.LSystem.SystemRuntime
                         // Or if we're not in a nested structure, fail.
                         if (targetParentIndexStack.Count <= 0)
                         {
-                            return null;
+                            return false;
                         }
                         var lastBranch = targetParentIndexStack.Pop();
                         currentParentIndexInTarget = lastBranch.currentParentIndex;
+                        //paramsCopiedToMem = lastBranch.paramsCopiedAtThisPoint;
                         indexInTarget = FindClosingBranchIndexReadonly(lastBranch.openBranchSymbolIndex);
+
+
+                        var parentInMatch1 = targetIndexesToMatchIndexes[currentParentIndexInTarget];
+                        var parentOfSearchState = indexInMatchDFSState.GetParentIndex();
+                        if (parentInMatch1 != parentOfSearchState)
+                        {
+                            // if the parents dont match, that means that the algo will be stepping backwards to the last branch sybmol on the next update.
+                            paramsCopiedToMem = lastBranch.paramsCopiedAtThisPoint;
+                        }
                     }
                 }
             }
-            return null;
+            return false;
         }
 
         /// <summary>
@@ -374,18 +394,17 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns></returns>
         private bool TargetSymbolMatchesAndParentMatches(
             SymbolSeriesSuffixMatcher seriesMatch,
-            ImmutableDictionary<int, int> targetIndexesToMatchIndexes,
+            Dictionary<int, int> targetIndexesToMatchIndexes,
             int currentParentIndexInTarget,
             int currentIndexInTarget,
             int currentIndexInMatch,
-            NativeArray<int> symbolHandle,
-            NativeArray<JaggedIndexing> parameterIndexingHandle
+            SymbolString<float> symbolString
             )
         {
             var symbolInMatch = nativeRuleData.suffixMatcherGraphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].mySymbol;
             if (
-                symbolInMatch.targetSymbol == symbolHandle[currentIndexInTarget] &&
-                symbolInMatch.parameterLength == parameterIndexingHandle[currentIndexInTarget].length)
+                symbolInMatch.targetSymbol == symbolString[currentIndexInTarget] &&
+                symbolInMatch.parameterLength == symbolString.ParameterSize(currentIndexInTarget))
             {
                 var parentIndexInMatch = nativeRuleData.suffixMatcherGraphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].parentIndex;
                 if (parentIndexInMatch == -1)

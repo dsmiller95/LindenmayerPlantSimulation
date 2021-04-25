@@ -12,8 +12,9 @@ public class ContextualMatcherTests
         string matcher,
         bool shouldMatch = true,
         int indexInTarget = 0,
+        int parameterMemorySize = 10,
+        float[] expectedCapturedParameters = null,
         string message = null,
-        IEnumerable<(int, int)> expectedMatchToTargetMapping = null,
         IEnumerable<int> ignoreSymbols = null)
     {
         var seriesMatcher = SymbolSeriesGraphTests.GenerateSingleMatcher(matcher, out var nativeData);
@@ -24,23 +25,26 @@ public class ContextualMatcherTests
             ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
             nativeDataDisposable);
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
+        using var parameterMemory = new NativeArray<float>(parameterMemorySize, Allocator.Persistent);
 
-        var matchPairings = branchingCache.MatchesForward(
+        var matches = branchingCache.MatchesForward(
             indexInTarget,
             seriesMatcher,
-            targetString.symbols,
-            targetString.newParameters.indexing);
-        var matches = matchPairings != null;
+            targetString,
+            0,
+            parameterMemory,
+            out var copiedParams);
+
         if (shouldMatch != matches)
         {
             Assert.Fail($"Expected '{matcher}' to {(shouldMatch ? "" : "not ")}match forwards retaining order from {indexInTarget} in '{target}'{(message == null ? "" : '\n' + message)}");
         }
-        if (shouldMatch && expectedMatchToTargetMapping != null)
+        if (shouldMatch && expectedCapturedParameters != null)
         {
-            foreach (var expectedMatch in expectedMatchToTargetMapping)
+            Assert.AreEqual(expectedCapturedParameters.Length, copiedParams, "captured parameter length mismatch");
+            for (int i = 0; i < expectedCapturedParameters.Length; i++)
             {
-                Assert.IsTrue(matchPairings.ContainsKey(expectedMatch.Item1), $"Expected symbol at {expectedMatch.Item1} to be mapped to the target string");
-                Assert.AreEqual(expectedMatch.Item2, matchPairings[expectedMatch.Item1], $"Expected symbol at {expectedMatch.Item1} to be mapped to {expectedMatch.Item2} in target string, but was {matchPairings[expectedMatch.Item1]}");
+                Assert.AreEqual(expectedCapturedParameters[i], parameterMemory[i]);
             }
         }
     }
@@ -69,9 +73,9 @@ public class ContextualMatcherTests
             '[', ']', 
             ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
             nativeData);
+        branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         using var parameterMemory = new NativeArray<float>(parameterMemorySize, Allocator.Persistent);
 
-        branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
 
         var realIndex = indexInTarget < 0 ? indexInTarget + targetString.Length : indexInTarget;
         var hasMatched = branchingCache.MatchesBackwards(
@@ -276,18 +280,41 @@ public class ContextualMatcherTests
     [Test]
     public void ForwardSkipsOverPartiallyMatchBranchStructures()
     {
-        AssertForwardsMatch("EA[BC][BCD][BCDE]", "A[BCDE]", true, expectedMatchToTargetMapping: new[] { (0, 1), (2, 12), (3, 13), (4, 14), (5, 15) });
-        AssertForwardsMatch("EA[BC[D][E]][BCD][BCDE]", "A[BCDE]", true, expectedMatchToTargetMapping: new[] { (0, 1), (2, 18), (3, 19), (4, 20), (5, 21) });
+        AssertForwardsMatch("EA[BC][BCD][BCDE]", "A[BCDE]", true);
+        AssertForwardsMatch("EA[BC[D][E]][BCD][BCDE]", "A[BCDE]", true);
+    }
+    [Test]
+    public void ForwardSkipsOverPartiallyMatchBranchStructuresAndCapturesCorrectParameters()
+    {
+        AssertForwardsMatch("E(1)A(2)[B(4)C(8)][B(3)C(5)D(10)][B(6)C(9)D(7)E(11)]", "A(x)[B(y)C(z)D(a)E(b)]", true, expectedCapturedParameters: new float[] { 2, 6, 9, 7, 11 });
+        AssertForwardsMatch("E(11)A(7)[B(9)C(6)[D(10)][E(5)]][B(3)C(8)D(4)][B(2)C(1)D(-1)E(-5)]", "A(x)[B(y)C(z)D(a)E(b)]", true, expectedCapturedParameters: new float[] { 7, 2, 1, -1, -5 });
+    }
+
+    [Test]
+    public void ForwardSkipsOverPartiallyMatchDeebBranchStructuresAndCapturesCorrectParameters()
+    {
+        AssertForwardsMatch("E(1)A(2)[B(4)[C(8)D(11)][C(-8)D(-10)]][B(3)C(5)D(10)][B(6)[C(10)D(-1)]C(9)[D(7)E(11)]]",
+            "A(x)[B(y)C(z)D(a)E(b)]", true,
+            expectedCapturedParameters: new float[] { 2, 6, 9, 7, 11 });
     }
 
     [Test]
     public void ForwardSkipsOverIgnoredCharacters()
     {
         var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
-        AssertForwardsMatch("E1[23A4[5B67[890C]]]", "ABC", true, ignoreSymbols: defaultExclude, expectedMatchToTargetMapping: new[] { (0, 5), (1, 9), (2, 16) });
-        AssertForwardsMatch("E1A2B3C", "ABC", true, ignoreSymbols: defaultExclude, expectedMatchToTargetMapping: new[] { (0, 2), (1, 4), (2, 6) });
-        AssertForwardsMatch("1A2B3C", "ABC", true, ignoreSymbols: defaultExclude, expectedMatchToTargetMapping: new[] { (0, 1), (1, 3), (2, 5) });
-        AssertForwardsMatch("1A3[2B]3[C3]3", "A[B][C]", true, ignoreSymbols: defaultExclude, expectedMatchToTargetMapping: new[] { (0, 1), (2, 5), (5, 9) });
+        AssertForwardsMatch("E1[23A4[5B67[890C]]]", "ABC", true, ignoreSymbols: defaultExclude);
+        AssertForwardsMatch("E1A2B3C", "ABC", true, ignoreSymbols: defaultExclude);
+        AssertForwardsMatch("1A2B3C", "ABC", true, ignoreSymbols: defaultExclude);
+        AssertForwardsMatch("1A3[2B]3[C3]3", "A[B][C]", true, ignoreSymbols: defaultExclude);
+    }
+    [Test]
+    public void ForwardSkipsOverIgnoredCharactersAndCapturesCorrectParams()
+    {
+        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
+        AssertForwardsMatch("E1[23A(1)4[5B(5)67[890C(7)]]]", "A(x)B(y)C(z)", true, ignoreSymbols: defaultExclude, expectedCapturedParameters: new float[] { 1, 5, 7 });
+        AssertForwardsMatch("E1A(4)2B(6)3C(-1)", "A(x)B(y)C(z)", true, ignoreSymbols: defaultExclude, expectedCapturedParameters: new float[] { 4, 6, -1 });
+        AssertForwardsMatch("1A(9)2B(1)3C(6)", "A(x)B(y)C(z)", true, ignoreSymbols: defaultExclude, expectedCapturedParameters: new float[] { 9, 1, 6 });
+        AssertForwardsMatch("1A(-3)3[2B(3)]3[C(5)3]3", "A(x)[B(y)][C(z)]", true, ignoreSymbols: defaultExclude, expectedCapturedParameters: new float[] { -3, 3, 5 });
     }
 
     [Test]
@@ -297,10 +324,50 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[BC][BCD][BCDE]", "A[BC][BCD][BCDE]", true);
         AssertForwardsMatch("EA[BCE][BCD]", "A[BCD]", true);
         AssertForwardsMatch("EA[BCD][BCDE][BC]", "A[BC][BCD][BCDE]", false);
-        AssertForwardsMatch("EA[BCD][BCDE][BC][BCD][BCDE]", "A[BC][BCD][BCDE]", true,
-            expectedMatchToTargetMapping: new[] { (0, 1), (2, 3), (3, 4), (6, 8), (7, 9), (8, 10), (11, 23), (12, 24), (13, 25), (14, 26) });
+        AssertForwardsMatch("EA[BCD][BCDE][BC][BCD][BCDE]", "A[BC][BCD][BCDE]", true);
         AssertForwardsMatch("EA[BCD][BCDE][BCDE]", "A[BC][BCD][BCDE]", true);
         AssertForwardsMatch("EA[BCD][BCDE][BCD]", "A[BC][BCD][BCDE]", false);
+    }
+    [Test]
+    public void ForwardOrderInvariantHandlesOverlapingMatchesPredictablyAndCapturesCorrectParams()
+    {
+        AssertForwardsMatch(
+            "EA(9)[B(3)C(5)D(2)][B(6)C(1)D(7)E(-1)][B(3)C(2)][B(7)C(11)D(-3)][B(-4)C(11)D(-4)E(2)]",
+            "A(x)[B(y)C(z)][B(a)C(b)D(c)][B(d)C(e)D(f)E(g)]", true,
+            expectedCapturedParameters: new[] { 9f, 3, 5, 6, 1, 7, -4, 11, -4, 2 },
+            parameterMemorySize: 20);
+    }
+    [Test]
+    public void ForwardOrderInvariantHandlesOverlapingDeepMatchesPredictably()
+    {
+        AssertForwardsMatch(
+            "EA[BCD][BCD[ZF][F]E][BC][BCD][BCD[G][E]]",
+            "A[BC][BCD[F]][BCD[G]E]", true);
+    }
+    [Test]
+    public void ForwardOrderInvariantHandlesDeepMatchesPredictably()
+    {
+        AssertForwardsMatch(
+            "EA[BFE]K",
+            "A[BF]K", true);
+        AssertForwardsMatch(
+            "EA[BF[E]]K",
+            "A[BF]K", true);
+        AssertForwardsMatch(
+            "EA[B[F]E]K",
+            "A[BF]K", true);
+        AssertForwardsMatch(
+            "EA[B[F][E]]K",
+            "A[BF]K", true);
+    }
+    [Test]
+    public void ForwardOrderInvariantHandlesOverlapingDeepMatchesPredictablyAndCapturesCorrectParams()
+    {
+        AssertForwardsMatch(
+            "EA(9)[B(3)C(5)D(2)][B(6)C(1)D(7)[Z(-2)F(4)][F(9)]E(-1)][B(3)C(2)][B(7)C(11)D(-3)][B(-4)C(11)D(-4)[G(10)][E(2)]]",
+            "A(x)[B(y)C(z)][B(a)C(b)D(c)[F(k)]][B(d)C(e)D(f)[G(l)]E(g)]", true,
+            expectedCapturedParameters: new[] { 9f, 3, 5, 6, 1, 7, 9, -4, 11, -4, 10, 2 },
+            parameterMemorySize: 20);
     }
     [Test]
     public void ForwardOrderInvariantHandlesWrongParentingOfLongChain()
@@ -404,9 +471,9 @@ public class ContextualMatcherTests
     public void ForwardMatchSelectsForCorrectParameterSize()
     {
         AssertForwardsMatch("EAB", "AB(x)", false);
-        AssertForwardsMatch("EA[B][B(1)]", "AB(x)", true, expectedMatchToTargetMapping: new[] { (0, 1), (1, 6) });
+        AssertForwardsMatch("EA[B][B(1)]", "AB(x)", true,expectedCapturedParameters: new[] { 1f });
         AssertForwardsMatch("EA[B][B(2)]", "AB(x, y)", false);
-        AssertForwardsMatch("EA[B][B(3)]B(2, 3)", "AB(x, y)", true, expectedMatchToTargetMapping: new[] { (0, 1), (1, 8) });
+        AssertForwardsMatch("EA[B][B(3)]B(2, 3)", "AB(x, y)", true, expectedCapturedParameters: new[] { 2f, 3f });
     }
 
     #endregion
@@ -416,20 +483,20 @@ public class ContextualMatcherTests
     [Test]
     public void ForwardMatchBasicSymbolMatch()
     {
-        AssertForwardsMatch("CA", "A", expectedMatchToTargetMapping: new[] { (0, 1) });
-        AssertForwardsMatch("CAB", "A", expectedMatchToTargetMapping: new[] { (0, 1) });
-        AssertForwardsMatch("CACE", "A", expectedMatchToTargetMapping: new[] { (0, 1) });
+        AssertForwardsMatch("CA(1)", "A(x)", expectedCapturedParameters: new[] { 1f });
+        AssertForwardsMatch("CA(2)B(3)", "A(x)", expectedCapturedParameters: new[] { 2f });
+        AssertForwardsMatch("CA(4)C(5)E(6)", "A(x)", expectedCapturedParameters: new[] { 4f });
     }
     [Test]
     public void ForwardMatchTreeStructureMapping()
     {
-        AssertForwardsMatch("EA[B][C]", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 3), (5, 6) });
-        AssertForwardsMatch("EA[[B]C]", "A[B][C]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 4), (5, 6) });
+        AssertForwardsMatch("EA(1)[B(2)][C(3)]", "A(x)[B(y)][C(z)]", expectedCapturedParameters: new[] { 1f, 2f, 3f });
+        AssertForwardsMatch("EA(4)[[B(5)]C(6)]", "A(x)[B(y)][C(z)]", expectedCapturedParameters: new[] { 4f, 5f, 6f });
     }
     [Test]
     public void ForwardBranchMultipleIdenticleBranchesMapped()
     {
-        AssertForwardsMatch("EA[BC][B][BCD]", "A[B][B][B]", expectedMatchToTargetMapping: new[] { (0, 1), (2, 3), (5, 7), (8, 10) });
+        AssertForwardsMatch("EA(1)[B(2)C(3)][B(4)][B(5)C(6)D(7)]", "A(x)[B(y)][B(z)][B(a)]", expectedCapturedParameters: new[] { 1f, 2f, 4f, 5f });
     }
     #endregion
 }

@@ -180,29 +180,15 @@ namespace Dman.LSystem.SystemRuntime
                     var forwardMatch = branchingCache.MatchesForward(
                         indexInSymbols,
                         contextSuffix,
-                        source.symbols,
-                        source.newParameters.indexing);
-                    if (forwardMatch == null)
+                        source,
+                        startIndexInParameterMemory + matchedParameterNum,
+                        parameterMemory,
+                        out var copiedParameters);
+                    if (!forwardMatch)
                     {
-                        // if forwards match exists, and does not match, then fail this match attempt.
                         return false;
                     }
-                    for (int indexInSuffix = 0; indexInSuffix < contextSuffix.graphNodeMemSpace.length; indexInSuffix++)
-                    {
-                        if (!forwardMatch.TryGetValue(indexInSuffix, out var matchingTargetIndex))
-                        {
-                            continue;
-                        }
-
-                        var parametersIndexing = source.newParameters[matchingTargetIndex];
-                        for (int i = 0; i < parametersIndexing.length; i++)
-                        {
-                            var paramValue = source.newParameters[parametersIndexing, i];
-
-                            parameterMemory[startIndexInParameterMemory + matchedParameterNum] = paramValue;
-                            matchedParameterNum++;
-                        }
-                    }
+                    matchedParameterNum += copiedParameters;
                 }
 
                 specificMatchData = new LSystemPotentialMatchData
