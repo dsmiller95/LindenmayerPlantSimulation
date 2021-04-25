@@ -475,7 +475,7 @@ namespace Dman.LSystem
     /// <summary>
     /// Step 2. match all rules which could possibly match, without checking the conditional expressions
     /// </summary>
-    //[BurstCompile]
+    [BurstCompile]
     public struct RulePrematchJob : IJobParallelFor
     {
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
