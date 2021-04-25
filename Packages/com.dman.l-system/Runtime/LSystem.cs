@@ -277,7 +277,7 @@ namespace Dman.LSystem
                 branchingCache = tmpBranchingCache
             };
 
-            var matchingJobHandle = prematchJob.Schedule(
+            var matchingJobHandle = prematchJob.ScheduleBatch(
                 matchSingletonData.Length,
                 100);
 
@@ -477,7 +477,7 @@ namespace Dman.LSystem
     /// Step 2. match all rules which could possibly match, without checking the conditional expressions
     /// </summary>
     [BurstCompile]
-    public struct RulePrematchJob : IJobParallelFor
+    public struct RulePrematchJob : IJobParallelForBatch
     {
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
         [ReadOnly]
@@ -492,8 +492,15 @@ namespace Dman.LSystem
 
         public SymbolStringBranchingCache branchingCache;
 
-        public void Execute(int indexInSymbols)
+        public void Execute(int startIndex, int batchSize)
         {
+            var forwardsMatchHelperStack = new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5);
+            for (int i = 0; i < batchSize; i++)
+            {
+                this.ExecuteAtIndex(i + startIndex, forwardsMatchHelperStack);
+            }
+        }
+        private void ExecuteAtIndex(int indexInSymbols, TmpNativeStack<SymbolStringBranchingCache.BranchEventData> helperStack) {
             var matchSingleton = matchSingletonData[indexInSymbols];
             if (matchSingleton.isTrivial)
             {
@@ -524,7 +531,8 @@ namespace Dman.LSystem
                     indexInSymbols,
                     tmpParameterMemory,
                     currentIndexInParameterMemory,
-                    out var specificMatchData
+                    out var specificMatchData,
+                    helperStack
                     );
                 if (success)
                 {

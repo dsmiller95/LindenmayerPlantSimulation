@@ -134,7 +134,8 @@ namespace Dman.LSystem.SystemRuntime
                 int indexInSymbols,
                 NativeArray<float> parameterMemory,
                 int startIndexInParameterMemory,
-                out LSystemPotentialMatchData specificMatchData)
+                out LSystemPotentialMatchData specificMatchData,
+                TmpNativeStack<SymbolStringBranchingCache.BranchEventData> helperStack)
             {
                 specificMatchData = default;
                 var target = targetSymbolWithParameters;
@@ -184,7 +185,8 @@ namespace Dman.LSystem.SystemRuntime
                         source,
                         startIndexInParameterMemory + matchedParameterNum,
                         parameterMemory,
-                        out var copiedParameters);
+                        out var copiedParameters,
+                        helperStack);
                     if (!forwardMatch)
                     {
                         return false;

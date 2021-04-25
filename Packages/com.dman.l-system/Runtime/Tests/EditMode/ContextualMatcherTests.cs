@@ -1,5 +1,6 @@
 using Dman.LSystem;
 using Dman.LSystem.SystemRuntime;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +34,8 @@ public class ContextualMatcherTests
             targetString,
             0,
             parameterMemory,
-            out var copiedParams);
+            out var copiedParams,
+            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5));
 
         if (shouldMatch != matches)
         {

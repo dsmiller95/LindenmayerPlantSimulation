@@ -51,7 +51,8 @@ public class BasicRuleTests
             matchIndex,
             paramMemory,
             matchSingleData.tmpParameterMemorySpace.index,
-            out var specificMatchDetails
+            out var specificMatchDetails,
+            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
             );
 
         Assert.IsTrue(potentialMatch);
@@ -122,7 +123,8 @@ public class BasicRuleTests
             matchIndex,
             paramMemory,
             matchSingleData.tmpParameterMemorySpace.index,
-            out var specificMatchDetails
+            out var specificMatchDetails,
+            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
             );
 
         Assert.IsTrue(potentialMatch);
@@ -172,7 +174,8 @@ public class BasicRuleTests
             matchIndex,
             paramMemory,
             matchSingleData.tmpParameterMemorySpace.index,
-            out var specificMatchDetails
+            out var specificMatchDetails,
+            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
             );
 
         Assert.IsFalse(potentialMatch);
@@ -207,7 +210,8 @@ public class BasicRuleTests
                 0,
                 paramMemory,
                 matchSingleData.tmpParameterMemorySpace.index,
-                out var specificMatchDetails
+                out var specificMatchDetails,
+                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
                 );
             Assert.IsTrue(preMatchSuccess);
             var postMatchWithConditional = ruleFromString.TryMatchSpecificMatch(
@@ -240,7 +244,8 @@ public class BasicRuleTests
                 0,
                 paramMemory,
                 matchSingleData.tmpParameterMemorySpace.index,
-                out specificMatchDetails
+                out specificMatchDetails,
+                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
                 );
             Assert.IsFalse(preMatchSuccess);
 
@@ -259,7 +264,8 @@ public class BasicRuleTests
                 0,
                 paramMemory,
                 matchSingleData.tmpParameterMemorySpace.index,
-                out specificMatchDetails
+                out specificMatchDetails,
+                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
                 );
             Assert.IsFalse(preMatchSuccess);
         }

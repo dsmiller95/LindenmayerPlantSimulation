@@ -74,7 +74,8 @@ namespace Dman.LSystem.SystemRuntime
             SymbolString<float> symbolString,
             int firstParameterCopyIndex,
             NativeArray<float> parameterCopyMemory,
-            out byte paramsCopiedToMem
+            out byte paramsCopiedToMem,
+            TmpNativeStack<BranchEventData> helperStack
             )
         {
             if (!seriesMatch.HasGraphIndexes)
@@ -93,7 +94,8 @@ namespace Dman.LSystem.SystemRuntime
                 symbolString,
                 firstParameterCopyIndex,
                 parameterCopyMemory,
-                out paramsCopiedToMem);
+                out paramsCopiedToMem,
+                helperStack);
         }
         /// <summary>
         /// 
@@ -242,7 +244,7 @@ namespace Dman.LSystem.SystemRuntime
             }
         }
 
-        private struct BranchEventData
+        public struct BranchEventData
         {
             public int currentParentIndex;
             public int openBranchSymbolIndex;
@@ -262,9 +264,12 @@ namespace Dman.LSystem.SystemRuntime
             SymbolString<float> symbolString,
             int firstParameterCopyIndex,
             NativeArray<float> parameterCopyMemory,
-            out byte paramsCopiedToMem)
+            out byte paramsCopiedToMem,
+            TmpNativeStack<BranchEventData> helperStack 
+            )
         {
-            var targetParentIndexStack = new TmpNativeStack<BranchEventData>(5);// new Stack<BranchEventData>();
+            helperStack.Reset();
+            var targetParentIndexStack = helperStack;// new TmpNativeStack<BranchEventData>(5);// new Stack<BranchEventData>();
 
             int currentParentIndexInTarget = originIndexInTarget;
             var targetIndexesToMatchIndexes = new NativeHashMap<int, int>(seriesMatch.graphNodeMemSpace.length, Allocator.Temp);// new Dictionary<int, int>();

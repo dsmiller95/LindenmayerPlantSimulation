@@ -44,5 +44,9 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             indexInStack--;
             return lastVal;
         }
+        public void Reset()
+        {
+            indexInStack = 0;
+        }
     }
 }
