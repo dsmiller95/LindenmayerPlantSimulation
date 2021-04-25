@@ -18,6 +18,9 @@ namespace Dman.LSystem.SystemRuntime
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<InputSymbol.Blittable> prefixMatcherSymbols;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<RuleOutcome.Blittable> ruleOutcomeMemorySpace;
 
         public SystemLevelRuleNativeData(IEnumerable<BasicRule> rulesToWrite)
         {
@@ -26,12 +29,14 @@ namespace Dman.LSystem.SystemRuntime
             prefixMatcherSymbols = new NativeArray<InputSymbol.Blittable>(memReqs.prefixNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             suffixMatcherGraphNodeData = new NativeArray<SymbolMatcherGraphNode>(memReqs.suffixGraphNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             suffixMatcherChildrenDataArray = new NativeArray<int>(memReqs.suffixChildren, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            ruleOutcomeMemorySpace = new NativeArray<RuleOutcome.Blittable>(memReqs.ruleOutcomes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         }
         public SystemLevelRuleNativeData(RuleDataRequirements memReqs)
         {
             prefixMatcherSymbols = new NativeArray<InputSymbol.Blittable>(memReqs.prefixNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             suffixMatcherGraphNodeData = new NativeArray<SymbolMatcherGraphNode>(memReqs.suffixGraphNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             suffixMatcherChildrenDataArray = new NativeArray<int>(memReqs.suffixChildren, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            ruleOutcomeMemorySpace = new NativeArray<RuleOutcome.Blittable>(memReqs.ruleOutcomes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         }
 
         public void Dispose()
@@ -39,6 +44,7 @@ namespace Dman.LSystem.SystemRuntime
             suffixMatcherChildrenDataArray.Dispose();
             suffixMatcherGraphNodeData.Dispose();
             prefixMatcherSymbols.Dispose();
+            ruleOutcomeMemorySpace.Dispose();
         }
     }
 
@@ -47,6 +53,7 @@ namespace Dman.LSystem.SystemRuntime
         public int suffixChildren;
         public int suffixGraphNodes;
         public int prefixNodes;
+        public int ruleOutcomes;
 
         public static RuleDataRequirements operator +(RuleDataRequirements a, RuleDataRequirements b)
         {
@@ -55,6 +62,7 @@ namespace Dman.LSystem.SystemRuntime
                 suffixGraphNodes = a.suffixGraphNodes + b.suffixGraphNodes,
                 suffixChildren = a.suffixChildren + b.suffixChildren,
                 prefixNodes = a.prefixNodes + b.prefixNodes,
+                ruleOutcomes = a.ruleOutcomes + b.ruleOutcomes
             };
         }
     }
@@ -64,5 +72,6 @@ namespace Dman.LSystem.SystemRuntime
         public int indexInSuffixChildren = 0;
         public int indexInSuffixNodes = 0;
         public int indexInPrefixNodes = 0;
+        public int indexInRuleOutcomes = 0;
     }
 }

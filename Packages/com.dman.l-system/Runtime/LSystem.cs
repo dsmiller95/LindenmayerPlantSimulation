@@ -71,8 +71,7 @@ namespace Dman.LSystem
         private IDictionary<int, IList<BasicRule>> rulesByTargetSymbol;
 
         // TODO
-        //private NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
-
+        private NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
         private SystemLevelRuleNativeData nativeRuleData;
 
         /// <summary>
@@ -155,6 +154,11 @@ namespace Dman.LSystem
                     maxPossibleMatches = maxPossibleMatches
                 };
             }
+
+            blittableRulesByTargetSymbol = NativeOrderedMultiDictionary<BasicRule.Blittable>.WithMapFunction(
+                rulesByTargetSymbol,
+                rule => rule.AsBlittable(),
+                Allocator.Persistent);
         }
         public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null, bool disposeOldSystem = true)
         {
@@ -267,7 +271,9 @@ namespace Dman.LSystem
 
                 sourceData = systemState.currentSymbols,
                 tmpParameterMemory = parameterMemory,
-                tmpPossibleMatchMemory = possibleMatchMemory
+                tmpPossibleMatchMemory = possibleMatchMemory,
+
+                blittableRulesByTargetSymbol = blittableRulesByTargetSymbol
             };
 
             var matchingJobHandle = prematchJob.Schedule(
@@ -472,6 +478,9 @@ namespace Dman.LSystem
         public NativeArray<float> tmpParameterMemory;
         [NativeDisableParallelForRestriction]
         public NativeArray<LSystemPotentialMatchData> tmpPossibleMatchMemory;
+
+        public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
+
         public void Execute(int indexInSymbols)
         {
             var matchSingleton = matchSingletonData[indexInSymbols];
@@ -484,25 +493,24 @@ namespace Dman.LSystem
 
             var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
 
-            var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
+            //var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
             var symbol = sourceData.symbols[indexInSymbols];
 
-            if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
+            if (!blittableRulesByTargetSymbol.TryGetValue(symbol, out var ruleIndexing) || ruleIndexing.length <= 0)
             {
                 matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_MATCH_TIME;
                 matchSingletonData[indexInSymbols] = matchSingleton;
                 return;
             }
-            var blittableRules = ruleList.Select(x => x.AsBlittable()).ToArray();
             var branchingCache = tmpSteppingState.branchingCache;
 
 
             var anyRuleMatched = false;
             ushort totalMatchedRuleOptions = 0;
             var currentIndexInParameterMemory = matchSingleton.tmpParameterMemorySpace.index;
-            for (byte i = 0; i < blittableRules.Length; i++)
+            for (byte i = 0; i < ruleIndexing.length; i++)
             {
-                var rule = blittableRules[i];
+                var rule = blittableRulesByTargetSymbol[ruleIndexing, i];
                 var success = rule.PreMatchCapturedParametersWithoutConditional(
                     branchingCache,
                     sourceData,

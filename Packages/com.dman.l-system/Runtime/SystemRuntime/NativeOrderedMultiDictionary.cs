@@ -11,9 +11,12 @@ namespace Dman.LSystem.SystemRuntime
     {
         [NativeDisableParallelForRestriction]
         public JaggedNativeArray<TValue> rawData;
+        [ReadOnly]
         public NativeHashMap<int, int> dictionaryToIndex;
 
-        public NativeOrderedMultiDictionary(IDictionary<int, IList<TValue>> data, Allocator allocator)
+        public NativeOrderedMultiDictionary(
+            IDictionary<int, TValue[]> data,
+            Allocator allocator)
         {
             dictionaryToIndex = new NativeHashMap<int, int>(data.Count, allocator);
 
@@ -21,12 +24,34 @@ namespace Dman.LSystem.SystemRuntime
             foreach (var kvp in data)
             {
                 dictionaryToIndex[kvp.Key] = jaggedData.Count;
-                jaggedData.Add(kvp.Value.ToArray());
+                jaggedData.Add(kvp.Value);
             }
             rawData = new JaggedNativeArray<TValue>(jaggedData.ToArray(), allocator);
         }
 
+        public static NativeOrderedMultiDictionary<TValue> WithMapFunction<TPreValue>(
+            IDictionary<int, IList<TPreValue>> data,
+            Func<TPreValue, TValue> mapper,
+            Allocator allocator)
+        {
+            var newDictionary = data
+                .ToDictionary(x => x.Key, x => x.Value.Select(mapper).ToArray());
+            return new NativeOrderedMultiDictionary<TValue>(newDictionary, allocator);
+        }
+
         public bool IsCreated => rawData.IsCreated && dictionaryToIndex.IsCreated;
+        
+        public bool TryGetValue(int key, out JaggedIndexing value)
+        {
+            if(dictionaryToIndex.TryGetValue(key, out var index))
+            {
+                value = rawData[index];
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        
         public JaggedIndexing this[int key]
         {
             get

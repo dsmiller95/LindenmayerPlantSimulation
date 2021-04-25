@@ -79,9 +79,12 @@ namespace Dman.LSystem.SystemRuntime
         {
             suffixChildren = forwardsMatchBuilder.RequiredChildrenMemSpace,
             suffixGraphNodes = forwardsMatchBuilder.RequiredGraphNodeMemSpace,
-            prefixNodes = backwardsMatchBuilder.targetSymbolSeries.Length
+            prefixNodes = backwardsMatchBuilder.targetSymbolSeries.Length,
+            ruleOutcomes = possibleOutcomes.Length
         };
 
+
+        private JaggedIndexing possibleOutcomeIndexing;
 
         public void WriteContextMatchesIntoMemory(
             SystemLevelRuleNativeData dataArray,
@@ -89,6 +92,17 @@ namespace Dman.LSystem.SystemRuntime
         {
             ContextSuffix = forwardsMatchBuilder.BuildIntoManagedMemory(dataArray, dataWriter);
             ContextPrefix = backwardsMatchBuilder.BuildIntoManagedMemory(dataArray, dataWriter);
+
+            possibleOutcomeIndexing = new JaggedIndexing
+            {
+                index = dataWriter.indexInRuleOutcomes,
+                length = (ushort)this.possibleOutcomes.Length
+            };
+            for (int i = 0; i < possibleOutcomeIndexing.length; i++)
+            {
+                dataArray.ruleOutcomeMemorySpace[i + dataWriter.indexInRuleOutcomes] = possibleOutcomes[i].AsBlittable();
+            }
+            dataWriter.indexInRuleOutcomes += possibleOutcomeIndexing.length;
         }
 
         public Blittable AsBlittable()
@@ -99,7 +113,7 @@ namespace Dman.LSystem.SystemRuntime
                 contextSuffix = ContextSuffix,
                 targetSymbolWithParameters = _targetSymbolWithParameters.AsBlittable(),
                 capturedLocalParameterCount = CapturedLocalParameterCount,
-                possibleOutcomes = possibleOutcomes.Select(x => x.AsBlittable()).ToArray(),
+                possibleOutcomeIndexing = possibleOutcomeIndexing,
                 hasConditional = conditionalChecker != null
             };
         }
@@ -110,28 +124,8 @@ namespace Dman.LSystem.SystemRuntime
             public SymbolSeriesSuffixMatcher contextSuffix;
             public InputSymbol.Blittable targetSymbolWithParameters;
             public int capturedLocalParameterCount;
-            public RuleOutcome.Blittable[] possibleOutcomes;
+            public JaggedIndexing possibleOutcomeIndexing;
             public bool hasConditional;
-
-            private byte SelectOutcomeIndex(ref Unity.Mathematics.Random rand)
-            {
-                if (possibleOutcomes.Length > 1)
-                {
-                    var sample = rand.NextDouble();
-                    double currentPartition = 0;
-                    for (byte i = 0; i < possibleOutcomes.Length; i++)
-                    {
-                        var possibleOutcome = possibleOutcomes[i];
-                        currentPartition += possibleOutcome.probability;
-                        if (sample <= currentPartition)
-                        {
-                            return i;
-                        }
-                    }
-                    throw new LSystemRuntimeException("possible outcome probabilities do not sum to 1");
-                }
-                return 0;
-            }
 
             public bool PreMatchCapturedParametersWithoutConditional(
                 SymbolStringBranchingCache branchingCache,
