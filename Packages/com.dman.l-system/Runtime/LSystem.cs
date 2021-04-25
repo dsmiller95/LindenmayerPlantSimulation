@@ -266,14 +266,14 @@ namespace Dman.LSystem
 
             var prematchJob = new RulePrematchJob
             {
-                tmpSteppingStateHandle = tempStateHandle,
                 matchSingletonData = matchSingletonData,
 
                 sourceData = systemState.currentSymbols,
                 tmpParameterMemory = parameterMemory,
                 tmpPossibleMatchMemory = possibleMatchMemory,
 
-                blittableRulesByTargetSymbol = blittableRulesByTargetSymbol
+                blittableRulesByTargetSymbol = blittableRulesByTargetSymbol,
+                branchingCache = tmpBranchingCache
             };
 
             var matchingJobHandle = prematchJob.Schedule(
@@ -466,6 +466,7 @@ namespace Dman.LSystem
                 currentSymbols = this.target
             };
             tmpPossibleMatchMemory.Dispose();
+            branchingCache.Dispose();
             stepState = StepState.COMPLETE;
             return newResult;
         }
@@ -474,9 +475,9 @@ namespace Dman.LSystem
     /// <summary>
     /// Step 2. match all rules which could possibly match, without checking the conditional expressions
     /// </summary>
+    //[BurstCompile]
     public struct RulePrematchJob : IJobParallelFor
     {
-        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
         [ReadOnly]
         [NativeDisableParallelForRestriction]
@@ -488,6 +489,8 @@ namespace Dman.LSystem
 
         public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
+        public SymbolStringBranchingCache branchingCache;
+
         public void Execute(int indexInSymbols)
         {
             var matchSingleton = matchSingletonData[indexInSymbols];
@@ -498,8 +501,6 @@ namespace Dman.LSystem
                 return;
             }
 
-            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
-
             //var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
             var symbol = sourceData.symbols[indexInSymbols];
 
@@ -509,8 +510,6 @@ namespace Dman.LSystem
                 matchSingletonData[indexInSymbols] = matchSingleton;
                 return;
             }
-            var branchingCache = tmpSteppingState.branchingCache;
-
 
             var anyRuleMatched = false;
             ushort totalMatchedRuleOptions = 0;

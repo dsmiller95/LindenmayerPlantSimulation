@@ -35,7 +35,7 @@ public class BasicRuleTests
         var expectedTotalParamReplacement = expectedReplacement.newParameters.data.Length;
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
-        var branchCache = new SymbolStringBranchingCache(ruleNativeData);
+        using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
         branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
         var random = new Unity.Mathematics.Random();
         var matchSingleData = new LSystemSingleSymbolMatchData
@@ -106,7 +106,7 @@ public class BasicRuleTests
         using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
-        var branchCache = new SymbolStringBranchingCache(ruleNativeData);
+        using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
         branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
         var random = new Unity.Mathematics.Random();
         var matchSingleData = new LSystemSingleSymbolMatchData
@@ -157,7 +157,7 @@ public class BasicRuleTests
         using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
-        var branchCache = new SymbolStringBranchingCache(ruleNativeData);
+        using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
         branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
         var matchSingleData = new LSystemSingleSymbolMatchData
         {
@@ -191,7 +191,7 @@ public class BasicRuleTests
             var globalParams = new float[0];
             using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
             using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
-            var branchCache = new SymbolStringBranchingCache(ruleNativeData);
+            using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
             branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
             var random = new Unity.Mathematics.Random();
             var matchSingleData = new LSystemSingleSymbolMatchData

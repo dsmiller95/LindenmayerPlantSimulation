@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Unity.Collections;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime
 {
     // TODO: make struct, use native data structures
-    public class SymbolStringBranchingCache
+    public struct SymbolStringBranchingCache : System.IDisposable
     {
         public static int defaultBranchOpenSymbol = '[';
         public static int defaultBranchCloseSymbol = ']';
@@ -16,28 +15,45 @@ namespace Dman.LSystem.SystemRuntime
         public int branchOpenSymbol;
         public int branchCloseSymbol;
 
-        private ISet<int> ignoreSymbols;
+        [ReadOnly]
+        private NativeHashSet<int> ignoreSymbols;
         /// <summary>
         /// Contains a caches set of indexes, mapping each branching symbol to its matching closing/opening symbol.
         /// </summary>
-        private Dictionary<int, int> branchingJumpIndexes;
+        [ReadOnly]
+        private NativeHashMap<int, int> branchingJumpIndexes;
         private SystemLevelRuleNativeData nativeRuleData; // todo: will have to pass this in instead of attach, maybe
 
         public SymbolStringBranchingCache(SystemLevelRuleNativeData nativeRuleData)
             : this(defaultBranchOpenSymbol, defaultBranchCloseSymbol, new HashSet<int>(), nativeRuleData) { }
-        public SymbolStringBranchingCache(int open, int close, ISet<int> ignoreSymbols, SystemLevelRuleNativeData nativeRuleData)
+        public SymbolStringBranchingCache(
+            int open, int close,
+            ISet<int> ignoreSymbols,
+            SystemLevelRuleNativeData nativeRuleData,
+            Allocator allocator = Allocator.Persistent)
         {
             branchOpenSymbol = open;
             branchCloseSymbol = close;
-            this.ignoreSymbols = ignoreSymbols;
+            this.ignoreSymbols = new NativeHashSet<int>(ignoreSymbols.Count, allocator);
+            foreach (var ignored in ignoreSymbols)
+            {
+                this.ignoreSymbols.Add(ignored);
+            }
             this.nativeRuleData = nativeRuleData;
+
+            branchingJumpIndexes = default;
         }
 
         public void BuildJumpIndexesFromSymbols(NativeArray<int> symbols)
         {
-            branchingJumpIndexes = new Dictionary<int, int>();
-            CacheAllBranchJumpIndexes(symbols);
+            var tmpBranchingJumpIndexes = new Dictionary<int, int>();
+            CacheAllBranchJumpIndexes(symbols, tmpBranchingJumpIndexes);
 
+            branchingJumpIndexes = new NativeHashMap<int, int>(tmpBranchingJumpIndexes.Count, Allocator.Persistent);
+            foreach (var kvp in tmpBranchingJumpIndexes)
+            {
+                branchingJumpIndexes[kvp.Key] = kvp.Value;
+            }
         }
 
         /// <summary>
@@ -92,55 +108,74 @@ namespace Dman.LSystem.SystemRuntime
         /// </summary>
         /// <param name="indexInSymbolTarget"></param>
         /// <param name="seriesMatch"></param>
-        /// <returns>A dictionary mapping indexes in the matcher to indexes in the symbol target, based on what symbols were matched</returns>
-        public IDictionary<int, int> MatchesBackwards(
+        /// <returns>whether the match succeeded or not</returns>
+        public bool MatchesBackwards(
             int indexInSymbolTarget,
             SymbolSeriesPrefixMatcher seriesMatch,
-            NativeArray<int> symbolHandle,
-            NativeArray<JaggedIndexing> parameterIndexingHandle)
+            SymbolString<float> symbolString,
+            int firstParameterCopyIndex,
+            NativeArray<float> parameterCopyMemory,
+            out byte paramsCopiedToMem)
         {
             indexInSymbolTarget--;
             int matchingIndex = seriesMatch.graphNodeMemSpace.length - 1;
 
-            Dictionary<int, int>  matcherIndexToTargetIndex = null;
+            paramsCopiedToMem = 0;
 
             for (; matchingIndex >= 0 && indexInSymbolTarget >= 0;)
             {
                 var symbolToMatch = nativeRuleData.prefixMatcherSymbols[matchingIndex + seriesMatch.graphNodeMemSpace.index];
                 while (indexInSymbolTarget >= 0)
                 {
-                    var currentSymbol = symbolHandle[indexInSymbolTarget];
+                    var currentSymbol = symbolString.symbols[indexInSymbolTarget];
                     if (ignoreSymbols.Contains(currentSymbol) || currentSymbol == branchOpenSymbol)
                     {
                         indexInSymbolTarget--;
-                    }else if (currentSymbol == branchCloseSymbol)
+                    }
+                    else if (currentSymbol == branchCloseSymbol)
                     {
                         indexInSymbolTarget = FindOpeningBranchIndexReadonly(indexInSymbolTarget) - 1;
                     }
-                    else if (
-                        currentSymbol == symbolToMatch.targetSymbol &&
-                        symbolToMatch.parameterLength == parameterIndexingHandle[indexInSymbolTarget].length)
+                    else if (currentSymbol == symbolToMatch.targetSymbol &&
+                        symbolToMatch.parameterLength == symbolString.newParameters[indexInSymbolTarget].length)
                     {
-                        if(matcherIndexToTargetIndex == null)
+                        // copy the parameters in reverse order, so they can be reversed in-place at end
+                        //  on success
+                        var paramIndexing = symbolString.newParameters[indexInSymbolTarget];
+                        for (int i = paramIndexing.length - 1; i >= 0; i--)
                         {
-                            matcherIndexToTargetIndex = new Dictionary<int, int>();
+                            parameterCopyMemory[paramsCopiedToMem + firstParameterCopyIndex] = symbolString.newParameters[paramIndexing, i];
+                            paramsCopiedToMem++;
                         }
-                        matcherIndexToTargetIndex[matchingIndex] = indexInSymbolTarget;
+
                         indexInSymbolTarget--;
                         matchingIndex--;
                         break;
                     }
                     else
                     {
-                        return null;
+                        return false;
                     }
                 }
             }
             if (matchingIndex == -1)
             {
-                return matcherIndexToTargetIndex;
+                ReverseRange(parameterCopyMemory, firstParameterCopyIndex, paramsCopiedToMem);
+                return true;
             }
-            return null;
+            return false;
+        }
+
+        public static void ReverseRange<T>(NativeArray<T> data, int firstIndex, int length) where T: unmanaged
+        {
+            for (int i = 0; i < length/2; i++)
+            {
+                var swap0 = i + firstIndex;
+                var swap1 = length - 1 - i + firstIndex;
+                var swap = data[swap0];
+                data[swap0] = data[swap1];
+                data[swap1] = swap;
+            }
         }
 
 
@@ -155,7 +190,8 @@ namespace Dman.LSystem.SystemRuntime
             if (branchingJumpIndexes.TryGetValue(openingBranchIndex, out var closingBranch))
             {
                 return closingBranch;
-            }else
+            }
+            else
             {
                 throw new System.Exception("branch jump index not cached!! should preload.");
             }
@@ -184,7 +220,9 @@ namespace Dman.LSystem.SystemRuntime
         ///     assumes no branches are cached already
         /// </summary>
         /// <returns></returns>
-        public void CacheAllBranchJumpIndexes(NativeArray<int> symbols)
+        public void CacheAllBranchJumpIndexes(
+            NativeArray<int> symbols,
+            Dictionary<int, int> jumpIndexes)
         {
             var openingIndexes = new Stack<int>();
 
@@ -202,8 +240,8 @@ namespace Dman.LSystem.SystemRuntime
                         throw new SyntaxException("Too many closing branch symbols. malformed symbol string.");
                     }
                     var correspondingOpenSymbolIndex = openingIndexes.Pop();
-                    branchingJumpIndexes[indexInString] = correspondingOpenSymbolIndex;
-                    branchingJumpIndexes[correspondingOpenSymbolIndex] = indexInString;
+                    jumpIndexes[indexInString] = correspondingOpenSymbolIndex;
+                    jumpIndexes[correspondingOpenSymbolIndex] = indexInString;
                 }
             }
             if (openingIndexes.Count != 0)
@@ -350,7 +388,7 @@ namespace Dman.LSystem.SystemRuntime
                 symbolInMatch.parameterLength == parameterIndexingHandle[currentIndexInTarget].length)
             {
                 var parentIndexInMatch = nativeRuleData.suffixMatcherGraphNodeData[currentIndexInMatch + seriesMatch.graphNodeMemSpace.index].parentIndex;
-                if(parentIndexInMatch == -1)
+                if (parentIndexInMatch == -1)
                 {
                     // if the parent is the origin, always match.
                     return true;
@@ -366,6 +404,11 @@ namespace Dman.LSystem.SystemRuntime
             }
             return false;
         }
-       
+
+        public void Dispose()
+        {
+            branchingJumpIndexes.Dispose();
+            ignoreSymbols.Dispose();
+        }
     }
 }

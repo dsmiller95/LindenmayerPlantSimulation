@@ -144,32 +144,19 @@ namespace Dman.LSystem.SystemRuntime
                 // context match
                 if (contextPrefix.IsValid && contextPrefix.graphNodeMemSpace.length > 0)
                 {
-                    var backwardMatchMapping = branchingCache.MatchesBackwards(
+                    var backwardsMatchMatches = branchingCache.MatchesBackwards(
                         indexInSymbols,
                         contextPrefix,
-                        source.symbols,
-                        source.newParameters.indexing
+                        source,
+                        startIndexInParameterMemory + matchedParameterNum,
+                        parameterMemory,
+                        out var copiedParameters
                         );
-                    if (backwardMatchMapping == null)
+                    if (!backwardsMatchMatches)
                     {
-                        // if backwards match exists, and does not match, then fail this match attempt.
                         return false;
                     }
-                    for (int indexInPrefix = 0; indexInPrefix < contextPrefix.graphNodeMemSpace.length; indexInPrefix++)
-                    {
-                        if (!backwardMatchMapping.TryGetValue(indexInPrefix, out var matchingTargetIndex))
-                        {
-                            continue;
-                        }
-                        var parametersIndexing = source.newParameters[matchingTargetIndex];
-                        for (int i = 0; i < parametersIndexing.length; i++)
-                        {
-                            var paramValue = source.newParameters[parametersIndexing, i];
-
-                            parameterMemory[startIndexInParameterMemory + matchedParameterNum] = paramValue;
-                            matchedParameterNum++;
-                        }
-                    }
+                    matchedParameterNum += copiedParameters;
                 }
 
                 var coreParametersIndexing = source.newParameters[indexInSymbols];
