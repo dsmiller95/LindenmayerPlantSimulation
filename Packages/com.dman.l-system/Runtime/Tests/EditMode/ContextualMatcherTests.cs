@@ -333,23 +333,6 @@ public class ContextualMatcherTests
 
 
     [Test]
-    public void ForwardOrderInvariantHandlesDeepMatchesPredictably()
-    {
-        AssertForwardsMatch(
-            "EA[BFE]K",
-            "A[BF]K", true);
-        AssertForwardsMatch(
-            "EA[BF[E]]K",
-            "A[BF]K", true);
-        AssertForwardsMatch(
-            "EA[B[F]E]K",
-            "A[BF]K", true);
-        AssertForwardsMatch(
-            "EA[B[F][E]]K",
-            "A[BF]K", true);
-    }
-
-    [Test]
     public void ForwardOrderInvariantHandlesOverlapingMatchesPredictablyAndCapturesCorrectParams()
     {
         AssertForwardsMatch(

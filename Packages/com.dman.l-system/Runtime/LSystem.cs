@@ -488,8 +488,10 @@ namespace Dman.LSystem
         [NativeDisableParallelForRestriction]
         public NativeArray<LSystemPotentialMatchData> tmpPossibleMatchMemory;
 
+        [ReadOnly]
         public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
+        [ReadOnly]
         public SymbolStringBranchingCache branchingCache;
 
         public void Execute(int startIndex, int batchSize)
