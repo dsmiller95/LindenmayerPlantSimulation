@@ -393,7 +393,7 @@ namespace Dman.LSystem
         /// Completes the currently pending job, and perform setup for the next, if it exists.
         ///     will return the complete state if the last job was completed
         /// </summary>
-        /// <returns></returns>
+        /// <returns>null if there is work remaining. the new state object if done</returns>
         public LSystemState<float> StepToNextState()
         {
             switch (stepState)

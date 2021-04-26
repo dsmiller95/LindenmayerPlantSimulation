@@ -330,6 +330,25 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[BCD][BCDE][BCDE]", "A[BC][BCD][BCDE]", true);
         AssertForwardsMatch("EA[BCD][BCDE][BCD]", "A[BC][BCD][BCDE]", false);
     }
+
+
+    [Test]
+    public void ForwardOrderInvariantHandlesDeepMatchesPredictably()
+    {
+        AssertForwardsMatch(
+            "EA[BFE]K",
+            "A[BF]K", true);
+        AssertForwardsMatch(
+            "EA[BF[E]]K",
+            "A[BF]K", true);
+        AssertForwardsMatch(
+            "EA[B[F]E]K",
+            "A[BF]K", true);
+        AssertForwardsMatch(
+            "EA[B[F][E]]K",
+            "A[BF]K", true);
+    }
+
     [Test]
     public void ForwardOrderInvariantHandlesOverlapingMatchesPredictablyAndCapturesCorrectParams()
     {
@@ -415,6 +434,7 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[D[F]][C][B]", "A[B][C]DF", false);
         AssertForwardsMatch("EA[D[F][C][B]]", "A[B][C]DF", false);
     }
+
     [Test]
     public void ForwardsMatchesExtraNestedTreeStructure()
     {
