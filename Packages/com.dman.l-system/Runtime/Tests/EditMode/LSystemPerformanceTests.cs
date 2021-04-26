@@ -234,12 +234,8 @@ public class LSystemPerformanceTests
             .Run();
     }
 
-    [Test, Performance]
-    public void RealSystemExampleTest()
-    {
-        LSystemState<float> state = new DefaultLSystemState(@"@FFFFF[&&[l(3, 3)]][/(180)&&[l(3, 3)]]I(0)$(0.003)@F$(0.003)@F$(0.003)@F[&(60)[^(50)$(0.03)F$(0.03)F$(0.03)FV(3)]I(0)$(0.003)@F$(0.003)@F$(0.003)@F[+(-50)[l(2, 2)]O(0, -50)][l(3, 3)][+(50)[l(2, 2)]O(0, 50)]][\(180)&(60)[^(50)[]]I(0)$(0.003)@F$(0.003)@F$(0.003)@F[+(-50)[l(2, 2)]O(0, -50)][l(3, 3)][+(50)[l(2, 2)]O(0, 50)]]\(137)I(0)$(0.003)@F$(0.003)@F$(0.003)@F[&(60)[^(50)$(0.03)F$(0.03)FV(4)]I(1)$(0.003)@F$(0.003)@F[+(-50)[l(1, 2)]O(0, -50)][l(2, 3)][+(50)[l(1, 2)]O(0, 50)]][\(180)&(60)[^(50)$(0.03)F$(0.03)FV(4)]I(1)$(0.003)@F$(0.003)@F[+(-50)[l(1, 2)]O(0, -50)][l(2, 3)][+(50)[l(1, 2)]O(0, 50)]]\(137)I(0)$(0.003)@F$(0.003)@F$(0.003)@F[&(60)[^(50)$(0.03)FV(5)]I(2)$(0.003)@F[+(-50)L(2)O(0, -50)][l(1, 3)][+(50)L(2)O(0, 50)]][\(180)&(60)[^(50)$(0.03)FV(5)]I(2)$(0.003)@F[+(-50)L(2)O(0, -50)][l(1, 3)][+(50)L(2)O(0, 50)]]\(137)I(1)$(0.003)@F$(0.003)@F[&(60)[^(50)V(6)]I(3)[O(1, -50)]L[O(1, 50)]][\(180)&(60)[^(50)V(6)]I(3)[O(1, -50)]L[O(1, 50)]]\(137)I(2)$(0.003)@F[&(60)[^(50)V]P(3)][\(180)&(60)[^(50)V]P(3)]\(137)I(3)[&(60)B(6)][\(180)&(60)B(6)]\(137)T(6)");
-        var compiler = ScriptableObject.CreateInstance<LSystemObject>();
-        compiler.ParseRulesFromCode(@"
+    const string RealSystemAxiom = @"@FFFFF[&&[l(3, 3)]][/(180)&&[l(3, 3)]]I(0)$(0.003)@F$(0.003)@F$(0.003)@F[&(60)[^(50)$(0.03)F$(0.03)F$(0.03)FV(3)]I(0)$(0.003)@F$(0.003)@F$(0.003)@F[+(-50)[l(2, 2)]O(0, -50)][l(3, 3)][+(50)[l(2, 2)]O(0, 50)]][\(180)&(60)[^(50)[]]I(0)$(0.003)@F$(0.003)@F$(0.003)@F[+(-50)[l(2, 2)]O(0, -50)][l(3, 3)][+(50)[l(2, 2)]O(0, 50)]]\(137)I(0)$(0.003)@F$(0.003)@F$(0.003)@F[&(60)[^(50)$(0.03)F$(0.03)FV(4)]I(1)$(0.003)@F$(0.003)@F[+(-50)[l(1, 2)]O(0, -50)][l(2, 3)][+(50)[l(1, 2)]O(0, 50)]][\(180)&(60)[^(50)$(0.03)F$(0.03)FV(4)]I(1)$(0.003)@F$(0.003)@F[+(-50)[l(1, 2)]O(0, -50)][l(2, 3)][+(50)[l(1, 2)]O(0, 50)]]\(137)I(0)$(0.003)@F$(0.003)@F$(0.003)@F[&(60)[^(50)$(0.03)FV(5)]I(2)$(0.003)@F[+(-50)L(2)O(0, -50)][l(1, 3)][+(50)L(2)O(0, 50)]][\(180)&(60)[^(50)$(0.03)FV(5)]I(2)$(0.003)@F[+(-50)L(2)O(0, -50)][l(1, 3)][+(50)L(2)O(0, 50)]]\(137)I(1)$(0.003)@F$(0.003)@F[&(60)[^(50)V(6)]I(3)[O(1, -50)]L[O(1, 50)]][\(180)&(60)[^(50)V(6)]I(3)[O(1, -50)]L[O(1, 50)]]\(137)I(2)$(0.003)@F[&(60)[^(50)V]P(3)][\(180)&(60)[^(50)V]P(3)]\(137)I(3)[&(60)B(6)][\(180)&(60)B(6)]\(137)T(6)";
+    const string RealSystem = @"
 #axiom S(0)
 #iterations 70
 
@@ -339,7 +335,14 @@ C(age) < K(y, x) : age >= timeToFruit ->
         A(x) : (x < flowerAge * stamenSize) && (hasAnther > 0) -> A(x + stamenSize)
         A(x) : hasAnther < 1 ->
 C(age) < A(y) : age >= timeToFruit ->
-");
+";
+
+    [Test, Performance]
+    public void RealSystemExampleOneAtATimeTest()
+    {
+        LSystemState<float> state = new DefaultLSystemState(RealSystemAxiom);
+        var compiler = ScriptableObject.CreateInstance<LSystemObject>();
+        compiler.ParseRulesFromCode(RealSystem);
         compiler.CompileToCached();
         var lSystem = compiler.compiledSystem;
         var totalMeasuredSteps = 10;
@@ -358,5 +361,56 @@ C(age) < A(y) : age >= timeToFruit ->
             .IterationsPerMeasurement(10)
             .GC()
             .Run();
+        state.currentSymbols.Dispose();
     }
+    [Test, Performance]
+    public void RealSystemConcurrentTest()
+    {
+        //var states = Enumerable.Range(0, 10).Select(x => new DefaultLSystemState(RealSystemAxiom)).ToArray();
+        
+        var compiler = ScriptableObject.CreateInstance<LSystemObject>();
+        compiler.ParseRulesFromCode(RealSystem);
+        compiler.CompileToCached();
+
+        var lSystem = compiler.compiledSystem;
+
+        var steppingStates = new LSystemSteppingState[5];
+        var rootStates = Enumerable.Range(0, steppingStates.Length).Select(x => new DefaultLSystemState(RealSystemAxiom)).ToArray();
+
+        var runtimeParams = compiler.GetRuntimeParameters().GetCurrentParameters();
+        Measure.Method(() =>
+        {
+            for (int i = 0; i < steppingStates.Length; i++)
+            {
+                steppingStates[i] = lSystem.StepSystemJob(rootStates[i], runtimeParams);
+            }
+            var hasMoreSteps = true;
+            while (hasMoreSteps)
+            {
+                hasMoreSteps = false;
+                for (int i = 0; i < steppingStates.Length; i++)
+                {
+                    var result = steppingStates[i].StepToNextState();
+                    if(result == null)
+                    {
+                        hasMoreSteps = true;
+                    }else
+                    {
+                        result.currentSymbols.Dispose();
+                    }
+                }
+            }
+        })
+            .WarmupCount(5)
+            .MeasurementCount(10)
+            .IterationsPerMeasurement(10)
+            .GC()
+            .Run();
+
+        foreach (var state in rootStates)
+        {
+            state.currentSymbols.Dispose();
+        }
+    }
+
 }
