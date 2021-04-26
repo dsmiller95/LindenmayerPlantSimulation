@@ -374,7 +374,7 @@ C(age) < A(y) : age >= timeToFruit ->
 
         var lSystem = compiler.compiledSystem;
 
-        var steppingStates = new LSystemSteppingState[5];
+        var steppingStates = new LSystemSteppingState[10];
         var rootStates = Enumerable.Range(0, steppingStates.Length).Select(x => new DefaultLSystemState(RealSystemAxiom)).ToArray();
 
         var runtimeParams = compiler.GetRuntimeParameters().GetCurrentParameters();
