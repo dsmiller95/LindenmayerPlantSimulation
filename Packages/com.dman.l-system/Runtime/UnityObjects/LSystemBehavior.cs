@@ -30,31 +30,9 @@ namespace Dman.LSystem.UnityObjects
 
         private LSystemState<float> systemState;
 
+        private bool ownsCompiledSystem;
         private LSystem _compiledSystem;
-        private LSystem CompiledSystem
-        {
-            get
-            {
-                if (_compiledSystem == null)
-                {
-                    var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
-                    if (globalParams != null)
-                    {
-                        Debug.Log("compiling new system");
-                        var extraGlobalParams = globalParams.GenerateCompileTimeParameters();
-                        _compiledSystem = systemObject?.CompileWithParameters(extraGlobalParams);
-                    }
-                    else
-                    {
-                        _compiledSystem = systemObject?.compiledSystem;
-                    }
-                }
-                return _compiledSystem;
-            }
-        }
         private ArrayParameterRepresenation<float> runtimeParameters;
-
-        private SymbolString<float> lastState;
         /// <summary>
         /// true if the last system step changed the state of this behavior, false otherwise
         /// </summary>
@@ -83,13 +61,36 @@ namespace Dman.LSystem.UnityObjects
             ResetState();
         }
 
+        private void SetNewCompiledSystem()
+        {
+            if (ownsCompiledSystem)
+            {
+                _compiledSystem.Dispose();
+            }
+            var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
+            if (globalParams != null)
+            {
+                Debug.Log("compiling new system");
+                var extraGlobalParams = globalParams.GenerateCompileTimeParameters();
+                _compiledSystem = systemObject?.CompileWithParameters(extraGlobalParams);
+                ownsCompiledSystem = true;
+            }
+            else
+            {
+                Debug.Log("using cached system");
+                _compiledSystem = systemObject?.compiledSystem;
+                ownsCompiledSystem = false;
+            }
+        }
+
         /// <summary>
         /// Reset the system state to the Axiom, and re-initialize the Random provider with a random seed unless otherwise specified
         /// </summary>
         public void ResetState(int? newSeed = null)
         {
-            _compiledSystem = null;
-            lastState = default;
+            systemState?.currentSymbols.Dispose();
+
+            this.SetNewCompiledSystem();
             totalSteps = 0;
             lastUpdateChanged = true;
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
@@ -120,7 +121,11 @@ namespace Dman.LSystem.UnityObjects
             }
             try
             {
-                queuedNextStateHandle = CompiledSystem?.StepSystemJob(systemState, runtimeParameters.GetCurrentParameters());
+                if(_compiledSystem == null)
+                {
+                    SetNewCompiledSystem();
+                }
+                queuedNextStateHandle = _compiledSystem?.StepSystemJob(systemState, runtimeParameters.GetCurrentParameters());
             }
             catch (System.Exception e)
             {
@@ -160,13 +165,14 @@ namespace Dman.LSystem.UnityObjects
 
         private void RenderNextState(LSystemState<float> nextState)
         {
+            lastUpdateChanged = !(systemState?.currentSymbols.Equals(nextState.currentSymbols) ?? false);
+            systemState?.currentSymbols.Dispose();
+
             systemState = nextState;
             queuedNextStateHandle = null;
 
             OnSystemStateUpdated?.Invoke();
 
-            lastUpdateChanged = !lastState.Equals(CurrentState);
-            lastState = CurrentState;
             totalSteps++;
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0, 0.1f);
         }
@@ -198,6 +204,12 @@ namespace Dman.LSystem.UnityObjects
             {
                 systemObject.OnCachedSystemUpdated -= OnSystemObjectRecompiled;
             }
+            queuedNextStateHandle?.ForceCompletePendingJobsAndDeallocate();
+            if (ownsCompiledSystem)
+            {
+                _compiledSystem?.Dispose();
+            }
+            systemState?.currentSymbols.Dispose();
         }
 
         private void OnSystemObjectRecompiled()

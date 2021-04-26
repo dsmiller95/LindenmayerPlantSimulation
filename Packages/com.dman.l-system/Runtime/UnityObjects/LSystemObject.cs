@@ -58,8 +58,21 @@ namespace Dman.LSystem.UnityObjects
             if (newSystem != null)
             {
                 OnCachedSystemUpdated?.Invoke();
+                compiledSystem?.Dispose();
                 compiledSystem = newSystem;
             }
+        }
+
+        private void OnDisable()
+        {
+            compiledSystem?.Dispose();
+            compiledSystem = null;
+        }
+
+        private void OnDestroy()
+        {
+            compiledSystem?.Dispose();
+            compiledSystem = null;
         }
 
         /// <summary>

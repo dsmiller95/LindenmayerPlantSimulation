@@ -138,6 +138,8 @@ namespace Dman.LSystem
             return true;
         }
 
+        public bool IsCreated => symbols.IsCreated || newParameters.IsCreated;
+
         public void Dispose()
         {
             this.newParameters.Dispose();

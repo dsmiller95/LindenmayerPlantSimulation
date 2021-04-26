@@ -71,7 +71,6 @@ namespace Dman.LSystem
         /// </summary>
         private IDictionary<int, IList<BasicRule>> rulesByTargetSymbol;
 
-        // TODO
         private NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
         private SystemLevelRuleNativeData nativeRuleData;
 
@@ -96,6 +95,8 @@ namespace Dman.LSystem
         // currently just used for blocking out context matching. could be used in the future to exclude rule application from specific symbols, too.
         // if that improves runtime.
         public ISet<int> ignoredCharacters;
+
+        public bool isDisposed = false;
 
         public LSystem(
             IEnumerable<BasicRule> rules,
@@ -196,6 +197,10 @@ namespace Dman.LSystem
         /// <param name="globalParameters">The global parameters, if any</param>
         public LSystemSteppingState StepSystemJob(LSystemState<float> systemState, float[] globalParameters = null)
         {
+            if (isDisposed)
+            {
+                throw new LSystemRuntimeException($"LSystem has already been disposed");
+            }
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
             if (globalParameters == null)
             {
@@ -348,6 +353,7 @@ namespace Dman.LSystem
         {
             this.nativeRuleData.Dispose();
             this.blittableRulesByTargetSymbol.Dispose();
+            isDisposed = true;
         }
     }
 
@@ -408,6 +414,31 @@ namespace Dman.LSystem
                     throw new System.Exception("stepper state is complete. no more steps");
             }
         }
+        public void ForceCompletePendingJobsAndDeallocate()
+        {
+            switch (stepState)
+            {
+                case StepState.MATCHING:
+                    preAllocationStep.Complete();
+                    totalSymbolCount.Dispose();
+                    totalSymbolParameterCount.Dispose();
+                    globalParamNative.Dispose();
+                    tmpParameterMemory.Dispose();
+                    matchSingletonData.Dispose();
+                    break;
+                case StepState.REPLACING:
+                    finalDependency.Complete();
+                    break;
+                case StepState.COMPLETE:
+                default:
+                    return;
+            }
+            if (branchingCache.IsCreated) branchingCache.Dispose();
+            if (tmpPossibleMatchMemory.IsCreated) tmpPossibleMatchMemory.Dispose();
+            if (this.target.IsCreated) target.Dispose();
+            tempStateHandle.Free();
+        }
+
 
         private void CompleteIntermediateAndPerformAllocations()
         {
@@ -480,6 +511,7 @@ namespace Dman.LSystem
     public struct RulePrematchJob : IJobParallelForBatch
     {
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
+
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public SymbolString<float> sourceData;
@@ -511,7 +543,6 @@ namespace Dman.LSystem
                 return;
             }
 
-            //var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
             var symbol = sourceData.symbols[indexInSymbols];
 
             if (!blittableRulesByTargetSymbol.TryGetValue(symbol, out var ruleIndexing) || ruleIndexing.length <= 0)

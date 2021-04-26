@@ -25,6 +25,8 @@ namespace Dman.LSystem.SystemRuntime
         private NativeHashMap<int, int> branchingJumpIndexes;
         private SystemLevelRuleNativeData nativeRuleData; // todo: will have to pass this in instead of attach, maybe
 
+        public bool IsCreated => branchingJumpIndexes.IsCreated || ignoreSymbols.IsCreated;
+
         public SymbolStringBranchingCache(SystemLevelRuleNativeData nativeRuleData)
             : this(defaultBranchOpenSymbol, defaultBranchCloseSymbol, new HashSet<int>(), nativeRuleData) { }
         public SymbolStringBranchingCache(
