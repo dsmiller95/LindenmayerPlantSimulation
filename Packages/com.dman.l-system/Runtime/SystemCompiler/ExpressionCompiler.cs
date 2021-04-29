@@ -36,7 +36,10 @@ namespace Dman.LSystem.SystemCompiler
         {
             var tokens = Tokenizer.Tokenize(expressionString, parameters.Keys.ToArray()).ToArray();
             var nestedExpression = GetHeirarchicalExpression(tokens);
-            return nestedExpression.CompileSelfToExpression();
+
+            var opBuilder = nestedExpression.CompileSelfToExpression();
+
+            return opBuilder.CompileToLinqExpression();
         }
 
         public TokenExpression GetHeirarchicalExpression(IEnumerable<Token> tokens)
@@ -82,16 +85,15 @@ namespace Dman.LSystem.SystemCompiler
                 {
                     if (tokenType == TokenType.CONSTANT)
                     {
-                        yield return new TokenExpression(Expression.Constant(current.value), current.context);
+                        yield return new TokenExpression(OperatorBuilder.ConstantValue(current.value), current.context);
                     }
                     else if (tokenType == TokenType.VARIABLE)
                     {
                         if (!parameters.TryGetValue(current.name, out var parameterExp))
                         {
-
                             throw current.context.ExceptionHere($"no parameter found for '{current.name}'");
                         }
-                        yield return new TokenExpression(parameterExp, current.context);
+                        yield return new TokenExpression(OperatorBuilder.ParameterReference(parameterExp), current.context);
                     }
                     else
                     {

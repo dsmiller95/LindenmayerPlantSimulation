@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,10 +18,10 @@ namespace Dman.LSystem.SystemCompiler
     internal class TokenExpression : TokenTarget
     {
         public bool isTokenSeries;
-        public Expression compiledExpression;
+        public OperatorBuilder compiledExpression;
         public List<TokenTarget> tokenSeries;
 
-        public TokenExpression(Expression expression, CompilerContext context) : base(context)
+        public TokenExpression(OperatorBuilder expression, CompilerContext context) : base(context)
         {
             compiledExpression = expression;
             isTokenSeries = false;
@@ -37,7 +38,7 @@ namespace Dman.LSystem.SystemCompiler
             isTokenSeries = true;
         }
 
-        public Expression CompileSelfToExpression()
+        public OperatorBuilder CompileSelfToExpression()
         {
             if (!isTokenSeries)
             {
@@ -81,10 +82,10 @@ namespace Dman.LSystem.SystemCompiler
                 switch (op.type)
                 {
                     case TokenType.SUBTRACT:
-                        tokenSeries[unaryIndex] = new TokenExpression(Expression.NegateChecked(valuesExpression), op.context);
+                        tokenSeries[unaryIndex] = new TokenExpression(OperatorBuilder.Unary(OperatorType.NEGATE_UNARY, valuesExpression), op.context);
                         break;
                     case TokenType.BOOLEAN_NOT:
-                        tokenSeries[unaryIndex] = new TokenExpression(Expression.Not(valuesExpression), op.context);
+                        tokenSeries[unaryIndex] = new TokenExpression(OperatorBuilder.Unary(OperatorType.BOOLEAN_NOT, valuesExpression), op.context);
                         break;
 
                     default:
@@ -139,50 +140,61 @@ namespace Dman.LSystem.SystemCompiler
             return (tokenLinkedList.First.Value as TokenExpression).CompileSelfToExpression();
         }
 
-        private Expression GetExpressionFromBinaryOperator(Expression a, TokenOperator op, Expression b)
+        private OperatorBuilder GetExpressionFromBinaryOperator(OperatorBuilder a, TokenOperator op, OperatorBuilder b)
         {
+            OperatorType newOpType = default;
+
             switch (op.type)
             {
                 case TokenType.MULTIPLY:
-                    return Expression.MultiplyChecked(a, b);
+                    newOpType = OperatorType.MULTIPLY;
+                    break;
                 case TokenType.DIVIDE:
-                    return Expression.Divide(a, b);
+                    newOpType = OperatorType.DIVIDE;
+                    break;
                 case TokenType.REMAINDER:
-                    return Expression.Modulo(a, b);
+                    newOpType = OperatorType.REMAINDER;
+                    break;
                 case TokenType.EXPONENT:
-                    return Expression.Convert( // cast to double and then back, because Expression.Power is a proxy for Math.Pow
-                        Expression.Power(
-                            Expression.Convert(a, typeof(double)),
-                            Expression.Convert(b, typeof(double))
-                        ),
-                        typeof(float)
-                    );
+                    newOpType = OperatorType.EXPONENT;
+                    break;
                 case TokenType.ADD:
-                    return Expression.AddChecked(a, b);
+                    newOpType = OperatorType.ADD;
+                    break;
                 case TokenType.SUBTRACT:
-                    return Expression.SubtractChecked(a, b);
+                    newOpType = OperatorType.SUBTRACT;
+                    break;
 
                 case TokenType.GREATER_THAN:
-                    return Expression.GreaterThan(a, b);
+                    newOpType = OperatorType.GREATER_THAN;
+                    break;
                 case TokenType.LESS_THAN:
-                    return Expression.LessThan(a, b);
+                    newOpType = OperatorType.LESS_THAN;
+                    break;
                 case TokenType.GREATER_THAN_OR_EQ:
-                    return Expression.GreaterThanOrEqual(a, b);
+                    newOpType = OperatorType.GREATER_THAN_OR_EQ;
+                    break;
                 case TokenType.LESS_THAN_OR_EQ:
-                    return Expression.LessThanOrEqual(a, b);
+                    newOpType = OperatorType.LESS_THAN_OR_EQ;
+                    break;
 
                 case TokenType.EQUAL:
-                    return Expression.Equal(a, b);
+                    newOpType = OperatorType.EQUAL;
+                    break;
                 case TokenType.NOT_EQUAL:
-                    return Expression.NotEqual(a, b);
+                    newOpType = OperatorType.NOT_EQUAL;
+                    break;
 
                 case TokenType.BOOLEAN_AND:
-                    return Expression.AndAlso(a, b);
+                    newOpType = OperatorType.BOOLEAN_AND;
+                    break;
                 case TokenType.BOOLEAN_OR:
-                    return Expression.OrElse(a, b);
+                    newOpType = OperatorType.BOOLEAN_OR;
+                    break;
                 default:
                     throw op.context.ExceptionHere($"Invalid binary operator symbol: {Enum.GetName(typeof(TokenType), op.type)}");
             }
+            return OperatorBuilder.Binary(newOpType, a, b);
         }
     }
 

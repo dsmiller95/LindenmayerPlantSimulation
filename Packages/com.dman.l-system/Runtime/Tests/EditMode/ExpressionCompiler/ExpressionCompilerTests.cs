@@ -15,23 +15,23 @@ public class ExpressionCompilerTests
         var expressionCompiler = new ExpressionCompiler(new Dictionary<string, ParameterExpression>());
         var nestedExpression = expressionCompiler.GetHeirarchicalExpression(tokens);
         Assert.AreEqual(7, nestedExpression.tokenSeries.Count);
-        Assert.AreEqual(2, ((nestedExpression.tokenSeries[0] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(2, ((nestedExpression.tokenSeries[0] as TokenExpression)?.compiledExpression as OperatorBuilder).nodeValue);
         Assert.AreEqual(TokenType.SUBTRACT, (nestedExpression.tokenSeries[1] as TokenOperator)?.type);
         Assert.IsTrue((nestedExpression.tokenSeries[2] as TokenExpression)?.isTokenSeries);
         Assert.AreEqual(TokenType.DIVIDE, (nestedExpression.tokenSeries[3] as TokenOperator)?.type);
-        Assert.AreEqual(3, ((nestedExpression.tokenSeries[4] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(3, ((nestedExpression.tokenSeries[4] as TokenExpression)?.compiledExpression as OperatorBuilder).nodeValue);
         Assert.AreEqual(TokenType.GREATER_THAN_OR_EQ, (nestedExpression.tokenSeries[5] as TokenOperator)?.type);
-        Assert.AreEqual(3, ((nestedExpression.tokenSeries[6] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(3, ((nestedExpression.tokenSeries[6] as TokenExpression)?.compiledExpression as OperatorBuilder).nodeValue);
 
         var innerSeries1 = (nestedExpression.tokenSeries[2] as TokenExpression).tokenSeries;
-        Assert.AreEqual(4, ((innerSeries1[0] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(4, ((innerSeries1[0] as TokenExpression)?.compiledExpression as OperatorBuilder).nodeValue);
         Assert.AreEqual(TokenType.MULTIPLY, (innerSeries1[1] as TokenOperator)?.type);
         Assert.IsTrue((innerSeries1[2] as TokenExpression)?.isTokenSeries);
 
         var innerSeries2 = (innerSeries1[2] as TokenExpression).tokenSeries;
-        Assert.AreEqual(2, ((innerSeries2[0] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(2, ((innerSeries2[0] as TokenExpression)?.compiledExpression as OperatorBuilder).nodeValue);
         Assert.AreEqual(TokenType.SUBTRACT, (innerSeries2[1] as TokenOperator)?.type);
-        Assert.AreEqual(0.1f, ((innerSeries2[2] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(0.1f, ((innerSeries2[2] as TokenExpression)?.compiledExpression as OperatorBuilder).nodeValue);
     }
     [Test]
     public void CompilesNestedExpressionWithParameterToHeirarchy()
@@ -43,14 +43,14 @@ public class ExpressionCompilerTests
         var nestedExpression = expressionCompiler.GetHeirarchicalExpression(tokens);
 
         Assert.AreEqual(3f, nestedExpression.tokenSeries.Count);
-        Assert.AreEqual(2f, ((nestedExpression.tokenSeries[0] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(2f, ((nestedExpression.tokenSeries[0] as TokenExpression)?.compiledExpression as OperatorBuilder).nodeValue);
         Assert.AreEqual(TokenType.SUBTRACT, (nestedExpression.tokenSeries[1] as TokenOperator)?.type);
         Assert.IsTrue((nestedExpression.tokenSeries[2] as TokenExpression)?.isTokenSeries);
 
         var innerSeries1 = (nestedExpression.tokenSeries[2] as TokenExpression).tokenSeries;
-        Assert.AreEqual(4f, ((innerSeries1[0] as TokenExpression)?.compiledExpression as ConstantExpression).Value);
+        Assert.AreEqual(4f, ((innerSeries1[0] as TokenExpression)?.compiledExpression as OperatorBuilder).nodeValue);
         Assert.AreEqual(TokenType.MULTIPLY, (innerSeries1[1] as TokenOperator)?.type);
-        Assert.AreEqual("vary", ((innerSeries1[2] as TokenExpression)?.compiledExpression as ParameterExpression).Name);
+        Assert.AreEqual("vary", ((innerSeries1[2] as TokenExpression)?.compiledExpression as OperatorBuilder).parameter.Name);
     }
     [Test]
     public void CompilesExpressionToSingleExpression()
