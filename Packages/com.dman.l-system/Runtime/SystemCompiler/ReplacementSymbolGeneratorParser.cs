@@ -51,7 +51,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 return (new ReplacementSymbolGenerator(nextSymbol), true);
             }
-            var delegates = new List<System.Delegate>();
+            var delegates = new List<DynamicExpressionData>();
             while (symbols.Current != ')')
             {
                 AttemptMoveNext(symbols, ref currentIndexInStream);

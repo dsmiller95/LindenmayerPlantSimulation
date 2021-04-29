@@ -1,4 +1,5 @@
 using Dman.LSystem.SystemCompiler;
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace Dman.LSystem.SystemRuntime
         public int CapturedLocalParameterCount { get; private set; }
 
         private readonly InputSymbol _targetSymbolWithParameters;
-        private System.Delegate conditionalChecker;
+        private DynamicExpressionData conditionalChecker;
         public bool HasConditional => conditionalChecker != null;
 
         public RuleOutcome[] possibleOutcomes;
@@ -81,13 +82,14 @@ namespace Dman.LSystem.SystemRuntime
             suffixChildren = forwardsMatchBuilder.RequiredChildrenMemSpace,
             suffixGraphNodes = forwardsMatchBuilder.RequiredGraphNodeMemSpace,
             prefixNodes = backwardsMatchBuilder.targetSymbolSeries.Length,
-            ruleOutcomes = possibleOutcomes.Length
+            ruleOutcomes = possibleOutcomes.Length,
+            operatorMemory = possibleOutcomes.Sum(x => x.OpMemoryRequirements)
         };
 
 
         private JaggedIndexing possibleOutcomeIndexing;
 
-        public void WriteContextMatchesIntoMemory(
+        public void WriteDataIntoMemory(
             SystemLevelRuleNativeData dataArray,
             SymbolSeriesMatcherNativeDataWriter dataWriter)
         {
@@ -101,9 +103,14 @@ namespace Dman.LSystem.SystemRuntime
             };
             for (int i = 0; i < possibleOutcomeIndexing.length; i++)
             {
-                dataArray.ruleOutcomeMemorySpace[i + dataWriter.indexInRuleOutcomes] = possibleOutcomes[i].AsBlittable();
+                var possibleOutcome = possibleOutcomes[i];
+                dataArray.ruleOutcomeMemorySpace[i + dataWriter.indexInRuleOutcomes] = possibleOutcome.AsBlittable();
             }
             dataWriter.indexInRuleOutcomes += possibleOutcomeIndexing.length;
+            foreach (var outcome in possibleOutcomes)
+            {
+                outcome.WriteOpsIntoMemory(dataArray, dataWriter);
+            }
         }
 
         public Blittable AsBlittable()
@@ -219,7 +226,7 @@ namespace Dman.LSystem.SystemRuntime
             // conditional
             if (conditionalChecker != null)
             {
-                var paramArray = new object[globalParameters.Length + matchedParameterNum];
+                var paramArray = new float[globalParameters.Length + matchedParameterNum];
                 for (int i = 0; i < globalParameters.Length; i++)
                 {
                     paramArray[i] = globalParameters[i];
@@ -228,13 +235,9 @@ namespace Dman.LSystem.SystemRuntime
                 {
                     paramArray[i + globalParameters.Length] = parameterMemory[parameterStartIndex + i];
                 }
+                // TODO: crazy slow
                 var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
-                if (!(invokeResult is bool boolResult))
-                {
-                    // TODO: call this out a bit better. All compilation context is lost here
-                    throw new LSystemRuntimeException($"Conditional expression must evaluate to a boolean");
-                }
-                var conditionalResult = boolResult;
+                var conditionalResult = invokeResult > 0;
                 if (!conditionalResult)
                 {
                     return false;
@@ -408,7 +411,8 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<float> globalParameters,
             NativeArray<float> paramTempMemorySpace,
             SymbolString<float> target,
-            LSystemSingleSymbolMatchData matchSingletonData)
+            LSystemSingleSymbolMatchData matchSingletonData,
+            NativeArray<OperatorDefinition> globalOperatorData)
         {
             var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
 
@@ -416,7 +420,7 @@ namespace Dman.LSystem.SystemRuntime
             var replacementSymbolsIndexing = matchSingletonData.replacementSymbolIndexing;
             var replacementParameterIndexing = matchSingletonData.replacementParameterIndexing;
 
-            var orderedMatchedParameters = new object[globalParameters.Length + matchedParametersIndexing.length];
+            var orderedMatchedParameters = new NativeArray<float>(globalParameters.Length + matchedParametersIndexing.length, Allocator.Temp);
             for (int i = 0; i < globalParameters.Length; i++)
             {
                 orderedMatchedParameters[i] = globalParameters[i];
@@ -427,7 +431,14 @@ namespace Dman.LSystem.SystemRuntime
             }
             var outcome = possibleOutcomes[selectedReplacementPattern];
 
-            var replacement = outcome.GenerateReplacement(orderedMatchedParameters);
+            var replacement = outcome.GenerateReplacement(
+                orderedMatchedParameters,
+                new JaggedIndexing
+                {
+                    index = 0,
+                    length = (ushort)orderedMatchedParameters.Length
+                },
+                globalOperatorData);
             if(replacement.Length != replacementSymbolsIndexing.length)
             {
                 throw new System.Exception("Unexpected state: replacement symbol size differs from expected");

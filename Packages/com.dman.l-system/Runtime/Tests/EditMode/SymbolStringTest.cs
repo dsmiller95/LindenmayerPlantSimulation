@@ -6,7 +6,7 @@ public class SymbolStringTest
     [Test]
     public void SymbolStringConstructorConvertsToInts()
     {
-        var symbolFromString = new SymbolString<float>("AABA");
+        var symbolFromString = SymbolString<float>.FromString("AABA");
         var convertedSymbols = symbolFromString.symbols;
 
         Assert.AreEqual(convertedSymbols[0], 65);

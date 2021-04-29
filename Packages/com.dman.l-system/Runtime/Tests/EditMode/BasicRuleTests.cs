@@ -22,13 +22,13 @@ public class BasicRuleTests
         )
     {
         globalParamNames = globalParamNames ?? new string[0];
-        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
-        using var expectedReplacement = new SymbolString<float>(expectedReplacementText, Allocator.Persistent);
+        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : SymbolString<float>.FromString(axiom, Allocator.Persistent);
+        using var expectedReplacement = SymbolString<float>.FromString(expectedReplacementText, Allocator.Persistent);
 
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
-        ruleFromString.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
+        ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
 
         globalParams = globalParams ?? new float[0];
         using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
@@ -81,7 +81,8 @@ public class BasicRuleTests
             globalNative,
             paramMemory,
             resultSymbols,
-            matchSingleData
+            matchSingleData,
+            ruleNativeData.dynamicOperatorMemory
             );
 
         Assert.AreEqual(expectedReplacementText, resultSymbols.ToString());
@@ -95,14 +96,16 @@ public class BasicRuleTests
         int ruleParamMemoryStartIndex = 0,
         int matchIndex = 0,
         int paramTempMemorySize = 0,
-        float[] globalParams = null
+        float[] globalParams = null,
+        string[] globalParamNames = null
         )
     {
-        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText));
+        globalParamNames = globalParamNames ?? new string[0];
+        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : SymbolString<float>.FromString(axiom, Allocator.Persistent);
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
-        ruleFromString.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
+        ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
 
         globalParams = globalParams ?? new float[0];
         using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
@@ -149,11 +152,11 @@ public class BasicRuleTests
         float[] globalParams = null
         )
     {
-        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : new SymbolString<float>(axiom, Allocator.Persistent);
+        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : SymbolString<float>.FromString(axiom, Allocator.Persistent);
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
-        ruleFromString.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
+        ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
 
 
         globalParams = globalParams ?? new float[0];
@@ -187,7 +190,7 @@ public class BasicRuleTests
         var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
-        ruleFromString.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
+        ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
 
         var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
         try
@@ -312,6 +315,18 @@ public class BasicRuleTests
             new int[] { 'A' },
             new float[][] { new float[] { 20 } },
             paramTempMemorySize: 1
+            );
+    }
+    [Test]
+    public void ParametricGlobalParamConditionalNoMatch()
+    {
+        AssertRuleDoesNotMatchCondtitional(
+            "A(x) : x < global -> A(x + 1)",
+            new int[] { 'A' },
+            new float[][] { new float[] { 20f } },
+            paramTempMemorySize: 1,
+            globalParamNames: new[] { "global" },
+            globalParams: new[] { 7f }
             );
     }
     [Test]

@@ -17,29 +17,19 @@ namespace Dman.LSystem.SystemCompiler
             parameters = floatParams.ToDictionary(x => x, x => Expression.Parameter(typeof(float), x));
         }
 
-        public static Delegate CompileExpressionToDelegateWithParameters(string expressionString, string[] namedNumericParameters = null)
+        public static DynamicExpressionData CompileExpressionToDelegateWithParameters(string expressionString, string[] namedNumericParameters = null)
         {
             var compiler = new ExpressionCompiler(namedNumericParameters ?? new string[0]);
             var expression = compiler.CompileToExpression(expressionString);
-            var lambdaExpr = Expression.Lambda(expression, compiler.parameters.Values.ToList());
-            return lambdaExpr.Compile();
-        }
-        public static (Delegate, string) CompileExpressionToDelegateAndDescriptionWithParameters(string expressionString, string[] namedNumericParameters)
-        {
-            var compiler = new ExpressionCompiler(namedNumericParameters);
-            var expression = compiler.CompileToExpression(expressionString);
-            var lambdaExpr = Expression.Lambda(expression, compiler.parameters.Values.ToList());
-            return (lambdaExpr.Compile(), expression.ToString());
+            return new DynamicExpressionData(expression, compiler.parameters.Values.ToArray());
         }
 
-        public Expression CompileToExpression(string expressionString)
+        public OperatorBuilder CompileToExpression(string expressionString)
         {
             var tokens = Tokenizer.Tokenize(expressionString, parameters.Keys.ToArray()).ToArray();
             var nestedExpression = GetHeirarchicalExpression(tokens);
 
-            var opBuilder = nestedExpression.CompileSelfToExpression();
-
-            return opBuilder.CompileToLinqExpression();
+            return nestedExpression.CompileSelfToExpression();
         }
 
         public TokenExpression GetHeirarchicalExpression(IEnumerable<Token> tokens)

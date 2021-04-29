@@ -19,7 +19,7 @@ namespace Dman.LSystem.SystemCompiler
         public InputSymbol[] forwardsMatch;
         public ReplacementSymbolGenerator[] replacementSymbols;
 
-        public System.Delegate conditionalMatch;
+        public DynamicExpressionData conditionalMatch;
         public string conditionalStringDescription;
 
         public string TargetSymbolString()
@@ -70,11 +70,10 @@ namespace Dman.LSystem.SystemCompiler
         {
             try
             {
-                var compiledResult = ExpressionCompiler.CompileExpressionToDelegateAndDescriptionWithParameters(
+                conditionalMatch = ExpressionCompiler.CompileExpressionToDelegateWithParameters(
                     $"({conditionalExpression})",
                     validParameters);
-                conditionalMatch = compiledResult.Item1;
-                conditionalStringDescription = compiledResult.Item2;
+                conditionalStringDescription = conditionalMatch.OgExpressionStringValue;
             }
             catch (SyntaxException e)
             {

@@ -1,3 +1,5 @@
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Linq;
 using Unity.Collections;
 
@@ -14,6 +16,17 @@ namespace Dman.LSystem.SystemRuntime
             probability = prob;
             replacementSymbols = replacements;
             replacementParameterCount = (ushort)replacementSymbols.Select(x => x.GeneratedParameterCount()).Sum();
+        }
+
+        public int OpMemoryRequirements => replacementSymbols.Sum(x => x.OpMemoryRequirements);
+        public void WriteOpsIntoMemory(
+            SystemLevelRuleNativeData dataArray,
+            SymbolSeriesMatcherNativeDataWriter dataWriter)
+        {
+            foreach (var replacement in replacementSymbols)
+            {
+                replacement.WriteOpsIntoMemory(dataArray, dataWriter);
+            }
         }
 
         public Blittable AsBlittable()
@@ -41,7 +54,11 @@ namespace Dman.LSystem.SystemRuntime
             return replacementParameterCount;
         }
 
-        public SymbolString<float> GenerateReplacement(object[] matchedParameters, Allocator allocator = Allocator.Temp)
+        public SymbolString<float> GenerateReplacement(
+            NativeArray<float> matchedParameters,
+            JaggedIndexing parameterSpace,
+            NativeArray<OperatorDefinition> operatorData,
+            Allocator allocator = Allocator.Temp)
         {
             // TODO: less garbage
             var replacedSymbols = new int[replacementSymbols.Length];
@@ -51,7 +68,10 @@ namespace Dman.LSystem.SystemRuntime
                 var replacementExpression = replacementSymbols[symbolIndex];
 
                 replacedSymbols[symbolIndex] = replacementExpression.targetSymbol;
-                replacedParams[symbolIndex] = replacementExpression.EvaluateNewParameters(matchedParameters);
+                replacedParams[symbolIndex] = replacementExpression.EvaluateNewParameters(
+                    matchedParameters,
+                    parameterSpace,
+                    operatorData);
             }
 
             return new SymbolString<float>(replacedSymbols, replacedParams, allocator);

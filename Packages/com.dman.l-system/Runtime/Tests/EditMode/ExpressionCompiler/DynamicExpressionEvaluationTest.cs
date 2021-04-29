@@ -79,7 +79,7 @@ public class DynamicExpressionEvaluationTest
             OperatorBuilder.ConstantValue(1.5f),
             OperatorBuilder.ParameterReference(paramInput));
 
-        var builder = new DynamicExpressionDataWriter(operatorData, new ParameterExpression[] { paramInput });
+        var builder = new DynamicExpressionData(operatorData, new ParameterExpression[] { paramInput });
 
         using var nativeOpData = new NativeArray<OperatorDefinition>(builder.OperatorSpaceNeeded, Allocator.Persistent);
         using var inputParams = new NativeArray<float>(new float[] { 2f }, Allocator.Persistent);
@@ -87,7 +87,6 @@ public class DynamicExpressionEvaluationTest
             index = 0,
             length = builder.OperatorSpaceNeeded
         };
-
         var expression = builder.WriteIntOpDataArray(
             nativeOpData,
             opDataSpace);

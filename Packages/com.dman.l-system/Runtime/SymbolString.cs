@@ -9,7 +9,7 @@ using Unity.Collections;
 namespace Dman.LSystem
 {
 
-    public struct SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>, ISymbolString, IDisposable where ParamType: unmanaged
+    public struct SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>, ISymbolString, IDisposable where ParamType : unmanaged
     {
         [NativeDisableParallelForRestriction]
         public NativeArray<int> symbols;
@@ -19,19 +19,26 @@ namespace Dman.LSystem
 
         public int this[int index] => symbols[index];
 
-        public SymbolString(string symbolString, Allocator allocator = Allocator.Persistent)
+
+        public static SymbolString<float> FromString(string symbolString, Allocator allocator = Allocator.Persistent)
         {
             var symbolMatch = ReplacementSymbolGeneratorParser.ParseReplacementSymbolGenerators(
                 symbolString,
                 new string[0]).ToArray();
-            symbols = new NativeArray<int>(
+            var symbols = new NativeArray<int>(
                 symbolMatch.Select(x => x.targetSymbol).ToArray(),
                 allocator);
 
             var jaggedParameters = symbolMatch
-                .Select(x => x.evaluators.Select(y => (ParamType)y.DynamicInvoke()).ToArray())
+                .Select(x => x.evaluators.Select(y => y.DynamicInvoke()).ToArray())
                 .ToArray();
-            newParameters = new JaggedNativeArray<ParamType>(jaggedParameters, allocator);
+            var newParameters = new JaggedNativeArray<float>(jaggedParameters, allocator);
+
+            return new SymbolString<float>
+            {
+                symbols = symbols,
+                newParameters = newParameters
+            };
         }
         public SymbolString(int symbol, ParamType[] parameters) :
             this(new int[] { symbol }, new ParamType[][] { parameters })

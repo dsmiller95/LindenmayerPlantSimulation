@@ -20,7 +20,7 @@ public class ContextualMatcherTests
     {
         var seriesMatcher = SymbolSeriesGraphTests.GenerateSingleMatcher(matcher, out var nativeData);
         using var nativeDataDisposable = nativeData;
-        using var targetString = new SymbolString<float>(target);
+        using var targetString = SymbolString<float>.FromString(target);
         using var branchingCache = new SymbolStringBranchingCache(
             '[', ']',
             ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
@@ -70,7 +70,7 @@ public class ContextualMatcherTests
         var writer = new SymbolSeriesMatcherNativeDataWriter();
 
         var seriesMatcher = prefixBuilder.BuildIntoManagedMemory(nativeData, writer);
-        using var targetString = new SymbolString<float>(target);
+        using var targetString = SymbolString<float>.FromString(target);
         using var branchingCache = new SymbolStringBranchingCache(
             '[', ']', 
             ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
@@ -199,7 +199,7 @@ public class ContextualMatcherTests
     [Test]
     public void FindsOpeningBranchLinks()
     {
-        using var targetString = new SymbolString<float>("A[AA]AAA[A[AAA[A]]]A");
+        using var targetString = SymbolString<float>.FromString("A[AA]AAA[A[AAA[A]]]A");
         using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(8, branchingCache.FindOpeningBranchIndexReadonly(18));
@@ -209,7 +209,7 @@ public class ContextualMatcherTests
     [Test]
     public void FindsClosingBranchLinks()
     {
-        using var targetString = new SymbolString<float>("A[AA]AAA[A[AAA[A]]]A");
+        using var targetString = SymbolString<float>.FromString("A[AA]AAA[A[AAA[A]]]A");
         using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(4, branchingCache.FindClosingBranchIndexReadonly(1));
@@ -219,7 +219,7 @@ public class ContextualMatcherTests
     [Test]
     public void FindsBranchClosingLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
-        using var targetString = new SymbolString<float>("EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
+        using var targetString = SymbolString<float>.FromString("EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
         using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(87, branchingCache.FindClosingBranchIndexReadonly(69));
@@ -228,7 +228,7 @@ public class ContextualMatcherTests
     [Test]
     public void FindsBranchForwardLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
-        using var targetString = new SymbolString<float>("[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
+        using var targetString = SymbolString<float>.FromString("[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]");
         using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString.symbols);
         Assert.AreEqual(64, branchingCache.FindOpeningBranchIndexReadonly(82));

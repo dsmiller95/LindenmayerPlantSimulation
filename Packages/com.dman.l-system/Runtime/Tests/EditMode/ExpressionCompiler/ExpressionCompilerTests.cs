@@ -1,9 +1,13 @@
 using Dman.LSystem.SystemCompiler;
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Unity.Collections;
+using UnityEngine;
 
 public class ExpressionCompilerTests
 {
@@ -52,110 +56,137 @@ public class ExpressionCompilerTests
         Assert.AreEqual(TokenType.MULTIPLY, (innerSeries1[1] as TokenOperator)?.type);
         Assert.AreEqual("vary", ((innerSeries1[2] as TokenExpression)?.compiledExpression as OperatorBuilder).parameter.Name);
     }
+
+    private void AssertFunctionResults(string expressionString, float[,] calls, object[] results, string[] paramNames = null)
+    {
+        var expressionCompiler = new ExpressionCompiler(paramNames == null ? new string[0] : paramNames);
+        var operatorData = expressionCompiler.CompileToExpression(expressionString);
+        var builder = new DynamicExpressionData(operatorData, expressionCompiler.parameters.Values.ToArray());
+
+        using var nativeOpData = new NativeArray<OperatorDefinition>(builder.OperatorSpaceNeeded, Allocator.Persistent);
+
+        var paramSize = (ushort)calls.GetLength(1);
+        var inputParams = new NativeArray<float>(paramSize, Allocator.Persistent);
+        var opDataSpace = new JaggedIndexing
+        {
+            index = 0,
+            length = builder.OperatorSpaceNeeded
+        };
+        var expression = builder.WriteIntOpDataArray(
+            nativeOpData,
+            opDataSpace);
+
+        for (int call = 0; call < calls.GetLength(0); call++)
+        {
+            for (int param = 0; param < calls.GetLength(1); param++)
+            {
+                inputParams[param] = calls[call, param];
+            }
+            var result = expression.EvaluateExpression(
+                inputParams,
+                new JaggedIndexing
+                {
+                    index = 0,
+                    length = paramSize
+                },
+                nativeOpData);
+            if (results[call] is float floatVal)
+            {
+                Assert.AreEqual(result, floatVal);
+            }
+            else if (results[call] is bool boolValue)
+            {
+                if (boolValue)
+                {
+                    Assert.IsTrue(result > 0);
+                }else
+                {
+                    Assert.IsFalse(result > 0);
+                }
+            }
+        }
+
+        inputParams.Dispose();
+    }
+
     [Test]
     public void CompilesExpressionToSingleExpression()
     {
-        var expressionString = "(2 - 4 * .5 + 1)";
-
-        var parameters = new Dictionary<string, ParameterExpression>();
-        var expressionCompiler = new ExpressionCompiler(parameters);
-        var expression = expressionCompiler.CompileToExpression(expressionString);
-
-        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
-        var compiledExpression = le.Compile();
-        float result = (float)compiledExpression.DynamicInvoke();
-
-        Assert.AreEqual(1f, result);
+        AssertFunctionResults(
+            "(2 - 4 * .5 + 1)",
+            new float[1, 0],
+            new object[] { 1f }
+            );
     }
     [Test]
     public void CompilesExpressionWithExtraParensOutside()
     {
-        var expressionString = "((1 + 1))";
-
-        var parameters = new Dictionary<string, ParameterExpression>();
-        var expressionCompiler = new ExpressionCompiler(parameters);
-        var expression = expressionCompiler.CompileToExpression(expressionString);
-
-        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
-        var compiledExpression = le.Compile();
-        float result = (float)compiledExpression.DynamicInvoke();
-
-        Assert.AreEqual(2f, result);
+        AssertFunctionResults(
+            "((1 + 1))",
+            new float[1, 0],
+            new object[] { 2f }
+            );
     }
     [Test]
     public void CompilesExpressionWithExtraParensInside()
     {
-        var expressionString = "(((1 - 2)) * ((1 + 1)))";
-
-        var parameters = new Dictionary<string, ParameterExpression>();
-        var expressionCompiler = new ExpressionCompiler(parameters);
-        var expression = expressionCompiler.CompileToExpression(expressionString);
-
-        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
-        var compiledExpression = le.Compile();
-        float result = (float)compiledExpression.DynamicInvoke();
-
-        Assert.AreEqual(-2f, result);
+        AssertFunctionResults(
+            "(((1 - 2)) * ((1 + 1)))",
+            new float[1, 0],
+            new object[] { -2f }
+            );
     }
     [Test]
     public void CompilesExpressionWithExtraParensEverywhere()
     {
-        var expressionString = "((((1 - 2)) * ((1 + 1))))";
-
-        var parameters = new Dictionary<string, ParameterExpression>();
-        var expressionCompiler = new ExpressionCompiler(parameters);
-        var expression = expressionCompiler.CompileToExpression(expressionString);
-
-        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
-        var compiledExpression = le.Compile();
-        float result = (float)compiledExpression.DynamicInvoke();
-
-        Assert.AreEqual(-2f, result);
+        AssertFunctionResults(
+            "((((1 - 2)) * ((1 + 1))))",
+            new float[1, 0],
+            new object[] { -2f }
+            );
     }
     [Test]
     public void CompilesExpressionWithExtraParensEverywhereAndUnaries()
     {
-        var expressionString = "(-((-(1 - 2)) * -((1 + 1))))";
-
-        var parameters = new Dictionary<string, ParameterExpression>();
-        var expressionCompiler = new ExpressionCompiler(parameters);
-        var expression = expressionCompiler.CompileToExpression(expressionString);
-
-        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
-        var compiledExpression = le.Compile();
-        float result = (float)compiledExpression.DynamicInvoke();
-
-        Assert.AreEqual(2f, result);
+        AssertFunctionResults(
+            "(-((-(1 - 2)) * -((1 + 1))))",
+            new float[1, 0],
+            new object[] { 2f }
+            );
     }
     [Test]
     public void CompilesExpressionWithParameters()
     {
-        var expressionString = "(2^pow + add)";
-
-        var expressionCompiler = new ExpressionCompiler("pow", "add");
-        var expression = expressionCompiler.CompileToExpression(expressionString);
-
-        LambdaExpression le = Expression.Lambda(expression, expressionCompiler.parameters.Values.ToList());
-        var compiledExpression = le.Compile();
-        Assert.AreEqual(4, (float)compiledExpression.DynamicInvoke(2, 0));
-        Assert.AreEqual(2, (float)compiledExpression.DynamicInvoke(0, 1));
-        Assert.AreEqual(9, (float)compiledExpression.DynamicInvoke(3, 1));
-        Assert.AreEqual(Math.Sqrt(2) + 10, (float)compiledExpression.DynamicInvoke(0.5f, 10), 1e-3);
-        Assert.AreEqual((1 << 10), (float)compiledExpression.DynamicInvoke(10, 0), 1e-3);
+        AssertFunctionResults(
+            "(2^pow + add)",
+            new float[5, 2] {
+                {2  ,  0 },
+                {0  ,  1 },
+                {3  ,  1 },
+                {.5f, 10 },
+                {10 ,  0 },
+                },
+            new object[] { 
+                4f,
+                2f,
+                9f,
+                Mathf.Sqrt(2) + 10,
+                1 << 10
+            },
+            new string[]
+            {
+                "pow",
+                "add"
+            }
+            );
     }
     [Test]
     public void CompilesExpressionWithEveryOperator()
     {
-        var expressionString = "(2 * -3 < 4^2 && 3 % 5 > 4 - 2 || !(8 / 3 <= 2 + 1.9 && 2 >= 3) && 3 == 3 && 2 != 3)";
-
-        var parameters = new Dictionary<string, ParameterExpression>();
-        var expressionCompiler = new ExpressionCompiler(parameters);
-        var expression = expressionCompiler.CompileToExpression(expressionString);
-
-        LambdaExpression le = Expression.Lambda(expression, parameters.Values.ToList());
-        var compiledExpression = le.Compile();
-        var result = compiledExpression.DynamicInvoke();
-        Assert.IsAssignableFrom<bool>(result);
-        Assert.AreEqual(true, (bool)result);
+        AssertFunctionResults(
+            "(2 * -3 < 4^2 && 3 % 5 > 4 - 2 || !(8 / 3 <= 2 + 1.9 && 2 >= 3) && 3 == 3 && 2 != 3)",
+            new float[1, 0],
+            new object[] { true }
+            );
     }
 }

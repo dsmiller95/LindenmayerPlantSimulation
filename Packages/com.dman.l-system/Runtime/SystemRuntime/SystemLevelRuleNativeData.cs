@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,11 @@ namespace Dman.LSystem.SystemRuntime
         [NativeDisableParallelForRestriction]
         public NativeArray<RuleOutcome.Blittable> ruleOutcomeMemorySpace;
 
+
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<OperatorDefinition> dynamicOperatorMemory;
+
         public SystemLevelRuleNativeData(IEnumerable<BasicRule> rulesToWrite)
         {
             var allData = rulesToWrite.ToArray();
@@ -30,6 +36,9 @@ namespace Dman.LSystem.SystemRuntime
             suffixMatcherGraphNodeData = new NativeArray<SymbolMatcherGraphNode>(memReqs.suffixGraphNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             suffixMatcherChildrenDataArray = new NativeArray<int>(memReqs.suffixChildren, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             ruleOutcomeMemorySpace = new NativeArray<RuleOutcome.Blittable>(memReqs.ruleOutcomes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            isDisposed = false;
         }
         public SystemLevelRuleNativeData(RuleDataRequirements memReqs)
         {
@@ -37,14 +46,20 @@ namespace Dman.LSystem.SystemRuntime
             suffixMatcherGraphNodeData = new NativeArray<SymbolMatcherGraphNode>(memReqs.suffixGraphNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             suffixMatcherChildrenDataArray = new NativeArray<int>(memReqs.suffixChildren, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             ruleOutcomeMemorySpace = new NativeArray<RuleOutcome.Blittable>(memReqs.ruleOutcomes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            isDisposed = false;
         }
 
+        private bool isDisposed;
         public void Dispose()
         {
+            if (isDisposed) return;
             suffixMatcherChildrenDataArray.Dispose();
             suffixMatcherGraphNodeData.Dispose();
             prefixMatcherSymbols.Dispose();
             ruleOutcomeMemorySpace.Dispose();
+            isDisposed = true;
         }
     }
 
@@ -54,6 +69,7 @@ namespace Dman.LSystem.SystemRuntime
         public int suffixGraphNodes;
         public int prefixNodes;
         public int ruleOutcomes;
+        public int operatorMemory;
 
         public static RuleDataRequirements operator +(RuleDataRequirements a, RuleDataRequirements b)
         {
@@ -62,7 +78,8 @@ namespace Dman.LSystem.SystemRuntime
                 suffixGraphNodes = a.suffixGraphNodes + b.suffixGraphNodes,
                 suffixChildren = a.suffixChildren + b.suffixChildren,
                 prefixNodes = a.prefixNodes + b.prefixNodes,
-                ruleOutcomes = a.ruleOutcomes + b.ruleOutcomes
+                ruleOutcomes = a.ruleOutcomes + b.ruleOutcomes,
+                operatorMemory = a.operatorMemory + b.operatorMemory,
             };
         }
     }
@@ -73,5 +90,6 @@ namespace Dman.LSystem.SystemRuntime
         public int indexInSuffixNodes = 0;
         public int indexInPrefixNodes = 0;
         public int indexInRuleOutcomes = 0;
+        public int indexInOperatorMemory = 0;
     }
 }

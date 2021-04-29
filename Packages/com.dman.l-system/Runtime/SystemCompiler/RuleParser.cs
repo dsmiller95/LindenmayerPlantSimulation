@@ -53,7 +53,7 @@ namespace Dman.LSystem.SystemCompiler
                     var compiledProbabilityExpression = ExpressionCompiler.CompileExpressionToDelegateWithParameters(probabilityExpression);
                     rule = new ParsedStochasticRule
                     {
-                        probability = (float)compiledProbabilityExpression.DynamicInvoke()
+                        probability = compiledProbabilityExpression.DynamicInvoke()
                     };
                 }
                 catch (SyntaxException e)
@@ -179,7 +179,7 @@ namespace Dman.LSystem.SystemCompiler
 
             foreach (var rule in allRules)
             {
-                rule.WriteContextMatchesIntoMemory(ruleNativeData, nativeWriter);
+                rule.WriteDataIntoMemory(ruleNativeData, nativeWriter);
             }
 
             return allRules;

@@ -1,5 +1,6 @@
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +53,7 @@ namespace Dman.LSystem
         { }
         public DefaultLSystemState(string axiom, uint seed = 1)
         {
-            currentSymbols = new SymbolString<float>(axiom);
+            currentSymbols = SymbolString<float>.FromString(axiom);
             randomProvider = new Unity.Mathematics.Random(seed);
         }
     }
@@ -266,7 +267,8 @@ namespace Dman.LSystem
                 rulesByTargetSymbol = rulesByTargetSymbol,
 
                 tmpParameterMemory = parameterMemory,
-                tmpPossibleMatchMemory = possibleMatchMemory
+                tmpPossibleMatchMemory = possibleMatchMemory,
+                operatorDefinitions = nativeRuleData.dynamicOperatorMemory
             };
             var tempStateHandle = GCHandle.Alloc(tempState);
 
@@ -351,6 +353,7 @@ namespace Dman.LSystem
 
         public void Dispose()
         {
+            if (isDisposed) return;
             this.nativeRuleData.Dispose();
             this.blittableRulesByTargetSymbol.Dispose();
             isDisposed = true;
@@ -383,6 +386,8 @@ namespace Dman.LSystem
 
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
         public NativeArray<float> tmpParameterMemory;
+        public NativeArray<OperatorDefinition> operatorDefinitions;
+
         public NativeArray<LSystemPotentialMatchData> tmpPossibleMatchMemory;
         public NativeArray<float> globalParamNative;
         public GCHandle tempStateHandle; // LSystemSteppingState. self
@@ -463,6 +468,7 @@ namespace Dman.LSystem
 
                 parameterMatchMemory = tmpParameterMemory,
                 matchSingletonData = matchSingletonData,
+                globalOperatorData = operatorDefinitions,
 
                 sourceData = sourceSymbolString,
 
@@ -718,6 +724,10 @@ namespace Dman.LSystem
 
         [ReadOnly]
         [NativeDisableParallelForRestriction]
+        public NativeArray<OperatorDefinition> globalOperatorData;
+
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
         public SymbolString<float> sourceData;
 
         [NativeDisableParallelForRestriction]
@@ -764,7 +774,8 @@ namespace Dman.LSystem
                 globalParametersArray,
                 parameterMatchMemory,
                 targetData,
-                matchSingleton
+                matchSingleton,
+                globalOperatorData
                 );
         }
     }

@@ -7,16 +7,18 @@ using Unity.Collections;
 
 namespace Dman.LSystem.SystemCompiler
 {
-    public class DynamicExpressionDataWriter
+
+    public class DynamicExpressionData
     {
         private List<OperatorDefinition> definitionList = new List<OperatorDefinition>();
-
+        public string OgExpressionStringValue { get; private set; }
         public ushort OperatorSpaceNeeded => (ushort)definitionList.Count;
 
-        public DynamicExpressionDataWriter(
+        public DynamicExpressionData(
             OperatorBuilder topOperator,
             ParameterExpression[] orderedParameters)
         {
+            OgExpressionStringValue = topOperator.ToString();
             var builderQueue = new Queue<OperatorBuilder>();
             builderQueue.Enqueue(topOperator);
 
@@ -85,6 +87,30 @@ namespace Dman.LSystem.SystemCompiler
             {
                 operationDataSlice = opSpace
             };
+        }
+
+        public float DynamicInvoke(params float[] input)
+        {
+            using var inputParams = new NativeArray<float>(input, Allocator.Temp);
+            using var opDefs = new NativeArray<OperatorDefinition>(definitionList.ToArray(), Allocator.Temp);
+
+            var structExp = new StructExpression
+            {
+                operationDataSlice = new JaggedIndexing
+                {
+                    index = 0,
+                    length = (ushort)opDefs.Length
+                }
+            };
+
+            return structExp.EvaluateExpression(
+                inputParams,
+                new JaggedIndexing
+                {
+                    index = 0,
+                    length = (ushort)opDefs.Length
+                },
+                opDefs);
         }
     }
 

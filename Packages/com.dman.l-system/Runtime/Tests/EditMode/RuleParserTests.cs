@@ -166,9 +166,9 @@ public class RuleParserTests
     {
         var ruleFromString = RuleParser.ParseToRule("A(x, y): x < 10 -> A(x + 1, y - x)");
 
-        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(11, 2));
-        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(10, 2));
-        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(9, 202));
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(11, 2) > 0);
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(10, 2) > 0);
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(9, 202) > 0);
 
         Assert.AreEqual("A(x, y)", ruleFromString.TargetSymbolString());
         Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
@@ -198,9 +198,9 @@ public class RuleParserTests
     {
         var ruleFromString = RuleParser.ParseToRule("C(x) < K(y) > `A(z) : x >= timeToFruit -> D(1)", new string[] { "timeToFruit" });
 
-        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 0, 0, 0));
-        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 1, 0, 0));
-        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 4, 0, 0));
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 0, 0, 0) > 0);
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 1, 0, 0) > 0);
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 4, 0, 0) > 0);
 
         Assert.AreEqual("C(x) < K(y) > `A(z)", ruleFromString.TargetSymbolString());
 
@@ -234,9 +234,9 @@ public class RuleParserTests
         Assert.AreEqual(1, stochastic.replacementSymbols.Length);
         Assert.AreEqual('A', stochastic.replacementSymbols[0].targetSymbol);
 
-        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2));
-        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5f, 2));
-        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3));
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2) > 0);
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5f, 2) > 0);
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3) > 0);
     }
 
     [Test]
@@ -254,9 +254,9 @@ public class RuleParserTests
 
         Assert.AreEqual(0.3f, stochastic.probability, 1e-5);
 
-        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2));
-        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5f, 2));
-        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3));
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2) > 0);
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5f, 2) > 0);
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3) > 0);
     }
 
 
