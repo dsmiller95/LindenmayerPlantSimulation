@@ -72,7 +72,7 @@ public class ExpressionCompilerTests
             index = 0,
             length = builder.OperatorSpaceNeeded
         };
-        var expression = builder.WriteIntOpDataArray(
+        var expression = builder.WriteIntoOpDataArray(
             nativeOpData,
             opDataSpace);
 

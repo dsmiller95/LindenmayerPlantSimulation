@@ -77,7 +77,8 @@ public class BasicRuleTests
             paramMemory,
             resultSymbols,
             matchSingleData,
-            ruleNativeData.dynamicOperatorMemory
+            ruleNativeData.dynamicOperatorMemory,
+            ruleNativeData.structExpressionMemorySpace
             );
 
         Assert.AreEqual(expectedReplacementText, resultSymbols.ToString());

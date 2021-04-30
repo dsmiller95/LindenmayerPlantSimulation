@@ -84,8 +84,8 @@ namespace Dman.LSystem.SystemRuntime
             suffixGraphNodes = forwardsMatchBuilder.RequiredGraphNodeMemSpace,
             prefixNodes = backwardsMatchBuilder.targetSymbolSeries.Length,
             ruleOutcomes = possibleOutcomes.Length,
-            operatorMemory = possibleOutcomes.Sum(x => x.OpMemoryRequirements) + (conditionalChecker == null ? 0 : conditionalChecker.OperatorSpaceNeeded)
-        };
+            operatorMemory = (conditionalChecker == null ? 0 : conditionalChecker.OperatorSpaceNeeded)
+        } + possibleOutcomes.Aggregate(new RuleDataRequirements(), (a, b) => a + b.MemoryReqs);
 
 
         private JaggedIndexing possibleOutcomeIndexing;
@@ -96,6 +96,11 @@ namespace Dman.LSystem.SystemRuntime
         {
             ContextSuffix = forwardsMatchBuilder.BuildIntoManagedMemory(dataArray, dataWriter);
             ContextPrefix = backwardsMatchBuilder.BuildIntoManagedMemory(dataArray, dataWriter);
+
+            foreach (var outcome in possibleOutcomes)
+            {
+                outcome.WriteIntoMemory(dataArray, dataWriter);
+            }
 
             possibleOutcomeIndexing = new JaggedIndexing
             {
@@ -111,7 +116,7 @@ namespace Dman.LSystem.SystemRuntime
             if(conditionalChecker != null)
             {
                 var opSize = conditionalChecker.OperatorSpaceNeeded;
-                conditionalCheckerBlittable = conditionalChecker.WriteIntOpDataArray(
+                conditionalCheckerBlittable = conditionalChecker.WriteIntoOpDataArray(
                     dataArray.dynamicOperatorMemory,
                     new JaggedIndexing
                     {
@@ -119,10 +124,6 @@ namespace Dman.LSystem.SystemRuntime
                         length = opSize
                     });
                 dataWriter.indexInOperatorMemory += opSize;
-            }
-            foreach (var outcome in possibleOutcomes)
-            {
-                outcome.WriteOpsIntoMemory(dataArray, dataWriter);
             }
         }
 
@@ -280,7 +281,8 @@ namespace Dman.LSystem.SystemRuntime
             NativeArray<float> paramTempMemorySpace,
             SymbolString<float> target,
             LSystemSingleSymbolMatchData matchSingletonData,
-            NativeArray<OperatorDefinition> globalOperatorData)
+            NativeArray<OperatorDefinition> globalOperatorData,
+            NativeArray<StructExpression> structExpressionSpace)
         {
             var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
 
@@ -308,6 +310,7 @@ namespace Dman.LSystem.SystemRuntime
                 },
                 globalOperatorData,
                 target,
+                structExpressionSpace,
                 replacementSymbolsIndexing.index,
                 replacementParameterIndexing.index);
         }

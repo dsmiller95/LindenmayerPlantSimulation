@@ -5,11 +5,13 @@ using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public struct RuleOutcome
+    public class RuleOutcome
     {
         public double probability;
         public ReplacementSymbolGenerator[] replacementSymbols;
         private ushort replacementParameterCount;
+
+        private Blittable blittable;
 
         public RuleOutcome(double prob, ReplacementSymbolGenerator[] replacements)
         {
@@ -18,31 +20,45 @@ namespace Dman.LSystem.SystemRuntime
             replacementParameterCount = (ushort)replacementSymbols.Select(x => x.GeneratedParameterCount()).Sum();
         }
 
-        public int OpMemoryRequirements => replacementSymbols.Sum(x => x.OpMemoryRequirements);
-        public void WriteOpsIntoMemory(
+        public RuleDataRequirements MemoryReqs => new RuleDataRequirements
+        {
+            replacementSymbolsMemory = replacementSymbols.Length
+        } + replacementSymbols.Aggregate(new RuleDataRequirements(), (a, b) => a + b.MemoryReqs);
+        public void WriteIntoMemory(
             SystemLevelRuleNativeData dataArray,
             SymbolSeriesMatcherNativeDataWriter dataWriter)
         {
-            foreach (var replacement in replacementSymbols)
+            var replacementSymbolSpace = new JaggedIndexing
             {
-                replacement.WriteOpsIntoMemory(dataArray, dataWriter);
+                index = dataWriter.indexInReplacementSymbolsMemory,
+                length = (ushort)replacementSymbols.Length
+            };
+            for (int i = 0; i < replacementSymbols.Length; i++)
+            {
+                var blittableReplacement = replacementSymbols[i].WriteOpsIntoMemory(dataArray, dataWriter);
+                dataArray.replacementsSymbolMemorySpace[i + replacementSymbolSpace.index] = blittableReplacement;
             }
+            dataWriter.indexInReplacementSymbolsMemory += replacementSymbolSpace.length;
+
+            this.blittable = new Blittable
+            {
+                probability = probability,
+                replacementSymbolSize = (ushort)replacementSymbols.Length,
+                replacementParameterCount = replacementParameterCount,
+                replacementSymbols = replacementSymbolSpace
+            };
         }
 
         public Blittable AsBlittable()
         {
-            return new Blittable
-            {
-                probability = probability,
-                replacementSymbolSize = (ushort)replacementSymbols.Length,
-                replacementParameterCount = replacementParameterCount
-            };
+            return blittable;
         }
         public struct Blittable
         {
             public double probability;
             public ushort replacementSymbolSize;
             public ushort replacementParameterCount;
+            public JaggedIndexing replacementSymbols;
         }
 
         public ushort ReplacementSymbolCount()
@@ -59,6 +75,7 @@ namespace Dman.LSystem.SystemRuntime
             JaggedIndexing parameterSpace,
             NativeArray<OperatorDefinition> operatorData,
             SymbolString<float> target,
+            NativeArray<StructExpression> structExpressionSpace,
             int firstIndexInSymbols,
             int firstIndexInParamters)
         {
@@ -72,6 +89,7 @@ namespace Dman.LSystem.SystemRuntime
                     parameterSpace,
                     operatorData,
                     target.newParameters,
+                    structExpressionSpace,
                     ref writeIndexInParams,
                     symbolIndex + firstIndexInSymbols
                     );

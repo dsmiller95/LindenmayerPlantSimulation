@@ -19,14 +19,22 @@ namespace Dman.LSystem.SystemRuntime
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<InputSymbol.Blittable> prefixMatcherSymbols;
+
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<RuleOutcome.Blittable> ruleOutcomeMemorySpace;
 
-
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<ReplacementSymbolGenerator.Blittable> replacementsSymbolMemorySpace;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<StructExpression> structExpressionMemorySpace;
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<OperatorDefinition> dynamicOperatorMemory;
+
+
 
         public SystemLevelRuleNativeData(IEnumerable<BasicRule> rulesToWrite)
         {
@@ -36,6 +44,9 @@ namespace Dman.LSystem.SystemRuntime
             suffixMatcherGraphNodeData = new NativeArray<SymbolMatcherGraphNode>(memReqs.suffixGraphNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             suffixMatcherChildrenDataArray = new NativeArray<int>(memReqs.suffixChildren, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             ruleOutcomeMemorySpace = new NativeArray<RuleOutcome.Blittable>(memReqs.ruleOutcomes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            replacementsSymbolMemorySpace = new NativeArray<ReplacementSymbolGenerator.Blittable>(memReqs.replacementSymbolsMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            structExpressionMemorySpace = new NativeArray<StructExpression>(memReqs.structExpressionMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             isDisposed = false;
@@ -46,6 +57,9 @@ namespace Dman.LSystem.SystemRuntime
             suffixMatcherGraphNodeData = new NativeArray<SymbolMatcherGraphNode>(memReqs.suffixGraphNodes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             suffixMatcherChildrenDataArray = new NativeArray<int>(memReqs.suffixChildren, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             ruleOutcomeMemorySpace = new NativeArray<RuleOutcome.Blittable>(memReqs.ruleOutcomes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            replacementsSymbolMemorySpace = new NativeArray<ReplacementSymbolGenerator.Blittable>(memReqs.replacementSymbolsMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            structExpressionMemorySpace = new NativeArray<StructExpression>(memReqs.structExpressionMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             isDisposed = false;
@@ -60,6 +74,8 @@ namespace Dman.LSystem.SystemRuntime
             prefixMatcherSymbols.Dispose();
             ruleOutcomeMemorySpace.Dispose();
             dynamicOperatorMemory.Dispose();
+            structExpressionMemorySpace.Dispose();
+            replacementsSymbolMemorySpace.Dispose();
             isDisposed = true;
         }
     }
@@ -70,6 +86,9 @@ namespace Dman.LSystem.SystemRuntime
         public int suffixGraphNodes;
         public int prefixNodes;
         public int ruleOutcomes;
+
+        public int replacementSymbolsMemory;
+        public int structExpressionMemory;
         public int operatorMemory;
 
         public static RuleDataRequirements operator +(RuleDataRequirements a, RuleDataRequirements b)
@@ -80,6 +99,9 @@ namespace Dman.LSystem.SystemRuntime
                 suffixChildren = a.suffixChildren + b.suffixChildren,
                 prefixNodes = a.prefixNodes + b.prefixNodes,
                 ruleOutcomes = a.ruleOutcomes + b.ruleOutcomes,
+
+                replacementSymbolsMemory = a.replacementSymbolsMemory + b.replacementSymbolsMemory,
+                structExpressionMemory = a.structExpressionMemory + b.structExpressionMemory,
                 operatorMemory = a.operatorMemory + b.operatorMemory,
             };
         }
@@ -91,6 +113,8 @@ namespace Dman.LSystem.SystemRuntime
         public int indexInSuffixNodes = 0;
         public int indexInPrefixNodes = 0;
         public int indexInRuleOutcomes = 0;
+        public int indexInReplacementSymbolsMemory = 0;
+        public int indexInStructExpressionMemory = 0;
         public int indexInOperatorMemory = 0;
     }
 }

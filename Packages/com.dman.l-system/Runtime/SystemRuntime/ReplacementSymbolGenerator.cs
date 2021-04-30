@@ -12,7 +12,7 @@ namespace Dman.LSystem.SystemRuntime
     {
         public int targetSymbol;
         public DynamicExpressionData[] evaluators;
-        public StructExpression[] structExpressions;
+        private Blittable blittable;
         private int evaluatorMemSpaceReqs;
         public ReplacementSymbolGenerator(int targetSymbol)
         {
@@ -27,29 +27,55 @@ namespace Dman.LSystem.SystemRuntime
             evaluatorMemSpaceReqs = evaluators.Sum(x => x.OperatorSpaceNeeded);
         }
 
-        public int OpMemoryRequirements => evaluatorMemSpaceReqs;
+        public RuleDataRequirements MemoryReqs => new RuleDataRequirements
+        {
+            operatorMemory = evaluatorMemSpaceReqs,
+            structExpressionMemory = evaluators.Length
+        };
 
-        public void WriteOpsIntoMemory(
+        public Blittable WriteOpsIntoMemory(
             SystemLevelRuleNativeData dataArray,
             SymbolSeriesMatcherNativeDataWriter dataWriter)
         {
-            var origin = dataWriter.indexInOperatorMemory;
-            this.structExpressions = new StructExpression[evaluators.Length];
+            var structExpressionsSpace = new JaggedIndexing
+            {
+                index = dataWriter.indexInStructExpressionMemory,
+                length = (ushort)evaluators.Length
+            };
+
+            var totalOperations = 0;
             for (int i = 0; i < evaluators.Length; i++)
             {
                 var opSize = evaluators[i].OperatorSpaceNeeded;
-                structExpressions[i] = evaluators[i].WriteIntOpDataArray(
+                dataArray.structExpressionMemorySpace[i + structExpressionsSpace.index] = evaluators[i].WriteIntoOpDataArray(
                     dataArray.dynamicOperatorMemory,
                     new JaggedIndexing
                     {
-                        index = origin,
+                        index = dataWriter.indexInOperatorMemory + totalOperations,
                         length = opSize
                     });
-                origin += opSize;
+                totalOperations += opSize;
             }
+            dataWriter.indexInOperatorMemory += totalOperations;
 
-            dataWriter.indexInOperatorMemory = origin;
+            dataWriter.indexInStructExpressionMemory += structExpressionsSpace.length;
+
+            return (blittable = new Blittable
+            {
+                structExpressionSpace = structExpressionsSpace,
+                replacementSymbol = targetSymbol
+            });
         }
+
+        public struct Blittable {
+            public JaggedIndexing structExpressionSpace;
+            public int replacementSymbol;
+        }
+        public Blittable AsBlittable()
+        {
+            return blittable;
+        }
+
 
         public int GeneratedParameterCount()
         {
@@ -61,17 +87,18 @@ namespace Dman.LSystem.SystemRuntime
             JaggedIndexing parameterSpace,
             NativeArray<OperatorDefinition> operatorData,
             JaggedNativeArray<float> targetParams,
+            NativeArray<StructExpression> structExpressionSpace,
             ref int writeIndexInParamSpace,
             int indexInParams)
         {
             var targetSpace = targetParams[indexInParams] = new JaggedIndexing
             {
                 index = writeIndexInParamSpace,
-                length = (ushort)structExpressions.Length
+                length = (ushort)blittable.structExpressionSpace.length
             };
-            for (int i = 0; i < structExpressions.Length; i++)
+            for (int i = 0; i < blittable.structExpressionSpace.length; i++)
             {
-                var structExp = structExpressions[i];
+                var structExp = structExpressionSpace[i + blittable.structExpressionSpace.index];
                 targetParams[targetSpace, i] = structExp.EvaluateExpression(
                     matchedParameters,
                     parameterSpace,

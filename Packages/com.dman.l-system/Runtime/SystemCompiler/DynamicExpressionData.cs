@@ -71,7 +71,7 @@ namespace Dman.LSystem.SystemCompiler
             }
         }
 
-        public StructExpression WriteIntOpDataArray(
+        public StructExpression WriteIntoOpDataArray(
             NativeArray<OperatorDefinition> dataArray,
             JaggedIndexing opSpace)
         {

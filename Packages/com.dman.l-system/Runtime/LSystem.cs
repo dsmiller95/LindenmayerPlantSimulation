@@ -266,7 +266,8 @@ namespace Dman.LSystem
                 rulesByTargetSymbol = rulesByTargetSymbol,
 
                 tmpParameterMemory = parameterMemory,
-                operatorDefinitions = nativeRuleData.dynamicOperatorMemory
+                operatorDefinitions = nativeRuleData.dynamicOperatorMemory,
+                structExpressionSpace = nativeRuleData.structExpressionMemorySpace
             };
             var tempStateHandle = GCHandle.Alloc(tempState);
 
@@ -367,6 +368,7 @@ namespace Dman.LSystem
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
         public NativeArray<float> tmpParameterMemory;
         public NativeArray<OperatorDefinition> operatorDefinitions;
+        public NativeArray<StructExpression> structExpressionSpace;
 
         public NativeArray<float> globalParamNative;
         public GCHandle tempStateHandle; // LSystemSteppingState. self
@@ -449,6 +451,7 @@ namespace Dman.LSystem
                 globalOperatorData = operatorDefinitions,
 
                 sourceData = sourceSymbolString,
+                structExpressionSpace = structExpressionSpace,
 
                 targetData = target
             };
@@ -634,6 +637,9 @@ namespace Dman.LSystem
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<OperatorDefinition> globalOperatorData;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<StructExpression> structExpressionSpace;
 
         [ReadOnly]
         [NativeDisableParallelForRestriction]
@@ -684,7 +690,8 @@ namespace Dman.LSystem
                 parameterMatchMemory,
                 targetData,
                 matchSingleton,
-                globalOperatorData
+                globalOperatorData,
+                structExpressionSpace
                 );
         }
     }
