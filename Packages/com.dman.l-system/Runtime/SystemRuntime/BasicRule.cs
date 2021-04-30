@@ -270,6 +270,8 @@ namespace Dman.LSystem.SystemRuntime
                 }
                 return 0;
             }
+
+
         }
 
 
@@ -297,24 +299,17 @@ namespace Dman.LSystem.SystemRuntime
             }
             var outcome = possibleOutcomes[selectedReplacementPattern];
 
-            var replacement = outcome.GenerateReplacement(
+            outcome.WriteReplacement(
                 orderedMatchedParameters,
                 new JaggedIndexing
                 {
                     index = 0,
                     length = (ushort)orderedMatchedParameters.Length
                 },
-                globalOperatorData);
-            if(replacement.Length != replacementSymbolsIndexing.length)
-            {
-                throw new System.Exception("Unexpected state: replacement symbol size differs from expected");
-            }
-            if (replacement.newParameters.data.Length != replacementParameterIndexing.length)
-            {
-                throw new System.Exception("Unexpected state: replacement paremeter size differs from expected");
-            }
-
-            target.CopyFrom(replacement, replacementSymbolsIndexing.index, replacementParameterIndexing.index);
+                globalOperatorData,
+                target,
+                replacementSymbolsIndexing.index,
+                replacementParameterIndexing.index);
         }
     }
 }

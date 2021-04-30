@@ -54,27 +54,28 @@ namespace Dman.LSystem.SystemRuntime
             return replacementParameterCount;
         }
 
-        public SymbolString<float> GenerateReplacement(
+        public void WriteReplacement(
             NativeArray<float> matchedParameters,
             JaggedIndexing parameterSpace,
             NativeArray<OperatorDefinition> operatorData,
-            Allocator allocator = Allocator.Temp)
+            SymbolString<float> target,
+            int firstIndexInSymbols,
+            int firstIndexInParamters)
         {
-            // TODO: less garbage
-            var replacedSymbols = new int[replacementSymbols.Length];
-            var replacedParams = new float[replacementSymbols.Length][];
+            var writeIndexInParams = firstIndexInParamters;
             for (int symbolIndex = 0; symbolIndex < replacementSymbols.Length; symbolIndex++)
             {
                 var replacementExpression = replacementSymbols[symbolIndex];
-
-                replacedSymbols[symbolIndex] = replacementExpression.targetSymbol;
-                replacedParams[symbolIndex] = replacementExpression.EvaluateNewParameters(
+                target[symbolIndex + firstIndexInSymbols] = replacementExpression.targetSymbol;
+                replacementExpression.WriteNewParameters(
                     matchedParameters,
                     parameterSpace,
-                    operatorData);
+                    operatorData,
+                    target.newParameters,
+                    ref writeIndexInParams,
+                    symbolIndex + firstIndexInSymbols
+                    );
             }
-
-            return new SymbolString<float>(replacedSymbols, replacedParams, allocator);
         }
     }
 }

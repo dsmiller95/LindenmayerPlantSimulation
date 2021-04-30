@@ -17,7 +17,10 @@ namespace Dman.LSystem
         public JaggedNativeArray<ParamType> newParameters;
         public int Length => symbols.Length;
 
-        public int this[int index] => symbols[index];
+        public int this[int index] {
+            get => symbols[index];
+            set => symbols[index] = value;
+        }
 
 
         public static SymbolString<float> FromString(string symbolString, Allocator allocator = Allocator.Persistent)

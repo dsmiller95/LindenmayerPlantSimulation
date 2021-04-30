@@ -56,17 +56,28 @@ namespace Dman.LSystem.SystemRuntime
             return evaluators.Length;
         }
 
-        public float[] EvaluateNewParameters(
+        public void WriteNewParameters(
             NativeArray<float> matchedParameters,
             JaggedIndexing parameterSpace,
-            NativeArray<OperatorDefinition> operatorData)
+            NativeArray<OperatorDefinition> operatorData,
+            JaggedNativeArray<float> targetParams,
+            ref int writeIndexInParamSpace,
+            int indexInParams)
         {
-            return structExpressions
-                .Select(x => x.EvaluateExpression(
+            var targetSpace = targetParams[indexInParams] = new JaggedIndexing
+            {
+                index = writeIndexInParamSpace,
+                length = (ushort)structExpressions.Length
+            };
+            for (int i = 0; i < structExpressions.Length; i++)
+            {
+                var structExp = structExpressions[i];
+                targetParams[targetSpace, i] = structExp.EvaluateExpression(
                     matchedParameters,
                     parameterSpace,
-                    operatorData))
-                .ToArray();
+                    operatorData);
+            }
+            writeIndexInParamSpace += targetSpace.length;
         }
 
         public override string ToString()
