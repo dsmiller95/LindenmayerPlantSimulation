@@ -219,25 +219,18 @@ namespace Dman.LSystem.SystemRuntime
                     matchedParameterNum += copiedParameters;
                 }
 
+                matchSingletonData.tmpParameterMemorySpace = new JaggedIndexing
+                {
+                    index = startIndexInParameterMemory,
+                    length = matchedParameterNum
+                };
                 if (conditional.IsValid)
                 {
-                    var paramTmpMem = new NativeArray<float>(globalParams.Length + matchedParameterNum, Allocator.Temp);
-                    for (int i = 0; i < globalParams.Length; i++)
-                    {
-                        paramTmpMem[i] = globalParams[i];
-                    }
-                    for (int i = 0; i < matchedParameterNum; i++)
-                    {
-                        paramTmpMem[globalParams.Length + i] = parameterMemory[startIndexInParameterMemory + i];
-                    }
-
                     var conditionalMatch = conditional.EvaluateExpression(
-                        paramTmpMem,
-                        new JaggedIndexing
-                        {
-                            index = 0,
-                            length = (ushort)paramTmpMem.Length
-                        },
+                        globalParams,
+                        new JaggedIndexing { index = 0, length = (ushort)globalParams.Length },
+                        parameterMemory,
+                        matchSingletonData.tmpParameterMemorySpace,
                         globalOperatorData) > 0;
                     if (!conditionalMatch)
                     {
@@ -248,11 +241,6 @@ namespace Dman.LSystem.SystemRuntime
                 matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random, outcomes, this.possibleOutcomeIndexing);
                 var outcomeObject = outcomes[matchSingletonData.selectedReplacementPattern + possibleOutcomeIndexing.index];
 
-                matchSingletonData.tmpParameterMemorySpace = new JaggedIndexing
-                {
-                    index = startIndexInParameterMemory,
-                    length = matchedParameterNum
-                };
 
                 matchSingletonData.replacementSymbolIndexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.replacementSymbolSize);
                 matchSingletonData.replacementParameterIndexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.replacementParameterCount);

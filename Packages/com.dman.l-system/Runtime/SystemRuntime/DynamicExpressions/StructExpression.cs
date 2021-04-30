@@ -18,8 +18,28 @@ namespace Dman.LSystem.SystemRuntime.DynamicExpressions
             var evaler = new DynamicExpressionEvaluator
             {
                 expression = this,
-                inputParameters = inputParameters,
-                parameterSampleSpace = parameterSampleSpace,
+                inputParameters0 = inputParameters,
+                parameterSampleSpace0 = parameterSampleSpace,
+                inputParameters1 = default,
+                parameterSampleSpace1 = default,
+                operatorData = operatorData
+            };
+            return evaler.InternalEval(0);
+        }
+        public float EvaluateExpression(
+            NativeArray<float> inputParamSet0,
+            JaggedIndexing parameterSampleSpace0,
+            NativeArray<float> inputParamSet1,
+            JaggedIndexing parameterSampleSpace1,
+            NativeArray<OperatorDefinition> operatorData)
+        {
+            var evaler = new DynamicExpressionEvaluator
+            {
+                expression = this,
+                inputParameters0 = inputParamSet0,
+                parameterSampleSpace0 = parameterSampleSpace0,
+                inputParameters1 = inputParamSet1,
+                parameterSampleSpace1 = parameterSampleSpace1,
                 operatorData = operatorData
             };
             return evaler.InternalEval(0);
@@ -28,8 +48,10 @@ namespace Dman.LSystem.SystemRuntime.DynamicExpressions
         private struct DynamicExpressionEvaluator
         {
             public StructExpression expression;
-            public NativeArray<float> inputParameters;
-            public JaggedIndexing parameterSampleSpace;
+            public NativeArray<float> inputParameters0;
+            public JaggedIndexing parameterSampleSpace0;
+            public NativeArray<float> inputParameters1;
+            public JaggedIndexing parameterSampleSpace1;
             public NativeArray<OperatorDefinition> operatorData;
 
             public float InternalEval(int operatorToEvaluate)
@@ -40,7 +62,13 @@ namespace Dman.LSystem.SystemRuntime.DynamicExpressions
                     case OperatorType.CONSTANT_VALUE:
                         return actualOp.nodeValue;
                     case OperatorType.PARAMETER_VALUE:
-                        return inputParameters[actualOp.parameterIndex];
+                        var paramIndex = actualOp.parameterIndex;
+                        if(paramIndex >= parameterSampleSpace0.length)
+                        {
+                            paramIndex -= parameterSampleSpace0.length;
+                            return inputParameters1[paramIndex + parameterSampleSpace1.index];
+                        }
+                        return inputParameters0[paramIndex + parameterSampleSpace0.index];
                     case OperatorType.MULTIPLY:
                         return InternalEval(actualOp.lhs) * InternalEval(actualOp.rhs);
                     case OperatorType.DIVIDE:

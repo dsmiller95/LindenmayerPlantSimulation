@@ -108,7 +108,7 @@ namespace Dman.LSystem.SystemCompiler
                 new JaggedIndexing
                 {
                     index = 0,
-                    length = (ushort)opDefs.Length
+                    length = (ushort)inputParams.Length
                 },
                 opDefs);
         }
