@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Linq;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
-    public struct JaggedNativeArray<TData> : System.IEquatable<JaggedNativeArray<TData>>, IDisposable where TData : unmanaged
+    public struct JaggedNativeArray<TData> :
+        System.IEquatable<JaggedNativeArray<TData>>,
+        IDisposable,
+        INativeDisposable
+        where TData : unmanaged
     {
         [NativeDisableParallelForRestriction]
         public NativeArray<TData> data;
@@ -150,6 +155,13 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         {
             data.Dispose();
             indexing.Dispose();
+        }
+
+        public JobHandle Dispose(JobHandle inputDeps)
+        {
+            return JobHandle.CombineDependencies(
+                data.Dispose(inputDeps),
+                indexing.Dispose(inputDeps));
         }
     }
 

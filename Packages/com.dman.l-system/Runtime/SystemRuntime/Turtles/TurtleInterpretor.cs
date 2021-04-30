@@ -1,21 +1,18 @@
-﻿using Dman.LSystem.SystemRuntime;
-using ProceduralToolkit;
-using System.Collections.Generic;
-using UnityEngine;
-using Dman.MeshDraftExtensions;
-using Dman.LSystem.SystemRuntime.NativeCollections;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Linq;
 using Unity.Entities;
 using System;
 using Unity.Collections;
+using Unity.Jobs;
+using Unity.Burst;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
     public class TurtleInterpretor: IDisposable
     {
-        private IDictionary<int, TurtleOperation> operationsByKey;
+        private NativeHashMap<int, TurtleOperation> operationsByKey;
         private NativeArray<TurtleEntityPrototypeOrganTemplate> allOrganData;
-
+        private JobHandle pendingJobs;
 
         public int submeshIndexIncrementChar = '`';
         public int branchStartChar = '[';
@@ -26,58 +23,112 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public TurtleInterpretor(TurtleOperationSet[] operationSets, TurtleState defaultState)
         {
             var meshData = new NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate>(operationSets.Sum(x => x.TotalOrganSpaceNeeded));
-            operationsByKey = operationSets
+            var allOps = operationSets
                 .SelectMany(x => x.GetOperators(meshData))
-                .ToDictionary(x => x.Key, x => x.Value);
+                .ToList();
+            operationsByKey = new NativeHashMap<int, TurtleOperation>(allOps.Count(), Allocator.Persistent);
+            foreach (var ops in allOps)
+            {
+                operationsByKey[ops.Key] = ops.Value;
+            }
             allOrganData = meshData.data;
             this.defaultState = defaultState;
         }
 
-        public void CompileStringToTransformsWithMeshIds(
+        public JobHandle CompileStringToTransformsWithMeshIds(
             SymbolString<float> symbols,
-            EntityCommandBuffer spawnCommandBuffer,
+            EntityCommandBufferSystem spawnCommandBuffer,
             Entity parentEntity)
         {
-            var currentState = defaultState;
-            var stateStack = new Stack<TurtleState>();
+            var buffer = spawnCommandBuffer.CreateCommandBuffer();
 
-            for (int symbolIndex = 0; symbolIndex < symbols.symbols.Length; symbolIndex++)
+            var turtleCompileJob = new TurtleCompilationJob
             {
-                var symbol = symbols.symbols[symbolIndex];
-                if (symbol == branchStartChar)
-                {
-                    stateStack.Push(currentState);
-                    continue;
-                }
-                if (symbol == branchEndChar)
-                {
-                    currentState = stateStack.Pop();
-                    continue;
-                }
-                if (symbol == submeshIndexIncrementChar)
-                {
-                    currentState.submeshIndex++;
-                    continue;
-                }
-                if (operationsByKey.TryGetValue(symbol, out var operation))
-                {
-                    operation.Operate(
-                        ref currentState,
-                        symbolIndex,
-                        symbols,
-                        allOrganData,
-                        spawnCommandBuffer,
-                        parentEntity);
-                }
-            }
+                symbols = symbols,
+                operationsByKey = operationsByKey,
+                organData = allOrganData,
+                nativeTurtleStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob),
+
+                submeshIndexIncrementChar = submeshIndexIncrementChar,
+                branchStartChar = branchStartChar,
+                branchEndChar = branchEndChar,
+
+                organSpawnBuffer = buffer,
+                parentEntity = parentEntity,
+                currentState = defaultState
+            };
+
+            var handle = turtleCompileJob.Schedule();
+            spawnCommandBuffer.AddJobHandleForProducer(handle);
+
+            pendingJobs = JobHandle.CombineDependencies(handle, pendingJobs);
+
+            return handle;
         }
 
         private bool isDisposed = false;
         public void Dispose()
         {
             if (isDisposed) return;
+            pendingJobs.Complete();
             allOrganData.Dispose();
+            operationsByKey.Dispose();
             isDisposed = true;
+        }
+
+        [BurstCompile]
+        public struct TurtleCompilationJob : IJob
+        {
+            [ReadOnly]
+            public SymbolString<float> symbols;
+            [ReadOnly]
+            public NativeHashMap<int, TurtleOperation> operationsByKey;
+            [ReadOnly]
+            public NativeArray<TurtleEntityPrototypeOrganTemplate> organData;
+
+            public TmpNativeStack<TurtleState> nativeTurtleStack;
+
+            public int submeshIndexIncrementChar;
+            public int branchStartChar;
+            public int branchEndChar;
+            public EntityCommandBuffer organSpawnBuffer;
+            public Entity parentEntity;
+
+            public TurtleState currentState;
+
+
+            public void Execute()
+            {
+                for (int symbolIndex = 0; symbolIndex < symbols.symbols.Length; symbolIndex++)
+                {
+                    var symbol = symbols.symbols[symbolIndex];
+                    if (symbol == branchStartChar)
+                    {
+                        nativeTurtleStack.Push(currentState);
+                        continue;
+                    }
+                    if (symbol == branchEndChar)
+                    {
+                        currentState = nativeTurtleStack.Pop();
+                        continue;
+                    }
+                    if (symbol == submeshIndexIncrementChar)
+                    {
+                        currentState.submeshIndex++;
+                        continue;
+                    }
+                    if (operationsByKey.TryGetValue(symbol, out var operation))
+                    {
+                        operation.Operate(
+                            ref currentState,
+                            symbolIndex,
+                            symbols,
+                            organData,
+                            organSpawnBuffer,
+                            parentEntity);
+                    }
+                }
+            }
         }
     }
 }

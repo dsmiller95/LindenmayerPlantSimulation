@@ -44,11 +44,9 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
         /// <param name="symbols"></param>
-        public void InterpretSymbols(SymbolString<float> symbols)
+        public void InterpretSymbols(SymbolString<float> symbols, LSystemBehavior behaviorHandler)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
-
-            UnityEngine.Profiling.Profiler.BeginSample("entity buffer filling");
             var manager = World.DefaultGameObjectInjectionWorld.EntityManager;
             if (!manager.Exists(lSystemEntity))
             {
@@ -75,16 +73,15 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
             var deleteBuffer = clearOldOrgansCommandBuffer.CreateCommandBuffer();
-            var createBuffer = createNewOrgansCommandBuffer.CreateCommandBuffer();
 
             organSystem.ClearOldOrgans(deleteBuffer, lSystemEntity);
 
-            turtle.CompileStringToTransformsWithMeshIds(
+            var turtleCompilationDep = turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
-                createBuffer,
+                createNewOrgansCommandBuffer,
                 lSystemEntity);
+            behaviorHandler.SymbolStringDependsOn(turtleCompilationDep);
 
-            UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
@@ -111,13 +108,17 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             {
                 System.OnSystemStateUpdated -= OnSystemStateUpdated;
             }
+            if(turtle != null)
+            {
+                turtle.Dispose();
+            }
         }
 
         private void OnSystemStateUpdated()
         {
             if (System != null)
             {
-                this.InterpretSymbols(System.CurrentState);
+                this.InterpretSymbols(System.CurrentState, System);
             }
         }
     }

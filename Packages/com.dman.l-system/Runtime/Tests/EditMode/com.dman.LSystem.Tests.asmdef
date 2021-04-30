@@ -6,7 +6,8 @@
         "UnityEditor.TestRunner",
         "com.dman.LSystem",
         "Unity.Mathematics",
-        "Unity.PerformanceTesting"
+        "Unity.PerformanceTesting",
+        "Unity.Collections"
     ],
     "includePlatforms": [
         "Editor"

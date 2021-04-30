@@ -33,6 +33,9 @@ namespace Dman.LSystem.UnityObjects
         private bool ownsCompiledSystem;
         private LSystem _compiledSystem;
         private ArrayParameterRepresenation<float> runtimeParameters;
+
+        public JobHandle symbolDependents {get; private set;}
+
         /// <summary>
         /// true if the last system step changed the state of this behavior, false otherwise
         /// </summary>
@@ -45,6 +48,11 @@ namespace Dman.LSystem.UnityObjects
         /// the total continuous steps taken by this system
         /// </summary>
         public int totalSteps { get; private set; }
+
+        public void SymbolStringDependsOn(JobHandle dependency)
+        {
+            symbolDependents = JobHandle.CombineDependencies(symbolDependents, dependency);
+        }
 
         /// <summary>
         /// Assign a new system definition to this behavior.
@@ -88,7 +96,10 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public void ResetState(int? newSeed = null)
         {
-            systemState?.currentSymbols.Dispose();
+            if(systemState != null)
+            {
+                systemState.currentSymbols.Dispose(symbolDependents);
+            }
 
             this.SetNewCompiledSystem();
             totalSteps = 0;
@@ -106,6 +117,11 @@ namespace Dman.LSystem.UnityObjects
 
         private static readonly int FrameDelayBetweenLSystemPhases = 1;
 
+        public bool IsReadyToStep()
+        {
+            return queuedNextStateHandle == null && symbolDependents.IsCompleted;
+        }
+
         /// <summary>
         /// step the Lsystem forward one tick. when CompleteInLateUpdate is true, be very careful with changes to the L-system
         ///     it is not perfectly protected against threading race conditions, so be sure not to make any mutations to 
@@ -115,7 +131,8 @@ namespace Dman.LSystem.UnityObjects
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem(bool CompleteInLateUpdate = true)
         {
-            if (queuedNextStateHandle != null) {
+            if (!IsReadyToStep()) {
+                // TODO: add back in
                 //Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }

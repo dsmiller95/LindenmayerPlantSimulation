@@ -272,7 +272,6 @@ namespace Dman.LSystem
                 ruleOutcomeMemorySpace = nativeRuleData.ruleOutcomeMemorySpace,
                 blittableRulesByTargetSymbol = blittableRulesByTargetSymbol
             };
-            var tempStateHandle = GCHandle.Alloc(tempState);
 
             var prematchJob = new RuleCompleteMatchJob
             {
@@ -321,7 +320,6 @@ namespace Dman.LSystem
 
             tempState.matchSingletonData = matchSingletonData;
             tempState.globalParamNative = globalParamNative;
-            tempState.tempStateHandle = tempStateHandle;
 
             UnityEngine.Profiling.Profiler.EndSample();
             return tempState;
@@ -377,7 +375,6 @@ namespace Dman.LSystem
         public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
         public NativeArray<float> globalParamNative;
-        public GCHandle tempStateHandle; // LSystemSteppingState. self
 
 
         private enum StepState
@@ -427,7 +424,6 @@ namespace Dman.LSystem
             }
             if (branchingCache.IsCreated) branchingCache.Dispose();
             if (this.target.IsCreated) target.Dispose();
-            tempStateHandle.Free();
         }
 
 
@@ -464,19 +460,12 @@ namespace Dman.LSystem
                 blittableRulesByTargetSymbol = blittableRulesByTargetSymbol
             };
 
-            JobHandle replacementDependency = replacementJob.Schedule(
+            finalDependency = replacementJob.Schedule(
                 matchSingletonData.Length,
                 100
             );
 
             UnityEngine.Profiling.Profiler.EndSample();
-
-            var cleanupJob = new LSystemStepCleanupJob
-            {
-                tmpSteppingStateHandle = tempStateHandle
-            };
-
-            finalDependency = cleanupJob.Schedule(replacementDependency);
             stepState = StepState.REPLACING;
         }
 
@@ -709,15 +698,6 @@ namespace Dman.LSystem
                 outcomeData,
                 structExpressionSpace
                 );
-        }
-    }
-
-    public struct LSystemStepCleanupJob : IJob
-    {
-        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
-        public void Execute()
-        {
-            tmpSteppingStateHandle.Free();
         }
     }
 }

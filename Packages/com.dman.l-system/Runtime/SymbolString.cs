@@ -5,11 +5,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Dman.LSystem
 {
 
-    public struct SymbolString<ParamType> : System.IEquatable<SymbolString<ParamType>>, ISymbolString, IDisposable where ParamType : unmanaged
+    public struct SymbolString<ParamType> :
+        System.IEquatable<SymbolString<ParamType>>,
+        ISymbolString,
+        INativeDisposable
+        where ParamType : unmanaged
     {
         [NativeDisableParallelForRestriction]
         public NativeArray<int> symbols;
@@ -154,6 +159,13 @@ namespace Dman.LSystem
         {
             this.newParameters.Dispose();
             this.symbols.Dispose();
+        }
+
+        public JobHandle Dispose(JobHandle inputDeps)
+        {
+            return JobHandle.CombineDependencies(
+                this.newParameters.Dispose(inputDeps),
+                this.symbols.Dispose(inputDeps));
         }
     }
 }

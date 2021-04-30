@@ -13,9 +13,9 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         private NativeList<T> backingList;
         private int indexInStack;
 
-        public TmpNativeStack(int initialCapacity)
+        public TmpNativeStack(int initialCapacity, Allocator allocator = Allocator.Temp)
         {
-            backingList = new NativeList<T>(initialCapacity, Allocator.Temp);
+            backingList = new NativeList<T>(initialCapacity, allocator);
             indexInStack = 0;
         }
 
