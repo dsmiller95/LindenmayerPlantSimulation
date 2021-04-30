@@ -1,6 +1,8 @@
 using Dman.LSystem.SystemRuntime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Jobs;
 using UnityEngine;
 
@@ -107,19 +109,15 @@ namespace Dman.LSystem.UnityObjects
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
             systemState = new DefaultLSystemState(systemObject.axiom, newSeed ?? UnityEngine.Random.Range(int.MinValue, int.MaxValue));
             // clear out the next state handle. if an update is pending, just abort it.
-            queuedNextStateHandle = null;
 
             OnSystemStateUpdated?.Invoke();
         }
 
-        private long targetFrameToComplete;
-        private LSystemSteppingState queuedNextStateHandle;
+        private LSystemSteppingState pendingStateHandle;
 
-        private static readonly int FrameDelayBetweenLSystemPhases = 1;
-
-        public bool IsReadyToStep()
+        public bool CanStep()
         {
-            return queuedNextStateHandle == null && symbolDependents.IsCompleted;
+            return pendingStateHandle == null && symbolDependents.IsCompleted;
         }
 
         /// <summary>
@@ -129,55 +127,40 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         /// <param name="CompleteInLateUpdate">When set to true, the behavior will queue up the jobs and wait until the next frame to complete them</param>
         /// <returns>true if the state changed. false otherwise</returns>
-        public void StepSystem(bool CompleteInLateUpdate = true)
+        public void StepSystem()
         {
-            if (!IsReadyToStep()) {
-                // TODO: add back in
-                //Debug.LogError("System is already waiting for an update!! To many!!");
+            if (!CanStep()) {
+                Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }
+            this.StartCoroutine(StepSystemCorouting());
+        }
+
+        private IEnumerator StepSystemCorouting()
+        {
             try
             {
-                if(_compiledSystem == null)
+                if (_compiledSystem == null)
                 {
                     SetNewCompiledSystem();
                 }
-                queuedNextStateHandle = _compiledSystem?.StepSystemJob(systemState, runtimeParameters.GetCurrentParameters());
+                pendingStateHandle = _compiledSystem?.StepSystemJob(systemState, runtimeParameters.GetCurrentParameters());
             }
             catch (System.Exception e)
             {
                 lastUpdateChanged = false;
                 Debug.LogException(e);
-                return;
+                pendingStateHandle = null;
+                yield break;
             }
-            if (!CompleteInLateUpdate)
+            LSystemState<float> nextState = null;
+            while (nextState == null)
             {
-                LSystemState<float> nextState = null;
-                while (nextState == null)
-                {
-                    nextState = queuedNextStateHandle.StepToNextState();
-                }
-                this.RenderNextState(nextState);
-            }else
-            {
-                targetFrameToComplete = Time.frameCount + FrameDelayBetweenLSystemPhases;
+                yield return new WaitForEndOfFrame();
+                nextState = pendingStateHandle.StepToNextState();
             }
-        }
-
-        private void Update()
-        {
-            if (queuedNextStateHandle != null && Time.frameCount >= targetFrameToComplete)
-            {
-                var nextState = queuedNextStateHandle.StepToNextState();
-                if (nextState == null)
-                {
-                    targetFrameToComplete = Time.frameCount + FrameDelayBetweenLSystemPhases;
-                }
-                else
-                {
-                    this.RenderNextState(nextState);
-                }
-            }
+            pendingStateHandle = null;
+            this.RenderNextState(nextState);
         }
 
         private void RenderNextState(LSystemState<float> nextState)
@@ -186,7 +169,6 @@ namespace Dman.LSystem.UnityObjects
             systemState?.currentSymbols.Dispose();
 
             systemState = nextState;
-            queuedNextStateHandle = null;
 
             OnSystemStateUpdated?.Invoke();
 
@@ -221,7 +203,9 @@ namespace Dman.LSystem.UnityObjects
             {
                 systemObject.OnCachedSystemUpdated -= OnSystemObjectRecompiled;
             }
-            queuedNextStateHandle?.ForceCompletePendingJobsAndDeallocate();
+            this.StopAllCoroutines();
+            symbolDependents.Complete();
+            pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
             if (ownsCompiledSystem)
             {
                 _compiledSystem?.Dispose();

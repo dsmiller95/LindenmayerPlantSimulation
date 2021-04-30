@@ -74,7 +74,8 @@ namespace Dman.LSystem.UnityObjects
             {
                 if (system.lastUpdateChanged
                     && system.totalSteps < maxUpdates
-                    && Time.time > system.lastUpdateTime + secondsPerUpdate)
+                    && Time.time > system.lastUpdateTime + secondsPerUpdate
+                    && system.CanStep())
                 {
                     system.StepSystem();
                 }
