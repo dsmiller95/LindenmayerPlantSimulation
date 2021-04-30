@@ -1,5 +1,6 @@
 using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.Turtle;
 using ProceduralToolkit;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -8,7 +9,7 @@ using UnityEngine;
 namespace Dman.LSystem.UnityObjects
 {
     [CreateAssetMenu(fileName = "TurtleBendTowardsOperation", menuName = "LSystem/TurtleBendOperation")]
-    public class TurtleBendTowardsOperation : TurtleOperationSet<TurtleState>
+    public class TurtleBendTowardsOperation : TurtleOperationSet
     {
         [Header("$(t, x, y, z): Bend towards the vector <x, y, z> by theta T")]
         [Header("$(x, y, z): Bend towards the vector <x, y, z> by the default theta")]
@@ -18,40 +19,17 @@ namespace Dman.LSystem.UnityObjects
         public Vector3 defaultBendDirection = Vector3.down;
         [Range(0, 1)]
         public float defaultBendFactor = 0.1f;
-        public override IEnumerable<ITurtleOperator<TurtleState>> GetOperators()
+        public override IEnumerable<KeyValuePair<int, TurtleOperation>> GetOperators(NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate> organWriter)
         {
-            yield return new BendTowardsOperator(defaultBendDirection.normalized, bendTowardsOperator, defaultBendFactor);
-        }
-
-        class BendTowardsOperator : ITurtleOperator<TurtleState>
-        {
-            private Vector3 worldBendDirection;
-            private float defaultBendFactor;
-            public char TargetSymbol { get; private set; }
-            public BendTowardsOperator(Vector3 lookdir, char symbol, float defaultTheta)
+            yield return new KeyValuePair<int, TurtleOperation>(bendTowardsOperator, new TurtleOperation
             {
-                TargetSymbol = symbol;
-                worldBendDirection = lookdir;
-                this.defaultBendFactor = defaultTheta;
-            }
-
-            public TurtleState Operate(
-                TurtleState initialState,
-                NativeArray<float> parameters,
-                JaggedIndexing parameterIndexing,
-                TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
-            {
-                var p0 = parameterIndexing.Start;
-                float bendFactor = defaultBendFactor;
-                if (parameterIndexing.length == 1)
+                operationType = TurtleOperationType.BEND_TOWARDS,
+                bendTowardsOperation = new TurtleBendTowardsOperationNEW
                 {
-                    bendFactor = parameters[p0];
+                    defaultBendDirection = defaultBendDirection.normalized,
+                    defaultBendFactor = defaultBendFactor
                 }
-                var localBendDirection = initialState.transformation.inverse.MultiplyVector(worldBendDirection);
-                var adjustment = (bendFactor) * (Vector3.Cross(localBendDirection, Vector3.right));
-                initialState.transformation *= Matrix4x4.Rotate(Quaternion.Slerp(Quaternion.identity, Quaternion.FromToRotation(Vector3.right, localBendDirection), adjustment.magnitude));
-                return initialState;
-            }
+            });
         }
     }
 

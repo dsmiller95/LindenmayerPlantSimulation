@@ -1,6 +1,5 @@
-using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using ProceduralToolkit;
+using Dman.LSystem.SystemRuntime.Turtle;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
@@ -8,7 +7,7 @@ using UnityEngine;
 namespace Dman.LSystem.UnityObjects
 {
     [CreateAssetMenu(fileName = "TurtleRotateOperations", menuName = "LSystem/TurtleRotateOperations")]
-    public class TurtleRotateOperations : TurtleOperationSet<TurtleState>
+    public class TurtleRotateOperations : TurtleOperationSet
     {
         public char rollLeft = '/';
         public char rollRight = '\\';
@@ -21,45 +20,67 @@ namespace Dman.LSystem.UnityObjects
         public char tiltUp = '^';
         public char tiltDown = '&';
         public float defaultTiltTheta = 18;
-        public override IEnumerable<ITurtleOperator<TurtleState>> GetOperators()
+        public override IEnumerable<KeyValuePair<int, TurtleOperation>> GetOperators(NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate> organWriter)
         {
-            yield return new TurtleRotateOperator(Vector3.right, rollRight, defaultRollTheta);
-            yield return new TurtleRotateOperator(Vector3.left, rollLeft, defaultRollTheta);
 
-            yield return new TurtleRotateOperator(Vector3.down, turnRight, defaultTurnTheta);
-            yield return new TurtleRotateOperator(Vector3.up, turnLeft, defaultTurnTheta);
-
-            yield return new TurtleRotateOperator(Vector3.forward, tiltUp, defaultTiltTheta);
-            yield return new TurtleRotateOperator(Vector3.back, tiltDown, defaultTiltTheta);
-        }
-
-        class TurtleRotateOperator : ITurtleOperator<TurtleState>
-        {
-            private Vector3 unitEulerRotation;
-            private float defaultTheta;
-            public char TargetSymbol { get; private set; }
-            public TurtleRotateOperator(Vector3 euler, char symbol, float defaultTheta)
+            yield return new KeyValuePair<int, TurtleOperation>(rollRight, new TurtleOperation
             {
-                TargetSymbol = symbol;
-                unitEulerRotation = euler;
-                this.defaultTheta = defaultTheta;
-            }
-
-            public TurtleState Operate(
-                TurtleState initialState,
-                NativeArray<float> parameters,
-                JaggedIndexing parameterIndexing,
-                TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
-            {
-                var p0 = parameterIndexing.Start;
-                float theta = defaultTheta;
-                if (parameterIndexing.length == 1)
+                operationType = TurtleOperationType.ROTATE,
+                rotationOperation = new TurtleRotationOperation
                 {
-                    theta = parameters[p0 + 0];
+                    unitEulerRotation = Vector3.right,
+                    defaultTheta = defaultRollTheta
                 }
-                initialState.transformation *= Matrix4x4.Rotate(Quaternion.Euler(theta * unitEulerRotation));
-                return initialState;
-            }
+            });
+            yield return new KeyValuePair<int, TurtleOperation>(rollLeft, new TurtleOperation
+            {
+                operationType = TurtleOperationType.ROTATE,
+                rotationOperation = new TurtleRotationOperation
+                {
+                    unitEulerRotation = Vector3.left,
+                    defaultTheta = defaultRollTheta
+                }
+            });
+
+
+            yield return new KeyValuePair<int, TurtleOperation>(turnRight, new TurtleOperation
+            {
+                operationType = TurtleOperationType.ROTATE,
+                rotationOperation = new TurtleRotationOperation
+                {
+                    unitEulerRotation = Vector3.down,
+                    defaultTheta = defaultRollTheta
+                }
+            });
+            yield return new KeyValuePair<int, TurtleOperation>(turnLeft, new TurtleOperation
+            {
+                operationType = TurtleOperationType.ROTATE,
+                rotationOperation = new TurtleRotationOperation
+                {
+                    unitEulerRotation = Vector3.up,
+                    defaultTheta = defaultRollTheta
+                }
+            });
+
+
+            yield return new KeyValuePair<int, TurtleOperation>(tiltUp, new TurtleOperation
+            {
+                operationType = TurtleOperationType.ROTATE,
+                rotationOperation = new TurtleRotationOperation
+                {
+                    unitEulerRotation = Vector3.forward,
+                    defaultTheta = defaultRollTheta
+                }
+            });
+            yield return new KeyValuePair<int, TurtleOperation>(tiltDown, new TurtleOperation
+            {
+                operationType = TurtleOperationType.ROTATE,
+                rotationOperation = new TurtleRotationOperation
+                {
+                    unitEulerRotation = Vector3.back,
+                    defaultTheta = defaultRollTheta
+                }
+            });
         }
     }
 

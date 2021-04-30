@@ -1,4 +1,6 @@
-﻿using Dman.LSystem.UnityObjects;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.Turtle;
+using Dman.LSystem.UnityObjects;
 using System.Linq;
 using Unity.Entities;
 using Unity.Transforms;
@@ -11,7 +13,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// <summary>
         /// a set of valid operations, only one operation defintion can be generated per symbol
         /// </summary>
-        public TurtleOperationSet<TurtleState>[] operationSets;
+        public TurtleOperationSet[] operationSets;
         /// <summary>
         /// the begining scale of the turtle's transformation matrix
         /// </summary>
@@ -21,7 +23,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// </summary>
         public char submeshIndexIncrementor = '`';
 
-        private TurtleInterpretor<TurtleState> turtle;
+        private TurtleInterpretor turtle;
         private LSystemBehavior System => GetComponent<LSystemBehavior>();
 
         private Entity lSystemEntity;
@@ -45,8 +47,6 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         public void InterpretSymbols(SymbolString<float> symbols)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
-            var turtleResults = turtle.CompileStringToTransformsWithMeshIds(symbols);
-            UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("entity buffer filling");
             var manager = World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -70,34 +70,28 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
 
             var organSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<LSystemMeshMemberUpdateSystem>();
-            var commandBufferSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
-            var buffer = commandBufferSystem.CreateCommandBuffer();
 
-            organSystem.ClearOldOrgans(buffer, lSystemEntity);
+            var clearOldOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+            var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
-            for (int i = 0; i < turtleResults.TemplateTypeCount; i++)
-            {
-                var meshTemplate = turtleResults.GetMeshTemplate(i);
-                var templateInstance = meshTemplate.GetOrganTemplateValue();
-                organSystem.SpawnOrgans(
-                    buffer,
-                    templateInstance,
-                    turtleResults.GetTurtleMeshTransformsByTemplateType(i),
-                    lSystemEntity);
-            }
+            var deleteBuffer = clearOldOrgansCommandBuffer.CreateCommandBuffer();
+            var createBuffer = createNewOrgansCommandBuffer.CreateCommandBuffer();
+
+            organSystem.ClearOldOrgans(deleteBuffer, lSystemEntity);
+
+            turtle.CompileStringToTransformsWithMeshIds(
+                symbols,
+                createBuffer,
+                lSystemEntity);
+
             UnityEngine.Profiling.Profiler.EndSample();
-
-            // Ref is unecessary in the backing API here, which is why we're not re-assigning back from it here
-            // TODO: ingest as meshrenderers
-            //turtle.CompileStringToMesh(symbols, ref targetMesh, meshRenderer.materials.Length);
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         private void Awake()
         {
-            var operatorDictionary = operationSets.SelectMany(x => x.GetOperators()).ToDictionary(x => (int)x.TargetSymbol);
-
-            turtle = new TurtleInterpretor<TurtleState>(
-                operatorDictionary,
+            turtle = new TurtleInterpretor(
+                operationSets,
                 new TurtleState
                 {
                     transformation = Matrix4x4.Scale(initialScale),

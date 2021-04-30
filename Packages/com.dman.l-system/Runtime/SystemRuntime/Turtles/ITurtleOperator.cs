@@ -6,26 +6,69 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public interface ITurtleOperator<T>
+    public interface ITurtleOperator
     {
         char TargetSymbol { get; }
-        T Operate(
-            T initialState,
+        TurtleState Operate(
+            TurtleState initialState,
             NativeArray<float> parameters,
             JaggedIndexing parameterIndexing,
             TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft);
     }
 
-    public class TurtleEntityPrototypeOrganTemplate
+    public struct TurtleEntityPrototypeOrganTemplate
     {
         public Entity prototype;
+        public float4x4 organMatrixTransform;
+
+
+        public TurtleEntityPrototypeOrganTemplate(
+            MeshDraft draft,
+            Material material,
+            Matrix4x4 transform)
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            var entityManager = world.EntityManager;
+            var mesh = draft.ToMesh();
+
+            // Create a RenderMeshDescription using the convenience constructor
+            // with named parameters.
+            var desc = new RenderMeshDescription(
+                mesh,
+                material,
+                shadowCastingMode: ShadowCastingMode.Off,
+                receiveShadows: false);
+
+            // Create empty base entity
+            var prototype = entityManager.CreateEntity();
+
+            entityManager.AddComponents(prototype, new ComponentTypes(
+                typeof(LSystemOrganComponent),
+                typeof(LSystemOrganTemplateComponentFlag)
+            ));
+            entityManager.AddComponents(prototype, new ComponentTypes(
+                typeof(LocalToWorld),
+                typeof(LocalToParent),
+                typeof(Parent),
+                typeof(PreviousParent)
+            ));
+            // Call AddComponents to populate base entity with the components required
+            // by Hybrid Renderer
+            RenderMeshUtility.AddComponents(
+                prototype,
+                entityManager,
+                desc);
+            this.prototype = prototype;
+            this.organMatrixTransform = transform;
+        }
     }
 
     public interface ITurtleOrganTemplate<T>

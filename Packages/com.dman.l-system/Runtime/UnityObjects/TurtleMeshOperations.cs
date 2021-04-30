@@ -1,5 +1,6 @@
 using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.MeshDraftExtensions;
 using ProceduralToolkit;
 using System.Collections.Generic;
@@ -26,13 +27,17 @@ namespace Dman.LSystem.UnityObjects
         public bool AlsoMove;
         [Tooltip("When checked, scale the mesh along the non-primary axises based on the thickness state")]
         public bool UseThickness;
+
+        public int RequiredOrganSpace => 1 + MeshVariants.Length;
     }
     [CreateAssetMenu(fileName = "TurtleMeshOperations", menuName = "LSystem/TurtleMeshOperations")]
-    public class TurtleMeshOperations : TurtleOperationSet<TurtleState>
+    public class TurtleMeshOperations : TurtleOperationSet
     {
         public MeshKey[] meshKeys;
 
-        public override IEnumerable<ITurtleOperator<TurtleState>> GetOperators()
+        public override int TotalOrganSpaceNeeded => meshKeys.Sum(x => x.RequiredOrganSpace);
+
+        public override IEnumerable<KeyValuePair<int, TurtleOperation>> GetOperators(NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate> organWriter)
         {
             foreach (var meshKey in meshKeys)
             {
@@ -47,76 +52,85 @@ namespace Dman.LSystem.UnityObjects
                         var transformPostMesh = meshKey.AlsoMove ?
                               Matrix4x4.Translate(new Vector3(bounds.size.x * meshKey.IndividualScale.x, 0, 0))
                             : Matrix4x4.identity;
-                        return (
-                            new TurtleEntityOrganTemplate(newDraft,meshKey.material),
+                        return new TurtleEntityPrototypeOrganTemplate(
+                            newDraft,
+                            meshKey.material,
                             transformPostMesh
-                        );
-                    });
-                yield return new TurtleMeshOperator(
-                    meshKey.Character,
-                    meshes.ToArray(),
-                    meshKey.ParameterScale,
-                    meshKey.ScalePerParameter,
-                    meshKey.UseThickness);
+                            );
+                    }).ToArray();
+
+                var organSpace = organWriter.WriteDataFromArray(meshes);
+
+                yield return new KeyValuePair<int, TurtleOperation>(meshKey.Character, new TurtleOperation
+                {
+                    operationType = TurtleOperationType.ADD_ORGAN,
+                    meshOperation = new TurtleMeshOperation
+                    {
+                        nonUniformScaleForOrgan = meshKey.ScalePerParameter,
+                        doScaleMesh = meshKey.ParameterScale,
+                        doApplyThiccness = meshKey.UseThickness,
+                        organTemplateVariants = organSpace
+                    }
+                });
             }
         }
 
-        class TurtleMeshOperator : ITurtleOperator<TurtleState>
-        {
-            private (TurtleEntityOrganTemplate, Matrix4x4)[] generatedMeshes;
-            private bool scaling;
-            private Vector3 scalePerParameter;
-            private bool thickness;
-            public char TargetSymbol { get; private set; }
-            public TurtleMeshOperator(
-                char symbol,
-                (TurtleEntityOrganTemplate, Matrix4x4)[] generatedMeshes,
-                bool scaling,
-                Vector3 scalePerParameter,
-                bool thickness)
-            {
-                TargetSymbol = symbol;
-                this.generatedMeshes = generatedMeshes;
-                this.scaling = scaling;
-                this.scalePerParameter = scalePerParameter;
-                this.thickness = thickness;
-            }
+        //class TurtleMeshOperator : ITurtleOperator<TurtleState>
+        //{
+        //    private (TurtleEntityOrganTemplate, Matrix4x4)[] generatedMeshes;
+        //    private bool scaling;
+        //    private Vector3 scalePerParameter;
+        //    private bool thickness;
+        //    public char TargetSymbol { get; private set; }
+        //    public TurtleMeshOperator(
+        //        char symbol,
+        //        (TurtleEntityOrganTemplate, Matrix4x4)[] generatedMeshes,
+        //        bool scaling,
+        //        Vector3 scalePerParameter,
+        //        bool thickness)
+        //    {
+        //        TargetSymbol = symbol;
+        //        this.generatedMeshes = generatedMeshes;
+        //        this.scaling = scaling;
+        //        this.scalePerParameter = scalePerParameter;
+        //        this.thickness = thickness;
+        //    }
 
-            public TurtleState Operate(
-                TurtleState initialState,
-                NativeArray<float> parameters,
-                JaggedIndexing parameterIndexing,
-                TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
-            {
-                var p0 = parameterIndexing.Start;
+        //    public TurtleState Operate(
+        //        TurtleState initialState,
+        //        NativeArray<float> parameters,
+        //        JaggedIndexing parameterIndexing,
+        //        TurtleMeshInstanceTracker<TurtleEntityPrototypeOrganTemplate> targetDraft)
+        //    {
+        //        var p0 = parameterIndexing.Start;
 
-                var meshTransform = initialState.transformation;
+        //        var meshTransform = initialState.transformation;
 
-                var selectedMesh = generatedMeshes[0];
-                if (generatedMeshes.Length > 1 && parameterIndexing.length > 0)
-                {
-                    var index = ((int)parameters[p0 + 0]) % generatedMeshes.Length;
-                    selectedMesh = generatedMeshes[index];
-                }
+        //        var selectedMesh = generatedMeshes[0];
+        //        if (generatedMeshes.Length > 1 && parameterIndexing.length > 0)
+        //        {
+        //            var index = ((int)parameters[p0 + 0]) % generatedMeshes.Length;
+        //            selectedMesh = generatedMeshes[index];
+        //        }
 
 
-                var scaleIndex = generatedMeshes.Length <= 1 ? 0 : 1;
-                if (scaling && parameterIndexing.length > scaleIndex)
-                {
-                    var scale = parameters[p0 + scaleIndex];
-                    meshTransform *= Matrix4x4.Scale(scalePerParameter * scale);
-                }
-                if (thickness)
-                {
-                    meshTransform *= Matrix4x4.Scale(new Vector3(1, initialState.thickness, initialState.thickness));
-                }
+        //        var scaleIndex = generatedMeshes.Length <= 1 ? 0 : 1;
+        //        if (scaling && parameterIndexing.length > scaleIndex)
+        //        {
+        //            var scale = parameters[p0 + scaleIndex];
+        //            meshTransform *= Matrix4x4.Scale(scalePerParameter * scale);
+        //        }
+        //        if (thickness)
+        //        {
+        //            meshTransform *= Matrix4x4.Scale(new Vector3(1, initialState.thickness, initialState.thickness));
+        //        }
 
-                targetDraft.AddMeshInstance(selectedMesh.Item1, meshTransform);
+        //        targetDraft.AddMeshInstance(selectedMesh.Item1, meshTransform);
 
-                initialState.transformation *= selectedMesh.Item2;
-                return initialState;
-            }
-        }
+        //        initialState.transformation *= selectedMesh.Item2;
+        //        return initialState;
+        //    }
+        //}
     }
 
 }
