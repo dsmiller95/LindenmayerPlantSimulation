@@ -449,7 +449,6 @@ namespace Dman.LSystem
 
             var replacementJob = new RuleReplacementJob
             {
-                tmpSteppingStateHandle = tempStateHandle,
                 globalParametersArray = globalParamNative,
 
                 parameterMatchMemory = tmpParameterMemory,
@@ -629,9 +628,9 @@ namespace Dman.LSystem
         }
     }
 
+    [BurstCompile]
     public struct RuleReplacementJob : IJobParallelFor
     {
-        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
         [ReadOnly]
         [DeallocateOnJobCompletion]
         [NativeDisableParallelForRestriction]
