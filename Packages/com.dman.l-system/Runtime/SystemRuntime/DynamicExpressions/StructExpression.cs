@@ -8,6 +8,8 @@ namespace Dman.LSystem.SystemRuntime.DynamicExpressions
     {
         public JaggedIndexing operationDataSlice;
 
+        public bool IsValid => operationDataSlice.length > 0;
+
         public float EvaluateExpression(
             NativeArray<float> inputParameters,
             JaggedIndexing parameterSampleSpace,

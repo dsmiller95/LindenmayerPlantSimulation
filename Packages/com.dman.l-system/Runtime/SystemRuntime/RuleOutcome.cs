@@ -34,14 +34,14 @@ namespace Dman.LSystem.SystemRuntime
             return new Blittable
             {
                 probability = probability,
-                replacementSymbolSize = replacementSymbols.Length,
+                replacementSymbolSize = (ushort)replacementSymbols.Length,
                 replacementParameterCount = replacementParameterCount
             };
         }
         public struct Blittable
         {
             public double probability;
-            public int replacementSymbolSize;
+            public ushort replacementSymbolSize;
             public ushort replacementParameterCount;
         }
 

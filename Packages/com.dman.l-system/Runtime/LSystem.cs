@@ -225,8 +225,7 @@ namespace Dman.LSystem
                 var symbol = systemState.currentSymbols[i];
                 var matchData = new LSystemSingleSymbolMatchData()
                 {
-                    tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(parameterTotalSum),
-                    possibleMatchSpace = JaggedIndexing.GetWithNoLength(possibleMatchesTotalSum)
+                    tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(parameterTotalSum)
                 };
                 if (maxMemoryRequirementsPerSymbol.TryGetValue(symbol, out var memoryRequirements))
                 {
@@ -238,13 +237,11 @@ namespace Dman.LSystem
                 {
                     matchData.isTrivial = true;
                     matchData.tmpParameterMemorySpace.length = 0;
-                    matchData.possibleMatchSpace.length = 0;
                 }
                 matchSingletonData[i] = matchData;
             }
 
             var parameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            var possibleMatchMemory = new NativeArray<LSystemPotentialMatchData>(possibleMatchesTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // 2.
@@ -260,6 +257,8 @@ namespace Dman.LSystem
 
 
 
+            var random = systemState.randomProvider;
+            var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
             var tempState = new LSystemSteppingState
             {
                 branchingCache = tmpBranchingCache,
@@ -267,50 +266,32 @@ namespace Dman.LSystem
                 rulesByTargetSymbol = rulesByTargetSymbol,
 
                 tmpParameterMemory = parameterMemory,
-                tmpPossibleMatchMemory = possibleMatchMemory,
                 operatorDefinitions = nativeRuleData.dynamicOperatorMemory
             };
             var tempStateHandle = GCHandle.Alloc(tempState);
 
-            var prematchJob = new RulePrematchJob
+            var prematchJob = new RuleCompleteMatchJob
             {
                 matchSingletonData = matchSingletonData,
 
                 sourceData = systemState.currentSymbols,
                 tmpParameterMemory = parameterMemory,
-                tmpPossibleMatchMemory = possibleMatchMemory,
+
+                globalOperatorData = nativeRuleData.dynamicOperatorMemory,
+                outcomes = nativeRuleData.ruleOutcomeMemorySpace,
+                globalParams = globalParamNative,
 
                 blittableRulesByTargetSymbol = blittableRulesByTargetSymbol,
-                branchingCache = tmpBranchingCache
+                branchingCache = tmpBranchingCache,
+                seed = random.NextUInt()
             };
 
             var matchingJobHandle = prematchJob.ScheduleBatch(
                 matchSingletonData.Length,
                 100);
 
-            var random = systemState.randomProvider;
-            var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
-            var matchingJob = new RuleConditionalMatchSelectorJob
-            {
-                tmpSteppingStateHandle = tempStateHandle,
-
-                matchSingletonData = matchSingletonData,
-                tmpPossibleMatchMemory = possibleMatchMemory,
-                tmpParameterMatchMemory = parameterMemory,
-
-                globalParametersArray = globalParamNative,
-                sourceData = systemState.currentSymbols,
-
-                seed = random.NextUInt()
-            };
-
             tempState.randResult = random;
 
-            matchingJobHandle = matchingJob.Schedule(
-                matchSingletonData.Length,
-                100,
-                matchingJobHandle
-            );
             UnityEngine.Profiling.Profiler.EndSample();
 
             // 4.
@@ -328,7 +309,6 @@ namespace Dman.LSystem
                 totalResultParameterCount = totalSymbolParameterCount,
                 sourceParameterIndexes = systemState.currentSymbols.newParameters.indexing,
             };
-            //totalSymbolLengthJob.Run();
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchingJobHandle);
 
             tempState.preAllocationStep = totalSymbolLengthDependency;
@@ -388,7 +368,6 @@ namespace Dman.LSystem
         public NativeArray<float> tmpParameterMemory;
         public NativeArray<OperatorDefinition> operatorDefinitions;
 
-        public NativeArray<LSystemPotentialMatchData> tmpPossibleMatchMemory;
         public NativeArray<float> globalParamNative;
         public GCHandle tempStateHandle; // LSystemSteppingState. self
 
@@ -439,7 +418,6 @@ namespace Dman.LSystem
                     return;
             }
             if (branchingCache.IsCreated) branchingCache.Dispose();
-            if (tmpPossibleMatchMemory.IsCreated) tmpPossibleMatchMemory.Dispose();
             if (this.target.IsCreated) target.Dispose();
             tempStateHandle.Free();
         }
@@ -503,7 +481,6 @@ namespace Dman.LSystem
                 randomProvider = randResult,
                 currentSymbols = this.target
             };
-            tmpPossibleMatchMemory.Dispose();
             branchingCache.Dispose();
             stepState = StepState.COMPLETE;
             return newResult;
@@ -514,7 +491,7 @@ namespace Dman.LSystem
     /// Step 2. match all rules which could possibly match, without checking the conditional expressions
     /// </summary>
     [BurstCompile]
-    public struct RulePrematchJob : IJobParallelForBatch
+    public struct RuleCompleteMatchJob : IJobParallelForBatch
     {
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
@@ -523,8 +500,16 @@ namespace Dman.LSystem
         public SymbolString<float> sourceData;
         [NativeDisableParallelForRestriction]
         public NativeArray<float> tmpParameterMemory;
+
+        [ReadOnly]
         [NativeDisableParallelForRestriction]
-        public NativeArray<LSystemPotentialMatchData> tmpPossibleMatchMemory;
+        public NativeArray<OperatorDefinition> globalOperatorData;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<RuleOutcome.Blittable> outcomes;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float> globalParams;
 
         [ReadOnly]
         public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
@@ -532,15 +517,21 @@ namespace Dman.LSystem
         [ReadOnly]
         public SymbolStringBranchingCache branchingCache;
 
+        public uint seed;
+
         public void Execute(int startIndex, int batchSize)
         {
             var forwardsMatchHelperStack = new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5);
+            var rnd = LSystem.RandomFromIndexAndSeed(((uint)startIndex) + 1, seed);
             for (int i = 0; i < batchSize; i++)
             {
-                this.ExecuteAtIndex(i + startIndex, forwardsMatchHelperStack);
+                this.ExecuteAtIndex(i + startIndex, forwardsMatchHelperStack, ref rnd);
             }
         }
-        private void ExecuteAtIndex(int indexInSymbols, TmpNativeStack<SymbolStringBranchingCache.BranchEventData> helperStack) {
+        private void ExecuteAtIndex(
+            int indexInSymbols,
+            TmpNativeStack<SymbolStringBranchingCache.BranchEventData> helperStack,
+            ref Unity.Mathematics.Random random) {
             var matchSingleton = matchSingletonData[indexInSymbols];
             if (matchSingleton.isTrivial)
             {
@@ -559,7 +550,6 @@ namespace Dman.LSystem
             }
 
             var anyRuleMatched = false;
-            ushort totalMatchedRuleOptions = 0;
             var currentIndexInParameterMemory = matchSingleton.tmpParameterMemorySpace.index;
             for (byte i = 0; i < ruleIndexing.length; i++)
             {
@@ -570,32 +560,23 @@ namespace Dman.LSystem
                     indexInSymbols,
                     tmpParameterMemory,
                     currentIndexInParameterMemory,
-                    out var specificMatchData,
-                    helperStack
+                    ref matchSingleton,
+                    helperStack,
+                    globalParams,
+                    globalOperatorData,
+                    ref random,
+                    outcomes
                     );
                 if (success)
                 {
-                    currentIndexInParameterMemory += specificMatchData.matchedParameters.length;
-                    specificMatchData.matchedRuleIndexInPossible = i;
-                    tmpPossibleMatchMemory[matchSingleton.possibleMatchSpace.index + totalMatchedRuleOptions] = specificMatchData;
-                    totalMatchedRuleOptions++;
                     anyRuleMatched = true;
-
-                    if (!rule.hasConditional)
-                    {
-                        // stop matching rules as soon as the first non-conditional rule matches
-                        // if none of the previously matched conditional rules match, then this one will
-                        //  and noone of the following rules will ever have a chance to match
-                        break;
-                    }
+                    matchSingleton.matchedRuleIndexInPossible = i;
+                    break;
                 }
             }
             if (anyRuleMatched == false)
             {
                 matchSingleton.isTrivial = true;
-            }else
-            {
-                matchSingleton.possibleMatchSpace.length = totalMatchedRuleOptions;
             }
             matchSingletonData[indexInSymbols] = matchSingleton;
         }
@@ -605,73 +586,73 @@ namespace Dman.LSystem
     /// Step 3. check all possible matches, checking conditionals. write data about the first matched 
     ///     option into singleton memory
     /// </summary>
-    public struct RuleConditionalMatchSelectorJob : IJobParallelFor
-    {
-        public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
+    //public struct RuleConditionalMatchSelectorJob : IJobParallelFor
+    //{
+    //    public GCHandle tmpSteppingStateHandle; // LSystemSteppingState
 
-        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<LSystemPotentialMatchData> tmpPossibleMatchMemory;
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float> tmpParameterMatchMemory;
+    //    public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
+    //    [ReadOnly]
+    //    [NativeDisableParallelForRestriction]
+    //    public NativeArray<LSystemPotentialMatchData> tmpPossibleMatchMemory;
+    //    [ReadOnly]
+    //    [NativeDisableParallelForRestriction]
+    //    public NativeArray<float> tmpParameterMatchMemory;
 
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float> globalParametersArray;
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public SymbolString<float> sourceData;
+    //    [ReadOnly]
+    //    [NativeDisableParallelForRestriction]
+    //    public NativeArray<float> globalParametersArray;
+    //    [ReadOnly]
+    //    [NativeDisableParallelForRestriction]
+    //    public SymbolString<float> sourceData;
 
-        public uint seed;
+    //    public uint seed;
 
-        public void Execute(int indexInSymbols)
-        {
-            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
+    //    public void Execute(int indexInSymbols)
+    //    {
+    //        var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
 
-            var matchSingleton = matchSingletonData[indexInSymbols];
-            if (matchSingleton.isTrivial)
-            {
-                // if match is trivial, then no parameters have been captured and no rule is selected
-                return;
-            }
-            var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
-            var symbol = sourceData.symbols[indexInSymbols];
+    //        var matchSingleton = matchSingletonData[indexInSymbols];
+    //        if (matchSingleton.isTrivial)
+    //        {
+    //            // if match is trivial, then no parameters have been captured and no rule is selected
+    //            return;
+    //        }
+    //        var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
+    //        var symbol = sourceData.symbols[indexInSymbols];
 
-            if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
-            {
-                matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_MATCH_TIME;
-                matchSingletonData[indexInSymbols] = matchSingleton;
-                return;
-            }
-            var rnd = LSystem.RandomFromIndexAndSeed(((uint)indexInSymbols) + 1, seed);
-            var ruleMatched = false;
-            for (int i = matchSingleton.possibleMatchSpace.Start; i < matchSingleton.possibleMatchSpace.End; i++)
-            {
-                var possibleMatch = tmpPossibleMatchMemory[i];
-                var rule = ruleList[possibleMatch.matchedRuleIndexInPossible];
-                var success = rule.TryMatchSpecificMatch(
-                    globalParametersArray,
-                    tmpParameterMatchMemory,
-                    possibleMatch.matchedParameters,
-                    ref rnd,
-                    ref matchSingleton);
-                if (success)
-                {
-                    matchSingleton.matchedRuleIndexInPossible = possibleMatch.matchedRuleIndexInPossible;
-                    matchSingleton.tmpParameterMemorySpace = possibleMatch.matchedParameters;
-                    ruleMatched = true;
-                    break;
-                }
-            }
-            if (ruleMatched == false)
-            {
-                matchSingleton.isTrivial = true;
-            }
-            matchSingletonData[indexInSymbols] = matchSingleton;
-        }
-    }
+    //        if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
+    //        {
+    //            matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_MATCH_TIME;
+    //            matchSingletonData[indexInSymbols] = matchSingleton;
+    //            return;
+    //        }
+    //        var rnd = LSystem.RandomFromIndexAndSeed(((uint)indexInSymbols) + 1, seed);
+    //        var ruleMatched = false;
+    //        for (int i = matchSingleton.possibleMatchSpace.Start; i < matchSingleton.possibleMatchSpace.End; i++)
+    //        {
+    //            var possibleMatch = tmpPossibleMatchMemory[i];
+    //            var rule = ruleList[possibleMatch.matchedRuleIndexInPossible];
+    //            var success = rule.TryMatchSpecificMatch(
+    //                globalParametersArray,
+    //                tmpParameterMatchMemory,
+    //                possibleMatch.matchedParameters,
+    //                ref rnd,
+    //                ref matchSingleton);
+    //            if (success)
+    //            {
+    //                matchSingleton.matchedRuleIndexInPossible = possibleMatch.matchedRuleIndexInPossible;
+    //                matchSingleton.tmpParameterMemorySpace = possibleMatch.matchedParameters;
+    //                ruleMatched = true;
+    //                break;
+    //            }
+    //        }
+    //        if (ruleMatched == false)
+    //        {
+    //            matchSingleton.isTrivial = true;
+    //        }
+    //        matchSingletonData[indexInSymbols] = matchSingleton;
+    //    }
+    //}
 
     [BurstCompile]
     public struct RuleReplacementSizeJob : IJob

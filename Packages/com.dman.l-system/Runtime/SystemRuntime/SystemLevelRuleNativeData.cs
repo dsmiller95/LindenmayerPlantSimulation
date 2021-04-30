@@ -59,6 +59,7 @@ namespace Dman.LSystem.SystemRuntime
             suffixMatcherGraphNodeData.Dispose();
             prefixMatcherSymbols.Dispose();
             ruleOutcomeMemorySpace.Dispose();
+            dynamicOperatorMemory.Dispose();
             isDisposed = true;
         }
     }

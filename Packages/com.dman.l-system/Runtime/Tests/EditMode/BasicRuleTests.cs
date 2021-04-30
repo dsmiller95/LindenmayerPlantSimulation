@@ -51,20 +51,15 @@ public class BasicRuleTests
             matchIndex,
             paramMemory,
             matchSingleData.tmpParameterMemorySpace.index,
-            out var specificMatchDetails,
-            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
+            ref matchSingleData,
+            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
+            globalNative,
+            ruleNativeData.dynamicOperatorMemory,
+            ref random,
+            ruleNativeData.ruleOutcomeMemorySpace
             );
 
         Assert.IsTrue(potentialMatch);
-
-        var postMatchWithConditional = ruleFromString.TryMatchSpecificMatch(
-            globalNative,
-            paramMemory,
-            specificMatchDetails.matchedParameters,
-            ref random,
-            ref matchSingleData
-            );
-        Assert.IsTrue(postMatchWithConditional);
         Assert.AreEqual(expectedReplacementPatternIndex, matchSingleData.selectedReplacementPattern);
         Assert.AreEqual(paramTempMemorySize, matchSingleData.tmpParameterMemorySpace.length, "parameter temp memory size mismatch");
         Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacementSymbolIndexing.length, "replacement symbols size mismatch");
@@ -126,59 +121,12 @@ public class BasicRuleTests
             matchIndex,
             paramMemory,
             matchSingleData.tmpParameterMemorySpace.index,
-            out var specificMatchDetails,
-            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
-            );
-
-        Assert.IsTrue(potentialMatch);
-
-        var postMatchWithConditional = ruleFromString.TryMatchSpecificMatch(
+            ref matchSingleData,
+            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
             globalNative,
-            paramMemory,
-            specificMatchDetails.matchedParameters,
+            ruleNativeData.dynamicOperatorMemory,
             ref random,
-            ref matchSingleData
-            );
-        Assert.IsFalse(postMatchWithConditional);
-    }
-    private void AssertRuleDoesNotMatchBeforeConditional(
-        string ruleText,
-        int[] sourceSymbols = null,
-        float[][] sourceParameters = null,
-        string axiom = null,
-        int ruleParamMemoryStartIndex = 0,
-        int matchIndex = 0,
-        int paramTempMemorySize = 0,
-        float[] globalParams = null
-        )
-    {
-        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : SymbolString<float>.FromString(axiom, Allocator.Persistent);
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText));
-        using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
-        var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
-        ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
-
-
-        globalParams = globalParams ?? new float[0];
-        using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
-
-        using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
-        using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
-        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
-        var matchSingleData = new LSystemSingleSymbolMatchData
-        {
-            isTrivial = false,
-            tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(ruleParamMemoryStartIndex)
-        };
-
-        var potentialMatch = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
-            branchCache,
-            symbols,
-            matchIndex,
-            paramMemory,
-            matchSingleData.tmpParameterMemorySpace.index,
-            out var specificMatchDetails,
-            new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
+            ruleNativeData.ruleOutcomeMemorySpace
             );
 
         Assert.IsFalse(potentialMatch);
@@ -213,18 +161,14 @@ public class BasicRuleTests
                 0,
                 paramMemory,
                 matchSingleData.tmpParameterMemorySpace.index,
-                out var specificMatchDetails,
-                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
+                ref matchSingleData,
+                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
+                globalNative,
+                ruleNativeData.dynamicOperatorMemory,
+                ref random,
+                ruleNativeData.ruleOutcomeMemorySpace
                 );
             Assert.IsTrue(preMatchSuccess);
-            var postMatchWithConditional = ruleFromString.TryMatchSpecificMatch(
-                globalNative,
-                paramMemory,
-                specificMatchDetails.matchedParameters,
-                ref random,
-                ref matchSingleData
-                );
-            Assert.IsTrue(postMatchWithConditional);
             Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
             Assert.AreEqual(0, matchSingleData.tmpParameterMemorySpace.length);
             Assert.AreEqual(2, matchSingleData.replacementSymbolIndexing.length);
@@ -247,8 +191,12 @@ public class BasicRuleTests
                 0,
                 paramMemory,
                 matchSingleData.tmpParameterMemorySpace.index,
-                out specificMatchDetails,
-                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
+                ref matchSingleData,
+                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
+                globalNative,
+                ruleNativeData.dynamicOperatorMemory,
+                ref random,
+                ruleNativeData.ruleOutcomeMemorySpace
                 );
             Assert.IsFalse(preMatchSuccess);
 
@@ -267,8 +215,12 @@ public class BasicRuleTests
                 0,
                 paramMemory,
                 matchSingleData.tmpParameterMemorySpace.index,
-                out specificMatchDetails,
-                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5)
+                ref matchSingleData,
+                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
+                globalNative,
+                ruleNativeData.dynamicOperatorMemory,
+                ref random,
+                ruleNativeData.ruleOutcomeMemorySpace
                 );
             Assert.IsFalse(preMatchSuccess);
         }
@@ -301,7 +253,7 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleDifferentParametersNoMatch()
     {
-        AssertRuleDoesNotMatchBeforeConditional(
+        AssertRuleDoesNotMatchCondtitional(
             "A(x, y) -> B(y + x)C(x)A(y, x)",
             new int[] { 'A' },
             new float[][] { new float[] { 20 } }
@@ -356,7 +308,7 @@ public class BasicRuleTests
     [Test]
     public void ContextualRuleRequiresContextToMatch()
     {
-        AssertRuleDoesNotMatchBeforeConditional(
+        AssertRuleDoesNotMatchCondtitional(
             "B < A > B -> B",
             axiom: "B(20)AABAB",
             paramTempMemorySize: 0,
@@ -408,7 +360,7 @@ public class BasicRuleTests
     [Test]
     public void ContextualRulePrefixNoMatchWhenParameterMismatch()
     {
-        AssertRuleDoesNotMatchBeforeConditional(
+        AssertRuleDoesNotMatchCondtitional(
             "B(x) < A(y) -> B(x - y)",
             axiom: "BA(3.1)",
             paramTempMemorySize: 2,
@@ -418,7 +370,7 @@ public class BasicRuleTests
     [Test]
     public void ContextualRuleSuffixNoMatchWhenParameterMismatch()
     {
-        AssertRuleDoesNotMatchBeforeConditional(
+        AssertRuleDoesNotMatchCondtitional(
             "A(x) > B(y) -> B(x - y)",
             axiom: "A(3.1)B",
             paramTempMemorySize: 2,

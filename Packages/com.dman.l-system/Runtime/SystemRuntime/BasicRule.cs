@@ -23,6 +23,7 @@ namespace Dman.LSystem.SystemRuntime
 
         private readonly InputSymbol _targetSymbolWithParameters;
         private DynamicExpressionData conditionalChecker;
+        private StructExpression conditionalCheckerBlittable;
         public bool HasConditional => conditionalChecker != null;
 
         public RuleOutcome[] possibleOutcomes;
@@ -83,7 +84,7 @@ namespace Dman.LSystem.SystemRuntime
             suffixGraphNodes = forwardsMatchBuilder.RequiredGraphNodeMemSpace,
             prefixNodes = backwardsMatchBuilder.targetSymbolSeries.Length,
             ruleOutcomes = possibleOutcomes.Length,
-            operatorMemory = possibleOutcomes.Sum(x => x.OpMemoryRequirements)
+            operatorMemory = possibleOutcomes.Sum(x => x.OpMemoryRequirements) + (conditionalChecker == null ? 0 : conditionalChecker.OperatorSpaceNeeded)
         };
 
 
@@ -107,6 +108,18 @@ namespace Dman.LSystem.SystemRuntime
                 dataArray.ruleOutcomeMemorySpace[i + dataWriter.indexInRuleOutcomes] = possibleOutcome.AsBlittable();
             }
             dataWriter.indexInRuleOutcomes += possibleOutcomeIndexing.length;
+            if(conditionalChecker != null)
+            {
+                var opSize = conditionalChecker.OperatorSpaceNeeded;
+                conditionalCheckerBlittable = conditionalChecker.WriteIntOpDataArray(
+                    dataArray.dynamicOperatorMemory,
+                    new JaggedIndexing
+                    {
+                        index = dataWriter.indexInOperatorMemory,
+                        length = opSize
+                    });
+                dataWriter.indexInOperatorMemory += opSize;
+            }
             foreach (var outcome in possibleOutcomes)
             {
                 outcome.WriteOpsIntoMemory(dataArray, dataWriter);
@@ -122,7 +135,8 @@ namespace Dman.LSystem.SystemRuntime
                 targetSymbolWithParameters = _targetSymbolWithParameters.AsBlittable(),
                 capturedLocalParameterCount = CapturedLocalParameterCount,
                 possibleOutcomeIndexing = possibleOutcomeIndexing,
-                hasConditional = conditionalChecker != null
+                hasConditional = conditionalChecker != null,
+                conditional = conditionalCheckerBlittable
             };
         }
 
@@ -134,6 +148,7 @@ namespace Dman.LSystem.SystemRuntime
             public int capturedLocalParameterCount;
             public JaggedIndexing possibleOutcomeIndexing;
             public bool hasConditional;
+            public StructExpression conditional;
 
             public bool PreMatchCapturedParametersWithoutConditional(
                 SymbolStringBranchingCache branchingCache,
@@ -141,10 +156,13 @@ namespace Dman.LSystem.SystemRuntime
                 int indexInSymbols,
                 NativeArray<float> parameterMemory,
                 int startIndexInParameterMemory,
-                out LSystemPotentialMatchData specificMatchData,
-                TmpNativeStack<SymbolStringBranchingCache.BranchEventData> helperStack)
+                ref LSystemSingleSymbolMatchData matchSingletonData,
+                TmpNativeStack<SymbolStringBranchingCache.BranchEventData> helperStack,
+                NativeArray<float> globalParams,
+                NativeArray<OperatorDefinition> globalOperatorData,
+                ref Unity.Mathematics.Random random,
+                NativeArray<RuleOutcome.Blittable> outcomes)
             {
-                specificMatchData = default;
                 var target = targetSymbolWithParameters;
 
                 // parameters
@@ -201,211 +219,71 @@ namespace Dman.LSystem.SystemRuntime
                     matchedParameterNum += copiedParameters;
                 }
 
-                specificMatchData = new LSystemPotentialMatchData
+                if (conditional.IsValid)
                 {
-                    matchedParameters = new JaggedIndexing
+                    var paramTmpMem = new NativeArray<float>(globalParams.Length + matchedParameterNum, Allocator.Temp);
+                    for (int i = 0; i < globalParams.Length; i++)
                     {
-                        index = startIndexInParameterMemory,
-                        length = matchedParameterNum
+                        paramTmpMem[i] = globalParams[i];
                     }
+                    for (int i = 0; i < matchedParameterNum; i++)
+                    {
+                        paramTmpMem[globalParams.Length + i] = parameterMemory[startIndexInParameterMemory + i];
+                    }
+
+                    var conditionalMatch = conditional.EvaluateExpression(
+                        paramTmpMem,
+                        new JaggedIndexing
+                        {
+                            index = 0,
+                            length = (ushort)paramTmpMem.Length
+                        },
+                        globalOperatorData) > 0;
+                    if (!conditionalMatch)
+                    {
+                        return false;
+                    }
+                }
+
+                matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random, outcomes, this.possibleOutcomeIndexing);
+                var outcomeObject = outcomes[matchSingletonData.selectedReplacementPattern + possibleOutcomeIndexing.index];
+
+                matchSingletonData.tmpParameterMemorySpace = new JaggedIndexing
+                {
+                    index = startIndexInParameterMemory,
+                    length = matchedParameterNum
                 };
+
+                matchSingletonData.replacementSymbolIndexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.replacementSymbolSize);
+                matchSingletonData.replacementParameterIndexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.replacementParameterCount);
+
 
                 return true;
             }
-        }
-
-        public bool TryMatchSpecificMatch(
-            NativeArray<float> globalParameters,
-            NativeArray<float> parameterMemory,
-            JaggedIndexing indexingInTmpParameterMemory,
-            ref Unity.Mathematics.Random random,
-            ref LSystemSingleSymbolMatchData matchSingletonData)
-        {
-            var matchedParameterNum = indexingInTmpParameterMemory.length;
-            var parameterStartIndex = indexingInTmpParameterMemory.index;
-            // conditional
-            if (conditionalChecker != null)
+            private static byte SelectOutcomeIndex(
+                ref Unity.Mathematics.Random rand,
+                NativeArray<RuleOutcome.Blittable> outcomes,
+                JaggedIndexing allOutcomes)
             {
-                var paramArray = new float[globalParameters.Length + matchedParameterNum];
-                for (int i = 0; i < globalParameters.Length; i++)
+                if (allOutcomes.length > 1)
                 {
-                    paramArray[i] = globalParameters[i];
-                }
-                for (int i = 0; i < matchedParameterNum; i++)
-                {
-                    paramArray[i + globalParameters.Length] = parameterMemory[parameterStartIndex + i];
-                }
-                // TODO: crazy slow
-                var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
-                var conditionalResult = invokeResult > 0;
-                if (!conditionalResult)
-                {
-                    return false;
-                }
-            }
-
-            // stochastic selection
-            matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random);
-            var outcomeObject = possibleOutcomes[matchSingletonData.selectedReplacementPattern];
-
-            matchSingletonData.tmpParameterMemorySpace = indexingInTmpParameterMemory;
-
-            matchSingletonData.replacementSymbolIndexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.ReplacementSymbolCount());
-            matchSingletonData.replacementParameterIndexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.ReplacementParameterCount());
-
-            return true;
-        }
-
-
-        //public bool PreMatchCapturedParameters(
-        //    SymbolStringBranchingCache branchingCache,
-        //    SymbolString<float> source,
-        //    int indexInSymbols,
-        //    NativeArray<float> globalParameters,
-        //    NativeArray<float> parameterMemory,
-        //    ref Unity.Mathematics.Random random,
-        //    ref LSystemSingleSymbolMatchData matchSingletonData)
-        //{
-        //    var target = _targetSymbolWithParameters;
-
-        //    var parameterStartIndex = matchSingletonData.tmpParameterMemorySpace;
-
-        //    // parameters
-        //    byte matchedParameterNum = 0;
-
-        //    // context match
-        //    if (ContextPrefix.IsCreated && ContextPrefix.targetSymbolSeries.Length > 0)
-        //    {
-        //        var backwardMatchMapping = branchingCache.MatchesBackwards(
-        //            indexInSymbols,
-        //            ContextPrefix,
-        //            source.symbols,
-        //            source.newParameters.indexing
-        //            );
-        //        if (backwardMatchMapping == null)
-        //        {
-        //            // if backwards match exists, and does not match, then fail this match attempt.
-        //            return false;
-        //        }
-        //        for (int indexInPrefix = 0; indexInPrefix < ContextPrefix.targetSymbolSeries.Length; indexInPrefix++)
-        //        {
-        //            if (!backwardMatchMapping.TryGetValue(indexInPrefix, out var matchingTargetIndex))
-        //            {
-        //                continue;
-        //            }
-        //            var parametersIndexing = source.newParameters[matchingTargetIndex];
-        //            for (int i = 0; i < parametersIndexing.length; i++)
-        //            {
-        //                var paramValue = source.newParameters[parametersIndexing, i];
-
-        //                parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
-        //                matchedParameterNum++;
-        //            }
-        //        }
-        //    }
-
-
-        //    var coreParametersIndexing = source.newParameters[indexInSymbols];
-        //    if (coreParametersIndexing.length != target.parameterLength)
-        //    {
-        //        return false;
-        //    }
-        //    if (coreParametersIndexing.length > 0)
-        //    {
-        //        for (int i = 0; i < coreParametersIndexing.length; i++)
-        //        {
-        //            var paramValue = source.newParameters[coreParametersIndexing, i];
-
-        //            parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
-        //            matchedParameterNum++;
-        //        }
-        //    }
-
-        //    if (ContextSuffix.IsCreated && ContextSuffix.targetSymbolSeries.Length > 0)
-        //    {
-        //        var forwardMatch = branchingCache.MatchesForward(
-        //            indexInSymbols,
-        //            ContextSuffix,
-        //            source.symbols,
-        //            source.newParameters.indexing);
-        //        if (forwardMatch == null)
-        //        {
-        //            // if forwards match exists, and does not match, then fail this match attempt.
-        //            return false;
-        //        }
-        //        for (int indexInSuffix = 0; indexInSuffix < ContextSuffix.targetSymbolSeries.Length; indexInSuffix++)
-        //        {
-        //            if (!forwardMatch.TryGetValue(indexInSuffix, out var matchingTargetIndex))
-        //            {
-        //                continue;
-        //            }
-
-        //            var parametersIndexing = source.newParameters[matchingTargetIndex];
-        //            for (int i = 0; i < parametersIndexing.length; i++)
-        //            {
-        //                var paramValue = source.newParameters[parametersIndexing, i];
-
-        //                parameterMemory[parameterStartIndex + matchedParameterNum] = paramValue;
-        //                matchedParameterNum++;
-        //            }
-        //        }
-        //    }
-
-        //    // conditional
-        //    if (conditionalChecker != null)
-        //    {
-        //        var paramArray = new object[globalParameters.Length + matchedParameterNum];
-        //        for (int i = 0; i < globalParameters.Length; i++)
-        //        {
-        //            paramArray[i] = globalParameters[i];
-        //        }
-        //        for (int i = 0; i < matchedParameterNum; i++)
-        //        {
-        //            paramArray[i + globalParameters.Length] = parameterMemory[parameterStartIndex + i];
-        //        }
-        //        var invokeResult = conditionalChecker.DynamicInvoke(paramArray);
-        //        if (!(invokeResult is bool boolResult))
-        //        {
-        //            // TODO: call this out a bit better. All compilation context is lost here
-        //            throw new LSystemRuntimeException($"Conditional expression must evaluate to a boolean");
-        //        }
-        //        var conditionalResult = boolResult;
-        //        if (!conditionalResult)
-        //        {
-        //            return false;
-        //        }
-        //    }
-
-        //    // stochastic selection
-        //    matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random);
-        //    var outcomeObject = possibleOutcomes[matchSingletonData.selectedReplacementPattern];
-        //    matchSingletonData.tmpParameterMatchedCount = matchedParameterNum;
-
-        //    matchSingletonData.replacementSymbolLength = outcomeObject.ReplacementSymbolCount();
-        //    matchSingletonData.replacementParameterCount = outcomeObject.ReplacementParameterCount();
-
-        //    return true;
-        //}
-
-        private byte SelectOutcomeIndex(ref Unity.Mathematics.Random rand)
-        {
-            if (possibleOutcomes.Length > 1)
-            {
-                var sample = rand.NextDouble();
-                double currentPartition = 0;
-                for (byte i = 0; i < possibleOutcomes.Length; i++)
-                {
-                    var possibleOutcome = possibleOutcomes[i];
-                    currentPartition += possibleOutcome.probability;
-                    if (sample <= currentPartition)
+                    var sample = rand.NextDouble();
+                    double currentPartition = 0;
+                    for (byte i = 0; i < allOutcomes.length; i++)
                     {
-                        return i;
+                        var possibleOutcome = outcomes[i + allOutcomes.index];
+                        currentPartition += possibleOutcome.probability;
+                        if (sample <= currentPartition)
+                        {
+                            return i;
+                        }
                     }
+                    throw new LSystemRuntimeException("possible outcome probabilities do not sum to 1");
                 }
-                throw new LSystemRuntimeException("possible outcome probabilities do not sum to 1");
+                return 0;
             }
-            return 0;
         }
+
 
         public void WriteReplacementSymbols(
             NativeArray<float> globalParameters,

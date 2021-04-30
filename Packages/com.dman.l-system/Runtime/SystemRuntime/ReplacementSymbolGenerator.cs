@@ -37,7 +37,7 @@ namespace Dman.LSystem.SystemRuntime
             this.structExpressions = new StructExpression[evaluators.Length];
             for (int i = 0; i < evaluators.Length; i++)
             {
-                var opSize = (ushort)evaluators[i].OperatorSpaceNeeded;
+                var opSize = evaluators[i].OperatorSpaceNeeded;
                 structExpressions[i] = evaluators[i].WriteIntOpDataArray(
                     dataArray.dynamicOperatorMemory,
                     new JaggedIndexing
