@@ -272,49 +272,47 @@ namespace Dman.LSystem.SystemRuntime
                 return 0;
             }
 
-
-        }
-
-
-        public void WriteReplacementSymbols(
-            NativeArray<float> globalParameters,
-            NativeArray<float> paramTempMemorySpace,
-            SymbolString<float> target,
-            LSystemSingleSymbolMatchData matchSingletonData,
-            NativeArray<OperatorDefinition> globalOperatorData,
-            NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolSpace,
-            NativeArray<StructExpression> structExpressionSpace)
-        {
-            var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
-
-            var matchedParametersIndexing = matchSingletonData.tmpParameterMemorySpace;
-            var replacementSymbolsIndexing = matchSingletonData.replacementSymbolIndexing;
-            var replacementParameterIndexing = matchSingletonData.replacementParameterIndexing;
-
-            var orderedMatchedParameters = new NativeArray<float>(globalParameters.Length + matchedParametersIndexing.length, Allocator.Temp);
-            for (int i = 0; i < globalParameters.Length; i++)
+            public void WriteReplacementSymbols(
+                NativeArray<float> globalParameters,
+                NativeArray<float> paramTempMemorySpace,
+                SymbolString<float> target,
+                LSystemSingleSymbolMatchData matchSingletonData,
+                NativeArray<OperatorDefinition> globalOperatorData,
+                NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolSpace,
+                NativeArray<RuleOutcome.Blittable> ruleOutcomeMemorySpace,
+                NativeArray<StructExpression> structExpressionSpace)
             {
-                orderedMatchedParameters[i] = globalParameters[i];
-            }
-            for (int i = 0; i < matchedParametersIndexing.length; i++)
-            {
-                orderedMatchedParameters[globalParameters.Length + i] = paramTempMemorySpace[matchedParametersIndexing.index + i];
-            }
-            var outcome = possibleOutcomes[selectedReplacementPattern];
+                var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
 
-            outcome.WriteReplacement(
-                orderedMatchedParameters,
-                new JaggedIndexing
+                var matchedParametersIndexing = matchSingletonData.tmpParameterMemorySpace;
+                var replacementSymbolsIndexing = matchSingletonData.replacementSymbolIndexing;
+                var replacementParameterIndexing = matchSingletonData.replacementParameterIndexing;
+
+                var orderedMatchedParameters = new NativeArray<float>(globalParameters.Length + matchedParametersIndexing.length, Allocator.Temp);
+                for (int i = 0; i < globalParameters.Length; i++)
                 {
-                    index = 0,
-                    length = (ushort)orderedMatchedParameters.Length
-                },
-                globalOperatorData,
-                target,
-                replacementSymbolSpace,
-                structExpressionSpace,
-                replacementSymbolsIndexing.index,
-                replacementParameterIndexing.index);
+                    orderedMatchedParameters[i] = globalParameters[i];
+                }
+                for (int i = 0; i < matchedParametersIndexing.length; i++)
+                {
+                    orderedMatchedParameters[globalParameters.Length + i] = paramTempMemorySpace[matchedParametersIndexing.index + i];
+                }
+                var outcome = ruleOutcomeMemorySpace[selectedReplacementPattern + possibleOutcomeIndexing.index];
+
+                outcome.WriteReplacement(
+                    orderedMatchedParameters,
+                    new JaggedIndexing
+                    {
+                        index = 0,
+                        length = (ushort)orderedMatchedParameters.Length
+                    },
+                    globalOperatorData,
+                    target,
+                    replacementSymbolSpace,
+                    structExpressionSpace,
+                    replacementSymbolsIndexing.index,
+                    replacementParameterIndexing.index);
+            }
         }
     }
 }

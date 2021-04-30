@@ -72,13 +72,14 @@ public class BasicRuleTests
                 expectedReplacement.symbols.Length,
                 expectedReplacement.newParameters.data.Length,
                 Allocator.Persistent);
-        ruleFromString.WriteReplacementSymbols(
+        ruleFromString.AsBlittable().WriteReplacementSymbols(
             globalNative,
             paramMemory,
             resultSymbols,
             matchSingleData,
             ruleNativeData.dynamicOperatorMemory,
             ruleNativeData.replacementsSymbolMemorySpace,
+            ruleNativeData.ruleOutcomeMemorySpace,
             ruleNativeData.structExpressionMemorySpace
             );
 

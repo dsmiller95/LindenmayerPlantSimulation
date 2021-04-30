@@ -268,7 +268,9 @@ namespace Dman.LSystem
                 tmpParameterMemory = parameterMemory,
                 operatorDefinitions = nativeRuleData.dynamicOperatorMemory,
                 structExpressionSpace = nativeRuleData.structExpressionMemorySpace,
-                replacementSymbolData = nativeRuleData.replacementsSymbolMemorySpace
+                replacementSymbolData = nativeRuleData.replacementsSymbolMemorySpace,
+                ruleOutcomeMemorySpace = nativeRuleData.ruleOutcomeMemorySpace,
+                blittableRulesByTargetSymbol = blittableRulesByTargetSymbol
             };
             var tempStateHandle = GCHandle.Alloc(tempState);
 
@@ -371,6 +373,8 @@ namespace Dman.LSystem
         public NativeArray<OperatorDefinition> operatorDefinitions;
         public NativeArray<StructExpression> structExpressionSpace;
         public NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolData;
+        public NativeArray<RuleOutcome.Blittable> ruleOutcomeMemorySpace;
+        public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
         public NativeArray<float> globalParamNative;
         public GCHandle tempStateHandle; // LSystemSteppingState. self
@@ -455,8 +459,10 @@ namespace Dman.LSystem
                 structExpressionSpace = structExpressionSpace,
                 globalOperatorData = operatorDefinitions,
                 replacementSymbolData = replacementSymbolData,
+                outcomeData = ruleOutcomeMemorySpace,
 
-                targetData = target
+                targetData = target,
+                blittableRulesByTargetSymbol = blittableRulesByTargetSymbol
             };
 
             JobHandle replacementDependency = replacementJob.Schedule(
@@ -639,6 +645,9 @@ namespace Dman.LSystem
 
         [ReadOnly]
         [NativeDisableParallelForRestriction]
+        public NativeArray<RuleOutcome.Blittable> outcomeData;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
         public NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolData;
         [ReadOnly]
         [NativeDisableParallelForRestriction]
@@ -654,10 +663,11 @@ namespace Dman.LSystem
         [NativeDisableParallelForRestriction]
         public SymbolString<float> targetData;
 
+        [ReadOnly]
+        public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
+
         public void Execute(int indexInSymbols)
         {
-            var tmpSteppingState = (LSystemSteppingState)tmpSteppingStateHandle.Target;
-
             var matchSingleton = matchSingletonData[indexInSymbols];
             var symbol = sourceData.symbols[indexInSymbols];
             if (matchSingleton.isTrivial)
@@ -680,8 +690,7 @@ namespace Dman.LSystem
                 return;
             }
 
-            var rulesByTargetSymbol = tmpSteppingState.rulesByTargetSymbol;
-            if (!rulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList == null || ruleList.Count <= 0)
+            if (!blittableRulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList.length <= 0)
             {
                 matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME;
                 matchSingletonData[indexInSymbols] = matchSingleton;
@@ -689,7 +698,7 @@ namespace Dman.LSystem
                 return;
             }
 
-            var rule = ruleList[matchSingleton.matchedRuleIndexInPossible];
+            var rule = blittableRulesByTargetSymbol[ruleList, matchSingleton.matchedRuleIndexInPossible];
 
             rule.WriteReplacementSymbols(
                 globalParametersArray,
@@ -698,6 +707,7 @@ namespace Dman.LSystem
                 matchSingleton,
                 globalOperatorData,
                 replacementSymbolData,
+                outcomeData,
                 structExpressionSpace
                 );
         }
