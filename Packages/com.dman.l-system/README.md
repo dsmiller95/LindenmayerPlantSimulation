@@ -81,12 +81,6 @@ Also defines a thickness scaling operator, `@`. works similarly to the vector ba
 
 Bends the turtle toward a given world-space vector, scaled by the magnitude of the cross-product between the current turtle's heading and the world-space vector. This operation replicates the function of the Tropism Vector described on [page 58 of Algorithmic Beauty of Plants](http://algorithmicbotany.org/papers/abop/abop.pdf#page=70). See it in use in the [fruiting plant L-system](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/fruiting-plant.lsystem), in this case different plant organs have different bending factors which can be used to represent the stiffness of that organ.
 
-## [Extension](#extension)
-
-The turtle interpreter is set up to be extensible. If you want to build your own operations on the currently available turtle state parameters, implement the `TurtleOperationSet<TurtleState>` abstract class, and create an instance of your new scriptable object. I recommend looking at [TurtleScaleOperations](Runtime/UnityObjects/TurtleScaleOperations.cs) as the simplest example of an implementation.
-
-If you need additional properties in the turtle state, you should re-implement the [TurtleInterpreterBehavior](Runtime/UnityObjects/TurtleInterpreterBehavior.cs), using a different generic parameter for the TurtleInterpreter instance, and define your own set of turtle operators to operate on your new state struct.
-
 # [L System Language](#l-system-language)
 
 `.lsystem` files are interpreted on a line-by-line bases. Each line is interpreted in one of 3 ways: lines starting with `##` are comments, lines starting with `#` are directives, and all other non-empty lines are parsed as Rules.
