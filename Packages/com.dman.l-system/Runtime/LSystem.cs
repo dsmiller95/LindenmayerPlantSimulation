@@ -267,7 +267,8 @@ namespace Dman.LSystem
 
                 tmpParameterMemory = parameterMemory,
                 operatorDefinitions = nativeRuleData.dynamicOperatorMemory,
-                structExpressionSpace = nativeRuleData.structExpressionMemorySpace
+                structExpressionSpace = nativeRuleData.structExpressionMemorySpace,
+                replacementSymbolData = nativeRuleData.replacementsSymbolMemorySpace
             };
             var tempStateHandle = GCHandle.Alloc(tempState);
 
@@ -369,6 +370,7 @@ namespace Dman.LSystem
         public NativeArray<float> tmpParameterMemory;
         public NativeArray<OperatorDefinition> operatorDefinitions;
         public NativeArray<StructExpression> structExpressionSpace;
+        public NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolData;
 
         public NativeArray<float> globalParamNative;
         public GCHandle tempStateHandle; // LSystemSteppingState. self
@@ -448,10 +450,11 @@ namespace Dman.LSystem
 
                 parameterMatchMemory = tmpParameterMemory,
                 matchSingletonData = matchSingletonData,
-                globalOperatorData = operatorDefinitions,
 
                 sourceData = sourceSymbolString,
                 structExpressionSpace = structExpressionSpace,
+                globalOperatorData = operatorDefinitions,
+                replacementSymbolData = replacementSymbolData,
 
                 targetData = target
             };
@@ -636,10 +639,13 @@ namespace Dman.LSystem
 
         [ReadOnly]
         [NativeDisableParallelForRestriction]
-        public NativeArray<OperatorDefinition> globalOperatorData;
+        public NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolData;
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<StructExpression> structExpressionSpace;
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<OperatorDefinition> globalOperatorData;
 
         [ReadOnly]
         [NativeDisableParallelForRestriction]
@@ -691,6 +697,7 @@ namespace Dman.LSystem
                 targetData,
                 matchSingleton,
                 globalOperatorData,
+                replacementSymbolData,
                 structExpressionSpace
                 );
         }

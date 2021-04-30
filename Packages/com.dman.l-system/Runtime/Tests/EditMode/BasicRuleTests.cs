@@ -78,6 +78,7 @@ public class BasicRuleTests
             resultSymbols,
             matchSingleData,
             ruleNativeData.dynamicOperatorMemory,
+            ruleNativeData.replacementsSymbolMemorySpace,
             ruleNativeData.structExpressionMemorySpace
             );
 

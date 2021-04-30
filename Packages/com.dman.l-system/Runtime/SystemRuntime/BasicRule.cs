@@ -282,6 +282,7 @@ namespace Dman.LSystem.SystemRuntime
             SymbolString<float> target,
             LSystemSingleSymbolMatchData matchSingletonData,
             NativeArray<OperatorDefinition> globalOperatorData,
+            NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolSpace,
             NativeArray<StructExpression> structExpressionSpace)
         {
             var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
@@ -310,6 +311,7 @@ namespace Dman.LSystem.SystemRuntime
                 },
                 globalOperatorData,
                 target,
+                replacementSymbolSpace,
                 structExpressionSpace,
                 replacementSymbolsIndexing.index,
                 replacementParameterIndexing.index);

@@ -59,6 +59,7 @@ namespace Dman.LSystem.SystemRuntime
             public ushort replacementSymbolSize;
             public ushort replacementParameterCount;
             public JaggedIndexing replacementSymbols;
+
         }
 
         public ushort ReplacementSymbolCount()
@@ -75,15 +76,16 @@ namespace Dman.LSystem.SystemRuntime
             JaggedIndexing parameterSpace,
             NativeArray<OperatorDefinition> operatorData,
             SymbolString<float> target,
+            NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolSpace,
             NativeArray<StructExpression> structExpressionSpace,
             int firstIndexInSymbols,
             int firstIndexInParamters)
         {
             var writeIndexInParams = firstIndexInParamters;
-            for (int symbolIndex = 0; symbolIndex < replacementSymbols.Length; symbolIndex++)
+            for (int symbolIndex = 0; symbolIndex < blittable.replacementSymbols.length; symbolIndex++)
             {
-                var replacementExpression = replacementSymbols[symbolIndex];
-                target[symbolIndex + firstIndexInSymbols] = replacementExpression.targetSymbol;
+                var replacementExpression = replacementSymbolSpace[symbolIndex + blittable.replacementSymbols.index];
+                target[symbolIndex + firstIndexInSymbols] = replacementExpression.replacementSymbol;
                 replacementExpression.WriteNewParameters(
                     matchedParameters,
                     parameterSpace,

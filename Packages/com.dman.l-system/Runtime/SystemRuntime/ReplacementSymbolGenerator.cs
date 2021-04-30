@@ -70,6 +70,30 @@ namespace Dman.LSystem.SystemRuntime
         public struct Blittable {
             public JaggedIndexing structExpressionSpace;
             public int replacementSymbol;
+            public void WriteNewParameters(
+                NativeArray<float> matchedParameters,
+                JaggedIndexing parameterSpace,
+                NativeArray<OperatorDefinition> operatorData,
+                JaggedNativeArray<float> targetParams,
+                NativeArray<StructExpression> structExpressionData,
+                ref int writeIndexInParamSpace,
+                int indexInParams)
+            {
+                var targetSpace = targetParams[indexInParams] = new JaggedIndexing
+                {
+                    index = writeIndexInParamSpace,
+                    length = (ushort)structExpressionSpace.length
+                };
+                for (int i = 0; i < structExpressionSpace.length; i++)
+                {
+                    var structExp = structExpressionData[i + structExpressionSpace.index];
+                    targetParams[targetSpace, i] = structExp.EvaluateExpression(
+                        matchedParameters,
+                        parameterSpace,
+                        operatorData);
+                }
+                writeIndexInParamSpace += targetSpace.length;
+            }
         }
         public Blittable AsBlittable()
         {
@@ -80,31 +104,6 @@ namespace Dman.LSystem.SystemRuntime
         public int GeneratedParameterCount()
         {
             return evaluators.Length;
-        }
-
-        public void WriteNewParameters(
-            NativeArray<float> matchedParameters,
-            JaggedIndexing parameterSpace,
-            NativeArray<OperatorDefinition> operatorData,
-            JaggedNativeArray<float> targetParams,
-            NativeArray<StructExpression> structExpressionSpace,
-            ref int writeIndexInParamSpace,
-            int indexInParams)
-        {
-            var targetSpace = targetParams[indexInParams] = new JaggedIndexing
-            {
-                index = writeIndexInParamSpace,
-                length = (ushort)blittable.structExpressionSpace.length
-            };
-            for (int i = 0; i < blittable.structExpressionSpace.length; i++)
-            {
-                var structExp = structExpressionSpace[i + blittable.structExpressionSpace.index];
-                targetParams[targetSpace, i] = structExp.EvaluateExpression(
-                    matchedParameters,
-                    parameterSpace,
-                    operatorData);
-            }
-            writeIndexInParamSpace += targetSpace.length;
         }
 
         public override string ToString()
