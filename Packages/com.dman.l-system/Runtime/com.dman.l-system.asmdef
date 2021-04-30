@@ -3,15 +3,14 @@
     "rootNamespace": "Dman.LSystem",
     "references": [
         "Utilities",
-        "ProceduralToolkit",
-        "com.dman.MeshDraftExtensions",
         "Unity.Mathematics",
         "Unity.Entities",
         "Unity.Transforms",
         "Unity.Rendering.Hybrid",
         "Unity.Burst",
         "Unity.Collections",
-        "Unity.Jobs"
+        "Unity.Jobs",
+        "ProceduralToolkit"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
