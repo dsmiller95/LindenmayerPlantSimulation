@@ -200,7 +200,8 @@ namespace Dman.LSystem
         {
             if (isDisposed)
             {
-                throw new LSystemRuntimeException($"LSystem has already been disposed");
+                Debug.LogError($"LSystem has already been disposed");
+                return null;
             }
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
             if (globalParameters == null)
@@ -403,6 +404,21 @@ namespace Dman.LSystem
                     throw new System.Exception("stepper state is complete. no more steps");
             }
         }
+        
+        public JobHandle PendingDependency()
+        {
+            switch (stepState)
+            {
+                case StepState.MATCHING:
+                    return preAllocationStep;
+                case StepState.REPLACING:
+                    return finalDependency;
+                case StepState.COMPLETE:
+                default:
+                    return default;
+            }
+        }
+        
         public void ForceCompletePendingJobsAndDeallocate()
         {
             switch (stepState)

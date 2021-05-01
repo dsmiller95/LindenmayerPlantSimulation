@@ -98,8 +98,11 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public void ResetState(int? newSeed = null)
         {
-            if(systemState != null)
+            this.StopAllCoroutines();
+            if (systemState != null)
             {
+                pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
+                pendingStateHandle = null;
                 systemState.currentSymbols.Dispose(symbolDependents);
             }
 
@@ -140,7 +143,7 @@ namespace Dman.LSystem.UnityObjects
         {
             try
             {
-                if (_compiledSystem == null)
+                if (_compiledSystem == null || _compiledSystem.isDisposed)
                 {
                     SetNewCompiledSystem();
                 }
@@ -153,10 +156,22 @@ namespace Dman.LSystem.UnityObjects
                 pendingStateHandle = null;
                 yield break;
             }
+            if(pendingStateHandle == null)
+            {
+                yield break;
+            }
             LSystemState<float> nextState = null;
+            var waitAtEndOfFrame = false;
             while (nextState == null)
             {
-                yield return new WaitForEndOfFrame();
+                waitAtEndOfFrame = !waitAtEndOfFrame;
+                if (waitAtEndOfFrame)
+                {
+                    yield return new WaitForEndOfFrame();
+                }else
+                {
+                    yield return null;
+                }
                 nextState = pendingStateHandle.StepToNextState();
             }
             pendingStateHandle = null;
@@ -166,7 +181,8 @@ namespace Dman.LSystem.UnityObjects
         private void RenderNextState(LSystemState<float> nextState)
         {
             lastUpdateChanged = !(systemState?.currentSymbols.Equals(nextState.currentSymbols) ?? false);
-            systemState?.currentSymbols.Dispose();
+            systemState?.currentSymbols.Dispose(symbolDependents);
+            //systemState?.currentSymbols.Dispose();
 
             systemState = nextState;
 
