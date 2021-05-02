@@ -23,37 +23,30 @@ namespace Dman.LSystem.UnityObjects
         /// <summary>
         /// Gets the current state of the system
         /// </summary>
-        public SymbolString<float> CurrentState => systemState.currentSymbols;
+        public SymbolString<float> CurrentState => steppingHandle.currentState.currentSymbols;
 
         /// <summary>
         /// Emits whenever the system state changes
         /// </summary>
         public event Action OnSystemStateUpdated;
-
-        private LSystemState<float> systemState;
-
-        private bool ownsCompiledSystem;
-        private LSystem _compiledSystem;
         private ArrayParameterRepresenation<float> runtimeParameters;
-
-        public JobHandle symbolDependents {get; private set;}
-
-        /// <summary>
-        /// true if the last system step changed the state of this behavior, false otherwise
-        /// </summary>
-        public bool lastUpdateChanged { get; private set; }
+        public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
         /// the value of Time.time when this system was last updated
         /// </summary>
         public float lastUpdateTime { get; private set; }
-        /// <summary>
-        /// the total continuous steps taken by this system
-        /// </summary>
-        public int totalSteps { get; private set; }
 
-        public void SymbolStringDependsOn(JobHandle dependency)
+
+        private void Awake()
         {
-            symbolDependents = JobHandle.CombineDependencies(symbolDependents, dependency);
+            lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
+            if (systemObject != null)
+            {
+                systemObject.OnCachedSystemUpdated += OnSystemObjectRecompiled;
+            }
+            steppingHandle = new LSystemSteppingHandle(this);
+
+            steppingHandle.OnSystemStateUpdated += RenderLSystemState;
         }
 
         /// <summary>
@@ -68,59 +61,43 @@ namespace Dman.LSystem.UnityObjects
             }
             systemObject = newSystemObject;
             systemObject.OnCachedSystemUpdated += OnSystemObjectRecompiled;
-            ResetState();
+
+            this.ResetState();
         }
 
-        private void SetNewCompiledSystem()
+        /// <summary>
+        /// Reset the system state to the Axiom, and re-initialize the Random provider with a random seed unless otherwise specified
+        ///     also recompiles the L-system
+        /// </summary>
+        public void ResetState()
         {
-            if (ownsCompiledSystem)
-            {
-                _compiledSystem.Dispose();
-            }
             var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
             if (globalParams != null)
             {
                 Debug.Log("compiling new system");
                 var extraGlobalParams = globalParams.GenerateCompileTimeParameters();
-                _compiledSystem = systemObject?.CompileWithParameters(extraGlobalParams);
-                ownsCompiledSystem = true;
+                var newSystem = systemObject?.CompileWithParameters(extraGlobalParams);
+                this.steppingHandle.ResetState(
+                    new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                    newSystem,
+                    true
+                    );
             }
             else
             {
                 Debug.Log("using cached system");
-                _compiledSystem = systemObject?.compiledSystem;
-                ownsCompiledSystem = false;
-            }
-        }
-
-        /// <summary>
-        /// Reset the system state to the Axiom, and re-initialize the Random provider with a random seed unless otherwise specified
-        /// </summary>
-        public void ResetState(int? newSeed = null)
-        {
-            this.StopAllCoroutines();
-            if (systemState != null)
-            {
-                pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
-                pendingStateHandle = null;
-                systemState.currentSymbols.Dispose(symbolDependents);
+                if(systemObject.compiledSystem == null)
+                {
+                    systemObject.CompileToCached();
+                }
+                this.steppingHandle.ResetState(
+                    new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                    systemObject?.compiledSystem,
+                    false
+                    );
             }
 
-            this.SetNewCompiledSystem();
-            totalSteps = 0;
-            lastUpdateChanged = true;
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
-            systemState = new DefaultLSystemState(systemObject.axiom, newSeed ?? UnityEngine.Random.Range(int.MinValue, int.MaxValue));
-            // clear out the next state handle. if an update is pending, just abort it.
-
-            OnSystemStateUpdated?.Invoke();
-        }
-
-        private LSystemSteppingState pendingStateHandle;
-
-        public bool CanStep()
-        {
-            return pendingStateHandle == null && symbolDependents.IsCompleted;
         }
 
         /// <summary>
@@ -132,63 +109,12 @@ namespace Dman.LSystem.UnityObjects
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
-            if (!CanStep()) {
-                Debug.LogError("System is already waiting for an update!! To many!!");
-                return;
-            }
-            this.StartCoroutine(StepSystemCorouting());
+            this.steppingHandle.StepSystem(runtimeParameters);
         }
 
-        private IEnumerator StepSystemCorouting()
+        private void RenderLSystemState()
         {
-            try
-            {
-                if (_compiledSystem == null || _compiledSystem.isDisposed)
-                {
-                    SetNewCompiledSystem();
-                }
-                pendingStateHandle = _compiledSystem?.StepSystemJob(systemState, runtimeParameters.GetCurrentParameters());
-            }
-            catch (System.Exception e)
-            {
-                lastUpdateChanged = false;
-                Debug.LogException(e);
-                pendingStateHandle = null;
-                yield break;
-            }
-            if(pendingStateHandle == null)
-            {
-                yield break;
-            }
-            LSystemState<float> nextState = null;
-            var waitAtEndOfFrame = false;
-            while (nextState == null)
-            {
-                waitAtEndOfFrame = !waitAtEndOfFrame;
-                if (waitAtEndOfFrame)
-                {
-                    yield return new WaitForEndOfFrame();
-                }else
-                {
-                    yield return null;
-                }
-                nextState = pendingStateHandle.StepToNextState();
-            }
-            pendingStateHandle = null;
-            this.RenderNextState(nextState);
-        }
-
-        private void RenderNextState(LSystemState<float> nextState)
-        {
-            lastUpdateChanged = !(systemState?.currentSymbols.Equals(nextState.currentSymbols) ?? false);
-            systemState?.currentSymbols.Dispose(symbolDependents);
-            //systemState?.currentSymbols.Dispose();
-
-            systemState = nextState;
-
             OnSystemStateUpdated?.Invoke();
-
-            totalSteps++;
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0, 0.1f);
         }
 
@@ -203,15 +129,6 @@ namespace Dman.LSystem.UnityObjects
             runtimeParameters.SetParameter(parameterName, parameterValue);
         }
 
-        private void Awake()
-        {
-            lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
-            if (systemObject != null)
-            {
-                systemObject.OnCachedSystemUpdated += OnSystemObjectRecompiled;
-            }
-            totalSteps = 0;
-        }
 
         private void OnDestroy()
         {
@@ -219,14 +136,7 @@ namespace Dman.LSystem.UnityObjects
             {
                 systemObject.OnCachedSystemUpdated -= OnSystemObjectRecompiled;
             }
-            this.StopAllCoroutines();
-            symbolDependents.Complete();
-            pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
-            if (ownsCompiledSystem)
-            {
-                _compiledSystem?.Dispose();
-            }
-            systemState?.currentSymbols.Dispose();
+            steppingHandle.Dispose();
         }
 
         private void OnSystemObjectRecompiled()

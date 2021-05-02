@@ -57,9 +57,10 @@ namespace Dman.LSystem.UnityObjects
             var newSystem = CompileSystem(globalCompileTimeOverrides);
             if (newSystem != null)
             {
-                OnCachedSystemUpdated?.Invoke();
                 compiledSystem?.Dispose();
                 compiledSystem = newSystem;
+
+                OnCachedSystemUpdated?.Invoke();
             }
         }
 

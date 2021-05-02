@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.UnityObjects;
 using System.Linq;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -46,6 +47,12 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// <param name="symbols"></param>
         public void InterpretSymbols(SymbolString<float> symbols, LSystemBehavior behaviorHandler)
         {
+            var dep = this.InterpretSymbols(symbols);
+            behaviorHandler.steppingHandle.RegisterDependencyForSymbols(dep);
+            return;
+        }
+        public JobHandle InterpretSymbols(SymbolString<float> symbols)
+        {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
             var manager = World.DefaultGameObjectInjectionWorld.EntityManager;
             if (!manager.Exists(lSystemEntity))
@@ -76,13 +83,13 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 
             organSystem.ClearOldOrgans(deleteBuffer, lSystemEntity);
 
-            var turtleCompilationDep = turtle.CompileStringToTransformsWithMeshIds(
+            var dep = turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
                 createNewOrgansCommandBuffer,
                 lSystemEntity);
-            behaviorHandler.SymbolStringDependsOn(turtleCompilationDep);
 
             UnityEngine.Profiling.Profiler.EndSample();
+            return dep;
         }
 
         private void Awake()
