@@ -16,13 +16,13 @@ public class LSystemTests
     {
         var systemState = new DefaultLSystemState("B");
 
-        Assert.AreEqual("B", systemState.currentSymbols.ToString());
+        Assert.AreEqual("B", systemState.currentSymbols.Data.ToString());
         Assert.AreEqual(new JaggedIndexing
         {
             index = 0,
             length = 0
-        }, systemState.currentSymbols.newParameters.indexing[0]);
-        Assert.AreEqual(0, systemState.currentSymbols.newParameters.data.Length);
+        }, systemState.currentSymbols.Data.newParameters.indexing[0]);
+        Assert.AreEqual(0, systemState.currentSymbols.Data.newParameters.data.Length);
         systemState.currentSymbols.Dispose();
     }
     [Test]
@@ -35,15 +35,15 @@ public class LSystemTests
             "B -> A"
             });
 
-        Assert.AreEqual("B", state.currentSymbols.ToString());
+        Assert.AreEqual("B", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A", state.currentSymbols.ToString());
+        Assert.AreEqual("A", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("AB", state.currentSymbols.ToString());
+        Assert.AreEqual("AB", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABA", state.currentSymbols.ToString());
+        Assert.AreEqual("ABA", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABAAB", state.currentSymbols.ToString());
+        Assert.AreEqual("ABAAB", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -58,17 +58,17 @@ public class LSystemTests
             "D < C > D -> B"
         });
 
-        Assert.AreEqual("A", state.currentSymbols.ToString());
+        Assert.AreEqual("A", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("AB", state.currentSymbols.ToString());
+        Assert.AreEqual("AB", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABCDC", state.currentSymbols.ToString());
+        Assert.AreEqual("ABCDC", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABCDCCAC", state.currentSymbols.ToString());
+        Assert.AreEqual("ABCDCCAC", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABCDCCACCABC", state.currentSymbols.ToString());
+        Assert.AreEqual("ABCDCCACCABC", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABCDCCACCABCCABCDCC", state.currentSymbols.ToString());
+        Assert.AreEqual("ABCDCCACCABCCABCDCC", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
     [Test]
@@ -82,21 +82,21 @@ public class LSystemTests
             "A < A     -> B"
         });
 
-        Assert.AreEqual("B", state.currentSymbols.ToString());
+        Assert.AreEqual("B", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A", state.currentSymbols.ToString());
+        Assert.AreEqual("A", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("AB", state.currentSymbols.ToString());
+        Assert.AreEqual("AB", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABA", state.currentSymbols.ToString());
+        Assert.AreEqual("ABA", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABAAB", state.currentSymbols.ToString());
+        Assert.AreEqual("ABAAB", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABABA", state.currentSymbols.ToString());
+        Assert.AreEqual("ABABA", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABAABAAB", state.currentSymbols.ToString());
+        Assert.AreEqual("ABAABAAB", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABABABA", state.currentSymbols.ToString());
+        Assert.AreEqual("ABABABA", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -110,15 +110,15 @@ public class LSystemTests
             "A < A -> B"
         });
 
-        Assert.AreEqual("B", state.currentSymbols.ToString());
+        Assert.AreEqual("B", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABA", state.currentSymbols.ToString());
+        Assert.AreEqual("ABA", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("AABAA", state.currentSymbols.ToString());
+        Assert.AreEqual("AABAA", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("BABAB", state.currentSymbols.ToString());
+        Assert.AreEqual("BABAB", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ABAAABAAABA", state.currentSymbols.ToString());
+        Assert.AreEqual("ABAAABAAABA", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -131,15 +131,15 @@ public class LSystemTests
             "B -> A"
         });
 
-        Assert.AreEqual("B", state.currentSymbols.ToString());
+        Assert.AreEqual("B", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A", state.currentSymbols.ToString());
+        Assert.AreEqual("A", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACB", state.currentSymbols.ToString());
+        Assert.AreEqual("ACB", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACBCA", state.currentSymbols.ToString());
+        Assert.AreEqual("ACBCA", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACBCACACB", state.currentSymbols.ToString());
+        Assert.AreEqual("ACBCACACB", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -168,17 +168,17 @@ public class LSystemTests
             "P(0.1) | C -> AB"
         });
 
-        Assert.AreEqual("C", state.currentSymbols.ToString());
+        Assert.AreEqual("C", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A", state.currentSymbols.ToString());
+        Assert.AreEqual("A", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("AC", state.currentSymbols.ToString());
+        Assert.AreEqual("AC", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACA", state.currentSymbols.ToString());
+        Assert.AreEqual("ACA", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACAAC", state.currentSymbols.ToString());
+        Assert.AreEqual("ACAAC", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("ACAACACA", state.currentSymbols.ToString());
+        Assert.AreEqual("ACAACACA", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -190,15 +190,15 @@ public class LSystemTests
             "A(x) -> A(x + 1)",
         });
 
-        Assert.AreEqual("A(1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(1)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(4)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(4)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(5)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(5)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -210,15 +210,15 @@ public class LSystemTests
             "A(x, y) -> A(x + y, x * y)",
         });
 
-        Assert.AreEqual("A(1, 1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(1, 1)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(2, 1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2, 1)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(3, 2)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3, 2)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(5, 6)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(5, 6)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(11, 30)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(11, 30)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -231,17 +231,17 @@ public class LSystemTests
             "A(x) < B(y)        -> B(x)",
         });
 
-        Assert.AreEqual("A(1)B(1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(1)B(1)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(2)B(1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2)B(1)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(3)B(2)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)B(2)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(5)B(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(5)B(3)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(8)B(5)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(8)B(5)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(13)B(8)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(13)B(8)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -253,17 +253,17 @@ public class LSystemTests
             "A(x) : x < 6 -> A(x + 1)",
         });
 
-        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(4)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(4)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(5)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(5)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(6)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(6)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("A(6)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(6)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -280,17 +280,17 @@ public class LSystemTests
 
         var defaultGlobalParams = new float[] { 5 };
 
-        Assert.AreEqual("A(1, 1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(1, 1)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(-3, 6)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(-3, 6)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(-2, -13)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(-2, -13)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(-20, 31)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(-20, 31)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(6, -615)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(6, -615)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(-614, -3685)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(-614, -3685)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -307,21 +307,21 @@ public class LSystemTests
 
         var defaultGlobalParams = new float[] { 3 };
 
-        Assert.AreEqual("A(0)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(0)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(1)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.Data.ToString());
 
         var nextGlobalParams = new float[] { 4 };
         state = basicLSystem.StepSystem(state, nextGlobalParams);
-        Assert.AreEqual("A(4)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(4)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
     [Test]
@@ -337,21 +337,21 @@ public class LSystemTests
 
         var defaultGlobalParams = new float[] { 3 };
 
-        Assert.AreEqual("A(0)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(0)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(1)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(1)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(2)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(2)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(3)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(3)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
     
@@ -463,7 +463,7 @@ public class LSystemTests
 
         var resultSequence = new List<string>();
         var resultSampleSize = 12;
-        resultSequence.Add(state.currentSymbols.ToString());
+        resultSequence.Add(state.currentSymbols.Data.ToString());
 
         LSystemState<float> systemCopyAt5 = null;
         for (int i = 1; i < resultSampleSize; i++)
@@ -477,14 +477,14 @@ public class LSystemTests
             {
                 state = basicLSystem.StepSystem(state, defaultGlobalParams);
             }
-            resultSequence.Add(state.currentSymbols.ToString());
+            resultSequence.Add(state.currentSymbols.Data.ToString());
         }
         state.currentSymbols.Dispose();
 
         for (int i = 5; i < resultSampleSize; i++)
         {
             systemCopyAt5 = basicLSystem.StepSystem(systemCopyAt5, defaultGlobalParams);
-            Assert.AreEqual(resultSequence[i], systemCopyAt5.currentSymbols.ToString(), $"Index {i}");
+            Assert.AreEqual(resultSequence[i], systemCopyAt5.currentSymbols.Data.ToString(), $"Index {i}");
         }
         systemCopyAt5.currentSymbols.Dispose();
     }
@@ -501,9 +501,9 @@ public class LSystemTests
             "A > AB -> D",
         });
 
-        Assert.AreEqual("AABCD", state.currentSymbols.ToString());
+        Assert.AreEqual("AABCD", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("FBBCD", state.currentSymbols.ToString());
+        Assert.AreEqual("FBBCD", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
     [Test]
@@ -531,9 +531,9 @@ public class LSystemTests
             "    A > A -> B",
             "A < A     -> C"
         });
-        Assert.AreEqual("AAA", state.currentSymbols.ToString());
+        Assert.AreEqual("AAA", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("BBC", state.currentSymbols.ToString());
+        Assert.AreEqual("BBC", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
 
         state = new DefaultLSystemState("AAA");
@@ -541,9 +541,9 @@ public class LSystemTests
             "A < A     -> C",
             "    A > A -> B"
         });
-        Assert.AreEqual("AAA", state.currentSymbols.ToString());
+        Assert.AreEqual("AAA", state.currentSymbols.Data.ToString());
         state = basicLSystem2.StepSystem(state);
-        Assert.AreEqual("BCC", state.currentSymbols.ToString());
+        Assert.AreEqual("BCC", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
     [Test]
@@ -557,17 +557,17 @@ public class LSystemTests
             "A < A     -> 6B7"
         }, ignoredCharacters: "1234567");
 
-        Assert.AreEqual("B", state.currentSymbols.ToString());
+        Assert.AreEqual("B", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("3A4", state.currentSymbols.ToString());
+        Assert.AreEqual("3A4", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("3A1B24", state.currentSymbols.ToString());
+        Assert.AreEqual("3A1B24", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("3A1B213A424", state.currentSymbols.ToString());
+        Assert.AreEqual("3A1B213A424", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("3A1B213A4213A1B2424", state.currentSymbols.ToString());
+        Assert.AreEqual("3A1B213A4213A1B2424", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("3A1B213A4213542136B713A42424", state.currentSymbols.ToString());
+        Assert.AreEqual("3A1B213A4213542136B713A42424", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -589,37 +589,37 @@ public class LSystemTests
 
         LSystemState<float> state = new DefaultLSystemState("A(0, 5)B(10, 15)");
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(0, 5)B(10, 15)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(0, 5)B(10, 15)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
 
         state = new DefaultLSystemState("A(0, 5)B(3, 15)");
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("B(0, 5)B(3, 15)", state.currentSymbols.ToString());
+        Assert.AreEqual("B(0, 5)B(3, 15)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
 
         state = new DefaultLSystemState("A(4, 5)B(10, 15)");
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(10, 15)B(10, 15)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(10, 15)B(10, 15)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
 
         state = new DefaultLSystemState("A(4, 5)B(3, 15)");
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("B(3, 15)B(3, 15)", state.currentSymbols.ToString());
+        Assert.AreEqual("B(3, 15)B(3, 15)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
 
         state = new DefaultLSystemState("A(4)B(5, 10)");
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(10, 4)B(5, 10)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(10, 4)B(5, 10)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
 
         state = new DefaultLSystemState("A(4)B(10, 5)");
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("B(5, 4)B(10, 5)", state.currentSymbols.ToString());
+        Assert.AreEqual("B(5, 4)B(10, 5)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
 
         state = new DefaultLSystemState("A(1)B(10, 5)");
         state = basicLSystem.StepSystem(state, defaultGlobalParams);
-        Assert.AreEqual("A(1)B(10, 5)", state.currentSymbols.ToString());
+        Assert.AreEqual("A(1)B(10, 5)", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
 
@@ -677,7 +677,7 @@ public class LSystemTests
         {
             LSystemState<float> state = new DefaultLSystemState(axiom, attemptSeeder.NextUInt());
             state = system.StepSystem(state, globalParams);
-            resultSet.Add(state.currentSymbols.ToString());
+            resultSet.Add(state.currentSymbols.Data.ToString());
             state.currentSymbols.Dispose();
         }
         Assert.AreEqual(expectedResults.Length, resultSet.Count);

@@ -175,6 +175,11 @@ namespace Dman.LSystem.UnityObjects
 
         private void ParseDirective(string directiveText)
         {
+            if(directiveText[0] == '#')
+            {
+                // comment line
+                return;
+            }
             var directiveMatch = Regex.Match(directiveText, @"(?<directive>[^ ]+)\s+(?<parameter>.+)");
             if (!directiveMatch.Success)
             {

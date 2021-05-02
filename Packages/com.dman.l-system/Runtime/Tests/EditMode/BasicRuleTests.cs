@@ -22,7 +22,12 @@ public class BasicRuleTests
         )
     {
         globalParamNames = globalParamNames ?? new string[0];
-        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : SymbolString<float>.FromString(axiom, Allocator.Persistent);
+
+        using var symbols = new DependencyTracker<SymbolString<float>>(
+            axiom == null ?
+            new SymbolString<float>(sourceSymbols, sourceParameters)
+            : SymbolString<float>.FromString(axiom, Allocator.Persistent)
+            );
         using var expectedReplacement = SymbolString<float>.FromString(expectedReplacementText, Allocator.Persistent);
 
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
@@ -37,7 +42,7 @@ public class BasicRuleTests
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
         using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
-        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+        branchCache.BuildJumpIndexesFromSymbols(symbols);
         var random = new Unity.Mathematics.Random();
         var matchSingleData = new LSystemSingleSymbolMatchData
         {
@@ -47,7 +52,7 @@ public class BasicRuleTests
 
         var potentialMatch = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
             branchCache,
-            symbols,
+            symbols.Data,
             matchIndex,
             paramMemory,
             matchSingleData.tmpParameterMemorySpace.index,
@@ -99,7 +104,11 @@ public class BasicRuleTests
         )
     {
         globalParamNames = globalParamNames ?? new string[0];
-        using var symbols = axiom == null ? new SymbolString<float>(sourceSymbols, sourceParameters) : SymbolString<float>.FromString(axiom, Allocator.Persistent);
+        using var symbols = new DependencyTracker<SymbolString<float>>(
+            axiom == null ?
+            new SymbolString<float>(sourceSymbols, sourceParameters)
+            : SymbolString<float>.FromString(axiom, Allocator.Persistent)
+            );
         var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
@@ -110,7 +119,7 @@ public class BasicRuleTests
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
         using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
-        branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+        branchCache.BuildJumpIndexesFromSymbols(symbols);
         var random = new Unity.Mathematics.Random();
         var matchSingleData = new LSystemSingleSymbolMatchData
         {
@@ -120,7 +129,7 @@ public class BasicRuleTests
 
         var potentialMatch = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
             branchCache,
-            symbols,
+            symbols.Data,
             matchIndex,
             paramMemory,
             matchSingleData.tmpParameterMemorySpace.index,
@@ -143,14 +152,16 @@ public class BasicRuleTests
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
 
-        var symbols = new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] });
+        var symbols = new DependencyTracker <SymbolString<float>> (
+                new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] })
+            );
         try
         {
             var globalParams = new float[0];
             using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
             using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
             using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
-            branchCache.BuildJumpIndexesFromSymbols(symbols.symbols);
+            branchCache.BuildJumpIndexesFromSymbols(symbols);
             var random = new Unity.Mathematics.Random();
             var matchSingleData = new LSystemSingleSymbolMatchData
             {
@@ -160,7 +171,7 @@ public class BasicRuleTests
 
             var preMatchSuccess = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
                 branchCache,
-                symbols,
+                symbols.Data,
                 0,
                 paramMemory,
                 matchSingleData.tmpParameterMemorySpace.index,
@@ -177,7 +188,8 @@ public class BasicRuleTests
             Assert.AreEqual(2, matchSingleData.replacementSymbolIndexing.length);
             Assert.AreEqual(0, matchSingleData.replacementParameterIndexing.length);
 
-            symbols.newParameters[0] = new JaggedIndexing
+            var symbolRawData = symbols.Data;
+            symbolRawData.newParameters[0] = new JaggedIndexing
             {
                 index = 0,
                 length = 1
@@ -190,31 +202,7 @@ public class BasicRuleTests
             };
             preMatchSuccess = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
                 branchCache,
-                symbols,
-                0,
-                paramMemory,
-                matchSingleData.tmpParameterMemorySpace.index,
-                ref matchSingleData,
-                new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
-                globalNative,
-                ruleNativeData.dynamicOperatorMemory,
-                ref random,
-                ruleNativeData.ruleOutcomeMemorySpace
-                );
-            Assert.IsFalse(preMatchSuccess);
-
-
-            symbols.newParameters.data.Dispose();
-            symbols.newParameters.data = new Unity.Collections.NativeArray<float>(new float[] { 1 }, Unity.Collections.Allocator.Persistent);
-
-            matchSingleData = new LSystemSingleSymbolMatchData
-            {
-                isTrivial = false,
-                tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(0)
-            };
-            preMatchSuccess = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
-                branchCache,
-                symbols,
+                symbols.Data,
                 0,
                 paramMemory,
                 matchSingleData.tmpParameterMemorySpace.index,

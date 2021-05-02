@@ -42,12 +42,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             var buffer = spawnCommandBuffer.CreateCommandBuffer();
 
+            var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
             var turtleCompileJob = new TurtleCompilationJob
             {
                 symbols = symbols,
                 operationsByKey = operationsByKey,
                 organData = allOrganData,
-                nativeTurtleStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob),
+                nativeTurtleStack = tmpHelperStack,
 
                 submeshIndexIncrementChar = submeshIndexIncrementChar,
                 branchStartChar = branchStartChar,
@@ -60,6 +61,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             var handle = turtleCompileJob.Schedule();
             spawnCommandBuffer.AddJobHandleForProducer(handle);
+
+            handle = tmpHelperStack.Dispose(handle);
 
             pendingJobs = JobHandle.CombineDependencies(handle, pendingJobs);
 

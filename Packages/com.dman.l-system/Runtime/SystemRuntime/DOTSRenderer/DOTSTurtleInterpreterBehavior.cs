@@ -45,10 +45,10 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
         /// <param name="symbols"></param>
-        public void InterpretSymbols(SymbolString<float> symbols, LSystemBehavior behaviorHandler)
+        public void InterpretSymbols(DependencyTracker<SymbolString<float>> symbols)
         {
-            var dep = this.InterpretSymbols(symbols);
-            behaviorHandler.steppingHandle.RegisterDependencyForSymbols(dep);
+            var dep = this.InterpretSymbols(symbols.Data);
+            symbols.RegisterDependencyOnData(dep);
             return;
         }
         public JobHandle InterpretSymbols(SymbolString<float> symbols)
@@ -92,7 +92,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             return dep;
         }
 
-        private void Awake()
+        private void Start()
         {
             turtle = new TurtleInterpretor(
                 operationSets,
@@ -125,7 +125,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         {
             if (System != null)
             {
-                this.InterpretSymbols(System.CurrentState, System);
+                this.InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
             }
         }
     }

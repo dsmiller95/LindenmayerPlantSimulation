@@ -5,10 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
-    public struct TmpNativeStack<T> where T:unmanaged
+    public struct TmpNativeStack<T>: INativeDisposable where T:unmanaged
     {
         private NativeList<T> backingList;
         private int indexInStack;
@@ -47,6 +49,16 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         public void Reset()
         {
             indexInStack = 0;
+        }
+
+        public JobHandle Dispose(JobHandle inputDeps)
+        {
+            return backingList.Dispose(inputDeps);
+        }
+
+        public void Dispose()
+        {
+            backingList.Dispose();
         }
     }
 }

@@ -4,10 +4,19 @@
 #ignore /\&^F$`@
 
 
-## first step: identify minimal match identity
-## 	contains an ID of the matched rule. which requires context matches
-##	already contains a mapping from match into symbols. used to extract parameters.
-##	can store either captured parameters directly. or matched symbol mapping. both are of unknown length 
+## responsibilities:
+## 	Own lifecycle of current state and last state
+## 	own stepping states, to keep track of while the l-system is actively stepping
+## 	
+## 	Optionally own lifecycle of l-system object
+## 	Own reference to l-system scriptable object
+## 	
+## 	- Set new L-system
+## 	- indicate if the current step is complete
+## 	- trigger a step, which will conclude with modifying the state
+## 	- emit event after any change made to the current state
+## 	- manually set the state, used to reset to axiom
+## 	- stop all dependents + dispose of disposables when disposed
 	
 
 ## flags set based on the pollination state

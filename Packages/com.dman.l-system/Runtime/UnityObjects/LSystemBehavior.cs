@@ -20,16 +20,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public LSystemObject systemObject;
 
-        /// <summary>
-        /// Gets the current state of the system
-        /// </summary>
-        public SymbolString<float> CurrentState => steppingHandle.currentState.currentSymbols;
-
-        /// <summary>
-        /// Emits whenever the system state changes
-        /// </summary>
         public event Action OnSystemStateUpdated;
-        private ArrayParameterRepresenation<float> runtimeParameters;
         public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
         /// the value of Time.time when this system was last updated
@@ -42,11 +33,8 @@ namespace Dman.LSystem.UnityObjects
             lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
             if (systemObject != null)
             {
-                systemObject.OnCachedSystemUpdated += OnSystemObjectRecompiled;
+                this.SetSystem(systemObject);
             }
-            steppingHandle = new LSystemSteppingHandle(this);
-
-            steppingHandle.OnSystemStateUpdated += RenderLSystemState;
         }
 
         /// <summary>
@@ -55,19 +43,27 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="newSystemObject"></param>
         public void SetSystem(LSystemObject newSystemObject)
         {
-            if (systemObject != null)
-            {
-                systemObject.OnCachedSystemUpdated -= OnSystemObjectRecompiled;
-            }
             systemObject = newSystemObject;
-            systemObject.OnCachedSystemUpdated += OnSystemObjectRecompiled;
+            if(systemObject != null)
+            {
+                steppingHandle?.Dispose();
+                var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
+                if (globalParams == null)
+                {
+                    steppingHandle = new LSystemSteppingHandle(this, systemObject, true);
+                }
+                else
+                {
+                    steppingHandle = new LSystemSteppingHandle(this, systemObject, false);
+                }
+                steppingHandle.OnSystemStateUpdated += LSystemStateWasUpdated;
+            }
 
             this.ResetState();
         }
 
         /// <summary>
         /// Reset the system state to the Axiom, and re-initialize the Random provider with a random seed unless otherwise specified
-        ///     also recompiles the L-system
         /// </summary>
         public void ResetState()
         {
@@ -76,25 +72,10 @@ namespace Dman.LSystem.UnityObjects
             {
                 Debug.Log("compiling new system");
                 var extraGlobalParams = globalParams.GenerateCompileTimeParameters();
-                var newSystem = systemObject?.CompileWithParameters(extraGlobalParams);
-                this.steppingHandle.ResetState(
-                    new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
-                    newSystem,
-                    true
-                    );
-            }
-            else
+                this.steppingHandle.RecompileLSystem(extraGlobalParams);
+            }else
             {
-                Debug.Log("using cached system");
-                if(systemObject.compiledSystem == null)
-                {
-                    systemObject.CompileToCached();
-                }
-                this.steppingHandle.ResetState(
-                    new DefaultLSystemState(systemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
-                    systemObject?.compiledSystem,
-                    false
-                    );
+                steppingHandle.ResetState();
             }
 
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
@@ -109,10 +90,10 @@ namespace Dman.LSystem.UnityObjects
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
-            this.steppingHandle.StepSystem(runtimeParameters);
+            this.steppingHandle.StepSystem();
         }
 
-        private void RenderLSystemState()
+        private void LSystemStateWasUpdated()
         {
             OnSystemStateUpdated?.Invoke();
             lastUpdateTime = Time.time + UnityEngine.Random.Range(0, 0.1f);
@@ -126,23 +107,13 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="parameterValue"></param>
         public void SetRuntimeParameter(string parameterName, float parameterValue)
         {
-            runtimeParameters.SetParameter(parameterName, parameterValue);
+            this.steppingHandle.runtimeParameters.SetParameter(parameterName, parameterValue);
         }
 
 
         private void OnDestroy()
         {
-            if (systemObject != null)
-            {
-                systemObject.OnCachedSystemUpdated -= OnSystemObjectRecompiled;
-            }
             steppingHandle.Dispose();
-        }
-
-        private void OnSystemObjectRecompiled()
-        {
-            runtimeParameters = systemObject.GetRuntimeParameters();
-            ResetState();
         }
     }
 }

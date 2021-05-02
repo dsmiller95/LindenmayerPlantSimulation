@@ -43,7 +43,7 @@ namespace Dman.LSystem
 
     public class LSystemState<T> where T : unmanaged
     {
-        public SymbolString<T> currentSymbols { get; set; }
+        public DependencyTracker<SymbolString<T>> currentSymbols;
         public Unity.Mathematics.Random randomProvider;
     }
 
@@ -53,7 +53,7 @@ namespace Dman.LSystem
         { }
         public DefaultLSystemState(string axiom, uint seed = 1)
         {
-            currentSymbols = SymbolString<float>.FromString(axiom);
+            currentSymbols = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString(axiom));
             randomProvider = new Unity.Mathematics.Random(seed);
         }
     }
@@ -218,12 +218,12 @@ namespace Dman.LSystem
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
-            var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var parameterTotalSum = 0;
             var possibleMatchesTotalSum = 0;
-            for (int i = 0; i < systemState.currentSymbols.Length; i++)
+            for (int i = 0; i < systemState.currentSymbols.Data.Length; i++)
             {
-                var symbol = systemState.currentSymbols[i];
+                var symbol = systemState.currentSymbols.Data[i];
                 var matchData = new LSystemSingleSymbolMatchData()
                 {
                     tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(parameterTotalSum)
@@ -253,7 +253,7 @@ namespace Dman.LSystem
                 branchCloseSymbol,
                 ignoredCharacters,
                 nativeRuleData);
-            tmpBranchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols.symbols);
+            tmpBranchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
             UnityEngine.Profiling.Profiler.EndSample();
 
 
@@ -278,7 +278,7 @@ namespace Dman.LSystem
             {
                 matchSingletonData = matchSingletonData,
 
-                sourceData = systemState.currentSymbols,
+                sourceData = systemState.currentSymbols.Data,
                 tmpParameterMemory = parameterMemory,
 
                 globalOperatorData = nativeRuleData.dynamicOperatorMemory,
@@ -311,9 +311,10 @@ namespace Dman.LSystem
                 matchSingletonData = matchSingletonData,
                 totalResultSymbolCount = totalSymbolLength,
                 totalResultParameterCount = totalSymbolParameterCount,
-                sourceParameterIndexes = systemState.currentSymbols.newParameters.indexing,
+                sourceParameterIndexes = systemState.currentSymbols.Data.newParameters.indexing,
             };
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchingJobHandle);
+            systemState.currentSymbols.RegisterDependencyOnData(totalSymbolLengthDependency);
 
             tempState.preAllocationStep = totalSymbolLengthDependency;
 
@@ -350,7 +351,7 @@ namespace Dman.LSystem
     public class LSystemSteppingState
     {
         public SymbolStringBranchingCache branchingCache;
-        public SymbolString<float> sourceSymbolString;
+        public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public IDictionary<int, IList<BasicRule>> rulesByTargetSymbol;
         public Unity.Mathematics.Random randResult;
 
@@ -466,7 +467,7 @@ namespace Dman.LSystem
                 parameterMatchMemory = tmpParameterMemory,
                 matchSingletonData = matchSingletonData,
 
-                sourceData = sourceSymbolString,
+                sourceData = sourceSymbolString.Data,
                 structExpressionSpace = structExpressionSpace,
                 globalOperatorData = operatorDefinitions,
                 replacementSymbolData = replacementSymbolData,
@@ -480,6 +481,7 @@ namespace Dman.LSystem
                 matchSingletonData.Length,
                 100
             );
+            sourceSymbolString.RegisterDependencyOnData(finalDependency);
 
             UnityEngine.Profiling.Profiler.EndSample();
             stepState = StepState.REPLACING;
@@ -495,7 +497,7 @@ namespace Dman.LSystem
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
-                currentSymbols = this.target
+                currentSymbols = new DependencyTracker<SymbolString<float>>(this.target)
             };
             branchingCache.Dispose();
             stepState = StepState.COMPLETE;

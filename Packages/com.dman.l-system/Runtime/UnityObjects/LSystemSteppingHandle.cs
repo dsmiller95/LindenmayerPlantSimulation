@@ -11,7 +11,6 @@ namespace Dman.LSystem.UnityObjects
 {
     public class LSystemSteppingHandle: IDisposable
     {
-        public JobHandle currentStateSymbolDependents { get; private set; }
 
         // metadata
         public int totalSteps { get; private set; }
@@ -25,41 +24,78 @@ namespace Dman.LSystem.UnityObjects
         private MonoBehaviour coroutineOwner;
 
         private LSystem compiledSystem;
-        private bool ownsSystem;
+        public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
 
         public LSystemState<float> currentState { get; private set; }
         private LSystemState<float> lastState;
-        private JobHandle lastStateSymbolDependents;
 
         private LSystemSteppingState pendingStateHandle;
         private IEnumerator pendingCoroutine;
+        private LSystemObject mySystemObject;
+        private bool useSharedSystem;
 
-
-        public LSystemSteppingHandle(MonoBehaviour coroutineOwner)
+        public LSystemSteppingHandle(
+            MonoBehaviour coroutineOwner,
+            LSystemObject mySystemObject,
+            bool useSharedSystem)
         {
             totalSteps = 0;
             lastUpdateChanged = true;
             this.coroutineOwner = coroutineOwner;
-        }
 
-        public void RegisterDependencyForSymbols(JobHandle dependency)
-        {
-            currentStateSymbolDependents = JobHandle.CombineDependencies(
-                currentStateSymbolDependents,
-                dependency
-                );
+            this.mySystemObject = mySystemObject;
+            this.useSharedSystem = useSharedSystem;
+
+            if (useSharedSystem)
+            {
+                this.mySystemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
+            }
         }
 
 
         /// <summary>
-        /// Reset the system state to the Axiom, and re-initialize the Random provider with a random seed unless otherwise specified
+        /// Sets the system state to the new state. will clear out all metadata
+        ///     related to how the current state has been updated, and all changes to runtime parameters
         /// </summary>
-        public void ResetState(
-            DefaultLSystemState newState,
-            LSystem newSystem = null,
-            bool ownNewSystem = true)
+        public void ResetState()
         {
-            if(pendingCoroutine != null)
+            this.ResetState(
+                new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                null);
+        }
+
+        public void RecompileLSystem(Dictionary<string, string> globalCompileTimeOverrides)
+        {
+            if (useSharedSystem)
+            {
+                Debug.LogError("Invalid operation, when using shared system must compile via the shared object handle");
+                return;
+            }
+            var newSystem = mySystemObject.CompileWithParameters(globalCompileTimeOverrides);
+            this.ResetState(
+                new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                newSystem);
+        }
+        private void OnSharedSystemRecompiled()
+        {
+            if (!useSharedSystem)
+            {
+                Debug.LogError("Invalid operation. should only listen for recompilation updates when using shared system");
+                return;
+            }
+            this.ResetState(
+                new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                mySystemObject.compiledSystem);
+        }
+
+        /// <summary>
+        /// Optionally Set to a different L-system, and reset the state and the current runtime parameters
+        /// </summary>
+        private void ResetState(
+           DefaultLSystemState newState,
+           LSystem newSystem)
+        {
+            if (pendingCoroutine != null)
             {
                 coroutineOwner.StopCoroutine(pendingCoroutine);
             }
@@ -68,16 +104,22 @@ namespace Dman.LSystem.UnityObjects
                 pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
                 pendingStateHandle = null;
             }
-            lastState?.currentSymbols.Dispose(lastStateSymbolDependents);
+            lastState?.currentSymbols.Dispose();
             lastState = null;
-            currentState?.currentSymbols.Dispose(currentStateSymbolDependents);
+            currentState?.currentSymbols.Dispose();
             currentState = null;
-
-            this.SetNewCompiledSystem(newSystem, ownNewSystem);
 
             totalSteps = 0;
             lastUpdateChanged = true;
             currentState = newState;
+
+            runtimeParameters = mySystemObject.GetRuntimeParameters();
+
+            if (newSystem != null)
+            {
+                this.SetNewCompiledSystem(newSystem);
+            }
+
             // clear out the next state handle. if an update is pending, just abort it.
 
             OnSystemStateUpdated?.Invoke();
@@ -85,7 +127,7 @@ namespace Dman.LSystem.UnityObjects
 
         public bool CanStep()
         {
-            return pendingStateHandle == null && currentStateSymbolDependents.IsCompleted;
+            return pendingStateHandle == null;
         }
 
         /// <summary>
@@ -95,8 +137,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         /// <param name="CompleteInLateUpdate">When set to true, the behavior will queue up the jobs and wait until the next frame to complete them</param>
         /// <returns>true if the state changed. false otherwise</returns>
-        public void StepSystem(
-            ArrayParameterRepresenation<float> runtimeParameters)
+        public void StepSystem()
         {
             if (!CanStep())
             {
@@ -109,6 +150,10 @@ namespace Dman.LSystem.UnityObjects
 
         public void Dispose()
         {
+            if (useSharedSystem)
+            {
+                this.mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
+            }
             if (pendingCoroutine != null)
             {
                 coroutineOwner.StopCoroutine(pendingCoroutine);
@@ -118,14 +163,13 @@ namespace Dman.LSystem.UnityObjects
                 pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
                 pendingStateHandle = null;
             }
-            lastStateSymbolDependents.Complete();
-            lastState?.currentSymbols.Dispose(lastStateSymbolDependents);
+            lastState?.currentSymbols.Dispose();
             lastState = null;
 
-            currentStateSymbolDependents.Complete();
-            currentState?.currentSymbols.Dispose(currentStateSymbolDependents);
+            currentState?.currentSymbols.Dispose();
             currentState = null;
         }
+
 
         private IEnumerator StepSystemCoroutine(ArrayParameterRepresenation<float> runtimeParameters)
         {
@@ -166,14 +210,12 @@ namespace Dman.LSystem.UnityObjects
             }
 
             // dispose the last state
-            lastStateSymbolDependents.Complete();
             lastState?.currentSymbols.Dispose();
-            lastStateSymbolDependents = currentStateSymbolDependents;
 
             lastState = currentState;
             currentState = nextState;
 
-            lastUpdateChanged = !(currentState?.currentSymbols.Equals(lastState.currentSymbols) ?? false);
+            lastUpdateChanged = !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
             totalSteps++;
 
             pendingStateHandle = null;
@@ -182,14 +224,13 @@ namespace Dman.LSystem.UnityObjects
         }
 
 
-        private void SetNewCompiledSystem(LSystem newSystem, bool ownNewSystem)
+        private void SetNewCompiledSystem(LSystem newSystem)
         {
-            if (this.ownsSystem)
+            if (!this.useSharedSystem)
             {
-                compiledSystem.Dispose();
+                compiledSystem?.Dispose();
             }
             this.compiledSystem = newSystem;
-            this.ownsSystem = ownNewSystem;
         }
     }
 }

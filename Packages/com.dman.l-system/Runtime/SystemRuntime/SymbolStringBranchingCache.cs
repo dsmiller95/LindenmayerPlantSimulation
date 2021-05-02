@@ -47,10 +47,10 @@ namespace Dman.LSystem.SystemRuntime
             branchingJumpIndexes = default;
         }
 
-        public void BuildJumpIndexesFromSymbols(NativeArray<int> symbols)
+        public void BuildJumpIndexesFromSymbols(DependencyTracker<SymbolString<float>> symbols)
         {
             var tmpBranchingJumpIndexes = new Dictionary<int, int>();
-            CacheAllBranchJumpIndexes(symbols, tmpBranchingJumpIndexes);
+            CacheAllBranchJumpIndexes(symbols.Data.symbols, tmpBranchingJumpIndexes);
 
             branchingJumpIndexes = new NativeHashMap<int, int>(tmpBranchingJumpIndexes.Count, Allocator.Persistent);
             foreach (var kvp in tmpBranchingJumpIndexes)
