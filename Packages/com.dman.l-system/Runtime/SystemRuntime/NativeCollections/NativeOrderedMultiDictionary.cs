@@ -1,14 +1,11 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
-    public struct NativeOrderedMultiDictionary<TValue> : IDisposable where TValue: unmanaged
+    public struct NativeOrderedMultiDictionary<TValue> : IDisposable where TValue : unmanaged
     {
         [NativeDisableParallelForRestriction]
         public JaggedNativeArray<TValue> rawData;
@@ -41,10 +38,10 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         }
 
         public bool IsCreated => rawData.IsCreated && dictionaryToIndex.IsCreated;
-        
+
         public bool TryGetValue(int key, out JaggedIndexing value)
         {
-            if(dictionaryToIndex.TryGetValue(key, out var index))
+            if (dictionaryToIndex.TryGetValue(key, out var index))
             {
                 value = rawData[index];
                 return true;
@@ -52,7 +49,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             value = default;
             return false;
         }
-        
+
         public JaggedIndexing this[int key]
         {
             get
@@ -63,30 +60,18 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         }
         public TValue this[JaggedIndexing keyIndex, int indexInList]
         {
-            get
-            {
-                return rawData[keyIndex, indexInList];
-            }
-            set
-            {
-                rawData[keyIndex, indexInList] = value;
-            }
+            get => rawData[keyIndex, indexInList];
+            set => rawData[keyIndex, indexInList] = value;
         }
         public TValue this[int key, int indexInList]
         {
-            get
-            {
-                return this[this[key], indexInList];
-            }
-            set
-            {
-                this[this[key], indexInList] = value;
-            }
+            get => this[this[key], indexInList];
+            set => this[this[key], indexInList] = value;
         }
         public void Dispose()
         {
-            this.rawData.Dispose();
-            this.dictionaryToIndex.Dispose();
+            rawData.Dispose();
+            dictionaryToIndex.Dispose();
         }
     }
 }

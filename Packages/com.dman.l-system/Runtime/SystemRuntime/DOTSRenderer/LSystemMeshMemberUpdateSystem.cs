@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 {

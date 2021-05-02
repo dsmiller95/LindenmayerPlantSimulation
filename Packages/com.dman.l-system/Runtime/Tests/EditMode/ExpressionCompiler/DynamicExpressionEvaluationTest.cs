@@ -2,9 +2,6 @@ using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using Unity.Collections;
 
@@ -54,7 +51,7 @@ public class DynamicExpressionEvaluationTest
 
         Assert.AreEqual(3f, result);
     }
-    
+
     [Test]
     public void BuildsLinqExpressionFromBuilderTree()
     {
@@ -83,7 +80,8 @@ public class DynamicExpressionEvaluationTest
 
         using var nativeOpData = new NativeArray<OperatorDefinition>(builder.OperatorSpaceNeeded, Allocator.Persistent);
         using var inputParams = new NativeArray<float>(new float[] { 2f }, Allocator.Persistent);
-        var opDataSpace = new JaggedIndexing {
+        var opDataSpace = new JaggedIndexing
+        {
             index = 0,
             length = builder.OperatorSpaceNeeded
         };

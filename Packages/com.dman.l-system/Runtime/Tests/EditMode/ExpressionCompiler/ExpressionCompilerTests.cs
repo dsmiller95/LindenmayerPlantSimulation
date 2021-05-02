@@ -2,7 +2,6 @@ using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -99,7 +98,8 @@ public class ExpressionCompilerTests
                 if (boolValue)
                 {
                     Assert.IsTrue(result > 0);
-                }else
+                }
+                else
                 {
                     Assert.IsFalse(result > 0);
                 }
@@ -166,7 +166,7 @@ public class ExpressionCompilerTests
                 {.5f, 10 },
                 {10 ,  0 },
                 },
-            new object[] { 
+            new object[] {
                 4f,
                 2f,
                 9f,

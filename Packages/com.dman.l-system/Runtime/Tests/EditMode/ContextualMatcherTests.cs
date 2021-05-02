@@ -72,7 +72,7 @@ public class ContextualMatcherTests
         var seriesMatcher = prefixBuilder.BuildIntoManagedMemory(nativeData, writer);
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString(target));
         using var branchingCache = new SymbolStringBranchingCache(
-            '[', ']', 
+            '[', ']',
             ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
             nativeData);
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
@@ -100,7 +100,7 @@ public class ContextualMatcherTests
             }
         }
     }
-    
+
     [Test]
     public void BasicBackwardMatchesOnlyImmediateSiblingNoBranching()
     {
@@ -476,7 +476,7 @@ public class ContextualMatcherTests
     public void ForwardMatchSelectsForCorrectParameterSize()
     {
         AssertForwardsMatch("EAB", "AB(x)", false);
-        AssertForwardsMatch("EA[B][B(1)]", "AB(x)", true,expectedCapturedParameters: new[] { 1f });
+        AssertForwardsMatch("EA[B][B(1)]", "AB(x)", true, expectedCapturedParameters: new[] { 1f });
         AssertForwardsMatch("EA[B][B(2)]", "AB(x, y)", false);
         AssertForwardsMatch("EA[B][B(3)]B(2, 3)", "AB(x, y)", true, expectedCapturedParameters: new[] { 2f, 3f });
     }

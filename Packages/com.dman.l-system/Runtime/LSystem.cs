@@ -4,7 +4,6 @@ using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -129,7 +128,7 @@ namespace Dman.LSystem
             foreach (var symbol in rulesByTargetSymbol.Keys.ToList())
             {
                 rulesByTargetSymbol[symbol] = rulesByTargetSymbol[symbol]
-                    .OrderByDescending(x => 
+                    .OrderByDescending(x =>
                         (x.ContextPrefix.IsValid ? x.ContextPrefix.graphNodeMemSpace.length : 0) +
                         (x.ContextSuffix.IsCreated ? x.ContextSuffix.graphNodeMemSpace.length : 0))
                     .ToList();
@@ -338,8 +337,8 @@ namespace Dman.LSystem
         public void Dispose()
         {
             if (isDisposed) return;
-            this.nativeRuleData.Dispose();
-            this.blittableRulesByTargetSymbol.Dispose();
+            nativeRuleData.Dispose();
+            blittableRulesByTargetSymbol.Dispose();
             isDisposed = true;
         }
     }
@@ -396,16 +395,16 @@ namespace Dman.LSystem
             switch (stepState)
             {
                 case StepState.MATCHING:
-                    this.CompleteIntermediateAndPerformAllocations();
+                    CompleteIntermediateAndPerformAllocations();
                     return null;
                 case StepState.REPLACING:
-                    return this.CompleteJobAndGetNextState();
+                    return CompleteJobAndGetNextState();
                 case StepState.COMPLETE:
                 default:
                     throw new System.Exception("stepper state is complete. no more steps");
             }
         }
-        
+
         public JobHandle PendingDependency()
         {
             switch (stepState)
@@ -419,7 +418,7 @@ namespace Dman.LSystem
                     return default;
             }
         }
-        
+
         public void ForceCompletePendingJobsAndDeallocate()
         {
             switch (stepState)
@@ -440,20 +439,20 @@ namespace Dman.LSystem
                     return;
             }
             if (branchingCache.IsCreated) branchingCache.Dispose();
-            if (this.target.IsCreated) target.Dispose();
+            if (target.IsCreated) target.Dispose();
         }
 
 
         private void CompleteIntermediateAndPerformAllocations()
         {
-            if(stepState != StepState.MATCHING)
+            if (stepState != StepState.MATCHING)
             {
                 throw new System.Exception("stepper state not compatible");
             }
             preAllocationStep.Complete();
             var totalNewSymbolSize = totalSymbolCount[0];
             var totalNewParamSize = totalSymbolParameterCount[0];
-            this.target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
+            target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
             totalSymbolCount.Dispose();
             totalSymbolParameterCount.Dispose();
 
@@ -497,7 +496,7 @@ namespace Dman.LSystem
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
-                currentSymbols = new DependencyTracker<SymbolString<float>>(this.target)
+                currentSymbols = new DependencyTracker<SymbolString<float>>(target)
             };
             branchingCache.Dispose();
             stepState = StepState.COMPLETE;
@@ -543,13 +542,14 @@ namespace Dman.LSystem
             var rnd = LSystem.RandomFromIndexAndSeed(((uint)startIndex) + 1, seed);
             for (int i = 0; i < batchSize; i++)
             {
-                this.ExecuteAtIndex(i + startIndex, forwardsMatchHelperStack, ref rnd);
+                ExecuteAtIndex(i + startIndex, forwardsMatchHelperStack, ref rnd);
             }
         }
         private void ExecuteAtIndex(
             int indexInSymbols,
             TmpNativeStack<SymbolStringBranchingCache.BranchEventData> helperStack,
-            ref Unity.Mathematics.Random random) {
+            ref Unity.Mathematics.Random random)
+        {
             var matchSingleton = matchSingletonData[indexInSymbols];
             if (matchSingleton.isTrivial)
             {

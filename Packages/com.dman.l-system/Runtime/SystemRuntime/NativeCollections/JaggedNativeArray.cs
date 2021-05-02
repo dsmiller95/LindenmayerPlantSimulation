@@ -73,7 +73,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             data = new NativeArray<TData>(paramSum, allocator, NativeArrayOptions.UninitializedMemory);
 
 
-            var localIndexingArrayHandle = this.indexing;
+            var localIndexingArrayHandle = indexing;
             WriteJaggedIndexing(
                 (index, indexData) =>
                 {
@@ -91,7 +91,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             int originInDataArray = 0)
         {
             var myDataSum = jaggedData.Select(x => x.Length).Sum();
-            if(dataArray.Length + originInDataArray < myDataSum)
+            if (dataArray.Length + originInDataArray < myDataSum)
             {
                 throw new Exception("data array not big enough");
             }

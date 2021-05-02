@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {
-    public class LSystemSteppingHandle: IDisposable
+    public class LSystemSteppingHandle : IDisposable
     {
 
         // metadata
@@ -59,7 +55,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public void ResetState()
         {
-            this.ResetState(
+            ResetState(
                 new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
                 null);
         }
@@ -72,7 +68,7 @@ namespace Dman.LSystem.UnityObjects
                 return;
             }
             var newSystem = mySystemObject.CompileWithParameters(globalCompileTimeOverrides);
-            this.ResetState(
+            ResetState(
                 new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
                 newSystem);
         }
@@ -83,7 +79,7 @@ namespace Dman.LSystem.UnityObjects
                 Debug.LogError("Invalid operation. should only listen for recompilation updates when using shared system");
                 return;
             }
-            this.ResetState(
+            ResetState(
                 new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
                 mySystemObject.compiledSystem);
         }
@@ -117,7 +113,7 @@ namespace Dman.LSystem.UnityObjects
 
             if (newSystem != null)
             {
-                this.SetNewCompiledSystem(newSystem);
+                SetNewCompiledSystem(newSystem);
             }
 
             // clear out the next state handle. if an update is pending, just abort it.
@@ -152,7 +148,7 @@ namespace Dman.LSystem.UnityObjects
         {
             if (useSharedSystem)
             {
-                this.mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
+                mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
             }
             if (pendingCoroutine != null)
             {
@@ -226,11 +222,11 @@ namespace Dman.LSystem.UnityObjects
 
         private void SetNewCompiledSystem(LSystem newSystem)
         {
-            if (!this.useSharedSystem)
+            if (!useSharedSystem)
             {
                 compiledSystem?.Dispose();
             }
-            this.compiledSystem = newSystem;
+            compiledSystem = newSystem;
         }
     }
 }

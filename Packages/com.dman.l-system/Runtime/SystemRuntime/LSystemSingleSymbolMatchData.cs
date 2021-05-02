@@ -1,10 +1,4 @@
-﻿using Dman.LSystem.SystemRuntime;
-using Dman.LSystem.SystemRuntime.NativeCollections;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 
 namespace Dman.LSystem.SystemRuntime
 {
@@ -62,7 +56,7 @@ namespace Dman.LSystem.SystemRuntime
 
     public enum LSystemMatchErrorCode
     {
-        NONE= 0,
+        NONE = 0,
         TOO_MANY_PARAMETERS = 1,
         TRIVIAL_SYMBOL_NOT_INDICATED_AT_MATCH_TIME = 2,
         TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME = 3

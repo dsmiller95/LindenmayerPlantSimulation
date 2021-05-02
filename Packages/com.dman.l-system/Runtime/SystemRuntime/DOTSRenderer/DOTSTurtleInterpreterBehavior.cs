@@ -1,7 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.Turtle;
+﻿using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.UnityObjects;
-using System.Linq;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms;
@@ -36,7 +34,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             {
                 manager.SetComponentData(lSystemEntity, new Rotation
                 {
-                    Value = this.transform.rotation
+                    Value = transform.rotation
                 });
             }
         }
@@ -47,7 +45,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// <param name="symbols"></param>
         public void InterpretSymbols(DependencyTracker<SymbolString<float>> symbols)
         {
-            var dep = this.InterpretSymbols(symbols.Data);
+            var dep = InterpretSymbols(symbols.Data);
             symbols.RegisterDependencyOnData(dep);
             return;
         }
@@ -57,19 +55,19 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             var manager = World.DefaultGameObjectInjectionWorld.EntityManager;
             if (!manager.Exists(lSystemEntity))
             {
-                this.lSystemEntity = manager.CreateEntity();
+                lSystemEntity = manager.CreateEntity();
                 manager.AddComponentData(lSystemEntity, new LSystemComponent());
                 manager.AddComponentData(lSystemEntity, new Translation
                 {
-                    Value = this.transform.position
+                    Value = transform.position
                 });
                 manager.AddComponentData(lSystemEntity, new Rotation
                 {
-                    Value = this.transform.rotation
+                    Value = transform.rotation
                 });
                 manager.AddComponentData(lSystemEntity, new NonUniformScale
                 {
-                    Value = this.transform.localScale
+                    Value = transform.localScale
                 });
                 manager.AddComponent<LocalToWorld>(lSystemEntity);
             }
@@ -115,7 +113,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             {
                 System.OnSystemStateUpdated -= OnSystemStateUpdated;
             }
-            if(turtle != null)
+            if (turtle != null)
             {
                 turtle.Dispose();
             }
@@ -125,7 +123,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         {
             if (System != null)
             {
-                this.InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
+                InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
             }
         }
     }

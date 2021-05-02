@@ -33,7 +33,7 @@ namespace Dman.LSystem.SystemCompiler
         {
             this.ruleText = ruleText;
             errorStartIndex = regexCapture.Index;
-            this.errorLength = regexCapture.Length;
+            errorLength = regexCapture.Length;
             errorDescription = description;
         }
 
@@ -52,7 +52,7 @@ namespace Dman.LSystem.SystemCompiler
                     // end of stream error
                     return ruleText + " : " + errorDescription;
                 }
-                if(string.IsNullOrEmpty(ruleText))
+                if (string.IsNullOrEmpty(ruleText))
                 {
                     return errorDescription;
                 }

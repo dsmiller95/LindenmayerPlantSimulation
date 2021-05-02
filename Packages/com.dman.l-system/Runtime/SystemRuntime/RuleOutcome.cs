@@ -40,7 +40,7 @@ namespace Dman.LSystem.SystemRuntime
             }
             dataWriter.indexInReplacementSymbolsMemory += replacementSymbolSpace.length;
 
-            this.blittable = new Blittable
+            blittable = new Blittable
             {
                 probability = probability,
                 replacementSymbolSize = (ushort)replacementSymbols.Length,

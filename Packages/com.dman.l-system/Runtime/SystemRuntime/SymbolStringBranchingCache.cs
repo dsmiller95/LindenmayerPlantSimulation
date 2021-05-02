@@ -1,8 +1,6 @@
 ﻿using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
@@ -162,9 +160,9 @@ namespace Dman.LSystem.SystemRuntime
             return false;
         }
 
-        public static void ReverseRange<T>(NativeArray<T> data, int firstIndex, int length) where T: unmanaged
+        public static void ReverseRange<T>(NativeArray<T> data, int firstIndex, int length) where T : unmanaged
         {
-            for (int i = 0; i < length/2; i++)
+            for (int i = 0; i < length / 2; i++)
             {
                 var swap0 = i + firstIndex;
                 var swap1 = length - 1 - i + firstIndex;
@@ -267,7 +265,7 @@ namespace Dman.LSystem.SystemRuntime
             int firstParameterCopyIndex,
             NativeArray<float> parameterCopyMemory,
             out byte paramsCopiedToMem,
-            TmpNativeStack<BranchEventData> helperStack 
+            TmpNativeStack<BranchEventData> helperStack
             )
         {
             helperStack.Reset();
@@ -321,7 +319,7 @@ namespace Dman.LSystem.SystemRuntime
 
                     var parentInMatch = targetIndexesToMatchIndexes[currentParentIndexInTarget];
                     var parentOfSearchState = indexInMatchDFSState.GetParentIndex();
-                    if(parentInMatch != parentOfSearchState)
+                    if (parentInMatch != parentOfSearchState)
                     {
                         // if the parents dont match, that means that the algo will be stepping backwards to the last branch sybmol.
                         paramsCopiedToMem = lastBranch.paramsCopiedAtThisPoint;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dman.LSystem.Packages.Tests.EditMode
 {
@@ -88,11 +86,11 @@ namespace Dman.LSystem.Packages.Tests.EditMode
             var max = uint.MinValue;
             foreach (var val in values)
             {
-                if(val < min)
+                if (val < min)
                 {
                     min = val;
                 }
-                if(val > max)
+                if (val > max)
                 {
                     max = val;
                 }

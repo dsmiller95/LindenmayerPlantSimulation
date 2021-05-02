@@ -373,7 +373,7 @@ C(age) < A(y) : age >= timeToFruit ->
     public void RealSystemConcurrentTest()
     {
         //var states = Enumerable.Range(0, 10).Select(x => new DefaultLSystemState(RealSystemAxiom)).ToArray();
-        
+
         var compiler = ScriptableObject.CreateInstance<LSystemObject>();
         compiler.ParseRulesFromCode(RealSystem);
         compiler.CompileToCached();
@@ -397,10 +397,11 @@ C(age) < A(y) : age >= timeToFruit ->
                 for (int i = 0; i < steppingStates.Length; i++)
                 {
                     var result = steppingStates[i].StepToNextState();
-                    if(result == null)
+                    if (result == null)
                     {
                         hasMoreSteps = true;
-                    }else
+                    }
+                    else
                     {
                         result.currentSymbols.Dispose();
                     }

@@ -1,9 +1,5 @@
-using Dman.LSystem.SystemRuntime;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -33,7 +29,7 @@ namespace Dman.LSystem.UnityObjects
             lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
             if (systemObject != null)
             {
-                this.SetSystem(systemObject);
+                SetSystem(systemObject);
             }
         }
 
@@ -44,7 +40,7 @@ namespace Dman.LSystem.UnityObjects
         public void SetSystem(LSystemObject newSystemObject)
         {
             systemObject = newSystemObject;
-            if(systemObject != null)
+            if (systemObject != null)
             {
                 steppingHandle?.Dispose();
                 var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
@@ -59,7 +55,7 @@ namespace Dman.LSystem.UnityObjects
                 steppingHandle.OnSystemStateUpdated += LSystemStateWasUpdated;
             }
 
-            this.ResetState();
+            ResetState();
         }
 
         /// <summary>
@@ -72,8 +68,9 @@ namespace Dman.LSystem.UnityObjects
             {
                 Debug.Log("compiling new system");
                 var extraGlobalParams = globalParams.GenerateCompileTimeParameters();
-                this.steppingHandle.RecompileLSystem(extraGlobalParams);
-            }else
+                steppingHandle.RecompileLSystem(extraGlobalParams);
+            }
+            else
             {
                 steppingHandle.ResetState();
             }
@@ -90,7 +87,7 @@ namespace Dman.LSystem.UnityObjects
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
-            this.steppingHandle.StepSystem();
+            steppingHandle.StepSystem();
         }
 
         private void LSystemStateWasUpdated()
@@ -107,7 +104,7 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="parameterValue"></param>
         public void SetRuntimeParameter(string parameterName, float parameterValue)
         {
-            this.steppingHandle.runtimeParameters.SetParameter(parameterName, parameterValue);
+            steppingHandle.runtimeParameters.SetParameter(parameterName, parameterValue);
         }
 
 

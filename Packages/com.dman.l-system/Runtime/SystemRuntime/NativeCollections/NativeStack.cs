@@ -1,16 +1,9 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
-    public struct TmpNativeStack<T>: INativeDisposable where T:unmanaged
+    public struct TmpNativeStack<T> : INativeDisposable where T : unmanaged
     {
         private NativeList<T> backingList;
         private int indexInStack;

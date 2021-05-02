@@ -152,7 +152,7 @@ public class BasicRuleTests
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
 
-        var symbols = new DependencyTracker <SymbolString<float>> (
+        var symbols = new DependencyTracker<SymbolString<float>>(
                 new SymbolString<float>(new int[] { 'A' }, new float[][] { new float[0] })
             );
         try

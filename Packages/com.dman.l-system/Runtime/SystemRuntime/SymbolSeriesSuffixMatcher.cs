@@ -1,7 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Unity.Collections;
 
@@ -35,12 +34,12 @@ namespace Dman.LSystem.SystemRuntime
         public int RequiredNodeMemorySpace { get; private set; }
         public SymbolSeriesPrefixBuilder(InputSymbol[] matchingSeries)
         {
-            this.targetSymbolSeries = matchingSeries;
+            targetSymbolSeries = matchingSeries;
             RequiredNodeMemorySpace = matchingSeries.Length;
         }
         public SymbolSeriesPrefixMatcher BuildIntoManagedMemory(
             SystemLevelRuleNativeData nativeData,
-            SymbolSeriesMatcherNativeDataWriter dataWriter, 
+            SymbolSeriesMatcherNativeDataWriter dataWriter,
             Allocator allocator = Allocator.Persistent)
         {
             var matcher = new SymbolSeriesPrefixMatcher();
@@ -71,7 +70,7 @@ namespace Dman.LSystem.SystemRuntime
     public class SymbolSeriesSuffixBuilder
     {
         public InputSymbol[] targetSymbolSeries;
-        
+
         public bool HasGraphIndexes { get; private set; }
 
         private List<SymbolMatcherNode> nodes;
@@ -88,7 +87,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public SymbolSeriesSuffixBuilder(InputSymbol[] matchingSeries)
         {
-            this.targetSymbolSeries = matchingSeries;
+            targetSymbolSeries = matchingSeries;
         }
 
         public void BuildGraphIndexes(int branchOpen, int branchClose)
@@ -278,13 +277,13 @@ namespace Dman.LSystem.SystemRuntime
         }
     }
 
-    public struct SymbolSeriesSuffixMatcher: IDisposable
+    public struct SymbolSeriesSuffixMatcher : IDisposable
     {
         public JaggedIndexing childrenOfRoot;
         public JaggedIndexing graphNodeMemSpace;
 
 
-        public bool IsCreated { get; set;  }
+        public bool IsCreated { get; set; }
         public bool HasGraphIndexes { get; set; }
 
         public IEnumerable<int> GetDepthFirstEnumerator(SystemLevelRuleNativeData nativeData)
@@ -331,7 +330,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 this.source = source;
                 this.currentIndex = currentIndex;
-                this.nativeData = nativeDataPointer;
+                nativeData = nativeDataPointer;
             }
 
             public IEnumerable<DepthFirstSearchState> TakeNNext(int nextNum)

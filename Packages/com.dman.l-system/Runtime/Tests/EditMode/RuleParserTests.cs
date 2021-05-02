@@ -268,7 +268,7 @@ public class RuleParserTests
         Assert.AreEqual(0, ruleFromString.forwardsMatch.Length);
         Assert.AreEqual(0, ruleFromString.backwardsMatch.Length);
         Assert.AreEqual("A(x)", ruleFromString.TargetSymbolString());
-        
+
 
         Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
         Assert.AreEqual('A', ruleFromString.replacementSymbols[0].targetSymbol);

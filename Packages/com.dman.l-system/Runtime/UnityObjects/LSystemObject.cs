@@ -175,7 +175,7 @@ namespace Dman.LSystem.UnityObjects
 
         private void ParseDirective(string directiveText)
         {
-            if(directiveText[0] == '#')
+            if (directiveText[0] == '#')
             {
                 // comment line
                 return;

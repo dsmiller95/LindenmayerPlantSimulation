@@ -1,7 +1,6 @@
 ﻿using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -67,7 +66,8 @@ namespace Dman.LSystem.SystemRuntime
             });
         }
 
-        public struct Blittable {
+        public struct Blittable
+        {
             public JaggedIndexing structExpressionSpace;
             public int replacementSymbol;
             public void WriteNewParameters(

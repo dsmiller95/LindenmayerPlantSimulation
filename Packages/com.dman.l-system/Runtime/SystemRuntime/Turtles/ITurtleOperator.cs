@@ -1,8 +1,6 @@
-﻿using Dman.LSystem.SystemRuntime;
-using Dman.LSystem.SystemRuntime.DOTSRenderer;
+﻿using Dman.LSystem.SystemRuntime.DOTSRenderer;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using ProceduralToolkit;
-using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -67,7 +65,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 entityManager,
                 desc);
             this.prototype = prototype;
-            this.organMatrixTransform = transform;
+            organMatrixTransform = transform;
         }
     }
 
@@ -134,7 +132,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public void AddMeshInstance(ITurtleOrganTemplate<T> template, Matrix4x4 transformation)
         {
-            if(!existingTemplates.TryGetValue(template, out int index))
+            if (!existingTemplates.TryGetValue(template, out int index))
             {
                 meshTemplates.Add(template);
                 meshTransformsByTemplate.Add(new List<Matrix4x4>());

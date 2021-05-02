@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemCompiler
 {
@@ -108,7 +107,8 @@ namespace Dman.LSystem.SystemCompiler
             if (contextualMatch.Groups["suffix"].Success)
             {
                 forwardsMatch = InputSymbolParser.ParseInputSymbols(contextualMatch.Groups["suffix"].Value);
-            }else
+            }
+            else
             {
                 forwardsMatch = new InputSymbol[0];
             }

@@ -63,7 +63,7 @@ namespace Dman.LSystem.SystemRuntime.DynamicExpressions
                         return actualOp.nodeValue;
                     case OperatorType.PARAMETER_VALUE:
                         var paramIndex = actualOp.parameterIndex;
-                        if(paramIndex >= parameterSampleSpace0.length)
+                        if (paramIndex >= parameterSampleSpace0.length)
                         {
                             paramIndex -= parameterSampleSpace0.length;
                             return inputParameters1[paramIndex + parameterSampleSpace1.index];

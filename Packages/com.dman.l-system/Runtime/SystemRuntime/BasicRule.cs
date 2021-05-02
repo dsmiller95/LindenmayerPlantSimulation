@@ -4,7 +4,6 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using Unity.Mathematics;
 
 namespace Dman.LSystem.SystemRuntime
 {
@@ -16,7 +15,7 @@ namespace Dman.LSystem.SystemRuntime
         /// </summary>
         public int TargetSymbol => _targetSymbolWithParameters.targetSymbol;
 
-        public SymbolSeriesPrefixMatcher ContextPrefix {get; private set;}
+        public SymbolSeriesPrefixMatcher ContextPrefix { get; private set; }
         public SymbolSeriesSuffixMatcher ContextSuffix { get; private set; }
 
         public int CapturedLocalParameterCount { get; private set; }
@@ -105,7 +104,7 @@ namespace Dman.LSystem.SystemRuntime
             possibleOutcomeIndexing = new JaggedIndexing
             {
                 index = dataWriter.indexInRuleOutcomes,
-                length = (ushort)this.possibleOutcomes.Length
+                length = (ushort)possibleOutcomes.Length
             };
             for (int i = 0; i < possibleOutcomeIndexing.length; i++)
             {
@@ -113,7 +112,7 @@ namespace Dman.LSystem.SystemRuntime
                 dataArray.ruleOutcomeMemorySpace[i + dataWriter.indexInRuleOutcomes] = possibleOutcome.AsBlittable();
             }
             dataWriter.indexInRuleOutcomes += possibleOutcomeIndexing.length;
-            if(conditionalChecker != null)
+            if (conditionalChecker != null)
             {
                 var opSize = conditionalChecker.OperatorSpaceNeeded;
                 conditionalCheckerBlittable = conditionalChecker.WriteIntoOpDataArray(
@@ -239,7 +238,7 @@ namespace Dman.LSystem.SystemRuntime
                     }
                 }
 
-                matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random, outcomes, this.possibleOutcomeIndexing);
+                matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random, outcomes, possibleOutcomeIndexing);
                 var outcomeObject = outcomes[matchSingletonData.selectedReplacementPattern + possibleOutcomeIndexing.index];
 
 

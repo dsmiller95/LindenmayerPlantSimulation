@@ -1,7 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Unity.Collections;
@@ -22,7 +20,8 @@ namespace Dman.LSystem
         public JaggedNativeArray<ParamType> newParameters;
         public int Length => symbols.Length;
 
-        public int this[int index] {
+        public int this[int index]
+        {
             get => symbols[index];
             set => symbols[index] = value;
         }
@@ -58,7 +57,7 @@ namespace Dman.LSystem
         public SymbolString(int[] symbols, ParamType[][] paramArray, Allocator allocator = Allocator.Persistent)
         {
             this.symbols = new NativeArray<int>(symbols, allocator);
-            this.newParameters = new JaggedNativeArray<ParamType>(paramArray, allocator);
+            newParameters = new JaggedNativeArray<ParamType>(paramArray, allocator);
         }
         public SymbolString(int symbolsTotal, int parametersTotal, Allocator allocator)
         {
@@ -157,15 +156,15 @@ namespace Dman.LSystem
 
         public void Dispose()
         {
-            this.newParameters.Dispose();
-            this.symbols.Dispose();
+            newParameters.Dispose();
+            symbols.Dispose();
         }
 
         public JobHandle Dispose(JobHandle inputDeps)
         {
             return JobHandle.CombineDependencies(
-                this.newParameters.Dispose(inputDeps),
-                this.symbols.Dispose(inputDeps));
+                newParameters.Dispose(inputDeps),
+                symbols.Dispose(inputDeps));
         }
     }
 }

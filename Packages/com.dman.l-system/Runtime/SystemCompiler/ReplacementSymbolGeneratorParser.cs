@@ -8,7 +8,7 @@ namespace Dman.LSystem.SystemRuntime
     {
         public static IEnumerable<ReplacementSymbolGenerator> ParseReplacementSymbolGenerators(string allsymbols, string[] validParameters)
         {
-            if(allsymbols.Length <= 0)
+            if (allsymbols.Length <= 0)
             {
                 yield break;
             }

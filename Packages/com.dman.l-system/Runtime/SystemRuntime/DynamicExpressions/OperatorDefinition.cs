@@ -1,10 +1,4 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace Dman.LSystem.SystemRuntime.DynamicExpressions
 {
@@ -34,7 +28,7 @@ namespace Dman.LSystem.SystemRuntime.DynamicExpressions
         [FieldOffset(3)] public ushort lhs;
     }
 
-    public enum OperatorType: byte
+    public enum OperatorType : byte
     {
         // constants
         CONSTANT_VALUE,

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Collections;
+﻿using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
-    public class NativeArrayBuilder<T> where T:struct
+    public class NativeArrayBuilder<T> where T : struct
     {
         public NativeArray<T> data;
         public int filledIndexInData;

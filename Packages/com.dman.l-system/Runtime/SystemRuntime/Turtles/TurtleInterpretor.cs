@@ -1,14 +1,14 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using System.Linq;
-using Unity.Entities;
 using System;
-using Unity.Collections;
-using Unity.Jobs;
+using System.Linq;
 using Unity.Burst;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public class TurtleInterpretor: IDisposable
+    public class TurtleInterpretor : IDisposable
     {
         private NativeHashMap<int, TurtleOperation> operationsByKey;
         private NativeArray<TurtleEntityPrototypeOrganTemplate> allOrganData;

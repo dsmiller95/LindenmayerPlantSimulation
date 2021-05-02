@@ -83,7 +83,8 @@ public class SymbolSeriesGraphTests
     }
     [Test]
     public void SimplifiesComplexDeeplyNestedBranchesWithNoInitial()
-    {;
+    {
+        ;
         var seriesMatcher = GenerateSingleMatcher("[[E][B]]", out var tmpNativeData);
         using var nativeData = tmpNativeData;
 
@@ -120,7 +121,7 @@ public class SymbolSeriesGraphTests
         for (int nodeIndex = 0; nodeIndex < seriesMatcher.graphNodeMemSpace.length; nodeIndex++)
         {
             var node = nativeData.suffixMatcherGraphNodeData[nodeIndex];
-            if(node.childrenIndexing.length > 0)
+            if (node.childrenIndexing.length > 0)
             {
                 for (int child = 0; child < node.childrenIndexing.length; child++)
                 {

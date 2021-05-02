@@ -22,7 +22,7 @@ namespace Dman.LSystem.SystemCompiler
             var builderQueue = new Queue<OperatorBuilder>();
             builderQueue.Enqueue(topOperator);
 
-            while(builderQueue.Count > 0)
+            while (builderQueue.Count > 0)
             {
                 var nextNode = builderQueue.Dequeue();
                 if (nextNode.type == OperatorType.CONSTANT_VALUE)
@@ -64,7 +64,8 @@ namespace Dman.LSystem.SystemCompiler
                     });
                     builderQueue.Enqueue(nextNode.lhs);
                     builderQueue.Enqueue(nextNode.rhs);
-                }else
+                }
+                else
                 {
                     throw new Exception("unrecognized node type");
                 }
@@ -75,7 +76,7 @@ namespace Dman.LSystem.SystemCompiler
             NativeArray<OperatorDefinition> dataArray,
             JaggedIndexing opSpace)
         {
-            if(opSpace.length != OperatorSpaceNeeded)
+            if (opSpace.length != OperatorSpaceNeeded)
             {
                 throw new Exception("not enough space");
             }
@@ -232,18 +233,18 @@ namespace Dman.LSystem.SystemCompiler
 
         public override string ToString()
         {
-            if(type == OperatorType.CONSTANT_VALUE)
+            if (type == OperatorType.CONSTANT_VALUE)
             {
                 return nodeValue.ToString("f1");
             }
-            if(type == OperatorType.PARAMETER_VALUE)
+            if (type == OperatorType.PARAMETER_VALUE)
             {
                 return $"PARAMAT({parameter})";
             }
             var str = Enum.GetName(typeof(OperatorType), type) + "(";
             if (lhs != null)
             {
-                str += lhs.ToString() +", ";
+                str += lhs.ToString() + ", ";
             }
             if (rhs != null)
             {

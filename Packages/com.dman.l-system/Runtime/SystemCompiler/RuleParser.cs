@@ -1,7 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Dman.LSystem.SystemCompiler
@@ -23,7 +22,7 @@ namespace Dman.LSystem.SystemCompiler
         public static ParsedRule ParseToRule(string ruleString, string[] globalParameters = null)
         {
             var centralDelimimiterMatch = Regex.Match(ruleString.Trim(), @"(?<matcher>.*)->\s*(?<replacement>.*)\s*");
-            if (!centralDelimimiterMatch.Success || !centralDelimimiterMatch.Groups["matcher"].Success || ! centralDelimimiterMatch.Groups["replacement"].Success)
+            if (!centralDelimimiterMatch.Success || !centralDelimimiterMatch.Groups["matcher"].Success || !centralDelimimiterMatch.Groups["replacement"].Success)
             {
                 throw new SyntaxException(
                     "Rule must follow pattern: <Target symbols> -> <replacement symbols>",
@@ -95,7 +94,8 @@ namespace Dman.LSystem.SystemCompiler
                         replacementSymbolMatch.Value,
                         parameterArray)
                         .ToArray();
-                }else
+                }
+                else
                 {
                     rule.replacementSymbols = new ReplacementSymbolGenerator[0];
                 }
