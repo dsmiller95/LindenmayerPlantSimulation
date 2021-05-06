@@ -1,14 +1,8 @@
-﻿using Dman.LSystem.SystemCompiler;
-using Dman.LSystem.SystemRuntime;
-using Dman.LSystem.SystemRuntime.DynamicExpressions;
-using Dman.LSystem.SystemRuntime.NativeCollections;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 {
@@ -16,7 +10,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     /// Class used to track intermediate state during the lsystem step. accessed from multiple job threads
     /// beware of multithreading
     /// </summary>
-    public class LSystemRuleMatchCompletable: ICompletable<LSystemState<float>>
+    public class LSystemRuleMatchCompletable : ICompletable<LSystemState<float>>
     {
         public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public Unity.Mathematics.Random randResult;
@@ -25,7 +19,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// A job handle too the <see cref="RuleReplacementSizeJob"/> which will count up the total replacement size
         /// </summary>
         public JobHandle preAllocationStep;
-
 
         /////////////// things owned by this step /////////
         public NativeArray<int> totalSymbolCount;
@@ -54,12 +47,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             int branchCloseSymbol,
             ISet<int> ignoredCharacters)
         {
-            this.randResult = systemState.randomProvider;
-            this.sourceSymbolString = systemState.currentSymbols;
+            randResult = systemState.randomProvider;
+            sourceSymbolString = systemState.currentSymbols;
+            nativeData = lSystemNativeData;
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
-            var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var parameterTotalSum = 0;
             var possibleMatchesTotalSum = 0;
             for (int i = 0; i < systemState.currentSymbols.Data.Length; i++)
@@ -83,39 +77,36 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData[i] = matchData;
             }
 
-            this.tmpParameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            tmpParameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // 2.
             UnityEngine.Profiling.Profiler.BeginSample("matching");
             UnityEngine.Profiling.Profiler.BeginSample("branch cache");
-            this.branchingCache = new SymbolStringBranchingCache(
+            branchingCache = new SymbolStringBranchingCache(
                 branchOpenSymbol,
                 branchCloseSymbol,
                 ignoredCharacters,
-                lSystemNativeData.Data);
+                nativeData.Data);
             branchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
             UnityEngine.Profiling.Profiler.EndSample();
 
-
-            
-            var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
-            this.nativeData = lSystemNativeData;
+            globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
 
             var prematchJob = new RuleCompleteMatchJob
             {
                 matchSingletonData = matchSingletonData,
 
                 sourceData = systemState.currentSymbols.Data,
-                tmpParameterMemory = this.tmpParameterMemory,
+                tmpParameterMemory = tmpParameterMemory,
 
-                globalOperatorData = lSystemNativeData.Data.dynamicOperatorMemory,
-                outcomes = lSystemNativeData.Data.ruleOutcomeMemorySpace,
+                globalOperatorData = nativeData.Data.dynamicOperatorMemory,
+                outcomes = nativeData.Data.ruleOutcomeMemorySpace,
                 globalParams = globalParamNative,
 
-                blittableRulesByTargetSymbol = lSystemNativeData.Data.blittableRulesByTargetSymbol,
+                blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol,
                 branchingCache = branchingCache,
-                seed = this.randResult.NextUInt()
+                seed = randResult.NextUInt()
             };
 
             var matchingJobHandle = prematchJob.ScheduleBatch(
@@ -128,31 +119,22 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             // 4.
             UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
 
-            var totalSymbolLength = new NativeArray<int>(1, Allocator.Persistent);
-            var totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
-            this.totalSymbolCount = totalSymbolLength;
-            this.totalSymbolParameterCount = totalSymbolParameterCount;
+            totalSymbolCount = new NativeArray<int>(1, Allocator.Persistent);
+            totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
 
             var totalSymbolLengthJob = new RuleReplacementSizeJob
             {
                 matchSingletonData = matchSingletonData,
-                totalResultSymbolCount = totalSymbolLength,
+                totalResultSymbolCount = totalSymbolCount,
                 totalResultParameterCount = totalSymbolParameterCount,
                 sourceParameterIndexes = systemState.currentSymbols.Data.newParameters.indexing,
             };
-            var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchingJobHandle);
-            systemState.currentSymbols.RegisterDependencyOnData(totalSymbolLengthDependency);
-            lSystemNativeData.RegisterDependencyOnData(totalSymbolLengthDependency);
-
-            this.preAllocationStep = totalSymbolLengthDependency;
+            preAllocationStep = totalSymbolLengthJob.Schedule(matchingJobHandle);
+            systemState.currentSymbols.RegisterDependencyOnData(preAllocationStep);
+            nativeData.RegisterDependencyOnData(preAllocationStep);
 
             UnityEngine.Profiling.Profiler.EndSample();
-
-            this.matchSingletonData = matchSingletonData;
-            this.globalParamNative = globalParamNative;
-
             UnityEngine.Profiling.Profiler.EndSample();
-
         }
 
         public ICompletable<LSystemState<float>> StepNext()
@@ -230,7 +212,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public Unity.Mathematics.Random randResult;
 
         public JobHandle finalDependency;
-        
+
 
         /////////////// things owned by this step /////////
         private SymbolString<float> target;
@@ -250,8 +232,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
             DependencyTracker<SystemLevelRuleNativeData> nativeData)
         {
-            this.target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
-            
+            target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
+
             this.randResult = randResult;
             this.sourceSymbolString = sourceSymbolString;
 
