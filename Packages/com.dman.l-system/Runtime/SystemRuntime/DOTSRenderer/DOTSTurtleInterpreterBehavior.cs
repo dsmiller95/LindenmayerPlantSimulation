@@ -44,13 +44,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
         /// <param name="symbols"></param>
-        public void InterpretSymbols(DependencyTracker<SymbolString<float>> symbols)
-        {
-            var dep = InterpretSymbols(symbols.Data);
-            symbols.RegisterDependencyOnData(dep);
-            return;
-        }
-        public JobHandle InterpretSymbols(SymbolString<float> symbols)
+        public ICompletable<TurtleCompletionResult> InterpretSymbols(DependencyTracker<SymbolString<float>> symbols)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
             var manager = World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -124,14 +118,8 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         {
             if (System != null)
             {
-                try
-                {
-                    InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
-                }catch(System.Exception e)
-                {
-                    Debug.LogError("fuyc");
-                    throw;
-                }
+                var completable = InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
+                this.StartCoroutine(completable.AsCoroutine());
             }
         }
     }
