@@ -2,6 +2,7 @@ using Dman.LSystem;
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using NUnit.Framework;
 using Unity.Collections;
 

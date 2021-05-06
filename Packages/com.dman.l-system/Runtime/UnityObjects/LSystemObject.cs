@@ -1,4 +1,5 @@
 using Dman.LSystem.SystemCompiler;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,7 +37,7 @@ namespace Dman.LSystem.UnityObjects
         public List<ParameterAndDefault> defaultGlobalRuntimeParameters;
         public List<DefineDirectives> defaultGlobalCompileTimeParameters;
 
-        public LSystem compiledSystem { get; private set; }
+        public LSystemStepper compiledSystem { get; private set; }
 
         /// <summary>
         /// Emits whenever the system is compiled
@@ -80,12 +81,12 @@ namespace Dman.LSystem.UnityObjects
         /// Compile this L-system and return the result, not caching it into this object
         /// </summary>
         /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
-        public LSystem CompileWithParameters(Dictionary<string, string> globalCompileTimeOverrides)
+        public LSystemStepper CompileWithParameters(Dictionary<string, string> globalCompileTimeOverrides)
         {
             return CompileSystem(globalCompileTimeOverrides);
         }
 
-        private LSystem CompileSystem(Dictionary<string, string> globalCompileTimeOverrides)
+        private LSystemStepper CompileSystem(Dictionary<string, string> globalCompileTimeOverrides)
         {
             UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
             try

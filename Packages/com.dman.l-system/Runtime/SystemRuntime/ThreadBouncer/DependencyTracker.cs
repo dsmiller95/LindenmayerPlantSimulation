@@ -1,7 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Jobs;
 
-namespace Dman.LSystem.SystemRuntime
+namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
     public class DependencyTracker<T> : INativeDisposable where T : INativeDisposable
     {
@@ -35,6 +35,8 @@ namespace Dman.LSystem.SystemRuntime
                 DisposeImmediate();
                 return;
             }
+            // TODO: can we not force complete here?
+            dependencies.Complete();
             Data.Dispose(dependencies);
         }
         public void DisposeImmediate()

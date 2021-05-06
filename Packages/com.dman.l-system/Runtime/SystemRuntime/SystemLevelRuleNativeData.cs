@@ -1,12 +1,14 @@
 ﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime
 {
-    public struct SystemLevelRuleNativeData : IDisposable
+    public struct SystemLevelRuleNativeData : INativeDisposable
     {
         [ReadOnly]
         [NativeDisableParallelForRestriction]
@@ -32,7 +34,9 @@ namespace Dman.LSystem.SystemRuntime
         [NativeDisableParallelForRestriction]
         public NativeArray<OperatorDefinition> dynamicOperatorMemory;
 
-
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
         public SystemLevelRuleNativeData(IEnumerable<BasicRule> rulesToWrite)
         {
@@ -47,6 +51,8 @@ namespace Dman.LSystem.SystemRuntime
             structExpressionMemorySpace = new NativeArray<StructExpression>(memReqs.structExpressionMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
+            blittableRulesByTargetSymbol = default;
+
             isDisposed = false;
         }
         public SystemLevelRuleNativeData(RuleDataRequirements memReqs)
@@ -59,6 +65,8 @@ namespace Dman.LSystem.SystemRuntime
             replacementsSymbolMemorySpace = new NativeArray<ReplacementSymbolGenerator.Blittable>(memReqs.replacementSymbolsMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             structExpressionMemorySpace = new NativeArray<StructExpression>(memReqs.structExpressionMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            blittableRulesByTargetSymbol = default;
 
             isDisposed = false;
         }
@@ -74,7 +82,23 @@ namespace Dman.LSystem.SystemRuntime
             dynamicOperatorMemory.Dispose();
             structExpressionMemorySpace.Dispose();
             replacementsSymbolMemorySpace.Dispose();
+            blittableRulesByTargetSymbol.Dispose();
             isDisposed = true;
+        }
+        public JobHandle Dispose(JobHandle dependency)
+        {
+            // TODO
+            if (isDisposed) return dependency;
+            suffixMatcherChildrenDataArray.Dispose();
+            suffixMatcherGraphNodeData.Dispose();
+            prefixMatcherSymbols.Dispose();
+            ruleOutcomeMemorySpace.Dispose();
+            dynamicOperatorMemory.Dispose();
+            structExpressionMemorySpace.Dispose();
+            replacementsSymbolMemorySpace.Dispose();
+            blittableRulesByTargetSymbol.Dispose();
+            isDisposed = true;
+            return dependency;
         }
     }
 

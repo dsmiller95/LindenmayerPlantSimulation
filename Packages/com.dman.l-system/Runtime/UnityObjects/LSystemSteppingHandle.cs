@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,13 +20,13 @@ namespace Dman.LSystem.UnityObjects
 
         private MonoBehaviour coroutineOwner;
 
-        private LSystem compiledSystem;
+        private LSystemStepper compiledSystem;
         public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
 
         public LSystemState<float> currentState { get; private set; }
         private LSystemState<float> lastState;
 
-        private LSystemSteppingState pendingStateHandle;
+        private ICompletable<LSystemState<float>> pendingStateHandle;
         private IEnumerator pendingCoroutine;
         private LSystemObject mySystemObject;
         private bool useSharedSystem;
@@ -88,7 +90,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         private void ResetState(
            DefaultLSystemState newState,
-           LSystem newSystem)
+           LSystemStepper newSystem)
         {
             if (pendingCoroutine != null)
             {
@@ -96,7 +98,7 @@ namespace Dman.LSystem.UnityObjects
             }
             if (pendingStateHandle != null)
             {
-                pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
+                pendingStateHandle?.Dispose();
                 pendingStateHandle = null;
             }
             lastState?.currentSymbols.Dispose();
@@ -200,9 +202,8 @@ namespace Dman.LSystem.UnityObjects
             {
                 yield break;
             }
-            LSystemState<float> nextState = null;
             var waitAtEndOfFrame = false;
-            while (nextState == null)
+            while (!pendingStateHandle.IsComplete())
             {
                 waitAtEndOfFrame = !waitAtEndOfFrame;
                 if (waitAtEndOfFrame)
@@ -213,27 +214,31 @@ namespace Dman.LSystem.UnityObjects
                 {
                     yield return null;
                 }
-                nextState = pendingStateHandle.StepToNextState();
+                pendingStateHandle = pendingStateHandle.StepNext();
             }
-
-            if (!repeatLast)
+            var nextState = pendingStateHandle.GetData();
+            if (repeatLast)
+            {
+                // dispose the current state, since it is about to be replaced
+                currentState?.currentSymbols.Dispose();
+            }
+            else
             {
                 // dispose the last state
                 lastState?.currentSymbols.Dispose();
-
                 lastState = currentState;
                 totalSteps++;
-
-                lastUpdateChanged = !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
             }
             currentState = nextState;
+            lastUpdateChanged = !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
+
             pendingStateHandle = null;
             pendingCoroutine = null;
             OnSystemStateUpdated?.Invoke();
         }
 
 
-        private void SetNewCompiledSystem(LSystem newSystem)
+        private void SetNewCompiledSystem(LSystemStepper newSystem)
         {
             if (!useSharedSystem)
             {
@@ -253,7 +258,7 @@ namespace Dman.LSystem.UnityObjects
             }
             if (pendingStateHandle != null)
             {
-                pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
+                pendingStateHandle?.Dispose();
                 pendingStateHandle = null;
             }
             lastState?.currentSymbols.Dispose();

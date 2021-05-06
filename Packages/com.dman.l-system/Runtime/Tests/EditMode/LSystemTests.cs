@@ -2,6 +2,7 @@ using Dman.LSystem;
 using Dman.LSystem.Packages.Tests.EditMode;
 using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -412,7 +413,7 @@ public class LSystemTests
         {
             return seeds.Select(seed =>
             {
-                var r = Dman.LSystem.LSystem.RandomFromIndexAndSeed(x, seed);
+                var r = LSystemStepper.RandomFromIndexAndSeed(x, seed);
                 return r.NextUInt();
             }).ToArray();
         }).ToArray();
@@ -666,7 +667,7 @@ public class LSystemTests
         });
     }
 
-    private void AssertStochasticResults(Dman.LSystem.LSystem system, string axiom, string[] expectedResults, float[] globalParams = null)
+    private void AssertStochasticResults(LSystemStepper system, string axiom, string[] expectedResults, float[] globalParams = null)
     {
         var resultSet = new HashSet<string>();
         var attemptSeeder = new Unity.Mathematics.Random((uint)axiom.GetHashCode());

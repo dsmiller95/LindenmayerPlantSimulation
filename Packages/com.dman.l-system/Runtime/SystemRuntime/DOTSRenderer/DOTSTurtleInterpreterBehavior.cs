@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.Turtle;
+﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.UnityObjects;
 using Unity.Entities;
 using Unity.Jobs;
@@ -123,7 +124,14 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         {
             if (System != null)
             {
-                InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
+                try
+                {
+                    InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
+                }catch(System.Exception e)
+                {
+                    Debug.LogError("fuyc");
+                    throw;
+                }
             }
         }
     }

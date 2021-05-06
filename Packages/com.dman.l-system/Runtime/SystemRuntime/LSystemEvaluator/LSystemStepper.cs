@@ -2,6 +2,7 @@ using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Burst;
@@ -9,7 +10,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
-namespace Dman.LSystem
+namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 {
     public static class LSystemBuilder
     {
@@ -20,7 +21,7 @@ namespace Dman.LSystem
         /// <param name="globalParameters">A list of global parameters.
         ///     The returned LSystem will require a double[] of the same length be passed in to the step function</param>
         /// <returns></returns>
-        public static LSystem FloatSystem(
+        public static LSystemStepper FloatSystem(
            IEnumerable<string> rules,
            string[] globalParameters = null,
            string ignoredCharacters = "")
@@ -31,7 +32,7 @@ namespace Dman.LSystem
                         globalParameters
                         );
 
-            return new LSystem(
+            return new LSystemStepper(
                 compiledRules,
                 nativeRuleData,
                 globalParameters?.Length ?? 0,
@@ -63,7 +64,7 @@ namespace Dman.LSystem
         public int maxPossibleMatches;
     }
 
-    public class LSystem : System.IDisposable
+    public class LSystemStepper : System.IDisposable
     {
         /// <summary>
         /// structured data to store rules, in order of precidence, as follows:
@@ -71,8 +72,7 @@ namespace Dman.LSystem
         /// </summary>
         private IDictionary<int, IList<BasicRule>> rulesByTargetSymbol;
 
-        private NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
-        private SystemLevelRuleNativeData nativeRuleData;
+        private DependencyTracker<SystemLevelRuleNativeData> nativeRuleData;
 
         /// <summary>
         /// Stores the maximum number of parameters that could be captured by each symbol's maximum number of possible alternative matches
@@ -98,7 +98,7 @@ namespace Dman.LSystem
 
         public bool isDisposed = false;
 
-        public LSystem(
+        public LSystemStepper(
             IEnumerable<BasicRule> rules,
             SystemLevelRuleNativeData nativeRuleData,
             int expectedGlobalParameters = 0,
@@ -107,7 +107,6 @@ namespace Dman.LSystem
             ISet<int> ignoredCharacters = null)
         {
             GlobalParameters = expectedGlobalParameters;
-            this.nativeRuleData = nativeRuleData;
 
             this.branchOpenSymbol = branchOpenSymbol;
             this.branchCloseSymbol = branchCloseSymbol;
@@ -157,24 +156,28 @@ namespace Dman.LSystem
                 };
             }
 
-            blittableRulesByTargetSymbol = NativeOrderedMultiDictionary<BasicRule.Blittable>.WithMapFunction(
+            nativeRuleData.blittableRulesByTargetSymbol = NativeOrderedMultiDictionary<BasicRule.Blittable>.WithMapFunction(
                 rulesByTargetSymbol,
                 rule => rule.AsBlittable(),
                 Allocator.Persistent);
+            this.nativeRuleData = new DependencyTracker<SystemLevelRuleNativeData>(nativeRuleData);
         }
         public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null, bool disposeOldSystem = true)
         {
             var stepper = StepSystemJob(systemState, globalParameters);
-            LSystemState<float> nextState = null;
-            while (nextState == null)
+            while (!stepper.IsComplete())
             {
-                nextState = stepper.StepToNextState();
+                stepper = stepper.StepNext();
             }
             if (disposeOldSystem)
             {
                 systemState.currentSymbols.Dispose();
             }
-            return nextState;
+            if (stepper.HasErrored())
+            {
+                throw new LSystemRuntimeException("Error during stepping");
+            }
+            return stepper.GetData();
         }
 
         /// <summary>
@@ -195,7 +198,7 @@ namespace Dman.LSystem
         /// </summary>
         /// <param name="systemState">The entire state of the L-system. no modifications are made to this object or the contained properties.</param>
         /// <param name="globalParameters">The global parameters, if any</param>
-        public LSystemSteppingState StepSystemJob(LSystemState<float> systemState, float[] globalParameters = null)
+        public ICompletable<LSystemState<float>> StepSystemJob(LSystemState<float> systemState, float[] globalParameters = null)
         {
             if (isDisposed)
             {
@@ -251,7 +254,7 @@ namespace Dman.LSystem
                 branchOpenSymbol,
                 branchCloseSymbol,
                 ignoredCharacters,
-                nativeRuleData);
+                nativeRuleData.Data);
             tmpBranchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -259,18 +262,13 @@ namespace Dman.LSystem
 
             var random = systemState.randomProvider;
             var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
-            var tempState = new LSystemSteppingState
+            var tempState = new LSystemRuleMatchCompletable
             {
                 branchingCache = tmpBranchingCache,
                 sourceSymbolString = systemState.currentSymbols,
-                rulesByTargetSymbol = rulesByTargetSymbol,
 
                 tmpParameterMemory = parameterMemory,
-                operatorDefinitions = nativeRuleData.dynamicOperatorMemory,
-                structExpressionSpace = nativeRuleData.structExpressionMemorySpace,
-                replacementSymbolData = nativeRuleData.replacementsSymbolMemorySpace,
-                ruleOutcomeMemorySpace = nativeRuleData.ruleOutcomeMemorySpace,
-                blittableRulesByTargetSymbol = blittableRulesByTargetSymbol
+                nativeData = nativeRuleData
             };
 
             var prematchJob = new RuleCompleteMatchJob
@@ -280,11 +278,11 @@ namespace Dman.LSystem
                 sourceData = systemState.currentSymbols.Data,
                 tmpParameterMemory = parameterMemory,
 
-                globalOperatorData = nativeRuleData.dynamicOperatorMemory,
-                outcomes = nativeRuleData.ruleOutcomeMemorySpace,
+                globalOperatorData = nativeRuleData.Data.dynamicOperatorMemory,
+                outcomes = nativeRuleData.Data.ruleOutcomeMemorySpace,
                 globalParams = globalParamNative,
 
-                blittableRulesByTargetSymbol = blittableRulesByTargetSymbol,
+                blittableRulesByTargetSymbol = nativeRuleData.Data.blittableRulesByTargetSymbol,
                 branchingCache = tmpBranchingCache,
                 seed = random.NextUInt()
             };
@@ -314,6 +312,7 @@ namespace Dman.LSystem
             };
             var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchingJobHandle);
             systemState.currentSymbols.RegisterDependencyOnData(totalSymbolLengthDependency);
+            nativeRuleData.RegisterDependencyOnData(totalSymbolLengthDependency);
 
             tempState.preAllocationStep = totalSymbolLengthDependency;
 
@@ -338,171 +337,10 @@ namespace Dman.LSystem
         {
             if (isDisposed) return;
             nativeRuleData.Dispose();
-            blittableRulesByTargetSymbol.Dispose();
             isDisposed = true;
         }
     }
 
-    /// <summary>
-    /// Class used to track intermediate state during the lsystem step. accessed from multiple job threads
-    /// beware of multithreading
-    /// </summary>
-    public class LSystemSteppingState
-    {
-        public SymbolStringBranchingCache branchingCache;
-        public DependencyTracker<SymbolString<float>> sourceSymbolString;
-        public IDictionary<int, IList<BasicRule>> rulesByTargetSymbol;
-        public Unity.Mathematics.Random randResult;
-
-        /// <summary>
-        /// A job handle too the <see cref="RuleReplacementSizeJob"/> which will count up the total replacement size
-        /// </summary>
-        public JobHandle preAllocationStep;
-        public JobHandle finalDependency;
-        private StepState stepState = StepState.MATCHING;
-
-
-        public NativeArray<int> totalSymbolCount;
-        public NativeArray<int> totalSymbolParameterCount;
-
-        private SymbolString<float> target;
-
-        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
-        public NativeArray<float> tmpParameterMemory;
-        public NativeArray<OperatorDefinition> operatorDefinitions;
-        public NativeArray<StructExpression> structExpressionSpace;
-        public NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolData;
-        public NativeArray<RuleOutcome.Blittable> ruleOutcomeMemorySpace;
-        public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
-
-        public NativeArray<float> globalParamNative;
-
-
-        private enum StepState
-        {
-            MATCHING,
-            REPLACING,
-            COMPLETE
-        }
-
-        /// <summary>
-        /// Completes the currently pending job, and perform setup for the next, if it exists.
-        ///     will return the complete state if the last job was completed
-        /// </summary>
-        /// <returns>null if there is work remaining. the new state object if done</returns>
-        public LSystemState<float> StepToNextState()
-        {
-            switch (stepState)
-            {
-                case StepState.MATCHING:
-                    CompleteIntermediateAndPerformAllocations();
-                    return null;
-                case StepState.REPLACING:
-                    return CompleteJobAndGetNextState();
-                case StepState.COMPLETE:
-                default:
-                    throw new System.Exception("stepper state is complete. no more steps");
-            }
-        }
-
-        public JobHandle PendingDependency()
-        {
-            switch (stepState)
-            {
-                case StepState.MATCHING:
-                    return preAllocationStep;
-                case StepState.REPLACING:
-                    return finalDependency;
-                case StepState.COMPLETE:
-                default:
-                    return default;
-            }
-        }
-
-        public void ForceCompletePendingJobsAndDeallocate()
-        {
-            switch (stepState)
-            {
-                case StepState.MATCHING:
-                    preAllocationStep.Complete();
-                    totalSymbolCount.Dispose();
-                    totalSymbolParameterCount.Dispose();
-                    globalParamNative.Dispose();
-                    tmpParameterMemory.Dispose();
-                    matchSingletonData.Dispose();
-                    break;
-                case StepState.REPLACING:
-                    finalDependency.Complete();
-                    break;
-                case StepState.COMPLETE:
-                default:
-                    return;
-            }
-            if (branchingCache.IsCreated) branchingCache.Dispose();
-            if (target.IsCreated) target.Dispose();
-        }
-
-
-        private void CompleteIntermediateAndPerformAllocations()
-        {
-            if (stepState != StepState.MATCHING)
-            {
-                throw new System.Exception("stepper state not compatible");
-            }
-            preAllocationStep.Complete();
-            var totalNewSymbolSize = totalSymbolCount[0];
-            var totalNewParamSize = totalSymbolParameterCount[0];
-            target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
-            totalSymbolCount.Dispose();
-            totalSymbolParameterCount.Dispose();
-
-            // 5
-            UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
-
-            var replacementJob = new RuleReplacementJob
-            {
-                globalParametersArray = globalParamNative,
-
-                parameterMatchMemory = tmpParameterMemory,
-                matchSingletonData = matchSingletonData,
-
-                sourceData = sourceSymbolString.Data,
-                structExpressionSpace = structExpressionSpace,
-                globalOperatorData = operatorDefinitions,
-                replacementSymbolData = replacementSymbolData,
-                outcomeData = ruleOutcomeMemorySpace,
-
-                targetData = target,
-                blittableRulesByTargetSymbol = blittableRulesByTargetSymbol
-            };
-
-            finalDependency = replacementJob.Schedule(
-                matchSingletonData.Length,
-                100
-            );
-            sourceSymbolString.RegisterDependencyOnData(finalDependency);
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            stepState = StepState.REPLACING;
-        }
-
-        private LSystemState<float> CompleteJobAndGetNextState()
-        {
-            if (stepState != StepState.REPLACING)
-            {
-                throw new System.Exception("stepper state not compatible");
-            }
-            finalDependency.Complete();
-            var newResult = new LSystemState<float>
-            {
-                randomProvider = randResult,
-                currentSymbols = new DependencyTracker<SymbolString<float>>(target)
-            };
-            branchingCache.Dispose();
-            stepState = StepState.COMPLETE;
-            return newResult;
-        }
-    }
 
     /// <summary>
     /// Step 2. match all rules which could possibly match, without checking the conditional expressions
@@ -539,7 +377,7 @@ namespace Dman.LSystem
         public void Execute(int startIndex, int batchSize)
         {
             var forwardsMatchHelperStack = new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5);
-            var rnd = LSystem.RandomFromIndexAndSeed(((uint)startIndex) + 1, seed);
+            var rnd = LSystemStepper.RandomFromIndexAndSeed(((uint)startIndex) + 1, seed);
             for (int i = 0; i < batchSize; i++)
             {
                 ExecuteAtIndex(i + startIndex, forwardsMatchHelperStack, ref rnd);

@@ -1,4 +1,6 @@
 ﻿using Dman.LSystem;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.UnityObjects;
 using NUnit.Framework;
 using System.Linq;
@@ -380,7 +382,7 @@ C(age) < A(y) : age >= timeToFruit ->
 
         var lSystem = compiler.compiledSystem;
 
-        var steppingStates = new LSystemSteppingState[10];
+        var steppingStates = new ICompletable<LSystemState<float>>[10];
         var rootStates = Enumerable.Range(0, steppingStates.Length).Select(x => new DefaultLSystemState(RealSystemAxiom)).ToArray();
 
         var runtimeParams = compiler.GetRuntimeParameters().GetCurrentParameters();
@@ -396,14 +398,15 @@ C(age) < A(y) : age >= timeToFruit ->
                 hasMoreSteps = false;
                 for (int i = 0; i < steppingStates.Length; i++)
                 {
-                    var result = steppingStates[i].StepToNextState();
-                    if (result == null)
+                    var nextStepper = steppingStates[i] = steppingStates[i].StepNext();
+                    if (!nextStepper.IsComplete())
                     {
                         hasMoreSteps = true;
                     }
                     else
                     {
-                        result.currentSymbols.Dispose();
+                        var newResult = nextStepper.GetData();
+                        newResult?.currentSymbols.Dispose();
                     }
                 }
             }
