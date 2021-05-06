@@ -110,7 +110,7 @@ namespace Dman.LSystem.UnityObjects
 
         private void OnDestroy()
         {
-            steppingHandle.Dispose();
+            steppingHandle?.Dispose();
         }
     }
 }

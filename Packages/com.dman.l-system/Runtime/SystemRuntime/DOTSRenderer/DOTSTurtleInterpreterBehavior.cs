@@ -90,7 +90,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             return dep;
         }
 
-        private void Start()
+        private void Awake()
         {
             turtle = new TurtleInterpretor(
                 operationSets,

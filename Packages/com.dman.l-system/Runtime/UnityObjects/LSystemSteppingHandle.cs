@@ -7,7 +7,6 @@ namespace Dman.LSystem.UnityObjects
 {
     public class LSystemSteppingHandle : IDisposable
     {
-
         // metadata
         public int totalSteps { get; private set; }
         public bool lastUpdateChanged { get; private set; }
@@ -121,6 +120,10 @@ namespace Dman.LSystem.UnityObjects
             OnSystemStateUpdated?.Invoke();
         }
 
+        public bool HasValidSystem()
+        {
+            return compiledSystem != null;
+        }
         public bool CanStep()
         {
             return pendingStateHandle == null;
@@ -143,31 +146,32 @@ namespace Dman.LSystem.UnityObjects
             pendingCoroutine = StepSystemCoroutine(runtimeParameters);
             coroutineOwner.StartCoroutine(pendingCoroutine);
         }
-
-        public void Dispose()
+        public void StepSystemImmediate()
         {
-            if (useSharedSystem)
+            if (!CanStep())
             {
-                mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
+                Debug.LogError("System is already waiting for an update!! To many!!");
+                return;
             }
-            if (pendingCoroutine != null)
-            {
-                coroutineOwner.StopCoroutine(pendingCoroutine);
-            }
-            if (pendingStateHandle != null)
-            {
-                pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
-                pendingStateHandle = null;
-            }
-            lastState?.currentSymbols.Dispose();
-            lastState = null;
+            var localRoutine = pendingCoroutine = StepSystemCoroutine(runtimeParameters);
+            while (localRoutine.MoveNext());
+        }
 
-            currentState?.currentSymbols.Dispose();
-            currentState = null;
+        public void RepeatLastStepImmediate()
+        {
+            if (!CanStep())
+            {
+                Debug.LogError("System is already waiting for an update!! To many!!");
+                return;
+            }
+            var localRoutine = pendingCoroutine = StepSystemCoroutine(runtimeParameters, true);
+            while (localRoutine.MoveNext()) ;
         }
 
 
-        private IEnumerator StepSystemCoroutine(ArrayParameterRepresenation<float> runtimeParameters)
+        private IEnumerator StepSystemCoroutine(
+            ArrayParameterRepresenation<float> runtimeParameters,
+            bool repeatLast = false)
         {
             try
             {
@@ -176,7 +180,14 @@ namespace Dman.LSystem.UnityObjects
                     Debug.LogError("No Compiled system available!");
                     yield break;
                 }
-                pendingStateHandle = compiledSystem.StepSystemJob(currentState, runtimeParameters.GetCurrentParameters());
+                if (repeatLast)
+                {
+                    pendingStateHandle = compiledSystem.StepSystemJob(lastState, runtimeParameters.GetCurrentParameters());
+                }
+                else
+                {
+                    pendingStateHandle = compiledSystem.StepSystemJob(currentState, runtimeParameters.GetCurrentParameters());
+                }
             }
             catch (System.Exception e)
             {
@@ -205,15 +216,17 @@ namespace Dman.LSystem.UnityObjects
                 nextState = pendingStateHandle.StepToNextState();
             }
 
-            // dispose the last state
-            lastState?.currentSymbols.Dispose();
+            if (!repeatLast)
+            {
+                // dispose the last state
+                lastState?.currentSymbols.Dispose();
 
-            lastState = currentState;
+                lastState = currentState;
+                totalSteps++;
+
+                lastUpdateChanged = !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
+            }
             currentState = nextState;
-
-            lastUpdateChanged = !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
-            totalSteps++;
-
             pendingStateHandle = null;
             pendingCoroutine = null;
             OnSystemStateUpdated?.Invoke();
@@ -228,5 +241,27 @@ namespace Dman.LSystem.UnityObjects
             }
             compiledSystem = newSystem;
         }
+        public void Dispose()
+        {
+            if (useSharedSystem)
+            {
+                mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
+            }
+            if (pendingCoroutine != null)
+            {
+                coroutineOwner.StopCoroutine(pendingCoroutine);
+            }
+            if (pendingStateHandle != null)
+            {
+                pendingStateHandle?.ForceCompletePendingJobsAndDeallocate();
+                pendingStateHandle = null;
+            }
+            lastState?.currentSymbols.Dispose();
+            lastState = null;
+
+            currentState?.currentSymbols.Dispose();
+            currentState = null;
+        }
+
     }
 }
