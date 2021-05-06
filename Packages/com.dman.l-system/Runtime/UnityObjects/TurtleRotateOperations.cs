@@ -19,10 +19,10 @@ namespace Dman.LSystem.UnityObjects
         public char tiltUp = '^';
         public char tiltDown = '&';
         public float defaultTiltTheta = 18;
-        public override IEnumerable<KeyValuePair<int, TurtleOperation>> GetOperators(NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate> organWriter)
+        public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
 
-            yield return new KeyValuePair<int, TurtleOperation>(rollRight, new TurtleOperation
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(rollRight, new TurtleOperation
             {
                 operationType = TurtleOperationType.ROTATE,
                 rotationOperation = new TurtleRotationOperation
@@ -30,8 +30,8 @@ namespace Dman.LSystem.UnityObjects
                     unitEulerRotation = Vector3.right,
                     defaultTheta = defaultRollTheta
                 }
-            });
-            yield return new KeyValuePair<int, TurtleOperation>(rollLeft, new TurtleOperation
+            }));
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(rollLeft, new TurtleOperation
             {
                 operationType = TurtleOperationType.ROTATE,
                 rotationOperation = new TurtleRotationOperation
@@ -39,10 +39,10 @@ namespace Dman.LSystem.UnityObjects
                     unitEulerRotation = Vector3.left,
                     defaultTheta = defaultRollTheta
                 }
-            });
+            }));
 
 
-            yield return new KeyValuePair<int, TurtleOperation>(turnRight, new TurtleOperation
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(turnRight, new TurtleOperation
             {
                 operationType = TurtleOperationType.ROTATE,
                 rotationOperation = new TurtleRotationOperation
@@ -50,8 +50,8 @@ namespace Dman.LSystem.UnityObjects
                     unitEulerRotation = Vector3.down,
                     defaultTheta = defaultRollTheta
                 }
-            });
-            yield return new KeyValuePair<int, TurtleOperation>(turnLeft, new TurtleOperation
+            }));
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(turnLeft, new TurtleOperation
             {
                 operationType = TurtleOperationType.ROTATE,
                 rotationOperation = new TurtleRotationOperation
@@ -59,10 +59,10 @@ namespace Dman.LSystem.UnityObjects
                     unitEulerRotation = Vector3.up,
                     defaultTheta = defaultRollTheta
                 }
-            });
+            }));
 
 
-            yield return new KeyValuePair<int, TurtleOperation>(tiltUp, new TurtleOperation
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(tiltUp, new TurtleOperation
             {
                 operationType = TurtleOperationType.ROTATE,
                 rotationOperation = new TurtleRotationOperation
@@ -70,8 +70,8 @@ namespace Dman.LSystem.UnityObjects
                     unitEulerRotation = Vector3.forward,
                     defaultTheta = defaultRollTheta
                 }
-            });
-            yield return new KeyValuePair<int, TurtleOperation>(tiltDown, new TurtleOperation
+            }));
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(tiltDown, new TurtleOperation
             {
                 operationType = TurtleOperationType.ROTATE,
                 rotationOperation = new TurtleRotationOperation
@@ -79,7 +79,7 @@ namespace Dman.LSystem.UnityObjects
                     unitEulerRotation = Vector3.back,
                     defaultTheta = defaultRollTheta
                 }
-            });
+            }));
         }
     }
 

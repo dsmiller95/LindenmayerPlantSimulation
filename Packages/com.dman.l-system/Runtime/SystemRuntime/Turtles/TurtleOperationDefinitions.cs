@@ -9,15 +9,6 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public struct TurtleOperationDefinitions
-    {
-        /// <summary>
-        /// map from each character to its corresponsing turtle operation
-        /// </summary>
-        public NativeHashMap<int, TurtleOperation> allOperations;
-        public NativeArray<TurtleEntityPrototypeOrganTemplate> allOrgans;
-    }
-
     [StructLayout(LayoutKind.Explicit)]
     public struct TurtleOperation
     {
@@ -48,9 +39,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             ref TurtleState currentState,
             int indexInString,
             SymbolString<float> sourceString,
-            NativeArray<TurtleEntityPrototypeOrganTemplate> allOrgans,
-            EntityCommandBuffer spawnCommandBuffer,
-            Entity parentEntity)
+            NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
+            NativeList<TurtleOrganInstance> targetOrganInstances)
         {
             switch (operationType)
             {
@@ -58,7 +48,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     bendTowardsOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
                 case TurtleOperationType.ADD_ORGAN:
-                    meshOperation.Operate(ref currentState, indexInString, sourceString, allOrgans, spawnCommandBuffer, parentEntity);
+                    meshOperation.Operate(ref currentState, indexInString, sourceString, allOrgans, targetOrganInstances);
                     break;
                 case TurtleOperationType.ROTATE:
                     rotationOperation.Operate(ref currentState, indexInString, sourceString);
@@ -87,9 +77,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             ref TurtleState state,
             int indexInString,
             SymbolString<float> sourceString,
-            NativeArray<TurtleEntityPrototypeOrganTemplate> allOrgans,
-            EntityCommandBuffer spawnCommandBuffer,
-            Entity parentEntity)
+            NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
+            NativeList<TurtleOrganInstance> targetOrganInstances)
         {
             var pIndex = sourceString.newParameters[indexInString];
 
@@ -101,7 +90,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 var index = ((int)sourceString.newParameters[pIndex, 0]) % organTemplateVariants.length;
                 selectedMeshIndex = index;
             }
-            var selectedMesh = allOrgans[organTemplateVariants.index + selectedMeshIndex];
+            var selectedOrganIndex = organTemplateVariants.index + selectedMeshIndex;
+            var selectedOrgan = allOrgans[selectedOrganIndex];
 
             var scaleIndex = organTemplateVariants.length <= 1 ? 0 : 1;
             if (doScaleMesh && pIndex.length > scaleIndex)
@@ -114,18 +104,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 meshTransform *= Matrix4x4.Scale(new Vector3(1, state.thickness, state.thickness));
             }
 
-            var newOrgan = spawnCommandBuffer.Instantiate(selectedMesh.prototype);
-            spawnCommandBuffer.RemoveComponent<LSystemOrganTemplateComponentFlag>(newOrgan);
-            spawnCommandBuffer.SetComponent(newOrgan, new LocalToParent
+            var newOrganEntry = new TurtleOrganInstance
             {
-                Value = meshTransform
-            });
-            spawnCommandBuffer.SetComponent(newOrgan, new Parent
-            {
-                Value = parentEntity
-            });
+                organIndexInAllOrgans = (ushort)selectedOrganIndex,
+                organTransform = meshTransform
+            };
+            targetOrganInstances.Add(newOrganEntry);
 
-            state.transformation *= ((Matrix4x4)selectedMesh.organMatrixTransform);
+            state.transformation *= ((Matrix4x4)selectedOrgan.organMatrixTransform);
         }
     }
     public struct TurtleBendTowardsOperationNEW

@@ -16,9 +16,9 @@ namespace Dman.LSystem.UnityObjects
         public Vector3 defaultBendDirection = Vector3.down;
         [Range(0, 1)]
         public float defaultBendFactor = 0.1f;
-        public override IEnumerable<KeyValuePair<int, TurtleOperation>> GetOperators(NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate> organWriter)
+        public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
-            yield return new KeyValuePair<int, TurtleOperation>(bendTowardsOperator, new TurtleOperation
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(bendTowardsOperator, new TurtleOperation
             {
                 operationType = TurtleOperationType.BEND_TOWARDS,
                 bendTowardsOperation = new TurtleBendTowardsOperationNEW
@@ -26,7 +26,7 @@ namespace Dman.LSystem.UnityObjects
                     defaultBendDirection = defaultBendDirection.normalized,
                     defaultBendFactor = defaultBendFactor
                 }
-            });
+            }));
         }
     }
 

@@ -7,13 +7,24 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
+    public struct TurtleOrganInstance
+    {
+        public ushort organIndexInAllOrgans;
+        public float4x4 organTransform;
+    }
+
     public class TurtleStringReadingCompletable : ICompletable<TurtleCompletionResult>
     {
         public JobHandle currentJobHandle { get; private set; }
 
+        private Entity parentEntity;
+        private EntityCommandBufferSystem spawnCommandBuffer;
+        private NativeList<TurtleOrganInstance> organInstances;
+        private DependencyTracker<NativeTurtleData> nativeData;
 
         public TurtleStringReadingCompletable(
             DependencyTracker<SymbolString<float>> symbols,
@@ -25,9 +36,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int branchEndChar,
             TurtleState defaultState)
         {
-            var buffer = spawnCommandBuffer.CreateCommandBuffer();
+            this.parentEntity = parentEntity;
+            this.spawnCommandBuffer = spawnCommandBuffer;
+            this.nativeData = nativeData;
 
             var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
+            organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
             var turtleCompileJob = new TurtleCompilationJob
             {
                 symbols = symbols.Data,
@@ -39,13 +53,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 branchStartChar = branchStartChar,
                 branchEndChar = branchEndChar,
 
-                organSpawnBuffer = buffer,
-                parentEntity = parentEntity,
+                organInstances = organInstances,
                 currentState = defaultState
             };
 
             currentJobHandle = turtleCompileJob.Schedule();
-            spawnCommandBuffer.AddJobHandleForProducer(currentJobHandle);
 
             nativeData.RegisterDependencyOnData(currentJobHandle);
             symbols.RegisterDependencyOnData(currentJobHandle);
@@ -56,39 +68,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public ICompletable<TurtleCompletionResult> StepNext()
         {
             currentJobHandle.Complete();
-            return new CompleteCompletable<TurtleCompletionResult>(new TurtleCompletionResult());
+            return new TurtleOrganSpawningCompletable(
+                spawnCommandBuffer,
+                parentEntity,
+                nativeData,
+                organInstances
+                );
         }
-
-        public JobHandle Dispose(JobHandle inputDeps)
-        {
-            return inputDeps;
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public TurtleCompletionResult GetData()
-        {
-            return default;
-        }
-
-        public string GetError()
-        {
-            return null;
-        }
-
-        public bool HasErrored()
-        {
-            return false;
-        }
-
-        public bool IsComplete()
-        {
-            return false;
-        }
-
-
 
         [BurstCompile]
         public struct TurtleCompilationJob : IJob
@@ -98,15 +84,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             [ReadOnly]
             public NativeHashMap<int, TurtleOperation> operationsByKey;
             [ReadOnly]
-            public NativeArray<TurtleEntityPrototypeOrganTemplate> organData;
+            public NativeArray<TurtleOrganTemplate.Blittable> organData;
+
+            public NativeList<TurtleOrganInstance> organInstances;
 
             public TmpNativeStack<TurtleState> nativeTurtleStack;
 
             public int submeshIndexIncrementChar;
             public int branchStartChar;
             public int branchEndChar;
-            public EntityCommandBuffer organSpawnBuffer;
-            public Entity parentEntity;
 
             public TurtleState currentState;
 
@@ -138,11 +124,42 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             symbolIndex,
                             symbols,
                             organData,
-                            organSpawnBuffer,
-                            parentEntity);
+                            organInstances);
                     }
                 }
             }
+        }
+
+        public JobHandle Dispose(JobHandle inputDeps)
+        {
+            currentJobHandle.Complete();
+            return organInstances.Dispose(inputDeps);
+        }
+
+        public void Dispose()
+        {
+            currentJobHandle.Complete();
+            organInstances.Dispose();
+        }
+
+        public TurtleCompletionResult GetData()
+        {
+            return default;
+        }
+
+        public string GetError()
+        {
+            return null;
+        }
+
+        public bool HasErrored()
+        {
+            return false;
+        }
+
+        public bool IsComplete()
+        {
+            return false;
         }
     }
 }

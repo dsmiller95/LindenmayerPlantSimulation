@@ -67,14 +67,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 manager.AddComponent<LocalToWorld>(lSystemEntity);
             }
 
-            var organSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<LSystemMeshMemberUpdateSystem>();
-
-            var clearOldOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
             var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-
-            var deleteBuffer = clearOldOrgansCommandBuffer.CreateCommandBuffer();
-
-            organSystem.ClearOldOrgans(deleteBuffer, lSystemEntity);
 
             var dep = turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
@@ -120,6 +113,8 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             {
                 var completable = InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
                 this.StartCoroutine(completable.AsCoroutine());
+
+                //var mesh = GetComponent<MeshFilter>().mesh;
             }
         }
     }

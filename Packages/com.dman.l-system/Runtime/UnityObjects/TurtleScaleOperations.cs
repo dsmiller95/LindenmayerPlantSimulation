@@ -21,9 +21,9 @@ namespace Dman.LSystem.UnityObjects
         public float defaultThicknessScale = 0.9f;
 
 
-        public override IEnumerable<KeyValuePair<int, TurtleOperation>> GetOperators(NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate> organWriter)
+        public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
-            yield return new KeyValuePair<int, TurtleOperation>(scaleOperator, new TurtleOperation
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(scaleOperator, new TurtleOperation
             {
                 operationType = TurtleOperationType.SCALE_TRANSFORM,
                 scaleOperation = new TurtleScaleOperation
@@ -31,15 +31,15 @@ namespace Dman.LSystem.UnityObjects
                     nonUniformScale = Vector3.one,
                     defaultScaleFactor = defaultScaleAmount
                 }
-            });
-            yield return new KeyValuePair<int, TurtleOperation>(thicknessScaleOperator, new TurtleOperation
+            }));
+            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(thicknessScaleOperator, new TurtleOperation
             {
                 operationType = TurtleOperationType.SCALE_THICCNESS,
                 thiccnessOperation = new TurtleThiccnessOperation
                 {
                     defaultThicknessScale = defaultThicknessScale
                 }
-            });
+            }));
         }
     }
 

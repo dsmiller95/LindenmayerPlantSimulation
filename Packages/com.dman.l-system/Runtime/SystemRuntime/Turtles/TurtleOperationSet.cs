@@ -5,10 +5,16 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public abstract class TurtleOperationSet : ScriptableObject
-    {
-        public virtual int TotalOrganSpaceNeeded => 0;
 
-        public abstract IEnumerable<KeyValuePair<int, TurtleOperation>> GetOperators(NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate> organWriter);
+
+    public abstract class TurtleOperationSet : ScriptableObject, ITurtleNativeDataWritable
+    {
+        public virtual TurtleDataRequirements DataReqs => default;
+
+        public virtual void InternalCacheOperations()
+        {
+
+        }
+        public abstract void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer);
     }
 }

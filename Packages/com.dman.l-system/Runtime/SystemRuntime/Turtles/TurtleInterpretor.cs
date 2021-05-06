@@ -9,33 +9,9 @@ using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public struct NativeTurtleData: INativeDisposable
-    {
-        public NativeHashMap<int, TurtleOperation> operationsByKey;
-        public NativeArray<TurtleEntityPrototypeOrganTemplate> allOrganData;
-
-        public JobHandle Dispose(JobHandle inputDeps)
-        {
-            return JobHandle.CombineDependencies(
-                operationsByKey.Dispose(inputDeps),
-                allOrganData.Dispose(inputDeps));
-        }
-
-        public void Dispose()
-        {
-            operationsByKey.Dispose();
-            allOrganData.Dispose();
-        }
-    }
-
-    public struct TurtleCompletionResult
-    {
-
-    }
-
     public class TurtleInterpretor : IDisposable
     {
-        private DependencyTracker<NativeTurtleData> nativeData;
+        private DependencyTracker<NativeTurtleData> nativeDataTracker;
 
         public int submeshIndexIncrementChar = '`';
         public int branchStartChar = '[';
@@ -45,21 +21,27 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public TurtleInterpretor(TurtleOperationSet[] operationSets, TurtleState defaultState)
         {
-            var meshData = new NativeArrayBuilder<TurtleEntityPrototypeOrganTemplate>(operationSets.Sum(x => x.TotalOrganSpaceNeeded));
-            var allOps = operationSets
-                .SelectMany(x => x.GetOperators(meshData))
-                .ToList();
-            var operationsByKey = new NativeHashMap<int, TurtleOperation>(allOps.Count(), Allocator.Persistent);
-            foreach (var ops in allOps)
+            foreach (var operationSet in operationSets)
             {
-                operationsByKey[ops.Key] = ops.Value;
+                operationSet.InternalCacheOperations();
             }
-            nativeData = new DependencyTracker<NativeTurtleData>(
-                new NativeTurtleData
-                {
-                    operationsByKey = operationsByKey,
-                    allOrganData = meshData.data
-                });
+
+            var totalRequirements = operationSets.Select(x => x.DataReqs).Aggregate(new TurtleDataRequirements(), (agg, req) => agg + req);
+            var nativeData = new NativeTurtleData(totalRequirements);
+            var nativeWriter = new TurtleNativeDataWriter();
+
+            foreach (var operationSet in operationSets)
+            {
+                operationSet.WriteIntoNativeData(nativeData, nativeWriter);
+            }
+
+            nativeData.operationsByKey = new NativeHashMap<int, TurtleOperation>(nativeWriter.operators.Count(), Allocator.Persistent);
+            foreach (var ops in nativeWriter.operators)
+            {
+                nativeData.operationsByKey[ops.Key] = ops.Value;
+            }
+
+            nativeDataTracker = new DependencyTracker<NativeTurtleData>(nativeData);
             this.defaultState = defaultState;
         }
 
@@ -72,7 +54,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 symbols,
                 spawnCommandBuffer,
                 parentEntity,
-                nativeData,
+                nativeDataTracker,
                 submeshIndexIncrementChar,
                 branchStartChar,
                 branchEndChar,
@@ -82,7 +64,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public void Dispose()
         {
-            nativeData.Dispose();
+            nativeDataTracker.Dispose();
         }
 
     }

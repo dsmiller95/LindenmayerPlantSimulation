@@ -18,6 +18,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 
         public void RegisterDependencyOnData(JobHandle deps)
         {
+            if (IsDisposed) throw new System.Exception("Cannot depend on data. already disposed");
             dependencies = JobHandle.CombineDependencies(deps, dependencies);
         }
 
