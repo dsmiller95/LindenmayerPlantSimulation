@@ -3,19 +3,25 @@ using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
-    public class CompleteCompletable<T>: ICompletable<T>
+    public class ErrorCompletable<T>: ICompletable<T>
     {
         public JobHandle currentJobHandle => default;
 
-        private T data;
-        public CompleteCompletable(T data)
+        private string error;
+        public ErrorCompletable(string errorMessage)
         {
-            this.data = data;
+            this.error = errorMessage;
+        }
+
+
+        public string GetError()
+        {
+            return error;
         }
 
         public T GetData()
         {
-            return data;
+            return default(T);
         }
 
         public bool IsComplete()
@@ -25,12 +31,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 
         public bool HasErrored()
         {
-            return false;
-        }
-
-        public string GetError()
-        {
-            return null;
+            return true;
         }
 
         public ICompletable<T> StepNext()

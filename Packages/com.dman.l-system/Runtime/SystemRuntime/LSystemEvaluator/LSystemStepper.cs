@@ -96,7 +96,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         // if that improves runtime.
         public ISet<int> ignoredCharacters;
 
-        public bool isDisposed = false;
+        public bool isDisposed => nativeRuleData.IsDisposed;
 
         public LSystemStepper(
             IEnumerable<BasicRule> rules,
@@ -217,112 +217,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 throw new LSystemRuntimeException($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
 
-
-            // 1.
-            UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
-            var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            var parameterTotalSum = 0;
-            var possibleMatchesTotalSum = 0;
-            for (int i = 0; i < systemState.currentSymbols.Data.Length; i++)
-            {
-                var symbol = systemState.currentSymbols.Data[i];
-                var matchData = new LSystemSingleSymbolMatchData()
-                {
-                    tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(parameterTotalSum)
-                };
-                if (maxMemoryRequirementsPerSymbol.TryGetValue(symbol, out var memoryRequirements))
-                {
-                    parameterTotalSum += memoryRequirements.maxParameters;
-                    possibleMatchesTotalSum += memoryRequirements.maxPossibleMatches;
-                    matchData.isTrivial = false;
-                }
-                else
-                {
-                    matchData.isTrivial = true;
-                    matchData.tmpParameterMemorySpace.length = 0;
-                }
-                matchSingletonData[i] = matchData;
-            }
-
-            var parameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            // 2.
-            UnityEngine.Profiling.Profiler.BeginSample("matching");
-            UnityEngine.Profiling.Profiler.BeginSample("branch cache");
-            var tmpBranchingCache = new SymbolStringBranchingCache(
+            return new LSystemRuleMatchCompletable(
+                systemState,
+                nativeRuleData,
+                globalParameters,
+                maxMemoryRequirementsPerSymbol,
                 branchOpenSymbol,
                 branchCloseSymbol,
-                ignoredCharacters,
-                nativeRuleData.Data);
-            tmpBranchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-
-
-            var random = systemState.randomProvider;
-            var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
-            var tempState = new LSystemRuleMatchCompletable
-            {
-                branchingCache = tmpBranchingCache,
-                sourceSymbolString = systemState.currentSymbols,
-
-                tmpParameterMemory = parameterMemory,
-                nativeData = nativeRuleData
-            };
-
-            var prematchJob = new RuleCompleteMatchJob
-            {
-                matchSingletonData = matchSingletonData,
-
-                sourceData = systemState.currentSymbols.Data,
-                tmpParameterMemory = parameterMemory,
-
-                globalOperatorData = nativeRuleData.Data.dynamicOperatorMemory,
-                outcomes = nativeRuleData.Data.ruleOutcomeMemorySpace,
-                globalParams = globalParamNative,
-
-                blittableRulesByTargetSymbol = nativeRuleData.Data.blittableRulesByTargetSymbol,
-                branchingCache = tmpBranchingCache,
-                seed = random.NextUInt()
-            };
-
-            var matchingJobHandle = prematchJob.ScheduleBatch(
-                matchSingletonData.Length,
-                100);
-
-            tempState.randResult = random;
-
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            // 4.
-            UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
-
-            var totalSymbolLength = new NativeArray<int>(1, Allocator.Persistent);
-            var totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
-            tempState.totalSymbolCount = totalSymbolLength;
-            tempState.totalSymbolParameterCount = totalSymbolParameterCount;
-
-            var totalSymbolLengthJob = new RuleReplacementSizeJob
-            {
-                matchSingletonData = matchSingletonData,
-                totalResultSymbolCount = totalSymbolLength,
-                totalResultParameterCount = totalSymbolParameterCount,
-                sourceParameterIndexes = systemState.currentSymbols.Data.newParameters.indexing,
-            };
-            var totalSymbolLengthDependency = totalSymbolLengthJob.Schedule(matchingJobHandle);
-            systemState.currentSymbols.RegisterDependencyOnData(totalSymbolLengthDependency);
-            nativeRuleData.RegisterDependencyOnData(totalSymbolLengthDependency);
-
-            tempState.preAllocationStep = totalSymbolLengthDependency;
-
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            tempState.matchSingletonData = matchSingletonData;
-            tempState.globalParamNative = globalParamNative;
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            return tempState;
+                ignoredCharacters);
         }
 
         public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)
@@ -335,9 +237,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         public void Dispose()
         {
-            if (isDisposed) return;
             nativeRuleData.Dispose();
-            isDisposed = true;
         }
     }
 

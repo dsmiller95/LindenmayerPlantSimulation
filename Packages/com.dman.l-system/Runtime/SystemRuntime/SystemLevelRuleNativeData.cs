@@ -52,8 +52,6 @@ namespace Dman.LSystem.SystemRuntime
             dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             blittableRulesByTargetSymbol = default;
-
-            isDisposed = false;
         }
         public SystemLevelRuleNativeData(RuleDataRequirements memReqs)
         {
@@ -67,14 +65,10 @@ namespace Dman.LSystem.SystemRuntime
             dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             blittableRulesByTargetSymbol = default;
-
-            isDisposed = false;
         }
 
-        private bool isDisposed;
         public void Dispose()
         {
-            if (isDisposed) return;
             suffixMatcherChildrenDataArray.Dispose();
             suffixMatcherGraphNodeData.Dispose();
             prefixMatcherSymbols.Dispose();
@@ -82,13 +76,11 @@ namespace Dman.LSystem.SystemRuntime
             dynamicOperatorMemory.Dispose();
             structExpressionMemorySpace.Dispose();
             replacementsSymbolMemorySpace.Dispose();
-            blittableRulesByTargetSymbol.Dispose();
-            isDisposed = true;
+            if(blittableRulesByTargetSymbol.IsCreated) blittableRulesByTargetSymbol.Dispose();
         }
         public JobHandle Dispose(JobHandle dependency)
         {
             // TODO
-            if (isDisposed) return dependency;
             suffixMatcherChildrenDataArray.Dispose();
             suffixMatcherGraphNodeData.Dispose();
             prefixMatcherSymbols.Dispose();
@@ -96,8 +88,7 @@ namespace Dman.LSystem.SystemRuntime
             dynamicOperatorMemory.Dispose();
             structExpressionMemorySpace.Dispose();
             replacementsSymbolMemorySpace.Dispose();
-            blittableRulesByTargetSymbol.Dispose();
-            isDisposed = true;
+            if (blittableRulesByTargetSymbol.IsCreated) blittableRulesByTargetSymbol.Dispose();
             return dependency;
         }
     }

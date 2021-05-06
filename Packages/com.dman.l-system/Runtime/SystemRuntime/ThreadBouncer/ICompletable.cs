@@ -27,6 +27,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         /// </summary>
         /// <returns></returns>
         public bool HasErrored();
+        public string GetError();
 
         /// <summary>
         /// Get the completed data. if <see cref="IsComplete"/> is false, or if HasErrored is true, will return null.
