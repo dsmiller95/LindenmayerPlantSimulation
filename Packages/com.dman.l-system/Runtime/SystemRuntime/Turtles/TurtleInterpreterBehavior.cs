@@ -5,7 +5,9 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 {
-    public class DOTSTurtleInterpreterBehavior : MonoBehaviour
+    [RequireComponent(typeof(MeshFilter))]
+    [RequireComponent(typeof(MeshRenderer))]
+    public class TurtleInterpreterBehavior : MonoBehaviour
     {
         /// <summary>
         /// a set of valid operations, only one operation defintion can be generated per symbol
