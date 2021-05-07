@@ -117,14 +117,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 },
                 trianglesMemorySpace = new JaggedIndexing
                 {
-                    index = meshSizeCounter.totalTriangles,
+                    index = meshSizeCounter.totalTriangleIndexes,
                     length = selectedOrgan.trianges.length
                 }
             };
             targetOrganInstances.Add(newOrganEntry);
 
             meshSizeCounter.totalVertexes += newOrganEntry.vertexMemorySpace.length;
-            meshSizeCounter.totalTriangles += newOrganEntry.trianglesMemorySpace.length;
+            meshSizeCounter.totalTriangleIndexes += newOrganEntry.trianglesMemorySpace.length;
 
             state.transformation *= ((Matrix4x4)selectedOrgan.organMatrixTransform);
         }

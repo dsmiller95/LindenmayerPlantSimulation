@@ -70,8 +70,6 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             //var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
             var meshFilter = GetComponent<MeshFilter>();
-            var newMesh = new Mesh();
-            meshFilter.mesh = newMesh;
             var dep = turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
                 meshFilter.mesh);
@@ -95,6 +93,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             {
                 System.OnSystemStateUpdated += OnSystemStateUpdated;
             }
+            GetComponent<MeshFilter>().mesh = new Mesh();
         }
 
         private void OnDestroy()

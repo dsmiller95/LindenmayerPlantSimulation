@@ -23,7 +23,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     public struct TurtleMeshAllocationCounter
     {
         public int totalVertexes;
-        public int totalTriangles;
+        public int totalTriangleIndexes;
     }
 
     public class TurtleStringReadingCompletable : ICompletable<TurtleCompletionResult>

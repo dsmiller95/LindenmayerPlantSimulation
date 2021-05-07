@@ -30,7 +30,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             return JobHandle.CombineDependencies(
                 operationsByKey.Dispose(inputDeps),
-                allOrganData.Dispose(inputDeps));
+                allOrganData.Dispose(inputDeps),
+                JobHandle.CombineDependencies(
+                    vertexData.Dispose(inputDeps),
+                    triangleData.Dispose(inputDeps)
+                ));
         }
 
         public void Dispose()

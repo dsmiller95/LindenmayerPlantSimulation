@@ -80,6 +80,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 {
                     vertex = draft.vertices[i],
                     normal = draft.normals[i],
+                    uv = draft.uv[i],
                     tangent = draft.tangents[i]
                 };
                 nativeData.vertexData[i + writer.indexInVertexes] = vertexDatum;
@@ -88,7 +89,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             var triangleCount = new JaggedIndexing
             {
-                index = writer.indexInVertexes,
+                index = writer.indexInTriangles,
                 length = (ushort)draft.triangles.Count
             };
             for (int i = 0; i < triangleCount.length; i++)
