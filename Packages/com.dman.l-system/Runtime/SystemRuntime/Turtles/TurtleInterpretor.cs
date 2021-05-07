@@ -6,6 +6,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
@@ -47,13 +48,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public ICompletable<TurtleCompletionResult> CompileStringToTransformsWithMeshIds(
             DependencyTracker<SymbolString<float>> symbols,
-            EntityCommandBufferSystem spawnCommandBuffer,
-            Entity parentEntity)
+            Mesh targetMesh)
         {
             return new TurtleStringReadingCompletable(
+                targetMesh,
                 symbols,
-                spawnCommandBuffer,
-                parentEntity,
                 nativeDataTracker,
                 submeshIndexIncrementChar,
                 branchStartChar,

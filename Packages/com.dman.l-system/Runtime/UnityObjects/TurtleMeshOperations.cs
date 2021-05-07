@@ -25,10 +25,7 @@ namespace Dman.LSystem.UnityObjects
         [Tooltip("When checked, scale the mesh along the non-primary axises based on the thickness state")]
         public bool UseThickness;
 
-        public TurtleDataRequirements RequiredDataSpace => new TurtleDataRequirements
-        {
-            organTemplateSize = 1 + MeshVariants.Length
-        };
+        public TurtleDataRequirements RequiredDataSpace => CachedOrganTemplates.Select(x => x.DataReqs).Sum();
 
         public TurtleOrganTemplate[] CachedOrganTemplates;
         public void InteralCacheOrganTemplates()

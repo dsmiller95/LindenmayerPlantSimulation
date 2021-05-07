@@ -14,14 +14,16 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     {
         public NativeHashMap<int, TurtleOperation> operationsByKey;
         public NativeArray<TurtleOrganTemplate.Blittable> allOrganData;
-        //public NativeArray<int> vertexData;
+        public NativeArray<NativeVertexDatum> vertexData;
+        public NativeArray<int> triangleData;
 
         public NativeTurtleData(
             TurtleDataRequirements memReqs)
         {
             this.operationsByKey = default;
             allOrganData = new NativeArray<TurtleOrganTemplate.Blittable>(memReqs.organTemplateSize, Allocator.Persistent);
-            //vertexData = new NativeArray<int>(memReqs.vertextDataSize, Allocator.Persistent);
+            vertexData = new NativeArray<NativeVertexDatum>(memReqs.vertextDataSize, Allocator.Persistent);
+            triangleData = new NativeArray<int>(memReqs.triangleDataSize, Allocator.Persistent);
         }
 
         public JobHandle Dispose(JobHandle inputDeps)
@@ -35,7 +37,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             operationsByKey.Dispose();
             allOrganData.Dispose();
-            //vertexData.Dispose();
+            vertexData.Dispose();
+            triangleData.Dispose();
         }
     }
 
@@ -43,6 +46,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     public struct TurtleDataRequirements
     {
         public int vertextDataSize;
+        public int triangleDataSize;
         public int organTemplateSize;
 
         public static TurtleDataRequirements operator +(TurtleDataRequirements a, TurtleDataRequirements b)
@@ -50,6 +54,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             return new TurtleDataRequirements
             {
                 vertextDataSize = a.vertextDataSize + b.vertextDataSize,
+                triangleDataSize = a.triangleDataSize + b.triangleDataSize,
                 organTemplateSize = a.organTemplateSize + b.organTemplateSize,
             };
         }
@@ -58,6 +63,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     public class TurtleNativeDataWriter
     {
         public int indexInVertexes = 0;
+        public int indexInTriangles = 0;
         public int indexInOrganTemplates = 0;
         public List<KeyValuePair<int, TurtleOperation>> operators = new List<KeyValuePair<int, TurtleOperation>>();
     }

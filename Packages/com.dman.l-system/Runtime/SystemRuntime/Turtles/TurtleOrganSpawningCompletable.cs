@@ -10,6 +10,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Dman.LSystem.SystemRuntime.DOTSRenderer;
+using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
@@ -18,36 +19,45 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public JobHandle currentJobHandle { get; private set; }
 
 
+        private NativeArray<float3> vertexes;
+        private NativeArray<float3> normals;
+        private NativeArray<float4> tangents;
+        private NativeArray<int> triangleIndexes;
+
+        private Mesh targetMesh;
+
         public TurtleOrganSpawningCompletable(
-            EntityCommandBufferSystem spawnCommandBuffer,
-            Entity parentEntity,
+            Mesh targetMesh,
+            TurtleMeshAllocationCounter resultMeshSize,
             DependencyTracker<NativeTurtleData> nativeData,
             NativeList<TurtleOrganInstance> organInstances)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("clear old organs");
-            var organSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<LSystemMeshMemberUpdateSystem>();
-            var clearOldOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
-            var deleteBuffer = clearOldOrgansCommandBuffer.CreateCommandBuffer();
-            organSystem.ClearOldOrgans(deleteBuffer, parentEntity);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("allocating command buffer");
-            var buffer = spawnCommandBuffer.CreateCommandBuffer();
+            this.targetMesh = targetMesh;
+            UnityEngine.Profiling.Profiler.BeginSample("allocating mesh data");
+            vertexes = new NativeArray<float3>(resultMeshSize.totalVertexes, Allocator.Persistent);
+            normals = new NativeArray<float3>(resultMeshSize.totalVertexes, Allocator.Persistent);
+            tangents = new NativeArray<float4>(resultMeshSize.totalVertexes, Allocator.Persistent);
+            triangleIndexes = new NativeArray<int>(resultMeshSize.totalTriangles, Allocator.Persistent);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("configuring job");
             var turtleEntitySpawnJob = new TurtleEntitySpawningJob
             {
+                vertexData = nativeData.Data.vertexData,
+                triangleData = nativeData.Data.triangleData,
                 organData = nativeData.Data.allOrganData,
+
                 organInstances = organInstances,
-                organSpawnBuffer = buffer,
-                parentEntity = parentEntity
+
+                vertexes = vertexes,
+                normals = normals,
+                tangents = tangents,
+                triangleIndexes = triangleIndexes
             };
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("scheduling job");
             currentJobHandle = turtleEntitySpawnJob.Schedule();
-            spawnCommandBuffer.AddJobHandleForProducer(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = organInstances.Dispose(currentJobHandle);
@@ -57,6 +67,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public ICompletable<TurtleCompletionResult> StepNext()
         {
             currentJobHandle.Complete();
+            this.targetMesh.SetVertices(vertexes);
+            this.targetMesh.SetNormals(normals);
+            this.targetMesh.SetTangents(tangents);
+            this.targetMesh.SetIndices(triangleIndexes, MeshTopology.Triangles, 0);
             return new CompleteCompletable<TurtleCompletionResult>(new TurtleCompletionResult());
         }
 
@@ -66,13 +80,25 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             [ReadOnly]
             [NativeDisableParallelForRestriction]
+            public NativeArray<NativeVertexDatum> vertexData;
+            [ReadOnly]
+            [NativeDisableParallelForRestriction]
+            public NativeArray<int> triangleData;
+            [ReadOnly]
+            [NativeDisableParallelForRestriction]
             public NativeArray<TurtleOrganTemplate.Blittable> organData;
 
             [ReadOnly]
             public NativeList<TurtleOrganInstance> organInstances;
 
-            public EntityCommandBuffer organSpawnBuffer;
-            public Entity parentEntity;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<float3> vertexes;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<float3> normals;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<float4> tangents;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<int> triangleIndexes;
 
             public void Execute()
             {
@@ -80,18 +106,24 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 {
                     var organInstance = organInstances[index];
                     var organTemplate = organData[organInstance.organIndexInAllOrgans];
+                    var matrixTransform = (Matrix4x4)organInstance.organTransform;
 
+                    for (int i = 0; i < organTemplate.vertexes.length; i++)
+                    {
+                        var targetVertexIndex = organInstance.vertexMemorySpace.index + i;
+                        var sourceVertexData = vertexData[organTemplate.vertexes.index + i];
 
-                    var newOrgan = organSpawnBuffer.Instantiate(organTemplate.prototype);
-                    organSpawnBuffer.RemoveComponent<LSystemOrganTemplateComponentFlag>(newOrgan);
-                    organSpawnBuffer.SetComponent(newOrgan, new LocalToParent
+                        vertexes[targetVertexIndex] = matrixTransform.MultiplyPoint(sourceVertexData.vertex);
+                        normals[targetVertexIndex] = sourceVertexData.normal; // TODO: transform other things
+                        tangents[targetVertexIndex] = sourceVertexData.tangent;
+                    }
+
+                    for (int i = 0; i < organTemplate.trianges.length; i++)
                     {
-                        Value = organInstance.organTransform
-                    });
-                    organSpawnBuffer.SetComponent(newOrgan, new Parent
-                    {
-                        Value = parentEntity
-                    });
+                        triangleIndexes[i + organInstance.trianglesMemorySpace.index] =
+                            triangleData[i + organTemplate.trianges.index]
+                            + organInstance.vertexMemorySpace.index; // offset the triangle indexes by the current index in vertex mem space
+                    }
                 }
             }
         }

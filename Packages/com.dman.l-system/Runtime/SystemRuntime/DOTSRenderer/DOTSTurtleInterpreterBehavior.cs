@@ -67,12 +67,14 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 manager.AddComponent<LocalToWorld>(lSystemEntity);
             }
 
-            var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            //var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
+            var meshFilter = GetComponent<MeshFilter>();
+            var newMesh = new Mesh();
+            meshFilter.mesh = newMesh;
             var dep = turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
-                createNewOrgansCommandBuffer,
-                lSystemEntity);
+                meshFilter.mesh);
 
             UnityEngine.Profiling.Profiler.EndSample();
             return dep;

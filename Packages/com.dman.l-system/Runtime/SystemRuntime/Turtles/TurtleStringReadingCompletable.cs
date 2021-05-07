@@ -8,6 +8,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
@@ -15,45 +16,55 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     {
         public ushort organIndexInAllOrgans;
         public float4x4 organTransform;
+        public JaggedIndexing vertexMemorySpace;
+        public JaggedIndexing trianglesMemorySpace;
+    }
+
+    public struct TurtleMeshAllocationCounter
+    {
+        public int totalVertexes;
+        public int totalTriangles;
     }
 
     public class TurtleStringReadingCompletable : ICompletable<TurtleCompletionResult>
     {
         public JobHandle currentJobHandle { get; private set; }
 
-        private Entity parentEntity;
-        private EntityCommandBufferSystem spawnCommandBuffer;
         private NativeList<TurtleOrganInstance> organInstances;
         private DependencyTracker<NativeTurtleData> nativeData;
 
+        private NativeArray<TurtleMeshAllocationCounter> newMeshSize;
+        private Mesh targetMesh;
         public TurtleStringReadingCompletable(
+            Mesh targetMesh,
             DependencyTracker<SymbolString<float>> symbols,
-            EntityCommandBufferSystem spawnCommandBuffer,
-            Entity parentEntity,
             DependencyTracker<NativeTurtleData> nativeData,
             int submeshIndexIncrementChar,
             int branchStartChar,
             int branchEndChar,
             TurtleState defaultState)
         {
-            this.parentEntity = parentEntity;
-            this.spawnCommandBuffer = spawnCommandBuffer;
+            this.targetMesh = targetMesh;
             this.nativeData = nativeData;
 
             var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
             organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
+            newMeshSize = new NativeArray<TurtleMeshAllocationCounter>(1, Allocator.TempJob);
             var turtleCompileJob = new TurtleCompilationJob
             {
                 symbols = symbols.Data,
                 operationsByKey = nativeData.Data.operationsByKey,
                 organData = nativeData.Data.allOrganData,
+
+                organInstances = organInstances,
+                newMeshSize = newMeshSize,
+
                 nativeTurtleStack = tmpHelperStack,
 
                 submeshIndexIncrementChar = submeshIndexIncrementChar,
                 branchStartChar = branchStartChar,
                 branchEndChar = branchEndChar,
 
-                organInstances = organInstances,
                 currentState = defaultState
             };
 
@@ -68,9 +79,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public ICompletable<TurtleCompletionResult> StepNext()
         {
             currentJobHandle.Complete();
+            var meshSize = newMeshSize[0];
+            newMeshSize.Dispose();
             return new TurtleOrganSpawningCompletable(
-                spawnCommandBuffer,
-                parentEntity,
+                targetMesh,
+                meshSize,
                 nativeData,
                 organInstances
                 );
@@ -79,6 +92,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         [BurstCompile]
         public struct TurtleCompilationJob : IJob
         {
+            // Inputs
             [ReadOnly]
             public SymbolString<float> symbols;
             [ReadOnly]
@@ -86,8 +100,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             [ReadOnly]
             public NativeArray<TurtleOrganTemplate.Blittable> organData;
 
+            // Outputs
             public NativeList<TurtleOrganInstance> organInstances;
+            public NativeArray<TurtleMeshAllocationCounter> newMeshSize;
 
+            // tmp Working memory
             public TmpNativeStack<TurtleState> nativeTurtleStack;
 
             public int submeshIndexIncrementChar;
@@ -99,6 +116,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             public void Execute()
             {
+                var meshCount = new TurtleMeshAllocationCounter();
                 for (int symbolIndex = 0; symbolIndex < symbols.symbols.Length; symbolIndex++)
                 {
                     var symbol = symbols.symbols[symbolIndex];
@@ -121,25 +139,31 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     {
                         operation.Operate(
                             ref currentState,
+                            ref meshCount,
                             symbolIndex,
                             symbols,
                             organData,
                             organInstances);
                     }
                 }
+                newMeshSize[0] = meshCount;
             }
         }
 
         public JobHandle Dispose(JobHandle inputDeps)
         {
             currentJobHandle.Complete();
-            return organInstances.Dispose(inputDeps);
+            return JobHandle.CombineDependencies(
+                organInstances.Dispose(inputDeps),
+                newMeshSize.Dispose(inputDeps)
+                );
         }
 
         public void Dispose()
         {
             currentJobHandle.Complete();
             organInstances.Dispose();
+            newMeshSize.Dispose();
         }
 
         public TurtleCompletionResult GetData()
