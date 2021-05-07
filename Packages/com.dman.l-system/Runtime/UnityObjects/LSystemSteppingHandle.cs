@@ -230,6 +230,10 @@ namespace Dman.LSystem.UnityObjects
             if (useSharedSystem)
             {
                 mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
+            }else
+            {
+                compiledSystem?.Dispose();
+                compiledSystem = null;
             }
             lSystemPendingCompletable?.Cancel();
             lastState?.currentSymbols.Dispose();
