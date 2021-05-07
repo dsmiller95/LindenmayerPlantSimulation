@@ -46,11 +46,11 @@ namespace Dman.LSystem.UnityObjects
                 var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
                 if (globalParams == null)
                 {
-                    steppingHandle = new LSystemSteppingHandle(this, systemObject, true);
+                    steppingHandle = new LSystemSteppingHandle(systemObject, true);
                 }
                 else
                 {
-                    steppingHandle = new LSystemSteppingHandle(this, systemObject, false);
+                    steppingHandle = new LSystemSteppingHandle(systemObject, false);
                 }
                 steppingHandle.OnSystemStateUpdated += LSystemStateWasUpdated;
             }

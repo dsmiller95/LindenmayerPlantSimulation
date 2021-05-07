@@ -4,7 +4,7 @@ using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
-    public class CompletableHandle: INativeDisposable
+    public class CompletableHandle : INativeDisposable
     {
         protected ICompletable currentState;
         protected bool IsDisposed = false;
@@ -30,7 +30,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 
         public void Cancel()
         {
-            this.Dispose();
+            Dispose();
         }
 
         public bool IsComplete()

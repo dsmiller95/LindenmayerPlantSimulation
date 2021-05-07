@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using UnityEngine;
-
-namespace Dman.LSystem.SystemRuntime.ThreadBouncer
+﻿namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
     public static class CompletableExtensions
     {

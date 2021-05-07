@@ -1,12 +1,11 @@
 ﻿
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Collections;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
-    public class CompletableExecutor: MonoBehaviour
+    public class CompletableExecutor : MonoBehaviour
     {
         public static CompletableExecutor Instance { get; private set; }
         private IList<CompletableHandle> PendingCompletables = new List<CompletableHandle>();

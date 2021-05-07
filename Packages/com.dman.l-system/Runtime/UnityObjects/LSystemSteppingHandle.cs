@@ -1,7 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,8 +17,6 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public event Action OnSystemStateUpdated;
 
-        private MonoBehaviour coroutineOwner;
-
         private LSystemStepper compiledSystem;
         public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
 
@@ -31,13 +28,11 @@ namespace Dman.LSystem.UnityObjects
         private bool useSharedSystem;
 
         public LSystemSteppingHandle(
-            MonoBehaviour coroutineOwner,
             LSystemObject mySystemObject,
             bool useSharedSystem)
         {
             totalSteps = 0;
             lastUpdateChanged = true;
-            this.coroutineOwner = coroutineOwner;
 
             this.mySystemObject = mySystemObject;
             this.useSharedSystem = useSharedSystem;
@@ -183,16 +178,16 @@ namespace Dman.LSystem.UnityObjects
                 {
                     pendingStateHandle = compiledSystem.StepSystemJob(currentState, runtimeParameters.GetCurrentParameters());
                 }
+                if (pendingStateHandle == null)
+                {
+                    lSystemPendingCompletable = null;
+                    return;
+                }
             }
             catch (System.Exception e)
             {
                 lastUpdateChanged = false;
                 Debug.LogException(e);
-                lSystemPendingCompletable = null;
-                return;
-            }
-            if (pendingStateHandle == null)
-            {
                 lSystemPendingCompletable = null;
                 return;
             }

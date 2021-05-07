@@ -1,5 +1,4 @@
-﻿using Dman.LSystem;
-using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+﻿using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.UnityObjects;
 using NUnit.Framework;
