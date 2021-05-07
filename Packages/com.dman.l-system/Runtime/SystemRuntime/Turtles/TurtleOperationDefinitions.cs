@@ -37,7 +37,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public void Operate(
             ref TurtleState currentState,
-            ref TurtleMeshAllocationCounter meshCounter,
+            NativeArray<TurtleMeshAllocationCounter> meshSizeCounterPerSubmesh,
             int indexInString,
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
@@ -49,7 +49,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     bendTowardsOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
                 case TurtleOperationType.ADD_ORGAN:
-                    meshOperation.Operate(ref currentState, ref meshCounter, indexInString, sourceString, allOrgans, targetOrganInstances);
+                    meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances);
                     break;
                 case TurtleOperationType.ROTATE:
                     rotationOperation.Operate(ref currentState, indexInString, sourceString);
@@ -76,7 +76,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public void Operate(
             ref TurtleState state,
-            ref TurtleMeshAllocationCounter meshSizeCounter,
+            NativeArray<TurtleMeshAllocationCounter> meshSizeCounterPerSubmesh,
             int indexInString,
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
@@ -106,25 +106,28 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 meshTransform *= Matrix4x4.Scale(new Vector3(1, state.thickness, state.thickness));
             }
 
+            var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];
+
             var newOrganEntry = new TurtleOrganInstance
             {
                 organIndexInAllOrgans = (ushort)selectedOrganIndex,
                 organTransform = meshTransform,
                 vertexMemorySpace = new JaggedIndexing
                 {
-                    index = meshSizeCounter.totalVertexes,
+                    index = meshSizeForSubmesh.totalVertexes,
                     length = selectedOrgan.vertexes.length
                 },
                 trianglesMemorySpace = new JaggedIndexing
                 {
-                    index = meshSizeCounter.totalTriangleIndexes,
+                    index = meshSizeForSubmesh.totalTriangleIndexes,
                     length = selectedOrgan.trianges.length
                 }
             };
             targetOrganInstances.Add(newOrganEntry);
 
-            meshSizeCounter.totalVertexes += newOrganEntry.vertexMemorySpace.length;
-            meshSizeCounter.totalTriangleIndexes += newOrganEntry.trianglesMemorySpace.length;
+            meshSizeForSubmesh.totalVertexes += newOrganEntry.vertexMemorySpace.length;
+            meshSizeForSubmesh.totalTriangleIndexes += newOrganEntry.trianglesMemorySpace.length;
+            meshSizeCounterPerSubmesh[selectedOrgan.materialIndex] = meshSizeForSubmesh;
 
             state.transformation *= ((Matrix4x4)selectedOrgan.organMatrixTransform);
         }

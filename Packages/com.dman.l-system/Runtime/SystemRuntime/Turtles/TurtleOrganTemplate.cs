@@ -37,37 +37,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
-            //var world = World.DefaultGameObjectInjectionWorld;
-            //var entityManager = world.EntityManager;
-            //var mesh = draft.ToMesh();
-
-            //// Create a RenderMeshDescription using the convenience constructor
-            //// with named parameters.
-            //var desc = new RenderMeshDescription(
-            //    mesh,
-            //    material,
-            //    shadowCastingMode: ShadowCastingMode.Off,
-            //    receiveShadows: false);
-
-            //// Create empty base entity
-            //var prototype = entityManager.CreateEntity();
-
-            //entityManager.AddComponents(prototype, new ComponentTypes(
-            //    typeof(LSystemOrganComponent),
-            //    typeof(LSystemOrganTemplateComponentFlag)
-            //));
-            //entityManager.AddComponents(prototype, new ComponentTypes(
-            //    typeof(LocalToWorld),
-            //    typeof(LocalToParent),
-            //    typeof(Parent),
-            //    typeof(PreviousParent)
-            //));
-            //// Call AddComponents to populate base entity with the components required
-            //// by Hybrid Renderer
-            //RenderMeshUtility.AddComponents(
-            //    prototype,
-            //    entityManager,
-            //    desc);
 
             var vertexSlice = new JaggedIndexing
             {
@@ -98,14 +67,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
             writer.indexInTriangles += triangleCount.length;
 
-
+            var existingMaterialIndex = writer.materialsInOrder.IndexOf(this.material);
+            if(existingMaterialIndex == -1)
+            {
+                existingMaterialIndex = writer.materialsInOrder.Count;
+                writer.materialsInOrder.Add(this.material);
+            }
             var blittable = new Blittable
             {
                 organMatrixTransform = transform,
                 vertexes = vertexSlice,
-                trianges = triangleCount
+                trianges = triangleCount,
+                materialIndex = (byte)existingMaterialIndex
             };
-
             nativeData.allOrganData[writer.indexInOrganTemplates] = blittable;
             writer.indexInOrganTemplates++;
         }
@@ -116,6 +90,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             /// the transformation to apply to the turtle after placing this organ
             /// </summary>
             public float4x4 organMatrixTransform;
+            public byte materialIndex;
 
             public JaggedIndexing vertexes;
             public JaggedIndexing trianges;

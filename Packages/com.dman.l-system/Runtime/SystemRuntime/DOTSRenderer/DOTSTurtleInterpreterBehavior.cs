@@ -70,9 +70,12 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             //var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
             var meshFilter = GetComponent<MeshFilter>();
+            var meshRenderer = GetComponent<MeshRenderer>();
             var dep = turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
                 meshFilter.mesh);
+            // TOODO: do this oon startup?
+            meshRenderer.materials = turtle.submeshMaterials;
 
             UnityEngine.Profiling.Profiler.EndSample();
             return dep;

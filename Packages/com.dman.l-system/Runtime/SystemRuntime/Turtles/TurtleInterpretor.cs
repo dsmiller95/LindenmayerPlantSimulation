@@ -13,6 +13,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     public class TurtleInterpretor : IDisposable
     {
         private DependencyTracker<NativeTurtleData> nativeDataTracker;
+        public Material[] submeshMaterials;
 
         public int submeshIndexIncrementChar = '`';
         public int branchStartChar = '[';
@@ -36,6 +37,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 operationSet.WriteIntoNativeData(nativeData, nativeWriter);
             }
 
+            this.submeshMaterials = nativeWriter.materialsInOrder.ToArray();
+
             nativeData.operationsByKey = new NativeHashMap<int, TurtleOperation>(nativeWriter.operators.Count(), Allocator.Persistent);
             foreach (var ops in nativeWriter.operators)
             {
@@ -52,6 +55,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             return new TurtleStringReadingCompletable(
                 targetMesh,
+                submeshMaterials.Length,
                 symbols,
                 nativeDataTracker,
                 submeshIndexIncrementChar,

@@ -26,7 +26,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         private Mesh.MeshDataArray meshDataArray;
 
         private Mesh targetMesh;
-        private TurtleMeshAllocationCounter resultMeshSize;
+        private NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh;
 
 
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
@@ -39,32 +39,34 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public TurtleOrganSpawningCompletable(
             Mesh targetMesh,
-            TurtleMeshAllocationCounter resultMeshSize,
+            NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh,
             DependencyTracker<NativeTurtleData> nativeData,
             NativeList<TurtleOrganInstance> organInstances)
         {
             this.targetMesh = targetMesh;
-            this.resultMeshSize = resultMeshSize;
+            this.resultMeshSizeBySubmesh = resultMeshSizeBySubmesh;
             UnityEngine.Profiling.Profiler.BeginSample("allocating mesh data");
 
             meshDataArray = Mesh.AllocateWritableMeshData(1);
             var meshData = meshDataArray[0];
-            meshData.SetVertexBufferParams(resultMeshSize.totalVertexes,
+            var lastMeshSize = resultMeshSizeBySubmesh[resultMeshSizeBySubmesh.Length - 1];
+            meshData.SetVertexBufferParams(lastMeshSize.indexInVertexes + lastMeshSize.totalVertexes,
                 new VertexAttributeDescriptor(VertexAttribute.Position),
                 new VertexAttributeDescriptor(VertexAttribute.Normal),
                 new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
             );
 
-            meshData.SetIndexBufferParams(resultMeshSize.totalTriangleIndexes, IndexFormat.UInt32);
+            meshData.SetIndexBufferParams(lastMeshSize.indexInTriangles + lastMeshSize.totalTriangleIndexes, IndexFormat.UInt32);
 
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("configuring job");
             var turtleEntitySpawnJob = new TurtleEntitySpawningJob
             {
-                vertexData = nativeData.Data.vertexData,
-                triangleData = nativeData.Data.triangleData,
-                organData = nativeData.Data.allOrganData,
+                templateVertexData = nativeData.Data.vertexData,
+                templateTriangleData = nativeData.Data.triangleData,
+                templateOrganData = nativeData.Data.allOrganData,
+                submeshSizes = resultMeshSizeBySubmesh,
 
                 organInstances = organInstances,
 
@@ -87,14 +89,27 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.BeginSample("applying mesh data");
             var meshData = meshDataArray[0];
 
-            meshData.subMeshCount = 1;
-            meshData.SetSubMesh(0, new SubMeshDescriptor(0, resultMeshSize.totalTriangleIndexes));
+            meshData.subMeshCount = resultMeshSizeBySubmesh.Length;
+            for (int i = 0; i < resultMeshSizeBySubmesh.Length; i++)
+            {
+                var submeshSize = resultMeshSizeBySubmesh[i];
+                var descriptor = new SubMeshDescriptor()
+                {
+                    baseVertex = 0,
+                    topology = MeshTopology.Triangles,
+                    indexCount = submeshSize.totalTriangleIndexes,
+                    indexStart = submeshSize.indexInTriangles,
+                };
+                meshData.SetSubMesh(i, descriptor);
+            }
 
             Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, targetMesh, MeshUpdateFlags.Default);
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("recalculating bounds");
             targetMesh.RecalculateBounds();
             UnityEngine.Profiling.Profiler.EndSample();
+
+            resultMeshSizeBySubmesh.Dispose();
 
             return new CompleteCompletable<TurtleCompletionResult>(new TurtleCompletionResult());
         }
@@ -105,13 +120,17 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             [ReadOnly]
             [NativeDisableParallelForRestriction]
-            public NativeArray<NativeVertexDatum> vertexData;
+            public NativeArray<NativeVertexDatum> templateVertexData;
             [ReadOnly]
             [NativeDisableParallelForRestriction]
-            public NativeArray<int> triangleData;
+            public NativeArray<int> templateTriangleData;
             [ReadOnly]
             [NativeDisableParallelForRestriction]
-            public NativeArray<TurtleOrganTemplate.Blittable> organData;
+            public NativeArray<TurtleOrganTemplate.Blittable> templateOrganData;
+
+            [ReadOnly]
+            [NativeDisableParallelForRestriction]
+            public NativeArray<TurtleMeshAllocationCounter> submeshSizes;
 
             [ReadOnly]
             public NativeList<TurtleOrganInstance> organInstances;
@@ -125,15 +144,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 var triangleIndexes = targetMesh.GetIndexData<uint>();
                 for (int index = 0; index < organInstances.Length; index++)
                 {
+                    // TODO: write meshes based on their position in the submesh data
                     var organInstance = organInstances[index];
-                    var organTemplate = organData[organInstance.organIndexInAllOrgans];
+                    var organTemplate = templateOrganData[organInstance.organIndexInAllOrgans];
+                    var submeshData = submeshSizes[organTemplate.materialIndex];
                     var matrixTransform = (Matrix4x4)organInstance.organTransform;
+
+                    var organVertexOffset = submeshData.indexInVertexes + organInstance.vertexMemorySpace.index;
+                    var organTriangleOffset = submeshData.indexInTriangles + organInstance.trianglesMemorySpace.index;
 
                     for (int i = 0; i < organTemplate.vertexes.length; i++)
                     {
-                        var targetVertexIndex = organInstance.vertexMemorySpace.index + i;
-                        var sourceVertexData = vertexData[organTemplate.vertexes.index + i];
-                        vertexTargetData[targetVertexIndex] = new MeshVertexLayout
+                        var sourceVertexData = templateVertexData[organTemplate.vertexes.index + i];
+                        vertexTargetData[i + organVertexOffset] = new MeshVertexLayout
                         {
                             pos = matrixTransform.MultiplyPoint(sourceVertexData.vertex),
                             normal = matrixTransform.MultiplyVector(sourceVertexData.normal),
@@ -143,9 +166,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                     for (int i = 0; i < organTemplate.trianges.length; i++)
                     {
-                        triangleIndexes[i + organInstance.trianglesMemorySpace.index] = (uint)
-                            (triangleData[i + organTemplate.trianges.index]
-                            + organInstance.vertexMemorySpace.index); // offset the triangle indexes by the current index in vertex mem space
+                        triangleIndexes[i + organTriangleOffset] = (uint)
+                            (templateTriangleData[i + organTemplate.trianges.index]
+                            + organVertexOffset); // offset the triangle indexes by the current index in vertex mem space
                     }
                 }
             }

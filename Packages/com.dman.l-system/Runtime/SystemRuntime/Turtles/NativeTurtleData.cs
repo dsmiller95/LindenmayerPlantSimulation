@@ -7,6 +7,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
@@ -70,6 +71,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public int indexInTriangles = 0;
         public int indexInOrganTemplates = 0;
         public List<KeyValuePair<int, TurtleOperation>> operators = new List<KeyValuePair<int, TurtleOperation>>();
+        public List<Material> materialsInOrder = new List<Material>();
     }
 
     public interface ITurtleNativeDataWritable
