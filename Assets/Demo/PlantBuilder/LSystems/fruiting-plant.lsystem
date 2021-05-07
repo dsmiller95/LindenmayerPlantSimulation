@@ -26,8 +26,8 @@
 #define flowerMeshIndex (flowerColorOuterIndex + flowerColorInnerIndex * 3)
 
 ## variables controlled by genes
-#define primaryBranchInternodes 8
-#define flowerFailureChance 0.25
+#define primaryBranchInternodes 10
+#define flowerFailureChance 0.5
 #define stamenSize 0.6
 ## ranges from 0 to 2. 0 is least ripe, 2 is most ripe.
 #define fruitColorIndex 1

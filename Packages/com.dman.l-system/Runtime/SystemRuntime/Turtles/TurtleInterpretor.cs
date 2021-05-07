@@ -1,11 +1,7 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
+﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
 using System.Linq;
-using Unity.Burst;
 using Unity.Collections;
-using Unity.Entities;
-using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
@@ -37,7 +33,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 operationSet.WriteIntoNativeData(nativeData, nativeWriter);
             }
 
-            this.submeshMaterials = nativeWriter.materialsInOrder.ToArray();
+            submeshMaterials = nativeWriter.materialsInOrder.ToArray();
 
             nativeData.operationsByKey = new NativeHashMap<int, TurtleOperation>(nativeWriter.operators.Count(), Allocator.Persistent);
             foreach (var ops in nativeWriter.operators)

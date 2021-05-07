@@ -398,7 +398,7 @@ C(age) < A(y) : age >= timeToFruit ->
                 hasMoreSteps = false;
                 for (int i = 0; i < steppingStates.Length; i++)
                 {
-                    var nextStepper = steppingStates[i] = steppingStates[i].StepNext();
+                    var nextStepper = steppingStates[i] = steppingStates[i].StepNextTyped();
                     if (!nextStepper.IsComplete())
                     {
                         hasMoreSteps = true;

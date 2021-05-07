@@ -1,7 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -58,19 +57,19 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol
             };
 
-            this.currentJobHandle = replacementJob.Schedule(
+            currentJobHandle = replacementJob.Schedule(
                 matchSingletonData.Length,
                 100
             );
-            sourceSymbolString.RegisterDependencyOnData(this.currentJobHandle);
-            nativeData.RegisterDependencyOnData(this.currentJobHandle);
+            sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
+            nativeData.RegisterDependencyOnData(currentJobHandle);
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        public ICompletable<LSystemState<float>> StepNext()
+        public ICompletable StepNext()
         {
-            this.currentJobHandle.Complete();
+            currentJobHandle.Complete();
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
@@ -100,14 +99,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public JobHandle Dispose(JobHandle inputDeps)
         {
             //TODO
-            this.currentJobHandle.Complete();
+            currentJobHandle.Complete();
             target.Dispose();
             return inputDeps;
         }
 
         public void Dispose()
         {
-            this.currentJobHandle.Complete();
+            currentJobHandle.Complete();
             target.Dispose();
         }
     }

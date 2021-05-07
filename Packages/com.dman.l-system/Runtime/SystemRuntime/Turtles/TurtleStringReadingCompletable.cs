@@ -1,11 +1,7 @@
-﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
-using System;
-using System.Collections.Generic;
-using Dman.LSystem.SystemRuntime.NativeCollections;
-using System.Linq;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -80,7 +76,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             currentJobHandle = tmpHelperStack.Dispose(currentJobHandle);
         }
 
-        public ICompletable<TurtleCompletionResult> StepNext()
+        public ICompletable StepNext()
         {
             currentJobHandle.Complete();
             return new TurtleOrganSpawningCompletable(

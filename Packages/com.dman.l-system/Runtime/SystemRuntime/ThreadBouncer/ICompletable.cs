@@ -3,7 +3,7 @@ using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
-    public interface ICompletable<T>: INativeDisposable
+    public interface ICompletable : INativeDisposable
     {
         /// <summary>
         /// the jobhandle which this completable is waiting on
@@ -14,7 +14,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         ///     series of jobs from the main thread
         /// </summary>
         /// <returns></returns>
-        public ICompletable<T> StepNext();
+        public ICompletable StepNext();
 
         /// <summary>
         /// Return true if this completable has the final product <see cref="T"/>.
@@ -28,7 +28,9 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         /// <returns></returns>
         public bool HasErrored();
         public string GetError();
-
+    }
+    public interface ICompletable<T> : ICompletable
+    {
         /// <summary>
         /// Get the completed data. if <see cref="IsComplete"/> is false, or if HasErrored is true, will return null.
         /// </summary>

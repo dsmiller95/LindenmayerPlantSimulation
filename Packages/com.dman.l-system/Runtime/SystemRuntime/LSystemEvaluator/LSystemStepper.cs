@@ -1,13 +1,9 @@
 using Dman.LSystem.SystemCompiler;
-using Dman.LSystem.SystemRuntime;
-using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Burst;
 using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
@@ -167,7 +163,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var stepper = StepSystemJob(systemState, globalParameters);
             while (!stepper.IsComplete())
             {
-                stepper = stepper.StepNext();
+                stepper = stepper.StepNextTyped();
             }
             if (disposeOldSystem)
             {

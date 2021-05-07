@@ -135,7 +135,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        public ICompletable<LSystemState<float>> StepNext()
+        public ICompletable StepNext()
         {
             currentJobHandle.Complete();
 

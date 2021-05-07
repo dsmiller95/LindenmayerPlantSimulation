@@ -1,10 +1,7 @@
-﻿using Dman.LSystem.SystemRuntime.DOTSRenderer;
-using Dman.LSystem.SystemRuntime.NativeCollections;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Runtime.InteropServices;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle

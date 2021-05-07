@@ -1,9 +1,8 @@
-﻿using Unity.Collections;
-using Unity.Jobs;
+﻿using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
-    public class CompleteCompletable<T>: ICompletable<T>
+    public class CompleteCompletable<T> : ICompletable<T>
     {
         public JobHandle currentJobHandle => default;
 
@@ -33,7 +32,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             return null;
         }
 
-        public ICompletable<T> StepNext()
+        public ICompletable StepNext()
         {
             return this;
         }

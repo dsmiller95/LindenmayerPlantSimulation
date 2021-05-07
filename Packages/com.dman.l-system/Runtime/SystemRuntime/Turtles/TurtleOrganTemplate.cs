@@ -1,18 +1,11 @@
-﻿using Dman.LSystem.SystemRuntime.DOTSRenderer;
-using Dman.LSystem.SystemRuntime.NativeCollections;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using ProceduralToolkit;
-using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Rendering;
-using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public class TurtleOrganTemplate: ITurtleNativeDataWritable
+    public class TurtleOrganTemplate : ITurtleNativeDataWritable
     {
         public MeshDraft draft;
         public Material material;
@@ -67,11 +60,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
             writer.indexInTriangles += triangleCount.length;
 
-            var existingMaterialIndex = writer.materialsInOrder.IndexOf(this.material);
-            if(existingMaterialIndex == -1)
+            var existingMaterialIndex = writer.materialsInOrder.IndexOf(material);
+            if (existingMaterialIndex == -1)
             {
                 existingMaterialIndex = writer.materialsInOrder.Count;
-                writer.materialsInOrder.Add(this.material);
+                writer.materialsInOrder.Add(material);
             }
             var blittable = new Blittable
             {

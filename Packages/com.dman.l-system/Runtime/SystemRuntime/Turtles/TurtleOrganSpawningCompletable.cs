@@ -1,15 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
-using System;
-using System.Collections.Generic;
-using Dman.LSystem.SystemRuntime.NativeCollections;
-using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
-using Unity.Transforms;
-using Dman.LSystem.SystemRuntime.DOTSRenderer;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -18,10 +10,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     public class TurtleOrganSpawningCompletable : ICompletable<TurtleCompletionResult>
     {
         public JobHandle currentJobHandle { get; private set; }
-
-
-        //private NativeArray<MeshVertexLayout> vertexData;
-        //private NativeArray<uint> triangleIndexes;
 
         private Mesh.MeshDataArray meshDataArray;
 
@@ -82,7 +70,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        public ICompletable<TurtleCompletionResult> StepNext()
+        public ICompletable StepNext()
         {
             currentJobHandle.Complete();
 
@@ -176,12 +164,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public JobHandle Dispose(JobHandle inputDeps)
         {
-            return JobHandle.CombineDependencies(inputDeps, currentJobHandle);
+            currentJobHandle.Complete();
+            meshDataArray.Dispose();
+            return JobHandle.CombineDependencies(
+                inputDeps,
+                resultMeshSizeBySubmesh.Dispose(inputDeps)
+                );
         }
 
         public void Dispose()
         {
             currentJobHandle.Complete();
+            meshDataArray.Dispose();
+            resultMeshSizeBySubmesh.Dispose();
         }
 
         public TurtleCompletionResult GetData()

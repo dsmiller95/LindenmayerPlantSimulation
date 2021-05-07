@@ -4,9 +4,6 @@
     "references": [
         "Utilities",
         "Unity.Mathematics",
-        "Unity.Entities",
-        "Unity.Transforms",
-        "Unity.Rendering.Hybrid",
         "Unity.Burst",
         "Unity.Collections",
         "Unity.Jobs",

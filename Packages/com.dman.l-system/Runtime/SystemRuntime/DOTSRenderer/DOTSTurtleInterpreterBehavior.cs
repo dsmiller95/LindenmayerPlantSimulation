@@ -1,9 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.UnityObjects;
-using Unity.Entities;
-using Unity.Jobs;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.DOTSRenderer
@@ -26,18 +23,9 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         private TurtleInterpretor turtle;
         private LSystemBehavior System => GetComponent<LSystemBehavior>();
 
-        private Entity lSystemEntity;
 
         private void Update()
         {
-            var manager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            if (manager.Exists(lSystemEntity))
-            {
-                manager.SetComponentData(lSystemEntity, new Rotation
-                {
-                    Value = transform.rotation
-                });
-            }
         }
 
         /// <summary>
@@ -47,25 +35,6 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         public ICompletable<TurtleCompletionResult> InterpretSymbols(DependencyTracker<SymbolString<float>> symbols)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
-            var manager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            if (!manager.Exists(lSystemEntity))
-            {
-                lSystemEntity = manager.CreateEntity();
-                manager.AddComponentData(lSystemEntity, new LSystemComponent());
-                manager.AddComponentData(lSystemEntity, new Translation
-                {
-                    Value = transform.position
-                });
-                manager.AddComponentData(lSystemEntity, new Rotation
-                {
-                    Value = transform.rotation
-                });
-                manager.AddComponentData(lSystemEntity, new NonUniformScale
-                {
-                    Value = transform.localScale
-                });
-                manager.AddComponent<LocalToWorld>(lSystemEntity);
-            }
 
             //var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
@@ -116,7 +85,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             if (System != null)
             {
                 var completable = InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
-                this.StartCoroutine(completable.AsCoroutine());
+                CompletableExecutor.Instance.RegisterCompletable(completable);
 
                 //var mesh = GetComponent<MeshFilter>().mesh;
             }

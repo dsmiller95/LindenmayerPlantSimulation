@@ -1,6 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -76,7 +75,7 @@ namespace Dman.LSystem.SystemRuntime
             dynamicOperatorMemory.Dispose();
             structExpressionMemorySpace.Dispose();
             replacementsSymbolMemorySpace.Dispose();
-            if(blittableRulesByTargetSymbol.IsCreated) blittableRulesByTargetSymbol.Dispose();
+            if (blittableRulesByTargetSymbol.IsCreated) blittableRulesByTargetSymbol.Dispose();
         }
         public JobHandle Dispose(JobHandle dependency)
         {

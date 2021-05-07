@@ -1,16 +1,15 @@
-﻿using Unity.Collections;
-using Unity.Jobs;
+﻿using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
-    public class ErrorCompletable<T>: ICompletable<T>
+    public class ErrorCompletable<T> : ICompletable<T>
     {
         public JobHandle currentJobHandle => default;
 
         private string error;
         public ErrorCompletable(string errorMessage)
         {
-            this.error = errorMessage;
+            error = errorMessage;
         }
 
 
@@ -34,7 +33,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             return true;
         }
 
-        public ICompletable<T> StepNext()
+        public ICompletable StepNext()
         {
             return this;
         }

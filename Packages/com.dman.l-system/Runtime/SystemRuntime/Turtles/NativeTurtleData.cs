@@ -1,11 +1,6 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Unity.Burst;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
 
@@ -21,7 +16,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public NativeTurtleData(
             TurtleDataRequirements memReqs)
         {
-            this.operationsByKey = default;
+            operationsByKey = default;
             allOrganData = new NativeArray<TurtleOrganTemplate.Blittable>(memReqs.organTemplateSize, Allocator.Persistent);
             vertexData = new NativeArray<NativeVertexDatum>(memReqs.vertextDataSize, Allocator.Persistent);
             triangleData = new NativeArray<int>(memReqs.triangleDataSize, Allocator.Persistent);
@@ -76,7 +71,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
     public interface ITurtleNativeDataWritable
     {
-        public TurtleDataRequirements DataReqs {get;}
+        public TurtleDataRequirements DataReqs { get; }
         public void WriteIntoNativeData(
             NativeTurtleData nativeData,
             TurtleNativeDataWriter writer);
