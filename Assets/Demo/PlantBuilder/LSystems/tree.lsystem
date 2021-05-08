@@ -1,0 +1,10 @@
+#axiom @(2)T(10)
+#iterations 100
+
+#ignore /\&^F$
+
+
+#define branchLength 10
+
+T(x) : x > 0  -> FT(x - 1)
+T(x) : x <= 0 -> @(.9)[\--T(branchLength)][^+\T(branchLength)]

@@ -1,5 +1,5 @@
-#axiom Z(0)JJJJJ
-#iterations 70
+#axiom Z(0)JJJJJX
+#iterations 100
 
 #ignore /\&^$
 
@@ -17,7 +17,9 @@ P(0.5)  |     J > F -> JF
 P(0.25) | F < J > F -> FFJ
 P(0.5)  | F < J > F -> FJF
 P(0.25) | F < J > F -> JFF
+              J > FFX -> JJX
 
-    F > J -> 
-J < F     -> 
-J < F > J -> 
+     F > J -> 
+J  < F     -> 
+JF < F > X -> 
+J  < F > J -> 
