@@ -1,14 +1,17 @@
 #axiom /(20)@(1)S(1)R(0)T(5)
-#iterations 500
+#iterations 1000
 
 #ignore +-/\&^F$
 
-#define resourceNodeTargetMax 10
-P(0.004) | T(x) -> FK
-P(0.996) | T(x) -> T(x)
+#define resourceNodeTargetMax 4
+##P(0.005) | T(x) -> FK
+##P(0.995) | T(x) -> T(x)
 
-R(a) < T(x) : a >= 1 && x >  0 -> A(-1)FT(x - 1)
-R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)Q/(137)[FW+(18)R(0)T(5)][FW-(18)R(0)T(5)]
+
+         R(a) < T(x) : a >= 1 && x >  0 -> A(-1)FT(x - 1)
+P(0.6) | R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)Q/(137)[FW+(18)R(0)T(5)][FW-(18)R(0)T(5)]
+P(0.4) | R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)FK
+
 
 ## S is a resource source node
 S(x) -> S(x)B(x)
@@ -30,8 +33,9 @@ B(b) < R(x)        -> R(x + b)
 ##	a back-propigating negative command and a forward-propigating positive command
 ## Randomly decide whether or not to pull resources forward
 
-P(0.2) | R(a)Q < W > R(x) : a >= 1 && x < resourceNodeTargetMax -> A(-a / 2)WB(a / 2)
-P(0.8) | R(a)Q < W > R(x) : a >= 1 && x < resourceNodeTargetMax -> W
+P(0.5) | R(a)Q < W > R(x) : a >= 1 && x < a -> A(-(a - x) * .9)WB((a - x) * .9)
+P(0.5) | R(a)Q < W > R(x) : a >= 1 && x < a -> W
+
 
 
 ## A is a resource amount, propigating downwards, to be captured by a resource node

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -24,7 +23,6 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             if (branchSymbolIndex != -1)
             {
                 id = -branchSymbolIndex - 1;
-                //displayName = "[" + Convert.ToString(branchSymbolIndex, 8);
             }
             else
             {
@@ -79,7 +77,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             ISet<int> ignoreSymbols,
             int branchStartChar,
             int branchEndChar,
-            int branchSymbolMaxBranchingFactorAsPowerOf2 = 3)
+            int branchSymbolMaxBranchingFactorAsPowerOf2 = 4)
         {
             var root = new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
 
@@ -129,9 +127,6 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                     currentState.currentParent.AddChild(newBranchState.treeElement);
                     currentState = newBranchState;
 
-                    
-
-
                     stateStack.Push(currentState);
                     currentState.currentParent = currentState.treeElement;
 
@@ -153,7 +148,31 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 currentState = newState;
             }
 
+            RemoveEmptyBranches(root, branchStartChar);
+
             return root;
+        }
+
+        private static bool RemoveEmptyBranches(TreeViewItem root, int openBranchSymbol)
+        {
+            if (root.hasChildren)
+            {
+                for (int i = root.children.Count - 1; i >= 0; i--)
+                {
+                    var child = root.children[i];
+                    if (RemoveEmptyBranches(child, openBranchSymbol))
+                    {
+                        root.children.RemoveAt(i);
+                    }
+                }
+            } else if (
+                root is LSystemStructureTreeElement element &&
+                element.symbol == openBranchSymbol
+                )
+            {
+                return true;
+            }
+            return false;
         }
     }
 }
