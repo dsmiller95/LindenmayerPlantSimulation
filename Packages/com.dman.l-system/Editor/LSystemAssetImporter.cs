@@ -3,19 +3,19 @@ using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
-[ScriptedImporter(1, "lsystem")]
-public class LSystemAssetImporter : ScriptedImporter
+namespace Dman.LSystem.Editor
 {
-    public override void OnImportAsset(AssetImportContext ctx)
+    [ScriptedImporter(1, "lsystem")]
+    public class LSystemAssetImporter : ScriptedImporter
     {
-        var systemObject = ScriptableObject.CreateInstance<LSystemObject>();
-        var lSystemCode = File.ReadAllText(ctx.assetPath);
-        systemObject.ParseRulesFromCode(lSystemCode);
+        public override void OnImportAsset(AssetImportContext ctx)
+        {
+            var systemObject = ScriptableObject.CreateInstance<LSystemObject>();
+            var lSystemCode = File.ReadAllText(ctx.assetPath);
+            systemObject.ParseRulesFromCode(lSystemCode);
 
-        ctx.AddObjectToAsset("lSystem", systemObject);
-        ctx.SetMainObject(systemObject);
+            ctx.AddObjectToAsset("lSystem", systemObject);
+            ctx.SetMainObject(systemObject);
+        }
     }
 }
-
-
-

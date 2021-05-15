@@ -133,6 +133,17 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             }
         }
 
+        public TData[] AsArray(int index)
+        {
+            var indexes = indexing[index];
+            var result = new TData[indexes.length];
+            for (int i = 0; i < indexes.length; i++)
+            {
+                result[i] = data[i + indexes.index];
+            }
+            return result;
+        }
+
         public bool Equals(JaggedNativeArray<TData> other)
         {
             for (int i = 0; i < data.Length; i++)

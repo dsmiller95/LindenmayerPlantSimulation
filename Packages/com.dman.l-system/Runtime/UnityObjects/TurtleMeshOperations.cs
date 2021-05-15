@@ -19,6 +19,8 @@ namespace Dman.LSystem.UnityObjects
 
         [Tooltip("Whether or not to scale the mesh based on an input parameter. Will accept the first parameter, unless mesh variants are used. In which case it will use the second parameter.")]
         public bool ParameterScale;
+        [Tooltip("If set to true, will scale based on the parameter as if it were a definition of additional volume. It does this by taking a cube root")]
+        public bool VolumetricScale = false;
         public Vector3 ScalePerParameter;
 
         public bool AlsoMove;
@@ -83,7 +85,8 @@ namespace Dman.LSystem.UnityObjects
                     operationType = TurtleOperationType.ADD_ORGAN,
                     meshOperation = new TurtleMeshOperation
                     {
-                        nonUniformScaleForOrgan = meshKey.ScalePerParameter,
+                        extraNonUniformScaleForOrgan = meshKey.ScalePerParameter,
+                        isVolumetricScale = meshKey.VolumetricScale,
                         doScaleMesh = meshKey.ParameterScale,
                         doApplyThiccness = meshKey.UseThickness,
                         organTemplateVariants = organIndexes

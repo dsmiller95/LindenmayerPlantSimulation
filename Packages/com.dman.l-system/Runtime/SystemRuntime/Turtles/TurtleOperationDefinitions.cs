@@ -66,8 +66,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
     public struct TurtleMeshOperation
     {
-        public float3 nonUniformScaleForOrgan;
+        public float3 extraNonUniformScaleForOrgan;
         public bool doScaleMesh;
+        public bool isVolumetricScale;
         public bool doApplyThiccness;
         public JaggedIndexing organTemplateVariants;
 
@@ -96,7 +97,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             if (doScaleMesh && pIndex.length > scaleIndex)
             {
                 var scale = sourceString.newParameters[pIndex, scaleIndex];
-                meshTransform *= Matrix4x4.Scale(nonUniformScaleForOrgan * scale);
+                if (isVolumetricScale)
+                {
+                    scale = Mathf.Pow(scale, 1f / 3f);
+                }
+                meshTransform *= Matrix4x4.Scale(new float3(1, 1, 1) + (extraNonUniformScaleForOrgan * scale));
             }
             if (doApplyThiccness)
             {

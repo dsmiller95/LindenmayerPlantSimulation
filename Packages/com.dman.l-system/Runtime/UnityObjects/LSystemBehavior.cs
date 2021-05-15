@@ -11,6 +11,8 @@ namespace Dman.LSystem.UnityObjects
 
     public class LSystemBehavior : MonoBehaviour
     {
+        public bool logStates = false;
+
         /// <summary>
         /// The L System definition to execute
         /// </summary>
@@ -63,6 +65,10 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public void ResetState()
         {
+            if (logStates)
+            {
+                Debug.Log(steppingHandle?.currentState?.currentSymbols?.Data);
+            }
             var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
             if (globalParams != null)
             {

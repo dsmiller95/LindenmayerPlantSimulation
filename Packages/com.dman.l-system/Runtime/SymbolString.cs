@@ -97,26 +97,31 @@ namespace Dman.LSystem
             var builder = new StringBuilder();
             for (int i = 0; i < symbols.Length; i++)
             {
-                builder.Append((char)symbols[i]);
-                var iIndex = newParameters[i];
-                if (iIndex.length <= 0)
-                {
-                    continue;
-                }
-                builder.Append("(");
-                for (int j = 0; j < iIndex.length; j++)
-                {
-                    var paramValue = newParameters[iIndex, j];
-                    builder.Append(paramValue.ToString());
-                    if (j < iIndex.length - 1)
-                    {
-                        builder.Append(", ");
-                    }
-                }
-                builder.Append(")");
+                ToString(i, builder);
             }
 
             return builder.ToString();
+        }
+
+        public void ToString(int index, StringBuilder builder)
+        {
+            builder.Append((char)symbols[index]);
+            var iIndex = newParameters[index];
+            if (iIndex.length <= 0)
+            {
+                return;
+            }
+            builder.Append("(");
+            for (int j = 0; j < iIndex.length; j++)
+            {
+                var paramValue = newParameters[iIndex, j];
+                builder.Append(paramValue.ToString());
+                if (j < iIndex.length - 1)
+                {
+                    builder.Append(", ");
+                }
+            }
+            builder.Append(")");
         }
 
         public override bool Equals(object obj)

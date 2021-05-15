@@ -201,7 +201,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 81936039}
   m_LocalRotation: {x: 0.15918466, y: -0.68895596, z: 0.15918466, w: 0.68895596}
-  m_LocalPosition: {x: 19.13, y: 25.62, z: 0}
+  m_LocalPosition: {x: 11.7, y: 12.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1999,7 +1999,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78755203f1cf4e742b0faa6bb03bf6f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  secondsPerUpdate: 0.01
+  secondsPerUpdate: 0.1
   timeBeforeRestart: 1
   systemObject: {fileID: 378491273550888993, guid: 42bbb8b9ba230704b86c74238cafacca, type: 3}
 --- !u!4 &2023392570
@@ -2117,6 +2117,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2023392570}
     m_Modifications:
+    - target: {fileID: 9089396036891669031, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
+      propertyPath: logStates
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9089396036891669036, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
+      propertyPath: m_Name
+      value: turtle string reader A
+      objectReference: {fileID: 0}
     - target: {fileID: 9089396037661369505, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_RootOrder
       value: 0

@@ -111,6 +111,15 @@ namespace Dman.LSystem.UnityObjects
             OnSystemStateUpdated?.Invoke();
         }
 
+        /// <summary>
+        /// Only use this to get metadata, don't use it to trigger steps
+        /// </summary>
+        /// <returns></returns>
+        public LSystemStepper Stepper()
+        {
+            return compiledSystem;
+        }
+
         public bool HasValidSystem()
         {
             return compiledSystem != null;

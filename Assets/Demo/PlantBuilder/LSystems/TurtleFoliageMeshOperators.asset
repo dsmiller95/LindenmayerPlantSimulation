@@ -10,18 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e2e3403c48e95548b41ed845c65ecb1, type: 3}
-  m_Name: TurtleDefaultMeshOperators
+  m_Name: TurtleFoliageMeshOperators
   m_EditorClassIdentifier: 
   meshKeys:
-  - Character: 70
-    MeshRef: {fileID: 3557837105413461654, guid: a381acc0272832b44bdaff9265914e18, type: 3}
-    MeshVariants: []
-    material: {fileID: 2100000, guid: e520c19c21eba8f47ba404904f4f10ba, type: 2}
-    IndividualScale: {x: 1.5, y: 1, z: 1}
-    ParameterScale: 0
-    ScalePerParameter: {x: 0, y: 0, z: 0}
-    AlsoMove: 1
-    UseThickness: 1
   - Character: 108
     MeshRef: {fileID: -5966198621110897880, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants: []
