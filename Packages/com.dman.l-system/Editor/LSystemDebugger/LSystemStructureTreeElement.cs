@@ -90,16 +90,15 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             {
                 return null;
             }
+
+
             var currentState = new TreeConstructingState
             {
                 indexInString = indexInString,
-                treeElement = new LSystemStructureTreeElement(systemState, indexInString),
                 currentParent = root,
                 branchingIndexer = 0,
             };
-            root.AddChild(currentState.treeElement);
             var stateStack = new Stack<TreeConstructingState>();
-            indexInString++;
 
 
             for (;
@@ -129,11 +128,16 @@ namespace Dman.LSystem.Editor.LSystemDebugger
 
                     stateStack.Push(currentState);
                     currentState.currentParent = currentState.treeElement;
-
                     continue;
                 }
                 if (symbol == branchEndChar)
                 {
+                    if(stateStack.Count <= 0)
+                    {
+                        Debug.LogWarning($"Too many branch end characters. aborting debug at index {indexInString}");
+                        Debug.Log(systemState);
+                        break;
+                    }
                     currentState = stateStack.Pop();
                     continue;
                 }
