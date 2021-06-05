@@ -85,13 +85,16 @@ Bends the turtle toward a given world-space vector, scaled by the magnitude of t
 
 `.lsystem` files are interpreted on a line-by-line bases. Each line is interpreted in one of 3 ways: lines starting with `##` are comments, lines starting with `#` are directives, and all other non-empty lines are parsed as Rules.
 
-There are x types of directives. parameters to the directives are parsed based on space separation:
+There are 5 types of directives. parameters to the directives are parsed based on space separation:
 
-- `#axiom string` defines the axiom for this system
-- `#iterations int` defines how many iterations the system should step for, by default. x must be an integer.
-- `#ignore string` sets every character as part of the string to be ignored by the L-system, when performing contextual matches.
-- `#runtime string float` defines a global runtime value named <string> with a default value of <float>
-- `#define string string` defines a global compile time replacement directive which searches the full text of the rules for an exact match against the first string, replacing with the second string.
+- `#axiom <string>` defines the axiom for this system
+- `#iterations <int>` defines how many iterations the system should step for, by default. x must be an integer.
+- `#ignore <string>` sets every character as part of the string to be ignored by the L-system, when performing contextual matches.
+- `#runtime <string> <float>` defines a global runtime value named <string> with a default value of <float>
+- `#define <string> <string>` defines a global compile time replacement directive which searches the full text of the rules for an exact match against the first string, replacing with the second string.
+- `#global <string>` defines a set of symbols in the "global" scope which this file will use. Only relevent when using `.lsyslib` files, see [Library files](#library-files)
+- `#include <relative path> [<symbol remapping>]` used to import another set of rules into this system, with some or none import remappings to allow this system to interact with the symbols in that file. See [Library files](#library-files)
+- `#export <name> <symbol>` only usable in `.lsyslib` files. Export a specific symbol with a name, allowing it to be imported by other system files.
 
 ## [Rule Examples](#rule-examples)
 
@@ -194,6 +197,36 @@ x || y
 ## [Contextual Matching](#contextual-matching)
 
 - Contextual matches must occur in-order, even if nested in branching structures. See the [Contextual match](Runtime/Tests/EditMode/ContextualMatcherTests.cs) tests for examples of how the matching rules work
+
+## [Library files](#library-filed)
+
+`.lsyslib` files are interpreted as library files, and can be imported into `.lsystem` files or other `.lsyslib` files using the `#include` directive. The library files can be used to define another independent or partially independent set of rules, which are useful to import into other rule files.
+
+### #global Directive
+
+The global directive is a way to define a standard set of symbols which are always shared between all libraries. Things like turtle operations should be defined this way, so that when they are used across every library file they share the same identity. This could also be useful for things like
+
+### #export Directive
+
+The export directive is used exclusively inside `.lsyslib` files to define symbols which can be imported from this file and used in other system files. The only symbols which can be accessed outside of this file are defined this way, aside from symbols declared as globals. For example:
+
+```
+#export Node X
+#export Internode i
+#export BasipetalSignal j
+```
+
+Will allow other files to access these symbols as part of the include statement
+
+### #include Directive
+
+The include directive will import all the rules from the library file at the provided relative path. By default, all of the symbols in the included file will be inaccessible to the current file, and that system will update its symbols independently. That's often not desireable, so symbol remapping can be defined as part of the include directive. For example:
+
+```
+#include lib.lsyslib (Node->G) (Internode->I) (BasipetalSignal->x)
+```
+
+This remaps the exports `Node`, `Internode`, and `BasipetalSignal` defined in `lib.lsyslib`, to the `G`, `I`, and `x` symbols respectively in the importing file, so they can be used.
 
 # [Example Showcase](#example-showcase)
 
