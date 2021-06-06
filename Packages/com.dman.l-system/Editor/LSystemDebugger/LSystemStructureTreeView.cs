@@ -1,5 +1,7 @@
 ﻿using Dman.LSystem.UnityObjects;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -46,7 +48,11 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             {
                 var rootNode = LSystemStructureTreeElement.ConstructTreeFromString(
                     inspectedMachine.steppingHandle.currentState.currentSymbols.Data,
-                    stepper.ignoredCharacters,
+                    stepper.ignoredCharacters.Aggregate(new HashSet<int>(), (acc, next) =>
+                    {
+                        acc.UnionWith(next);
+                        return acc;
+                    }),
                     stepper.branchOpenSymbol,
                     stepper.branchCloseSymbol
                     );

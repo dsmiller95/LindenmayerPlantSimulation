@@ -89,7 +89,7 @@ There are 5 types of directives. parameters to the directives are parsed based o
 
 - `#axiom <string>` defines the axiom for this system
 - `#iterations <int>` defines how many iterations the system should step for, by default. x must be an integer.
-- `#ignore <string>` sets every character as part of the string to be ignored by the L-system, when performing contextual matches.
+- `#matches <string>` sets every symbol in the string to be included in when evaluating contextual matches defined in this file. Every symbol not in this set will be treated as if it was not part of the l-system string when matching
 - `#runtime <string> <float>` defines a global runtime value named <string> with a default value of <float>
 - `#define <string> <string>` defines a global compile time replacement directive which searches the full text of the rules for an exact match against the first string, replacing with the second string.
 - `#global <string>` defines a set of symbols in the "global" scope which this file will use. Only relevent when using `.lsyslib` files, see [Library files](#library-files)
@@ -201,6 +201,8 @@ x || y
 ## [Library files](#library-filed)
 
 `.lsyslib` files are interpreted as library files, and can be imported into `.lsystem` files or other `.lsyslib` files using the `#include` directive. The library files can be used to define another independent or partially independent set of rules, which are useful to import into other rule files.
+
+By default, all symbols between each library file and the top-level system file will be completely separate, and contextual matching will automatically ignore all symbols not accessible from the current file. When using `#global` or `#include` directives, the symbols defined in each of those statements will be included in contextual matching
 
 ### #global Directive
 

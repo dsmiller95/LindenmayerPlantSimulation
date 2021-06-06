@@ -13,6 +13,8 @@ namespace Dman.LSystem.SystemCompiler
 
     public class ParsedRule
     {
+        //TODO populate this on parsing
+        public short ruleGroupIndex;
         public InputSymbol coreSymbol;
         public InputSymbol[] backwardsMatch;
         public InputSymbol[] forwardsMatch;

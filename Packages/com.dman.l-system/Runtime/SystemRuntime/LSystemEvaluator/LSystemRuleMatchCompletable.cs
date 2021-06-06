@@ -43,7 +43,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             IDictionary<int, MaxMatchMemoryRequirements> maxMemoryRequirementsPerSymbol,
             int branchOpenSymbol,
             int branchCloseSymbol,
-            ISet<int> ignoredCharacters)
+            ISet<int>[] ignoredCharactersByRuleSet)
         {
             randResult = systemState.randomProvider;
             sourceSymbolString = systemState.currentSymbols;
@@ -84,7 +84,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             branchingCache = new SymbolStringBranchingCache(
                 branchOpenSymbol,
                 branchCloseSymbol,
-                ignoredCharacters,
+                ignoredCharactersByRuleSet,
                 nativeData.Data);
             branchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
             UnityEngine.Profiling.Profiler.EndSample();

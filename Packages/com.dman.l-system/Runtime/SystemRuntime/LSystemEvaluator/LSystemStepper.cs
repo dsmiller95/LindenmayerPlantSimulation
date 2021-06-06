@@ -32,7 +32,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 compiledRules,
                 nativeRuleData,
                 globalParameters?.Length ?? 0,
-                ignoredCharacters: new HashSet<int>(ignoredCharacters.Select(x => (int)x))
+                ignoredCharactersByRuleGroupIndex: new[] { new HashSet<int>(ignoredCharacters.Select(x => (int)x)) }
             );
         }
     }
@@ -88,9 +88,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// </summary>
         public bool orderingAgnosticContextMatching = false;
 
-        // currently just used for blocking out context matching. could be used in the future to exclude rule application from specific symbols, too.
-        // if that improves runtime.
-        public ISet<int> ignoredCharacters;
+        public ISet<int>[] ignoredCharacters;
 
         public bool isDisposed => nativeRuleData.IsDisposed;
 
@@ -100,13 +98,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             int expectedGlobalParameters = 0,
             int branchOpenSymbol = '[',
             int branchCloseSymbol = ']',
-            ISet<int> ignoredCharacters = null)
+            ISet<int>[] ignoredCharactersByRuleGroupIndex = null)
         {
             GlobalParameters = expectedGlobalParameters;
 
             this.branchOpenSymbol = branchOpenSymbol;
             this.branchCloseSymbol = branchCloseSymbol;
-            this.ignoredCharacters = ignoredCharacters == null ? new HashSet<int>() : ignoredCharacters;
+            this.ignoredCharacters = ignoredCharactersByRuleGroupIndex == null ? new HashSet<int>[0] : ignoredCharactersByRuleGroupIndex;
 
             rulesByTargetSymbol = new Dictionary<int, IList<BasicRule>>();
             foreach (var rule in rules)

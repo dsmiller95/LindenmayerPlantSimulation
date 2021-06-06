@@ -24,12 +24,13 @@ public class ContextualMatcherTests
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString(target));
         using var branchingCache = new SymbolStringBranchingCache(
             '[', ']',
-            ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
+            ignoreSymbols == null ? new HashSet<int>[0] : new[] { new HashSet<int>(ignoreSymbols) },
             nativeDataDisposable);
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         using var parameterMemory = new NativeArray<float>(parameterMemorySize, Allocator.Persistent);
 
         var matches = branchingCache.MatchesForward(
+            branchingCache.ignoreSymbols[0],
             indexInTarget,
             seriesMatcher,
             targetString.Data,
@@ -74,7 +75,7 @@ public class ContextualMatcherTests
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString(target));
         using var branchingCache = new SymbolStringBranchingCache(
             '[', ']',
-            ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
+            ignoreSymbols == null ? new HashSet<int>[0] : new[] { new HashSet<int>(ignoreSymbols) },
             nativeData);
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         using var parameterMemory = new NativeArray<float>(parameterMemorySize, Allocator.Persistent);
@@ -82,6 +83,7 @@ public class ContextualMatcherTests
 
         var realIndex = indexInTarget < 0 ? indexInTarget + targetString.Data.Length : indexInTarget;
         var hasMatched = branchingCache.MatchesBackwards(
+            branchingCache.ignoreSymbols[0],
             realIndex,
             seriesMatcher,
             targetString.Data,
