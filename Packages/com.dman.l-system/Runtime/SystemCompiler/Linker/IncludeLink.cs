@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace Dman.LSystem.SystemCompiler.Linker
 {
-    public struct SymbolRemap: IEquatable<SymbolRemap>
+    public class IncludeImportRemap: IEquatable<IncludeImportRemap>
     {
         public string importName;
         public char remappedSymbol;
 
-        public bool Equals(SymbolRemap other)
+        public bool Equals(IncludeImportRemap other)
         {
             return other.importName == importName && other.remappedSymbol == remappedSymbol;
         }
@@ -19,9 +19,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
         }
     }
 
-    public struct IncludeLink
+    public class IncludeLink
     {
-        public string relativeImportPath;
-        public List<SymbolRemap> importedSymbols;
+        public string fullImportIdentifier;
+        public List<IncludeImportRemap> importedSymbols;
     }
 }

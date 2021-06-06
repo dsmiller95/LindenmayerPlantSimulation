@@ -116,14 +116,14 @@ namespace Dman.LSystem.UnityObjects
             if (!string.IsNullOrWhiteSpace(filePath))
             {
                 var lSystemCode = File.ReadAllText(filePath);
-                parsedSystemFile = new ParsedFile(lSystemCode, isLibrary: false);
+                parsedSystemFile = new ParsedFile(filePath, lSystemCode, isLibrary: false);
             }
         }
 
         //TODO: deprecate. will have to start from a filepath every time.
         public void ParseRulesFromCode(string fullText)
         {
-            parsedSystemFile = new ParsedFile(fullText, isLibrary: false);
+            parsedSystemFile = new ParsedFile("", fullText, isLibrary: false);
         }
     }
 }

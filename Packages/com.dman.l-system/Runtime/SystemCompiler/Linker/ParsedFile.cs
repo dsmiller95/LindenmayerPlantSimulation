@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -12,6 +14,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
     public class ParsedFile
     {
         public bool isLibrary;
+        public string fileSource;
+        public Guid uuid;
 
         public string axiom = null;
         public int iterations = -1;
@@ -20,15 +24,20 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public List<DefineDirective> globalCompileTimeParameters;
         public List<RuntimeParameterAndDefault> globalRuntimeParameters;
 
+        public string allSymbols;
         public string ignoredCharacters = null;
         public string globalCharacters = null;
 
         public List<IncludeLink> links;
         public List<ExportDirective> exports;
 
-        public ParsedFile(string fullFile, bool isLibrary = false)
+        public List<SymbolRemap> allSymbolAssignments = new List<SymbolRemap>();
+
+        public ParsedFile(string fileSource, string fullFile, bool isLibrary = false)
         {
+            this.fileSource = fileSource;
             this.isLibrary = isLibrary;
+            this.uuid = Guid.NewGuid();
 
             globalCompileTimeParameters = new List<DefineDirective>();
             globalRuntimeParameters = new List<RuntimeParameterAndDefault>();
@@ -62,9 +71,45 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 }
             }
 
+            if(allSymbols == null)
+            {
+                throw new SyntaxException($"{fileSource} must define the #symbols directive");
+            }
+
             ruleLines = ruleLines.Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToList();
+
+            foreach (var definedSymbol in links
+                .SelectMany(x => x.importedSymbols.Select(x => x.remappedSymbol))
+                .Concat(exports.Select(x => x.exportedSymbol))
+                .Concat(globalCharacters ?? ""))
+            {
+                if (!allSymbols.Contains(definedSymbol))
+                {
+                    throw new SyntaxException($"{fileSource} does not define all symbols used, missing {definedSymbol}");
+                }
+            }
         }
 
+        public int GetExportedSymbol(string exportedName)
+        {
+            var sourceSymbol = exports.Find(x => x.name == exportedName);
+            if (sourceSymbol == null)
+            {
+                throw new LinkException(LinkExceptionType.MISSING_EXPORT, $"trying to import \"{exportedName}\" from {fileSource}, but it is not exported");
+            }
+            var remappedSymbolInSource = allSymbolAssignments.Find(x => x.sourceCharacter == sourceSymbol.exportedSymbol);
+            if(remappedSymbolInSource == null)
+            {
+                throw new Exception($"poorly ordered linking. tried to get ${exportedName} from ${fileSource}, but ${fileSource} has not been fully linked yet");
+            }
+            return remappedSymbolInSource.remappedSymbol;
+        }
+
+        public int GetSymbolInFile(char symbol)
+        {
+            var match = allSymbolAssignments.Find(x => x.sourceCharacter == symbol);
+            return match.remappedSymbol;
+        }
 
         private void ParseDirective(string directiveText)
         {
@@ -130,6 +175,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 case "ignore":
                     ignoredCharacters = directiveMatch.Groups["parameter"].Value;
                     return;
+                case "symbols":
+                    allSymbols = directiveMatch.Groups["parameter"].Value;
+                    return;
                 case "global":
                     globalCharacters = directiveMatch.Groups["parameter"].Value;
                     return;
@@ -150,24 +198,29 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     });
                     return;
                 case "include":
-                    var includeDirective = Regex.Match(directiveMatch.Groups["parameter"].Value, @"(?<filepath>[^ ]+)\s+(?<remapping>.*)");
+                    var includeDirective = Regex.Match(directiveMatch.Groups["parameter"].Value, @"(?<filepath>[^ ]+)(?:\s+(?<remapping>.*))?");
                     if (!includeDirective.Success)
                     {
                         throw new SyntaxException($"include directive requires a filepath", directiveMatch.Groups["parameter"]);
                     }
+                    var relativeImportPath = includeDirective.Groups["filepath"].Value;
+                    var absoluteIdentifier = Path.Combine(Path.GetDirectoryName(this.fileSource), relativeImportPath);
                     var link = new IncludeLink
                     {
-                        relativeImportPath = includeDirective.Groups["filepath"].Value,
-                        importedSymbols = new List<SymbolRemap>()
+                        fullImportIdentifier = absoluteIdentifier,
+                        importedSymbols = new List<IncludeImportRemap>()
                     };
-                    var remaps = Regex.Matches(includeDirective.Groups["remapping"].Value, @"\((?<name>\w+)->(?<symbol>\w)\)");
-                    foreach (Match match in remaps)
+                    if (includeDirective.Groups["remapping"].Success)
                     {
-                        link.importedSymbols.Add(new SymbolRemap
+                        var remaps = Regex.Matches(includeDirective.Groups["remapping"].Value, @"\((?<name>\w+)->(?<symbol>\w)\)");
+                        foreach (Match match in remaps)
                         {
-                            importName = match.Groups["name"].Value,
-                            remappedSymbol = match.Groups["symbol"].Value[0]
-                        });
+                            link.importedSymbols.Add(new IncludeImportRemap
+                            {
+                                importName = match.Groups["name"].Value,
+                                remappedSymbol = match.Groups["symbol"].Value[0]
+                            });
+                        }
                     }
                     links.Add(link);
                     return;

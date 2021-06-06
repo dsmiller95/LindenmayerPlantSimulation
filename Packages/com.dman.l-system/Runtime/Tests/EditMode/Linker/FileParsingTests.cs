@@ -12,6 +12,8 @@ public class FileParsingTests
 #axiom /(20)S(1)R(0)
 #iterations 1000
 
+#symbols ZXCQWE/SRABCKLx
+
 #global ZXC
 #ignore QWE
 
@@ -21,11 +23,12 @@ public class FileParsingTests
 ## comment
 ##line2
 
-#include ./std.lsyslib (Key->K) (Segment->L) (Signal->x)
+#include std.lsyslib (Key->K) (Segment->L) (Signal->x)
+#include stdNoRemap.lsyslib
 
 A -> AB";
 
-        var parsed = new ParsedFile(fullTopLevelFile, false);
+        var parsed = new ParsedFile("root.lsystem", fullTopLevelFile, isLibrary: false);
 
         Assert.AreEqual("/(20)S(1)R(0)", parsed.axiom);
         Assert.AreEqual(1000, parsed.iterations);
@@ -40,27 +43,30 @@ A -> AB";
         Assert.AreEqual("runTimeParam", parsed.globalRuntimeParameters.First().name);
         Assert.AreEqual(92.4f, parsed.globalRuntimeParameters.First().defaultValue);
 
-        Assert.AreEqual(1, parsed.links.Count);
-        var link = parsed.links.First();
-        Assert.AreEqual("./std.lsyslib", link.relativeImportPath);
+        Assert.AreEqual(2, parsed.links.Count);
+        var standardLink = parsed.links[0];
+        Assert.AreEqual("std.lsyslib", standardLink.fullImportIdentifier);
 
-        Assert.AreEqual(3, link.importedSymbols.Count);
-        Assert.AreEqual(new SymbolRemap
+        Assert.AreEqual(3, standardLink.importedSymbols.Count);
+        Assert.AreEqual(new IncludeImportRemap
         {
             importName = "Key",
             remappedSymbol = 'K'
-        }, link.importedSymbols[0]);
-        Assert.AreEqual(new SymbolRemap
+        }, standardLink.importedSymbols[0]);
+        Assert.AreEqual(new IncludeImportRemap
         {
             importName = "Segment",
             remappedSymbol = 'L'
-        }, link.importedSymbols[1]);
-        Assert.AreEqual(new SymbolRemap
+        }, standardLink.importedSymbols[1]);
+        Assert.AreEqual(new IncludeImportRemap
         {
             importName = "Signal",
             remappedSymbol = 'x'
-        }, link.importedSymbols[2]);
+        }, standardLink.importedSymbols[2]);
 
+        var noRemapLink = parsed.links[1];
+        Assert.AreEqual("stdNoRemap.lsyslib", noRemapLink.fullImportIdentifier);
+        Assert.AreEqual(0, noRemapLink.importedSymbols.Count);
 
         Assert.AreEqual(1, parsed.ruleLines.Count);
         Assert.AreEqual("A -> AB", parsed.ruleLines.First());
@@ -72,6 +78,8 @@ A -> AB";
 #export Key W
 #export Signal O
 
+#symbols ZXCQWEABCKLxO
+
 #global ZXC
 #ignore QWE
 
@@ -81,11 +89,11 @@ A -> AB";
 ## comment
 ##line2
 
-#include ./std.lsyslib (Key->K) (Segment->L) (Signal->x)
+#include std.lsyslib (Key->K) (Segment->L) (Signal->x)
 
 A -> AB";
 
-        var parsed = new ParsedFile(fullTopLevelFile, true);
+        var parsed = new ParsedFile("root.lsyslib", fullTopLevelFile, isLibrary: true);
 
         Assert.AreEqual("ZXC", parsed.globalCharacters);
         Assert.AreEqual("QWE", parsed.ignoredCharacters);
@@ -100,20 +108,20 @@ A -> AB";
 
         Assert.AreEqual(1, parsed.links.Count);
         var link = parsed.links.First();
-        Assert.AreEqual("./std.lsyslib", link.relativeImportPath);
+        Assert.AreEqual("std.lsyslib", link.fullImportIdentifier);
 
         Assert.AreEqual(3, link.importedSymbols.Count);
-        Assert.AreEqual(new SymbolRemap
+        Assert.AreEqual(new IncludeImportRemap
         {
             importName = "Key",
             remappedSymbol = 'K'
         }, link.importedSymbols[0]);
-        Assert.AreEqual(new SymbolRemap
+        Assert.AreEqual(new IncludeImportRemap
         {
             importName = "Segment",
             remappedSymbol = 'L'
         }, link.importedSymbols[1]);
-        Assert.AreEqual(new SymbolRemap
+        Assert.AreEqual(new IncludeImportRemap
         {
             importName = "Signal",
             remappedSymbol = 'x'
