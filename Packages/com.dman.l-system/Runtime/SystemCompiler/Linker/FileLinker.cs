@@ -51,7 +51,26 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     var referencedFile = allFilesByFullIdentifier[include.fullImportIdentifier];
                     foreach (var remappedImport in include.importedSymbols)
                     {
-                        remappedInFile[remappedImport.remappedSymbol] = referencedFile.GetExportedSymbol(remappedImport.importName);
+                        var exportedSymbolIdentity = referencedFile.GetExportedSymbol(remappedImport.importName);
+                        if (remappedInFile.ContainsKey(remappedImport.remappedSymbol)){
+                            if(exportedSymbolIdentity != remappedInFile[remappedImport.remappedSymbol])
+                            {
+                                throw new LinkException(
+                                    LinkExceptionType.IMPORT_COLLISION, 
+                                    $"Import collision on '{remappedImport.remappedSymbol}'. Import of {remappedImport.importName} from {referencedFile.fileSource} would conflict with a previous import of the same symbol", fileIdentifier);
+                            }
+                        }else
+                        {
+                            var existingValues = remappedInFile.Where(x => x.Value == exportedSymbolIdentity && x.Key != remappedImport.remappedSymbol).ToList();
+                            if (existingValues.Any())
+                            {
+                                var existing = existingValues.First();
+                                throw new LinkException(
+                                    LinkExceptionType.IMPORT_DISSONANCE,
+                                    $"Import dissonance on '{remappedImport.remappedSymbol}'. Import of {remappedImport.importName} from {referencedFile.fileSource} would re-import the same symbols already defined as {existing.Key}", fileIdentifier);
+                            }
+                            remappedInFile[remappedImport.remappedSymbol] = exportedSymbolIdentity;
+                        }
                     }
                 }
 
