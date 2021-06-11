@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+﻿using Dman.LSystem.SystemCompiler.Linker;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.UnityObjects;
 using NUnit.Framework;
@@ -375,7 +376,12 @@ C(age) < A(y) : age >= timeToFruit ->
     {
         LSystemState<float> state = new DefaultLSystemState(RealSystemAxiom);
         var compiler = ScriptableObject.CreateInstance<LSystemObject>();
-        compiler.ParseRulesFromCode(RealSystem);
+
+        var fileProvider = new InMemoryFileProvider();
+        fileProvider.RegisterFileWithIdentifier("root.lsystem", RealSystem);
+        var linker = new FileLinker(fileProvider);
+        compiler.linkedFiles = linker.LinkFiles("root.lsystem");
+
         compiler.CompileToCached();
         var lSystem = compiler.compiledSystem;
         var totalMeasuredSteps = 10;
@@ -403,7 +409,12 @@ C(age) < A(y) : age >= timeToFruit ->
         //var states = Enumerable.Range(0, 10).Select(x => new DefaultLSystemState(RealSystemAxiom)).ToArray();
 
         var compiler = ScriptableObject.CreateInstance<LSystemObject>();
-        compiler.ParseRulesFromCode(RealSystem);
+
+        var fileProvider = new InMemoryFileProvider();
+        fileProvider.RegisterFileWithIdentifier("root.lsystem", RealSystem);
+        var linker = new FileLinker(fileProvider);
+        compiler.linkedFiles = linker.LinkFiles("root.lsystem");
+
         compiler.CompileToCached();
 
         var lSystem = compiler.compiledSystem;

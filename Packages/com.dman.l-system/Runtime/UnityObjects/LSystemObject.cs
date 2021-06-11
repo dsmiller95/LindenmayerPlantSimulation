@@ -106,14 +106,5 @@ namespace Dman.LSystem.UnityObjects
                 linkedFiles = linker.LinkFiles(filePath);
             }
         }
-
-        //TODO: deprecate. will have to start from a filepath every time.
-        public void ParseRulesFromCode(string fullText)
-        {
-            var fileProvider = new InMemoryFileProvider();
-            fileProvider.RegisterFileWithIdentifier("root.lsystem", fullText);
-            var linker = new FileLinker(fileProvider);
-            linkedFiles = linker.LinkFiles("root.lsystem");
-        }
     }
 }

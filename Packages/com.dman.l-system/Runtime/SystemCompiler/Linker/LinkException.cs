@@ -16,7 +16,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
     public class LinkException : Exception
     {
         public LinkExceptionType exceptionType;
-        public override string StackTrace => fileStack.JoinText("\n");
+        public override string StackTrace => fileStack.Length <= 0 ? base.StackTrace : fileStack.JoinText("\n");
         private string[] fileStack;
         
         public LinkException(LinkExceptionType type, string message, params string[] file) : base(message)
