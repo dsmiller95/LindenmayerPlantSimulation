@@ -16,7 +16,8 @@ public class FileParsingTests
 #symbols Lx
 
 #global ZXC
-#ignore QWE
+#matches QW
+#matches E
 
 #define compileTime ABC
 #runtime runTimeParam 92.4
@@ -34,7 +35,7 @@ A -> AB";
         Assert.AreEqual("/(20)S(1)R(0)", parsed.axiom);
         Assert.AreEqual(1000, parsed.iterations);
         Assert.AreEqual("[]ZXC", parsed.globalCharacters);
-        Assert.AreEqual("QWE", parsed.ignoredCharacters);
+        Assert.AreEqual("[]QWE", parsed.contextualMatchingCharacters);
 
         Assert.AreEqual(1, parsed.delaredInFileCompileTimeParameters.Count);
         Assert.AreEqual("compileTime", parsed.delaredInFileCompileTimeParameters.First().name);
@@ -82,7 +83,8 @@ A -> AB";
 #symbols ZXCQWEABCKLxO
 
 #global ZXC
-#ignore QWE
+#matches QW
+#matches E
 
 #define compileTime ABC
 #runtime runTimeParam 92.4
@@ -97,7 +99,7 @@ A -> AB";
         var parsed = new ParsedFile("root.lsyslib", fullTopLevelFile, isLibrary: true);
 
         Assert.AreEqual("[]ZXC", parsed.globalCharacters);
-        Assert.AreEqual("QWE", parsed.ignoredCharacters);
+        Assert.AreEqual("[]QWE", parsed.contextualMatchingCharacters);
 
         Assert.AreEqual(1, parsed.delaredInFileCompileTimeParameters.Count);
         Assert.AreEqual("compileTime", parsed.delaredInFileCompileTimeParameters.First().name);

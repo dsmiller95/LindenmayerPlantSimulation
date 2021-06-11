@@ -137,13 +137,14 @@ B -> [A]B
 #axiom Y(0)A(3)
 #iterations 10
 #symbols XYA
-#ignore F
+#matches XYA
 
 #include nodes.lsyslib (Node->X) (Root->Y)
 A(x) : x > 0 -> I(2)[X(x)]A(x - 1)
 A(x) : x <= 0 -> J
 
 #symbols IFJ
+#matches IJ
 I(x) : x > 0 -> I(x - 1)F
 J -> 
 I(x) > J -> JI(x)
@@ -151,6 +152,7 @@ I(x) > J -> JI(x)
 
         fileSystem.RegisterFileWithIdentifier("nodes.lsyslib", @"
 #symbols AB
+#matches AB
 #export Node B
 #export Root A
 
@@ -225,9 +227,10 @@ A(y) < B(x) : x > 0 -> B(x - 1)
 #axiom AF[FB]
 #iterations 10
 #symbols FAB
-#ignore F
+#matches AB
 
 #symbols CD
+#matches CD
     A > [B] -> C
 A < B     -> D
 ");

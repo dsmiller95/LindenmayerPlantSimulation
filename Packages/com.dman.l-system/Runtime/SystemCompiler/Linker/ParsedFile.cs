@@ -28,7 +28,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public List<RuntimeParameterAndDefault> declaredInFileRuntimeParameters;
 
         public string allSymbols = "[]";
-        public string ignoredCharacters = "";
+        public string contextualMatchingCharacters = "[]";
         public string globalCharacters = "[]";
 
         public List<IncludeLink> links;
@@ -109,9 +109,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
         /// <returns></returns>
         public IEnumerable<int> GetAllIncludedContextualSymbols()
         {
-            return allSymbolAssignments
-                .Where(x => !ignoredCharacters.Contains(x.sourceCharacter))
-                .Select(x => x.remappedSymbol);
+            return contextualMatchingCharacters
+                .Select(x => GetSymbolInFile(x));
         }
 
         public int GetExportedSymbol(string exportedName)
@@ -200,8 +199,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
                         replacement = nameReplacementMatch.Groups["replacement"].Value
                     });
                     return;
-                case "ignore":
-                    ignoredCharacters = directiveMatch.Groups["parameter"].Value;
+                case "matches":
+                    foreach (var symbol in directiveMatch.Groups["parameter"].Value)
+                    {
+                        if (!contextualMatchingCharacters.Contains(symbol))
+                        {
+                            contextualMatchingCharacters += symbol;
+                        }
+                    }
                     return;
                 case "symbols":
                     if (allSymbols == null) allSymbols = "";

@@ -245,8 +245,8 @@ public class LSystemPerformanceTests
 #axiom S(0)
 #iterations 70
 
-#ignore /\&^F$`@
 #symbols /\&^+-F$`@
+#matches +-
 
 ## flags set based on the pollination state
 #runtime hasAnther 1
@@ -279,12 +279,14 @@ public class LSystemPerformanceTests
 
 ## S is the Shoot symbol
 #symbols S
+#matches S
 S(x) : x == 0 -> @FS(x + 1)NT(-shootHeight)
 S(x) : x < shootHeight && x > 0-> FS(x+1)
 S(x) : x == shootHeight -> 
 
 ## T is the terminal bud
 #symbols T
+#matches T
 T(x) : x < 0 -> T(x + 1)
 T(x) : x < primaryBranchInternodes && x >= 0 -> I(internodeHeight)[&(60)B(x + 1)][\(180)&(60)B(x + 1)]\(primaryAngularSeparation)T(x + 1)
 T(x) : x >= primaryBranchInternodes -> J(internodeHeight)
@@ -294,10 +296,12 @@ T(x) : x >= primaryBranchInternodes -> J(internodeHeight)
 
 ## B is a bud off the main stem, and randomly chooses what it will become
 #symbols B
+#matches B
 B(x) -> [^(50)V]petiole(leavesPerPetiole)
 
 ## V is a flowering bud
 #symbols V
+#matches V
 P(flowerFailureChance) | V -> []
 P(1 - flowerFailureChance) | V -> V(flowerStalkLength)
 
@@ -306,12 +310,14 @@ JI(a) < V(x) : x <= 0 -> C(x)[K(flowerMeshIndex, 1)][A(1)]
 
 ## J is a signal which propigates from the apex, signaling flowering.
 #symbols J
+#matches J
 J(x) : x > 0 -> J(x - 1)
 J(x) : x <= 0 -> J
 J ->
  
 ## C is a fruiting controller. transitions to a fruit after waiting
 #symbols C
+#matches C
 C(x) : x < timeToFruit -> C(x + 1)
 C(x) : x >= timeToFruit -> [D(fruitColorIndex, 1)]
 $(y) > D(z, x) : x < fruitSize -> $(y * 1.3)
@@ -319,10 +325,12 @@ $(y) > D(z, x) : x < fruitSize -> $(y * 1.3)
 #define fruitSize 5
 ## D is a fruiting body
 #symbols D
+#matches D
 D(y, x) : x < fruitSize -> D(y, x + 1)
 
 ## P is the petiole, x is number of leaves
 #symbols PILO
+#matches PILO
 #define petiole( P(
 petiole(x) : x >= 2 -> I(3)[O((x - 1) / 2, -petioleLeafAngularDist)]L[O((x - 1) / 2, petioleLeafAngularDist)]
 petiole(x) : x > 0 -> L
@@ -330,6 +338,7 @@ O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
 #symbols I
+#matches I
 I(x) : x > 0 -> I(x - 1)$(0.003)@F
 I(x) > J     -> JI(x)
 
@@ -337,21 +346,25 @@ I(x) > J     -> JI(x)
 
 #define leafExpression [&&L][/(180)&&L]
 #symbols NL
+#matches NL
 N -> leafExpression
 
 ## l is a leaf
 #symbols l
+#matches l
 L -> [l(1, leafAge)]
 L(x) -> [l(1, x)]
 l(x, y) : x < y -> l(x + 1, y)
 
 ## K is a flower
 #symbols K
+#matches K
         K(y, x) : x < flowerAge -> K(y, x + 1)
 C(age) < K(y, x) : age >= timeToFruit ->
 
 ## A is an anther
 #symbols A
+#matches A
         A(x) : (x < flowerAge * stamenSize) && (hasAnther > 0) -> A(x + stamenSize)
         A(x) : hasAnther < 1 ->
 C(age) < A(y) : age >= timeToFruit ->
