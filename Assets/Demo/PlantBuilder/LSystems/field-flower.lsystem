@@ -2,6 +2,9 @@
 #iterations 5
 
 
+#symbols /\+-^&`
+#symbols PILYQESWF
+
 P -> I+[P+Y]--//[--L]I[++L]-[PY]++P
 I -> FSWFS
 L -> `l
