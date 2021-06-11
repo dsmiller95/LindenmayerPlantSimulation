@@ -21,11 +21,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public int iterations = -1;
         public List<string> ruleLines;
 
-        public List<DefineDirective> globalCompileTimeParameters;
-        public List<RuntimeParameterAndDefault> globalRuntimeParameters;
+        /// <summary>
+        /// These are used to build a list of truly global parameters, when the files are grouped into a <see cref="LinkedFileSet"/>
+        /// </summary>
+        public List<DefineDirective> delaredInFileCompileTimeParameters;
+        public List<RuntimeParameterAndDefault> declaredInFileRuntimeParameters;
 
         public string allSymbols;
-        public string ignoredCharacters = null;
+        public string ignoredCharacters = "";
         public string globalCharacters = null;
 
         public List<IncludeLink> links;
@@ -39,8 +42,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
             this.isLibrary = isLibrary;
             this.uuid = Guid.NewGuid();
 
-            globalCompileTimeParameters = new List<DefineDirective>();
-            globalRuntimeParameters = new List<RuntimeParameterAndDefault>();
+            delaredInFileCompileTimeParameters = new List<DefineDirective>();
+            declaredInFileRuntimeParameters = new List<RuntimeParameterAndDefault>();
             ruleLines = new List<string>();
 
             links = new List<IncludeLink>();
@@ -73,7 +76,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
             if(allSymbols == null)
             {
-                throw new SyntaxException($"{fileSource} must define the #symbols directive");
+                throw new SyntaxException($"{fileSource} must define #symbols directive(s)");
             }
 
             ruleLines = ruleLines.Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToList();
@@ -88,6 +91,27 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     throw new SyntaxException($"{fileSource} does not define all symbols used, missing {definedSymbol}");
                 }
             }
+        }
+
+        public IEnumerable<string> GetRulesWithReplacements(Dictionary<string, string> replacementDirectives)
+        {
+            IEnumerable<string> rulesPostReplacement = ruleLines;
+            foreach (var replacement in replacementDirectives)
+            {
+                rulesPostReplacement = rulesPostReplacement.Select(x => x.Replace(replacement.Key, replacement.Value));
+            }
+            return rulesPostReplacement;
+        }
+
+        /// <summary>
+        /// returns every symbol which can be search contextually by rules in this file
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<int> GetAllIncludedContextualSymbols()
+        {
+            return allSymbolAssignments
+                .Where(x => !ignoredCharacters.Contains(x.sourceCharacter))
+                .Select(x => x.remappedSymbol);
         }
 
         public int GetExportedSymbol(string exportedName)
@@ -154,7 +178,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     {
                         throw new SyntaxException($"runtime parameter must default to a number", nameValueMatch.Groups["value"]);
                     }
-                    globalRuntimeParameters.Add(new RuntimeParameterAndDefault
+                    declaredInFileRuntimeParameters.Add(new RuntimeParameterAndDefault
                     {
                         name = nameValueMatch.Groups["variable"].Value,
                         defaultValue = runtimeDefault
@@ -166,7 +190,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     {
                         throw new SyntaxException($"define directive requires 2 parameters", directiveMatch.Groups["parameter"]);
                     }
-                    globalCompileTimeParameters.Add(new DefineDirective
+                    delaredInFileCompileTimeParameters.Add(new DefineDirective
                     {
                         name = nameReplacementMatch.Groups["variable"].Value,
                         replacement = nameReplacementMatch.Groups["replacement"].Value
@@ -176,7 +200,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     ignoredCharacters = directiveMatch.Groups["parameter"].Value;
                     return;
                 case "symbols":
-                    allSymbols = directiveMatch.Groups["parameter"].Value;
+                    if (allSymbols == null) allSymbols = "";
+                    foreach (var symbol in directiveMatch.Groups["parameter"].Value)
+                    {
+                        if (!allSymbols.Contains(symbol))
+                        {
+                            allSymbols += symbol;
+                        }
+                    }
                     return;
                 case "global":
                     globalCharacters = directiveMatch.Groups["parameter"].Value;

@@ -25,14 +25,14 @@ Y -> ZX
 
 B -> AB
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
-        linker.LinkFiles();
+        var linker = new FileLinker(fileSystem);
+        var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linker.allFilesByFullIdentifier["root.lsystem"];
+        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(3, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(3, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZ").Count());
 
-        var libFile = linker.allFilesByFullIdentifier["lib.lsyslib"];
+        var libFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
         Assert.AreEqual(2, libFile.allSymbolAssignments.Count);
         Assert.AreEqual(2, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
 
@@ -60,14 +60,14 @@ Y -> ZX
 
 B -> AB
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
-        linker.LinkFiles();
+        var linker = new FileLinker(fileSystem);
+        var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linker.allFilesByFullIdentifier["root.lsystem"];
+        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(3, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(3, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZ").Count());
 
-        var libFile = linker.allFilesByFullIdentifier["lib.lsyslib"];
+        var libFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
         Assert.AreEqual(2, libFile.allSymbolAssignments.Count);
         Assert.AreEqual(2, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
 
@@ -97,18 +97,18 @@ B -> AB
 #symbols CD
 #export Exported C
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
-        linker.LinkFiles();
+        var linker = new FileLinker(fileSystem);
+        var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linker.allFilesByFullIdentifier["root.lsystem"];
+        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(2, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(2, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY").Count());
 
-        var lib0File = linker.allFilesByFullIdentifier["lib0.lsyslib"];
+        var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
         Assert.AreEqual(2, lib0File.allSymbolAssignments.Count);
         Assert.AreEqual(2, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
 
-        var lib1File = linker.allFilesByFullIdentifier["lib1.lsyslib"];
+        var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
         Assert.AreEqual(2, lib1File.allSymbolAssignments.Count);
         Assert.AreEqual(2, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD").Count());
 
@@ -148,22 +148,22 @@ B -> AB
 #export Exported2 F
 ");
 
-        var linker = new FileLinker(fileSystem, "root.lsystem");
-        linker.LinkFiles();
+        var linker = new FileLinker(fileSystem);
+        var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linker.allFilesByFullIdentifier["root.lsystem"];
+        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(2, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(2, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY").Count());
 
-        var lib0File = linker.allFilesByFullIdentifier["lib0.lsyslib"];
+        var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
         Assert.AreEqual(2, lib0File.allSymbolAssignments.Count);
         Assert.AreEqual(2, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
 
-        var lib1File = linker.allFilesByFullIdentifier["lib1.lsyslib"];
+        var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
         Assert.AreEqual(2, lib1File.allSymbolAssignments.Count);
         Assert.AreEqual(2, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD").Count());
 
-        var lib2File = linker.allFilesByFullIdentifier["lib2.lsyslib"];
+        var lib2File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib2.lsyslib"]];
         Assert.AreEqual(2, lib2File.allSymbolAssignments.Count);
         Assert.AreEqual(2, lib2File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("EF").Count());
 
@@ -209,22 +209,22 @@ B -> AB
 #symbols EF
 #export Exported E
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
-        linker.LinkFiles();
+        var linker = new FileLinker(fileSystem);
+        var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linker.allFilesByFullIdentifier["root.lsystem"];
+        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(2, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(2, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY").Count());
 
-        var lib0File = linker.allFilesByFullIdentifier["lib0.lsyslib"];
+        var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
         Assert.AreEqual(2, lib0File.allSymbolAssignments.Count);
         Assert.AreEqual(2, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
 
-        var lib1File = linker.allFilesByFullIdentifier["lib1.lsyslib"];
+        var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
         Assert.AreEqual(2, lib1File.allSymbolAssignments.Count);
         Assert.AreEqual(2, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD").Count());
 
-        var lib2File = linker.allFilesByFullIdentifier["lib2.lsyslib"];
+        var lib2File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib2.lsyslib"]];
         Assert.AreEqual(2, lib2File.allSymbolAssignments.Count);
         Assert.AreEqual(2, lib2File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("EF").Count());
 
@@ -266,10 +266,10 @@ B -> AB
 #include lib0.lsyslib (Exported->F)
 #export Exported E
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
+        var linker = new FileLinker(fileSystem);
         try
         {
-            linker.LinkFiles();
+            linker.LinkFiles("root.lsystem");
         }
         catch (LinkException e)
         {
@@ -295,10 +295,10 @@ B -> AB
         fileSystem.RegisterFileWithIdentifier("lib0.lsyslib", @"
 #symbols AB
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
+        var linker = new FileLinker(fileSystem);
         try
         {
-            linker.LinkFiles();
+            linker.LinkFiles("root.lsystem");
         }
         catch (LinkException e)
         {
@@ -325,10 +325,10 @@ B -> AB
 #symbols AB
 #export Exported A
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
+        var linker = new FileLinker(fileSystem);
         try
         {
-            linker.LinkFiles();
+            linker.LinkFiles("root.lsystem");
         }
         catch (LinkException e)
         {
@@ -361,10 +361,10 @@ B -> AB
 #symbols CD
 #export Exported C
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
+        var linker = new FileLinker(fileSystem);
         try
         {
-            linker.LinkFiles();
+            linker.LinkFiles("root.lsystem");
         }
         catch (LinkException e)
         {
@@ -402,10 +402,10 @@ B -> AB
 #symbols EF
 #export Exported E
 ");
-        var linker = new FileLinker(fileSystem, "root.lsystem");
+        var linker = new FileLinker(fileSystem);
         try
         {
-            linker.LinkFiles();
+            linker.LinkFiles("root.lsystem");
         }
         catch (LinkException e)
         {
@@ -413,6 +413,89 @@ B -> AB
             return;
         }
         Assert.Fail("linker must prevent importing symbols in such a way that would cause a single symbol to be represented as multiple character");
+    }
+
+    [Test]
+    public void CatchesCompileTimeVariableCollision()
+    {
+        var fileSystem = new InMemoryFileProvider();
+
+        fileSystem.RegisterFileWithIdentifier("root.lsystem", @"
+#axiom Y
+#iterations 1000
+#symbols XY
+
+#define compileTime IEKA
+#include lib0.lsyslib
+");
+        fileSystem.RegisterFileWithIdentifier("lib0.lsyslib", @"
+#symbols AB
+#define compileTime IEKA
+#export Exported A
+");
+        var linker = new FileLinker(fileSystem);
+        try
+        {
+            linker.LinkFiles("root.lsystem");
+        }
+        catch (LinkException e)
+        {
+            Assert.AreEqual(LinkExceptionType.GLOBAL_VARIABLE_COLLISION, e.exceptionType);
+            return;
+        }
+        Assert.Fail("linker must prevent declaration of multiple global replacements with the same name");
+    }
+    [Test]
+    public void CatchesRunTimeVariableCollision()
+    {
+        var fileSystem = new InMemoryFileProvider();
+
+        fileSystem.RegisterFileWithIdentifier("root.lsystem", @"
+#axiom Y
+#iterations 1000
+#symbols XY
+
+#runtime runTime 1992.01
+#include lib0.lsyslib
+");
+
+        fileSystem.RegisterFileWithIdentifier("lib0.lsyslib", @"
+#symbols AB
+#runtime runTime 1992.01
+#export Exported A
+");
+        var linker = new FileLinker(fileSystem);
+        try
+        {
+            linker.LinkFiles("root.lsystem");
+        }
+        catch (LinkException e)
+        {
+            Assert.AreEqual(LinkExceptionType.GLOBAL_VARIABLE_COLLISION, e.exceptionType);
+            return;
+        }
+        Assert.Fail("linker must prevent declaration of multiple global runtime variables with the same name");
+    }
+    [Test]
+    public void CatchesLibraryAsOriginError()
+    {
+        var fileSystem = new InMemoryFileProvider();
+
+        fileSystem.RegisterFileWithIdentifier("root.lsyslib", @"
+#symbols AB
+#export Exported A
+");
+        var linker = new FileLinker(fileSystem);
+        try
+        {
+            linker.LinkFiles("root.lsyslib");
+        }
+        catch (LinkException e)
+        {
+            Assert.AreEqual(LinkExceptionType.BASE_FILE_IS_LIBRARY, e.exceptionType);
+            return;
+        }
+        Assert.Fail("linker must not allow the root file to be a library file");
     }
     #endregion
 }

@@ -28,7 +28,7 @@ namespace Dman.LSystem.UnityObjects
 
         public ArrayParameterRepresenation<float> GetRuntimeParameters()
         {
-            return ArrayParameterRepresenation<float>.GenerateFromList(parsedSystemFile.globalRuntimeParameters, p => p.name, p => p.defaultValue);
+            return ArrayParameterRepresenation<float>.GenerateFromList(parsedSystemFile.declaredInFileRuntimeParameters, p => p.name, p => p.defaultValue);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Dman.LSystem.UnityObjects
             try
             {
                 IEnumerable<string> rulesPostReplacement = parsedSystemFile.ruleLines;
-                foreach (var replacement in parsedSystemFile.globalCompileTimeParameters)
+                foreach (var replacement in parsedSystemFile.delaredInFileCompileTimeParameters)
                 {
                     var replacementString = replacement.replacement;
                     if (globalCompileTimeOverrides != null && globalCompileTimeOverrides.TryGetValue(replacement.name, out var overrideValue))
@@ -85,7 +85,7 @@ namespace Dman.LSystem.UnityObjects
                 }
                 return LSystemBuilder.FloatSystem(
                     rulesPostReplacement,
-                    parsedSystemFile.globalRuntimeParameters.Select(x => x.name).ToArray(),
+                    parsedSystemFile.declaredInFileRuntimeParameters.Select(x => x.name).ToArray(),
                     parsedSystemFile.ignoredCharacters);
             }
             catch (System.Exception e)

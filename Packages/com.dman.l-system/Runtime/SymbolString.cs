@@ -1,5 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Unity.Collections;
@@ -27,11 +29,12 @@ namespace Dman.LSystem
         }
 
 
-        public static SymbolString<float> FromString(string symbolString, Allocator allocator = Allocator.Persistent)
+        public static SymbolString<float> FromString(string symbolString, Allocator allocator = Allocator.Persistent, Func<char, int> symbolMapping = null)
         {
             var symbolMatch = ReplacementSymbolGeneratorParser.ParseReplacementSymbolGenerators(
                 symbolString,
-                new string[0]).ToArray();
+                new string[0],
+                x => symbolMapping == null ? x : symbolMapping(x)).ToArray();
             var symbols = new NativeArray<int>(
                 symbolMatch.Select(x => x.targetSymbol).ToArray(),
                 allocator);
@@ -103,9 +106,21 @@ namespace Dman.LSystem
             return builder.ToString();
         }
 
-        public void ToString(int index, StringBuilder builder)
+        public string ToString(Dictionary<int, char> symbolMapping)
         {
-            builder.Append((char)symbols[index]);
+            var builder = new StringBuilder();
+            for (int i = 0; i < symbols.Length; i++)
+            {
+                ToString(i, builder, symbolMapping);
+            }
+
+            return builder.ToString();
+        }
+
+        public void ToString(int index, StringBuilder builder, Dictionary<int, char> symbolMapping = null)
+        {
+            var mappedSymbol = symbolMapping == null ? (char)symbols[index] : symbolMapping[symbols[index]];
+            builder.Append(mappedSymbol);
             var iIndex = newParameters[index];
             if (iIndex.length <= 0)
             {

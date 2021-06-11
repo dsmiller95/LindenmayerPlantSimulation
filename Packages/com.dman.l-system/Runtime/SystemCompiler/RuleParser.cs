@@ -1,4 +1,6 @@
-﻿using Dman.LSystem.SystemRuntime;
+﻿using Dman.LSystem.SystemCompiler.Linker;
+using Dman.LSystem.SystemRuntime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -19,8 +21,16 @@ namespace Dman.LSystem.SystemCompiler
         ///     : | ->
         /// </summary>
         /// <param name="ruleDef"></param>
-        public static ParsedRule ParseToRule(string ruleString, string[] globalParameters = null)
+        public static ParsedRule ParseToRule(
+            string ruleString,
+            Func<char, int> symbolRemapper = null,
+            short sourceFileIndex = 0,
+            string[] globalParameters = null)
         {
+            if(symbolRemapper == null)
+            {
+                symbolRemapper = x => x;
+            }
             var centralDelimimiterMatch = Regex.Match(ruleString.Trim(), @"(?<matcher>.*)->\s*(?<replacement>.*)\s*");
             if (!centralDelimimiterMatch.Success || !centralDelimimiterMatch.Groups["matcher"].Success || !centralDelimimiterMatch.Groups["replacement"].Success)
             {
@@ -65,11 +75,12 @@ namespace Dman.LSystem.SystemCompiler
             {
                 rule = new ParsedRule();
             }
+            rule.ruleGroupIndex = sourceFileIndex;
 
             var contextMatch = matcherMatch.Groups["contextMatch"];
             try
             {
-                rule.ParseContextualMatches(contextMatch);
+                rule.ParseContextualMatches(contextMatch, symbolRemapper);
             }
             catch (SyntaxException e)
             {
@@ -92,7 +103,8 @@ namespace Dman.LSystem.SystemCompiler
                 {
                     rule.replacementSymbols = ReplacementSymbolGeneratorParser.ParseReplacementSymbolGenerators(
                         replacementSymbolMatch.Value,
-                        parameterArray)
+                        parameterArray,
+                        symbolRemapper)
                         .ToArray();
                 }
                 else
@@ -123,16 +135,23 @@ namespace Dman.LSystem.SystemCompiler
             return rule;
         }
 
-
+        //TODO: get rid of this function. should only compile from linked files
         public static IEnumerable<BasicRule> CompileRules(
             IEnumerable<string> ruleStrings,
             out SystemLevelRuleNativeData ruleNativeData,
             string[] globalParameters = null)
         {
             var parsedRules = ruleStrings
-                .Select(x => ParseToRule(x, globalParameters))
+                .Select(x => ParseToRule(x, x => x, globalParameters: globalParameters))
                 .Where(x => x != null)
                 .ToArray();
+            return CompileAndCheckParsedRules(parsedRules, out ruleNativeData);
+        }
+
+        public static IEnumerable<BasicRule> CompileAndCheckParsedRules(
+            ParsedRule[] parsedRules,
+            out SystemLevelRuleNativeData ruleNativeData)
+        {
             var basicRules = parsedRules.Where(r => !(r is ParsedStochasticRule))
                 .Select(x => new BasicRule(x)).ToList();
 

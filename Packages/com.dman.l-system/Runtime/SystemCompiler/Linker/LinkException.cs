@@ -8,7 +8,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
         MISSING_EXPORT,
         MISSING_FILE,
         IMPORT_COLLISION,
-        IMPORT_DISSONANCE
+        IMPORT_DISSONANCE,
+        GLOBAL_VARIABLE_COLLISION,
+        BASE_FILE_IS_LIBRARY
     }
 
     public class LinkException : Exception

@@ -6,7 +6,10 @@ namespace Dman.LSystem.SystemRuntime
 {
     internal static class ReplacementSymbolGeneratorParser
     {
-        public static IEnumerable<ReplacementSymbolGenerator> ParseReplacementSymbolGenerators(string allsymbols, string[] validParameters)
+        public static IEnumerable<ReplacementSymbolGenerator> ParseReplacementSymbolGenerators(
+            string allsymbols,
+            string[] validParameters,
+            Func<char, int> symbolRemapper)
         {
             if (allsymbols.Length <= 0)
             {
@@ -18,7 +21,7 @@ namespace Dman.LSystem.SystemRuntime
             bool hasNextMatch;
             do
             {
-                var nextMatch = ParseOutSymbolExpression(charEnumerator, validParameters, ref currentIndexInStream);
+                var nextMatch = ParseOutSymbolExpression(symbolRemapper, charEnumerator, validParameters, ref currentIndexInStream);
                 hasNextMatch = nextMatch.Item2;
                 yield return nextMatch.Item1;
             } while (hasNextMatch);
@@ -33,6 +36,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="currentIndexInStream"></param>
         /// <returns></returns>
         private static (ReplacementSymbolGenerator, bool) ParseOutSymbolExpression(
+            Func<char, int> symbolRemapper,
             CharEnumerator symbols,
             string[] validParameters,
             ref int currentIndexInStream)
@@ -45,11 +49,11 @@ namespace Dman.LSystem.SystemRuntime
             currentIndexInStream++;
             if (!symbols.MoveNext())
             {
-                return (new ReplacementSymbolGenerator(nextSymbol), false);
+                return (new ReplacementSymbolGenerator(symbolRemapper(nextSymbol)), false);
             }
             if (symbols.Current != '(')
             {
-                return (new ReplacementSymbolGenerator(nextSymbol), true);
+                return (new ReplacementSymbolGenerator(symbolRemapper(nextSymbol)), true);
             }
             var delegates = new List<DynamicExpressionData>();
             while (symbols.Current != ')')
@@ -94,7 +98,7 @@ namespace Dman.LSystem.SystemRuntime
 
 
             currentIndexInStream++;
-            return (new ReplacementSymbolGenerator(nextSymbol, delegates), symbols.MoveNext());
+            return (new ReplacementSymbolGenerator(symbolRemapper(nextSymbol), delegates), symbols.MoveNext());
         }
 
         /// <summary>

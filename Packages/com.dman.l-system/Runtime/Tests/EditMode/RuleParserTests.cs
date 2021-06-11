@@ -105,7 +105,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithFullContextParametersInOrder()
     {
-        var ruleFromString = RuleParser.ParseToRule("C(x) < K(y) > A(z) -> D((timeToFruit - x) / (y -z))", new string[] { "timeToFruit" });
+        var ruleFromString = RuleParser.ParseToRule("C(x) < K(y) > A(z) -> D((timeToFruit - x) / (y -z))", globalParameters: new string[] { "timeToFruit" });
 
         Assert.AreEqual("C(x) < K(y) > A(z)", ruleFromString.TargetSymbolString());
 
@@ -181,7 +181,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithGlobalParametersMatch()
     {
-        var ruleFromString = RuleParser.ParseToRule("A(x) -> B(x + stretch, stretch)", new string[] { "stretch" });
+        var ruleFromString = RuleParser.ParseToRule("A(x) -> B(x + stretch, stretch)", globalParameters: new string[] { "stretch" });
 
         Assert.IsNull(ruleFromString.conditionalMatch);
 
@@ -196,7 +196,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithNonAlphaContextMatchWithParameter()
     {
-        var ruleFromString = RuleParser.ParseToRule("C(x) < K(y) > `A(z) : x >= timeToFruit -> D(1)", new string[] { "timeToFruit" });
+        var ruleFromString = RuleParser.ParseToRule("C(x) < K(y) > `A(z) : x >= timeToFruit -> D(1)", globalParameters: new string[] { "timeToFruit" });
 
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 0, 0, 0) > 0);
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(3, 1, 0, 0) > 0);
@@ -222,7 +222,7 @@ public class RuleParserTests
     [Test]
     public void RuleWithProbabilityConditionalParses()
     {
-        var ruleFromString = RuleParser.ParseToRule("P(0.5) | A(x) : x < global -> A(x + 1)", new string[] { "global" });
+        var ruleFromString = RuleParser.ParseToRule("P(0.5) | A(x) : x < global -> A(x + 1)", globalParameters: new string[] { "global" });
 
         Assert.IsInstanceOf<ParsedStochasticRule>(ruleFromString);
 
@@ -242,7 +242,7 @@ public class RuleParserTests
     [Test]
     public void ParsesRuleWithEverySyntax()
     {
-        var ruleFromString = RuleParser.ParseToRule("P(0.8 - (1/2)) | A < B > C(y) : y < global -> A", new string[] { "global" });
+        var ruleFromString = RuleParser.ParseToRule("P(0.8 - (1/2)) | A < B > C(y) : y < global -> A", globalParameters: new string[] { "global" });
 
         Assert.AreEqual(1, ruleFromString.forwardsMatch.Length);
         Assert.AreEqual(1, ruleFromString.backwardsMatch.Length);

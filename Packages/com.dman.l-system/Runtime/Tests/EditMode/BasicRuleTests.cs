@@ -31,7 +31,7 @@ public class BasicRuleTests
             );
         using var expectedReplacement = SymbolString<float>.FromString(expectedReplacementText, Allocator.Persistent);
 
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, x => x, globalParameters: globalParamNames));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
@@ -110,7 +110,7 @@ public class BasicRuleTests
             new SymbolString<float>(sourceSymbols, sourceParameters)
             : SymbolString<float>.FromString(axiom, Allocator.Persistent)
             );
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, x => x, globalParameters: globalParamNames));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
@@ -148,7 +148,7 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
+        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB", x => x));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);

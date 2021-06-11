@@ -16,39 +16,36 @@ namespace Dman.LSystem.SystemCompiler.Linker
     public class FileLinker
     {
         private IFileProvider fileProvider;
-        private string basePath;
 
-        public Dictionary<string, ParsedFile> allFilesByFullIdentifier = new Dictionary<string, ParsedFile>();
-        public List<string> leafFirstFileSort;
-        public List<SymbolDefinition> allSymbolDefinitions;
-
-        public FileLinker(IFileProvider fileProvider, string basePath)
+        public FileLinker(IFileProvider fileProvider)
         {
             this.fileProvider = fileProvider;
-            this.basePath = basePath;
         }
 
-        public void LinkFiles()
+        public LinkedFileSet LinkFiles(string basePath)
         {
-            this.ParseFullFileTree();
-            leafFirstFileSort = this.GetTopologicalSort();
-            AssignSymbolRemappingsToFiles();
+            var allFilesByFullIdentifier = new Dictionary<string, ParsedFile>();
+            this.ParseFullFileTree(basePath, allFilesByFullIdentifier);
+            var leafFirstFileSort = this.GetTopologicalSort(basePath, allFilesByFullIdentifier);
+            var allSymbols = AssignSymbolRemappingsToFiles(allFilesByFullIdentifier, leafFirstFileSort);
+
+            return new LinkedFileSet(basePath, allFilesByFullIdentifier, allSymbols);
         }
 
-        private void AssignSymbolRemappingsToFiles()
+        private List<SymbolDefinition> AssignSymbolRemappingsToFiles(Dictionary<string, ParsedFile> allFiles, List<string> leafFirstSortedFiles)
         {
-            allSymbolDefinitions = new List<SymbolDefinition>();
+            var completeSymbolDefinitions = new List<SymbolDefinition>();
             int nextSymbolAssignment = 0;
-            foreach (var fileIdentifier in leafFirstFileSort)
+            foreach (var fileIdentifier in leafFirstSortedFiles)
             {
-                var parsedFile = allFilesByFullIdentifier[fileIdentifier];
+                var parsedFile = allFiles[fileIdentifier];
                 var remappedInFile = new Dictionary<char, int>();
 
 
                 // TODO: check for bad imports which cause impossible remapping arrangements
                 foreach (var include in parsedFile.links)
                 {
-                    var referencedFile = allFilesByFullIdentifier[include.fullImportIdentifier];
+                    var referencedFile = allFiles[include.fullImportIdentifier];
                     foreach (var remappedImport in include.importedSymbols)
                     {
                         var exportedSymbolIdentity = referencedFile.GetExportedSymbol(remappedImport.importName);
@@ -90,24 +87,25 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     sourceCharacter = x.Key
                 }).ToList();
 
-                allSymbolDefinitions.AddRange(parsedFile.allSymbolAssignments.Select(x => new SymbolDefinition
+                completeSymbolDefinitions.AddRange(parsedFile.allSymbolAssignments.Select(x => new SymbolDefinition
                 {
                     actualSymbol = x.remappedSymbol,
                     sourceFileDefinition = fileIdentifier,
                     characterInSourceFile = x.sourceCharacter
                 }));
             }
+            return completeSymbolDefinitions;
         }
 
-        private void ParseFullFileTree()
+        private void ParseFullFileTree(string basePath, Dictionary<string, ParsedFile> allFiles)
         {
             var leafIdentifiers = new Stack<string>();
-            leafIdentifiers.Push(this.basePath);
+            leafIdentifiers.Push(basePath);
 
             while(leafIdentifiers.Count > 0)
             {
                 var next = leafIdentifiers.Pop();
-                if (allFilesByFullIdentifier.ContainsKey(next))
+                if (allFiles.ContainsKey(next))
                 {
                     continue;
                 }
@@ -117,7 +115,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 {
                     throw new LinkException(LinkExceptionType.MISSING_FILE, $"Tried to import {next}, but file does not exist");
                 }
-                allFilesByFullIdentifier[next] = file;
+                allFiles[next] = file;
                 foreach (var link in file.links)
                 {
                     leafIdentifiers.Push(link.fullImportIdentifier);
@@ -125,7 +123,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             }
         }
 
-        private List<string> GetTopologicalSort()
+        private List<string> GetTopologicalSort(string basePath, Dictionary<string, ParsedFile> allFiles)
         {
             // set of all files which have been visited
             var visited = new HashSet<string>();
@@ -134,17 +132,22 @@ namespace Dman.LSystem.SystemCompiler.Linker
             // list of all nodes, sorted leaf-first
             var topologicalNodes = new List<string>();
 
-            GetTopologicalSortInternal(basePath, visited, lineage, topologicalNodes);
+            GetTopologicalSortInternal(basePath, visited, lineage, topologicalNodes, allFiles);
 
             return topologicalNodes;
         }
 
-        private void GetTopologicalSortInternal(string node, ISet<string> visited, Stack<string> lineage, List<string> sortedNodes)
+        private void GetTopologicalSortInternal(
+            string node,
+            ISet<string> visited,
+            Stack<string> lineage,
+            List<string> sortedNodes,
+            Dictionary<string, ParsedFile> allFiles)
         {
             visited.Add(node);
 
             lineage.Push(node);
-            var currentFile = this.allFilesByFullIdentifier[node];
+            var currentFile = allFiles[node];
             foreach (var link in currentFile.links)
             {
                 var nextNode = link.fullImportIdentifier;
@@ -157,23 +160,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 {
                     continue;
                 }
-                GetTopologicalSortInternal(nextNode, visited, lineage, sortedNodes);
+                GetTopologicalSortInternal(nextNode, visited, lineage, sortedNodes, allFiles);
             }
             lineage.Pop();
             sortedNodes.Add(node);
-        }
-
-
-
-        private ParsedFile GetIngestedFile(string fullIdentifier)
-        {
-            if(allFilesByFullIdentifier.TryGetValue(fullIdentifier, out var existingFile))
-            {
-                return existingFile;
-            }
-            var file = fileProvider.ReadLinkedFile(fullIdentifier);
-            allFilesByFullIdentifier[fullIdentifier] = file;
-            return file;
         }
     }
 }

@@ -47,6 +47,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     {
         public DefaultLSystemState(string axiom, int seed) : this(axiom, (uint)seed)
         { }
+        public DefaultLSystemState(SymbolString<float> axiom, uint seed)
+        {
+            currentSymbols = new DependencyTracker<SymbolString<float>>(axiom);
+            randomProvider = new Unity.Mathematics.Random(seed);
+        }
         public DefaultLSystemState(string axiom, uint seed = 1)
         {
             currentSymbols = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString(axiom));

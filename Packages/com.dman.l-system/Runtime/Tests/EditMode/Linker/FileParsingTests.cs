@@ -12,7 +12,8 @@ public class FileParsingTests
 #axiom /(20)S(1)R(0)
 #iterations 1000
 
-#symbols ZXCQWE/SRABCKLx
+#symbols ZXCQWE/SRABCK
+#symbols Lx
 
 #global ZXC
 #ignore QWE
@@ -35,13 +36,13 @@ A -> AB";
         Assert.AreEqual("ZXC", parsed.globalCharacters);
         Assert.AreEqual("QWE", parsed.ignoredCharacters);
 
-        Assert.AreEqual(1, parsed.globalCompileTimeParameters.Count);
-        Assert.AreEqual("compileTime", parsed.globalCompileTimeParameters.First().name);
-        Assert.AreEqual("ABC", parsed.globalCompileTimeParameters.First().replacement);
+        Assert.AreEqual(1, parsed.delaredInFileCompileTimeParameters.Count);
+        Assert.AreEqual("compileTime", parsed.delaredInFileCompileTimeParameters.First().name);
+        Assert.AreEqual("ABC", parsed.delaredInFileCompileTimeParameters.First().replacement);
 
-        Assert.AreEqual(1, parsed.globalRuntimeParameters.Count);
-        Assert.AreEqual("runTimeParam", parsed.globalRuntimeParameters.First().name);
-        Assert.AreEqual(92.4f, parsed.globalRuntimeParameters.First().defaultValue);
+        Assert.AreEqual(1, parsed.declaredInFileRuntimeParameters.Count);
+        Assert.AreEqual("runTimeParam", parsed.declaredInFileRuntimeParameters.First().name);
+        Assert.AreEqual(92.4f, parsed.declaredInFileRuntimeParameters.First().defaultValue);
 
         Assert.AreEqual(2, parsed.links.Count);
         var standardLink = parsed.links[0];
@@ -98,13 +99,13 @@ A -> AB";
         Assert.AreEqual("ZXC", parsed.globalCharacters);
         Assert.AreEqual("QWE", parsed.ignoredCharacters);
 
-        Assert.AreEqual(1, parsed.globalCompileTimeParameters.Count);
-        Assert.AreEqual("compileTime", parsed.globalCompileTimeParameters.First().name);
-        Assert.AreEqual("ABC", parsed.globalCompileTimeParameters.First().replacement);
+        Assert.AreEqual(1, parsed.delaredInFileCompileTimeParameters.Count);
+        Assert.AreEqual("compileTime", parsed.delaredInFileCompileTimeParameters.First().name);
+        Assert.AreEqual("ABC", parsed.delaredInFileCompileTimeParameters.First().replacement);
 
-        Assert.AreEqual(1, parsed.globalRuntimeParameters.Count);
-        Assert.AreEqual("runTimeParam", parsed.globalRuntimeParameters.First().name);
-        Assert.AreEqual(92.4f, parsed.globalRuntimeParameters.First().defaultValue);
+        Assert.AreEqual(1, parsed.declaredInFileRuntimeParameters.Count);
+        Assert.AreEqual("runTimeParam", parsed.declaredInFileRuntimeParameters.First().name);
+        Assert.AreEqual(92.4f, parsed.declaredInFileRuntimeParameters.First().defaultValue);
 
         Assert.AreEqual(1, parsed.links.Count);
         var link = parsed.links.First();
