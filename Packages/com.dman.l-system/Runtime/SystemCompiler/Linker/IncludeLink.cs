@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Dman.LSystem.SystemCompiler.Linker
 {
+    [Serializable]
     public class IncludeImportRemap: IEquatable<IncludeImportRemap>
     {
         public string importName;
@@ -19,6 +20,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         }
     }
 
+    [Serializable]
     public class IncludeLink
     {
         public string fullImportIdentifier;

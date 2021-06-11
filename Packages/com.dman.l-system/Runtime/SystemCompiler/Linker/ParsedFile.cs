@@ -29,7 +29,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public string allSymbols;
         public string ignoredCharacters = "";
-        public string globalCharacters = null;
+        public string globalCharacters = "";
 
         public List<IncludeLink> links;
         public List<ExportDirective> exports;
@@ -132,6 +132,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public int GetSymbolInFile(char symbol)
         {
             var match = allSymbolAssignments.Find(x => x.sourceCharacter == symbol);
+            if(match == null)
+            {
+                throw new Exception($"{fileSource} does not contain requested symbol '{symbol}'. Did you forget to declare it in a <color=blue>#symbols</color> directive?");
+            }
             return match.remappedSymbol;
         }
 
@@ -210,7 +214,13 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     }
                     return;
                 case "global":
-                    globalCharacters = directiveMatch.Groups["parameter"].Value;
+                    foreach (var symbol in directiveMatch.Groups["parameter"].Value)
+                    {
+                        if (!globalCharacters.Contains(symbol))
+                        {
+                            globalCharacters += symbol;
+                        }
+                    }
                     return;
                 case "export":
                     if (!this.isLibrary)

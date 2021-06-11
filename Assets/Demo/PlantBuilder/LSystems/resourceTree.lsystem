@@ -2,13 +2,13 @@
 #iterations 1000
 
 #ignore +-/\&^F$
-#symbols +-/\&^F$
+#symbols +-/\&^F$@
 
 #define resourceNodeTargetMax 4
 ##P(0.005) | T(x) -> FK
 ##P(0.995) | T(x) -> T(x)
 
-#symbols R
+#symbols RTAFQWK
          R(a) < T(x) : a >= 1 && x >  0 -> A(-1)FT(x - 1)
 P(0.6) | R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)Q/(90)[FW+(18)R(0)T(5)][FW-(18)R(0)T(5)]
 P(0.4) | R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)FK

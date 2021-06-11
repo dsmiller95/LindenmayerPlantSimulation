@@ -17,8 +17,8 @@ public class LinkImportExportTests
 
 #include lib.lsyslib (Exported->X)
 Y -> ZX
-"); 
-        
+");
+
         fileSystem.RegisterFileWithIdentifier("lib.lsyslib", @"
 #symbols AB
 #export Exported B
@@ -29,16 +29,61 @@ B -> AB
         var linkedSet = linker.LinkFiles("root.lsystem");
 
         var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
-        Assert.AreEqual(3, rootFile.allSymbolAssignments.Count);
-        Assert.AreEqual(3, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZ").Count());
+        Assert.AreEqual(5, rootFile.allSymbolAssignments.Count);
+        Assert.AreEqual(5, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZ[]").Count());
 
         var libFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
-        Assert.AreEqual(2, libFile.allSymbolAssignments.Count);
-        Assert.AreEqual(2, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
+        Assert.AreEqual(4, libFile.allSymbolAssignments.Count);
+        Assert.AreEqual(4, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
         var importedInRoot = rootFile.GetSymbolInFile('X');
         var exportedInLib = libFile.GetSymbolInFile('B');
         Assert.AreEqual(exportedInLib, importedInRoot);
+    }
+    [Test]
+    public void LinksSimpleDependencyAndAssociatesGlobals()
+    {
+        var fileSystem = new InMemoryFileProvider();
+
+        fileSystem.RegisterFileWithIdentifier("root.lsystem", @"
+#axiom Y
+#iterations 1000
+#symbols XYZDE
+
+#global DE
+
+#include lib.lsyslib
+Y -> ZX
+");
+
+        fileSystem.RegisterFileWithIdentifier("lib.lsyslib", @"
+#symbols ABDE
+#export Exported B
+
+#global D
+
+B -> AB
+");
+        var linker = new FileLinker(fileSystem);
+        var linkedSet = linker.LinkFiles("root.lsystem");
+
+        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
+        Assert.AreEqual(7, rootFile.allSymbolAssignments.Count);
+        Assert.AreEqual(7, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZDE[]").Count());
+
+        var libFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
+        Assert.AreEqual(6, libFile.allSymbolAssignments.Count);
+        Assert.AreEqual(6, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("ABDE[]").Count());
+
+        var importedInRoot = rootFile.GetSymbolInFile('X');
+        var exportedInLib = libFile.GetSymbolInFile('B');
+        Assert.AreEqual(exportedInLib, importedInRoot);
+
+        Assert.AreEqual(rootFile.GetSymbolInFile('D'), libFile.GetSymbolInFile('D'));
+        Assert.AreNotEqual(rootFile.GetSymbolInFile('E'), libFile.GetSymbolInFile('E'));
+
+        Assert.AreEqual(rootFile.GetSymbolInFile('['), libFile.GetSymbolInFile(']'));
+        Assert.AreEqual(rootFile.GetSymbolInFile('['), libFile.GetSymbolInFile(']'));
     }
     [Test]
     public void LinksDependencyWithoutRemapping()
@@ -64,12 +109,12 @@ B -> AB
         var linkedSet = linker.LinkFiles("root.lsystem");
 
         var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
-        Assert.AreEqual(3, rootFile.allSymbolAssignments.Count);
-        Assert.AreEqual(3, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZ").Count());
+        Assert.AreEqual(5, rootFile.allSymbolAssignments.Count);
+        Assert.AreEqual(5, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZ[]").Count());
 
         var libFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
-        Assert.AreEqual(2, libFile.allSymbolAssignments.Count);
-        Assert.AreEqual(2, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
+        Assert.AreEqual(4, libFile.allSymbolAssignments.Count);
+        Assert.AreEqual(4, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
         var exportedInLib = libFile.GetSymbolInFile('B');
         Assert.IsFalse(rootFile.allSymbolAssignments.Any(x => x.remappedSymbol == exportedInLib));
@@ -101,16 +146,16 @@ B -> AB
         var linkedSet = linker.LinkFiles("root.lsystem");
 
         var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
-        Assert.AreEqual(2, rootFile.allSymbolAssignments.Count);
-        Assert.AreEqual(2, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY").Count());
+        Assert.AreEqual(4, rootFile.allSymbolAssignments.Count);
+        Assert.AreEqual(4, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY[]").Count());
 
         var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
-        Assert.AreEqual(2, lib0File.allSymbolAssignments.Count);
-        Assert.AreEqual(2, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
+        Assert.AreEqual(4, lib0File.allSymbolAssignments.Count);
+        Assert.AreEqual(4, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
         var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
-        Assert.AreEqual(2, lib1File.allSymbolAssignments.Count);
-        Assert.AreEqual(2, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD").Count());
+        Assert.AreEqual(4, lib1File.allSymbolAssignments.Count);
+        Assert.AreEqual(4, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD[]").Count());
 
         var importedInRoot = rootFile.GetSymbolInFile('X');
         var exportedInLib0 = lib0File.GetSymbolInFile('A');
@@ -152,20 +197,20 @@ B -> AB
         var linkedSet = linker.LinkFiles("root.lsystem");
 
         var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
-        Assert.AreEqual(2, rootFile.allSymbolAssignments.Count);
-        Assert.AreEqual(2, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY").Count());
+        Assert.AreEqual(4, rootFile.allSymbolAssignments.Count);
+        Assert.AreEqual(4, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY[]").Count());
 
         var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
-        Assert.AreEqual(2, lib0File.allSymbolAssignments.Count);
-        Assert.AreEqual(2, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
+        Assert.AreEqual(4, lib0File.allSymbolAssignments.Count);
+        Assert.AreEqual(4, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
         var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
-        Assert.AreEqual(2, lib1File.allSymbolAssignments.Count);
-        Assert.AreEqual(2, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD").Count());
+        Assert.AreEqual(4, lib1File.allSymbolAssignments.Count);
+        Assert.AreEqual(4, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD[]").Count());
 
         var lib2File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib2.lsyslib"]];
-        Assert.AreEqual(2, lib2File.allSymbolAssignments.Count);
-        Assert.AreEqual(2, lib2File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("EF").Count());
+        Assert.AreEqual(4, lib2File.allSymbolAssignments.Count);
+        Assert.AreEqual(4, lib2File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("EF[]").Count());
 
         var importedInRoot = rootFile.GetSymbolInFile('X');
         var exportedInLib0 = lib0File.GetSymbolInFile('A');
@@ -180,7 +225,6 @@ B -> AB
         Assert.AreEqual(exportedInLib2, exportedInLib1);
         Assert.AreEqual(exportedInLib2, importedInRoot);
     }
-
     [Test]
     public void AllowsImportCollisionToPreventDissonance()
     {
@@ -213,20 +257,20 @@ B -> AB
         var linkedSet = linker.LinkFiles("root.lsystem");
 
         var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
-        Assert.AreEqual(2, rootFile.allSymbolAssignments.Count);
-        Assert.AreEqual(2, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY").Count());
+        Assert.AreEqual(4, rootFile.allSymbolAssignments.Count);
+        Assert.AreEqual(4, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY[]").Count());
 
         var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
-        Assert.AreEqual(2, lib0File.allSymbolAssignments.Count);
-        Assert.AreEqual(2, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB").Count());
+        Assert.AreEqual(4, lib0File.allSymbolAssignments.Count);
+        Assert.AreEqual(4, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
         var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
-        Assert.AreEqual(2, lib1File.allSymbolAssignments.Count);
-        Assert.AreEqual(2, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD").Count());
+        Assert.AreEqual(4, lib1File.allSymbolAssignments.Count);
+        Assert.AreEqual(4, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD[]").Count());
 
         var lib2File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib2.lsyslib"]];
-        Assert.AreEqual(2, lib2File.allSymbolAssignments.Count);
-        Assert.AreEqual(2, lib2File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("EF").Count());
+        Assert.AreEqual(4, lib2File.allSymbolAssignments.Count);
+        Assert.AreEqual(4, lib2File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("EF[]").Count());
 
         var importedInRoot = rootFile.GetSymbolInFile('X');
         var exportedInLib0 = lib0File.GetSymbolInFile('A');

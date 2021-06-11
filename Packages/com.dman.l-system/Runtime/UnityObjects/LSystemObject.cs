@@ -15,11 +15,11 @@ namespace Dman.LSystem.UnityObjects
     {
         public int seed;
 
-        public ParsedFile parsedSystemFile;
+        public LinkedFileSet linkedFiles;
 
         public LSystemStepper compiledSystem { get; private set; }
-        public string axiom => parsedSystemFile.axiom;
-        public int iterations => parsedSystemFile.iterations == -1 ? 7 : parsedSystemFile.iterations;
+        public SymbolString<float> axiom => linkedFiles.GetAxiom();
+        public int iterations => linkedFiles.GetIterations();
 
         /// <summary>
         /// Emits whenever the system is compiled
@@ -28,7 +28,7 @@ namespace Dman.LSystem.UnityObjects
 
         public ArrayParameterRepresenation<float> GetRuntimeParameters()
         {
-            return ArrayParameterRepresenation<float>.GenerateFromList(parsedSystemFile.declaredInFileRuntimeParameters, p => p.name, p => p.defaultValue);
+            return ArrayParameterRepresenation<float>.GenerateFromList(linkedFiles.allGlobalRuntimeParams, p => p.name, p => p.defaultValue);
         }
 
         /// <summary>
@@ -73,20 +73,7 @@ namespace Dman.LSystem.UnityObjects
             UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
             try
             {
-                IEnumerable<string> rulesPostReplacement = parsedSystemFile.ruleLines;
-                foreach (var replacement in parsedSystemFile.delaredInFileCompileTimeParameters)
-                {
-                    var replacementString = replacement.replacement;
-                    if (globalCompileTimeOverrides != null && globalCompileTimeOverrides.TryGetValue(replacement.name, out var overrideValue))
-                    {
-                        replacementString = overrideValue;
-                    }
-                    rulesPostReplacement = rulesPostReplacement.Select(x => x.Replace(replacement.name, replacementString));
-                }
-                return LSystemBuilder.FloatSystem(
-                    rulesPostReplacement,
-                    parsedSystemFile.declaredInFileRuntimeParameters.Select(x => x.name).ToArray(),
-                    parsedSystemFile.ignoredCharacters);
+                return linkedFiles.CompileSystem(globalCompileTimeOverrides);
             }
             catch (System.Exception e)
             {
@@ -115,15 +102,18 @@ namespace Dman.LSystem.UnityObjects
         {
             if (!string.IsNullOrWhiteSpace(filePath))
             {
-                var lSystemCode = File.ReadAllText(filePath);
-                parsedSystemFile = new ParsedFile(filePath, lSystemCode, isLibrary: false);
+                var linker = new FileLinker(new FileSystemFileProvider());
+                linkedFiles = linker.LinkFiles(filePath);
             }
         }
 
         //TODO: deprecate. will have to start from a filepath every time.
         public void ParseRulesFromCode(string fullText)
         {
-            parsedSystemFile = new ParsedFile("", fullText, isLibrary: false);
+            var fileProvider = new InMemoryFileProvider();
+            fileProvider.RegisterFileWithIdentifier("root.lsystem", fullText);
+            var linker = new FileLinker(fileProvider);
+            linkedFiles = linker.LinkFiles("root.lsystem");
         }
     }
 }

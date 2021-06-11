@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dman.LSystem.SystemCompiler.Linker
 {
+    [Serializable]
     public class SymbolDefinition
     {
         public string sourceFileDefinition;
