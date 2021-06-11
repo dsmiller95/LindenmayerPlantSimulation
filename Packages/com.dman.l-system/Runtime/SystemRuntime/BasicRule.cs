@@ -183,7 +183,7 @@ namespace Dman.LSystem.SystemRuntime
                 if (contextPrefix.IsValid && contextPrefix.graphNodeMemSpace.length > 0)
                 {
                     var backwardsMatchMatches = branchingCache.MatchesBackwards(
-                        branchingCache.ignoreSymbols[ruleGroupIndex],
+                        branchingCache.includeSymbols[ruleGroupIndex],
                         indexInSymbols,
                         contextPrefix,
                         source,
@@ -217,7 +217,7 @@ namespace Dman.LSystem.SystemRuntime
                 if (contextSuffix.IsCreated && contextSuffix.graphNodeMemSpace.length > 0)
                 {
                     var forwardMatch = branchingCache.MatchesForward(
-                        branchingCache.ignoreSymbols[ruleGroupIndex],
+                        branchingCache.includeSymbols[ruleGroupIndex],
                         indexInSymbols,
                         contextSuffix,
                         source,

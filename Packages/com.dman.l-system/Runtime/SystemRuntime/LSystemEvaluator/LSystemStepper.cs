@@ -21,7 +21,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public static LSystemStepper FloatSystem(
            IEnumerable<string> rules,
            string[] globalParameters = null,
-           string ignoredCharacters = "",
+           string includedCharacters = "[]ABCDEFD",
            int branchOpenSymbol = '[',
            int branchCloseSymbol = ']')
         {
@@ -37,7 +37,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 nativeRuleData,
                 branchOpenSymbol, branchCloseSymbol,
                 globalParameters?.Length ?? 0,
-                ignoredCharactersByRuleGroupIndex: new[] { new HashSet<int>(ignoredCharacters.Select(x => (int)x)) }
+                includedCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) }
             );
         }
     }
@@ -98,7 +98,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// </summary>
         public bool orderingAgnosticContextMatching = false;
 
-        public ISet<int>[] ignoredCharacters;
+        public ISet<int>[] includedCharacters;
 
         public bool isDisposed => nativeRuleData.IsDisposed;
 
@@ -108,13 +108,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             int branchOpenSymbol,
             int branchCloseSymbol,
             int expectedGlobalParameters = 0,
-            ISet<int>[] ignoredCharactersByRuleGroupIndex = null)
+            ISet<int>[] includedCharactersByRuleIndex = null)
         {
             GlobalParameters = expectedGlobalParameters;
 
             this.branchOpenSymbol = branchOpenSymbol;
             this.branchCloseSymbol = branchCloseSymbol;
-            this.ignoredCharacters = ignoredCharactersByRuleGroupIndex == null ? new HashSet<int>[0] : ignoredCharactersByRuleGroupIndex;
+            this.includedCharacters = includedCharactersByRuleIndex == null ? new HashSet<int>[0] : includedCharactersByRuleIndex;
 
             rulesByTargetSymbol = new Dictionary<int, IList<BasicRule>>();
             foreach (var rule in rules)
@@ -228,7 +228,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 maxMemoryRequirementsPerSymbol,
                 branchOpenSymbol,
                 branchCloseSymbol,
-                ignoredCharacters);
+                includedCharacters);
         }
 
         public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)

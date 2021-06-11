@@ -74,7 +74,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
 
         public static TreeViewItem ConstructTreeFromString(
             SymbolString<float> systemState,
-            ISet<int> ignoreSymbols,
+            ISet<int> includeSymbols,
             int branchStartChar,
             int branchEndChar,
             int branchSymbolMaxBranchingFactorAsPowerOf2 = 4)
@@ -83,7 +83,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
 
             int indexInString = 0;
             for (;
-                indexInString < systemState.Length && ignoreSymbols.Contains(systemState[indexInString]);
+                indexInString < systemState.Length && !includeSymbols.Contains(systemState[indexInString]);
                 indexInString++)
             { }
             if (indexInString >= systemState.Length)
@@ -106,7 +106,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 indexInString++)
             {
                 var symbol = systemState[indexInString];
-                if (ignoreSymbols.Contains(symbol))
+                if (!includeSymbols.Contains(symbol))
                 {
                     continue;
                 }

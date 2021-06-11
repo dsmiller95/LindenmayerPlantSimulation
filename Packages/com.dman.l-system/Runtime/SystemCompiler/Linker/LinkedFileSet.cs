@@ -112,8 +112,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
             var everySymbol = new HashSet<int>(allFiles.SelectMany(x => x.allSymbolAssignments).Select(x => x.remappedSymbol));
 
-            var ignoredByFile = allFiles
-                .Select(x => everySymbol.Except(x.GetAllIncludedContextualSymbols()))
+            var includedByFile = allFiles
+                .Select(x => x.GetAllIncludedContextualSymbols())
                 .Select(x => new HashSet<int>(x))
                 .ToArray();
 
@@ -122,7 +122,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 compiledRules,
                 nativeRuleData,
                 expectedGlobalParameters: allGlobalRuntimeParams.Count,
-                ignoredCharactersByRuleGroupIndex: ignoredByFile,
+                includedCharactersByRuleIndex: includedByFile,
                 branchOpenSymbol: openSymbol,
                 branchCloseSymbol: closeSymbol
             );

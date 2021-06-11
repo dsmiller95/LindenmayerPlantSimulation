@@ -14,7 +14,7 @@ namespace Dman.LSystem.SystemRuntime
 
         // TODO: extract from class, compile seperately?
         [ReadOnly]
-        public NativeMultipleHashSets ignoreSymbols;
+        public NativeMultipleHashSets includeSymbols;
         /// <summary>
         /// Contains a caches set of indexes, mapping each branching symbol to its matching closing/opening symbol.
         /// </summary>
@@ -22,19 +22,19 @@ namespace Dman.LSystem.SystemRuntime
         private NativeHashMap<int, int> branchingJumpIndexes;
         private SystemLevelRuleNativeData nativeRuleData; // todo: will have to pass this in instead of attach, maybe
 
-        public bool IsCreated => branchingJumpIndexes.IsCreated || ignoreSymbols.IsCreated;
+        public bool IsCreated => branchingJumpIndexes.IsCreated || includeSymbols.IsCreated;
 
         public SymbolStringBranchingCache(int branchOpen, int branchClose, SystemLevelRuleNativeData nativeRuleData)
             : this(branchOpen, branchClose, new HashSet<int>[0], nativeRuleData) { }
         public SymbolStringBranchingCache(
             int open, int close,
-            ISet<int>[] ignoreSymbolsByRuleSetIndex,
+            ISet<int>[] includedSymbolsByRuleSetIndex,
             SystemLevelRuleNativeData nativeRuleData,
             Allocator allocator = Allocator.Persistent)
         {
             branchOpenSymbol = open;
             branchCloseSymbol = close;
-            this.ignoreSymbols = new NativeMultipleHashSets(ignoreSymbolsByRuleSetIndex, allocator);
+            this.includeSymbols = new NativeMultipleHashSets(includedSymbolsByRuleSetIndex, allocator);
             this.nativeRuleData = nativeRuleData;
 
             branchingJumpIndexes = default;
@@ -64,7 +64,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="seriesMatch"></param>
         /// <returns>a mapping from all symbols in seriesMatch back into the target string</returns>
         public bool MatchesForward(
-            NativeMultipleHashSets.HashSetSlice ignoredSymbolsSet,
+            NativeMultipleHashSets.HashSetSlice includeSymbolsSet,
             int indexInSymbolTarget,
             SymbolSeriesSuffixMatcher seriesMatch,
             SymbolString<float> symbolString,
@@ -85,7 +85,7 @@ namespace Dman.LSystem.SystemRuntime
             //  starts out as a copy of the child count array. each leaf will be at 0, and will go negative when matched.
             //var remainingMatchesAtIndexes = seriesMatch.childrenCounts.Clone() as int[];
             return MatchesForwardsAtIndexOrderingInvariant(
-                ignoredSymbolsSet,
+                includeSymbolsSet,
                 indexInSymbolTarget,
                 seriesMatch,
                 symbolString,
@@ -101,7 +101,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="seriesMatch"></param>
         /// <returns>whether the match succeeded or not</returns>
         public bool MatchesBackwards(
-            NativeMultipleHashSets.HashSetSlice ignoredSymbolsSet,
+            NativeMultipleHashSets.HashSetSlice includedSymbolSet,
             int indexInSymbolTarget,
             SymbolSeriesPrefixMatcher seriesMatch,
             SymbolString<float> symbolString,
@@ -120,7 +120,7 @@ namespace Dman.LSystem.SystemRuntime
                 while (indexInSymbolTarget >= 0)
                 {
                     var currentSymbol = symbolString.symbols[indexInSymbolTarget];
-                    if (ignoredSymbolsSet.Contains(currentSymbol) || currentSymbol == branchOpenSymbol)
+                    if (!includedSymbolSet.Contains(currentSymbol) || currentSymbol == branchOpenSymbol)
                     {
                         indexInSymbolTarget--;
                     }
@@ -257,7 +257,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <param name="consumedTargetIndexes"></param>
         /// <returns></returns>
         private bool MatchesForwardsAtIndexOrderingInvariant(
-            NativeMultipleHashSets.HashSetSlice ignoredSymbolsSet,
+            NativeMultipleHashSets.HashSetSlice includeSymbolSet,
             int originIndexInTarget,
             SymbolSeriesSuffixMatcher seriesMatch,
             SymbolString<float> symbolString,
@@ -288,7 +288,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 var targetSymbol = symbolString[indexInTarget];
 
-                if (ignoredSymbolsSet.Contains(targetSymbol))
+                if (!includeSymbolSet.Contains(targetSymbol))
                 {
                     continue;
                 }
@@ -434,7 +434,7 @@ namespace Dman.LSystem.SystemRuntime
         public void Dispose()
         {
             branchingJumpIndexes.Dispose();
-            ignoreSymbols.Dispose();
+            includeSymbols.Dispose();
         }
     }
 }

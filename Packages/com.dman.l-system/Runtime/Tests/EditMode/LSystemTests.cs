@@ -76,7 +76,7 @@ public class LSystemTests
         LSystemState<float> state = new DefaultLSystemState("AF[FB]");
         using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
             "    A > [B] -> C",
-        }, ignoredCharacters: "F");
+        }, includedCharacters: "AB");
 
         Assert.AreEqual("AF[FB]", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
@@ -568,7 +568,7 @@ public class LSystemTests
             "    B     -> 3A4",
             "    A > A -> 5",
             "A < A     -> 6B7"
-        }, ignoredCharacters: "1234567");
+        }, includedCharacters: "AB");
 
         Assert.AreEqual("B", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
