@@ -17,20 +17,25 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// <param name="globalParameters">A list of global parameters.
         ///     The returned LSystem will require a double[] of the same length be passed in to the step function</param>
         /// <returns></returns>
+        [System.Obsolete("should use linker to compile systems")]
         public static LSystemStepper FloatSystem(
            IEnumerable<string> rules,
            string[] globalParameters = null,
-           string ignoredCharacters = "")
+           string ignoredCharacters = "",
+           int branchOpenSymbol = '[',
+           int branchCloseSymbol = ']')
         {
             var compiledRules = RuleParser.CompileRules(
                         rules,
                         out var nativeRuleData,
+                        branchOpenSymbol, branchCloseSymbol,
                         globalParameters
                         );
 
             return new LSystemStepper(
                 compiledRules,
                 nativeRuleData,
+                branchOpenSymbol, branchCloseSymbol,
                 globalParameters?.Length ?? 0,
                 ignoredCharactersByRuleGroupIndex: new[] { new HashSet<int>(ignoredCharacters.Select(x => (int)x)) }
             );
@@ -100,9 +105,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public LSystemStepper(
             IEnumerable<BasicRule> rules,
             SystemLevelRuleNativeData nativeRuleData,
+            int branchOpenSymbol,
+            int branchCloseSymbol,
             int expectedGlobalParameters = 0,
-            int branchOpenSymbol = '[',
-            int branchCloseSymbol = ']',
             ISet<int>[] ignoredCharactersByRuleGroupIndex = null)
         {
             GlobalParameters = expectedGlobalParameters;

@@ -97,12 +97,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
         {
             UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
 
+            var openSymbol = this.GetSymbol(originFile, '[');
+            var closeSymbol = this.GetSymbol(originFile, ']');
 
             var compiledRules = CompileAllRules(
                 globalCompileTimeOverrides,
-                out var nativeRuleData);
+                out var nativeRuleData,
+                openSymbol, closeSymbol);
 
-            UnityEngine.Profiling.Profiler.EndSample();
 
             var everySymbol = new HashSet<int>(allFiles.SelectMany(x => x.allSymbolAssignments).Select(x => x.remappedSymbol));
 
@@ -111,17 +113,23 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 .Select(x => new HashSet<int>(x))
                 .ToArray();
 
-            return new LSystemStepper(
+
+            var result = new LSystemStepper(
                 compiledRules,
                 nativeRuleData,
-                allGlobalRuntimeParams.Count,
-                ignoredCharactersByRuleGroupIndex: ignoredByFile
+                expectedGlobalParameters: allGlobalRuntimeParams.Count,
+                ignoredCharactersByRuleGroupIndex: ignoredByFile,
+                branchOpenSymbol: openSymbol,
+                branchCloseSymbol: closeSymbol
             );
+            UnityEngine.Profiling.Profiler.EndSample();
+            return result;
         }
 
         public IEnumerable<BasicRule> CompileAllRules(
             Dictionary<string, string> compileTimeOverrides,
-            out SystemLevelRuleNativeData ruleNativeData
+            out SystemLevelRuleNativeData ruleNativeData,
+            int openSymbol, int closeSymbol
             )
         {
             var allValidRuntimeParameters = this.allGlobalRuntimeParams.Select(x => x.name).ToArray();
@@ -135,7 +143,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 })
                 .Where(x => x != null)
                 .ToArray();
-            return RuleParser.CompileAndCheckParsedRules(parsedRules, out ruleNativeData);
+            return RuleParser.CompileAndCheckParsedRules(parsedRules, out ruleNativeData, openSymbol, closeSymbol);
         }
 
         private Dictionary<string, string> GetCompileTimeReplacementsWithOverrides(Dictionary<string, string> overrides)

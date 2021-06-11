@@ -139,21 +139,23 @@ namespace Dman.LSystem.SystemCompiler
         public static IEnumerable<BasicRule> CompileRules(
             IEnumerable<string> ruleStrings,
             out SystemLevelRuleNativeData ruleNativeData,
+            int branchOpenSymbol, int branchCloseSymbol,
             string[] globalParameters = null)
         {
             var parsedRules = ruleStrings
                 .Select(x => ParseToRule(x, x => x, globalParameters: globalParameters))
                 .Where(x => x != null)
                 .ToArray();
-            return CompileAndCheckParsedRules(parsedRules, out ruleNativeData);
+            return CompileAndCheckParsedRules(parsedRules, out ruleNativeData, branchOpenSymbol, branchCloseSymbol);
         }
 
         public static IEnumerable<BasicRule> CompileAndCheckParsedRules(
             ParsedRule[] parsedRules,
-            out SystemLevelRuleNativeData ruleNativeData)
+            out SystemLevelRuleNativeData ruleNativeData,
+            int branchOpenSymbol, int branchCloseSymbol)
         {
             var basicRules = parsedRules.Where(r => !(r is ParsedStochasticRule))
-                .Select(x => new BasicRule(x)).ToList();
+                .Select(x => new BasicRule(x, branchOpenSymbol, branchCloseSymbol)).ToList();
 
             IEqualityComparer<ParsedRule> ruleComparer = new ParsedRuleEqualityComparer();
 #if UNITY_EDITOR
@@ -188,7 +190,7 @@ namespace Dman.LSystem.SystemCompiler
                         throw new LSystemRuntimeException($"Error: group for {group.Key.TargetSymbolString()}"
                             + $" has probability {probabilityDeviation} away from 1");
                     }
-                    return new BasicRule(group);
+                    return new BasicRule(group, branchOpenSymbol, branchCloseSymbol);
                 }).ToList();
 
 

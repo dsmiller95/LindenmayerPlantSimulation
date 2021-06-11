@@ -9,9 +9,6 @@ namespace Dman.LSystem.SystemRuntime
 {
     public struct SymbolStringBranchingCache : System.IDisposable
     {
-        public static int defaultBranchOpenSymbol = '[';
-        public static int defaultBranchCloseSymbol = ']';
-
         public int branchOpenSymbol;
         public int branchCloseSymbol;
 
@@ -27,8 +24,8 @@ namespace Dman.LSystem.SystemRuntime
 
         public bool IsCreated => branchingJumpIndexes.IsCreated || ignoreSymbols.IsCreated;
 
-        public SymbolStringBranchingCache(SystemLevelRuleNativeData nativeRuleData)
-            : this(defaultBranchOpenSymbol, defaultBranchCloseSymbol, new HashSet<int>[0], nativeRuleData) { }
+        public SymbolStringBranchingCache(int branchOpen, int branchClose, SystemLevelRuleNativeData nativeRuleData)
+            : this(branchOpen, branchClose, new HashSet<int>[0], nativeRuleData) { }
         public SymbolStringBranchingCache(
             int open, int close,
             ISet<int>[] ignoreSymbolsByRuleSetIndex,

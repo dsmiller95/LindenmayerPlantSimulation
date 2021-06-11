@@ -33,8 +33,8 @@ namespace Dman.LSystem.SystemRuntime
 
         public BasicRule(
             ParsedRule parsedInfo,
-            int branchOpenSymbol = '[',
-            int branchCloseSymbol = ']')
+            int branchOpenSymbol,
+            int branchCloseSymbol)
         {
             _targetSymbolWithParameters = parsedInfo.coreSymbol;
             ruleGroupIndex = parsedInfo.ruleGroupIndex;
@@ -62,7 +62,7 @@ namespace Dman.LSystem.SystemRuntime
         /// same parameters
         /// </summary>
         /// <param name="parsedRules"></param>
-        public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules, int branchOpenSymbol = '[', int branchCloseSymbol = ']')
+        public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules, int branchOpenSymbol, int branchCloseSymbol)
         {
             possibleOutcomes = parsedRules
                 .Select(x =>

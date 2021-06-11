@@ -69,6 +69,21 @@ public class LSystemTests
         Assert.AreEqual("ABCDCCACCABCCABCDCC", state.currentSymbols.Data.ToString());
         state.currentSymbols.Dispose();
     }
+
+    [Test]
+    public void LSystemAppliesContextualRulesWithInitialBranching()
+    {
+        LSystemState<float> state = new DefaultLSystemState("AF[FB]");
+        using var basicLSystem = LSystemBuilder.FloatSystem(new string[] {
+            "    A > [B] -> C",
+        }, ignoredCharacters: "F");
+
+        Assert.AreEqual("AF[FB]", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("CF[FB]", state.currentSymbols.Data.ToString());
+
+        state.currentSymbols.Dispose();
+    }
     [Test]
     public void LSystemAppliesFlatContextualRules()
     {
@@ -629,7 +644,7 @@ public class LSystemTests
             var compiledRules = RuleParser.CompileRules(new string[] {
                 "A -> AB",
                 "A -> CA",
-            }, out var nativeData);
+            }, out var nativeData, '[', ']');
         });
     }
     [Test]
@@ -640,7 +655,7 @@ public class LSystemTests
             var compiledRules = RuleParser.CompileRules(new string[] {
                 "P(0.5) | A > B -> AB",
                 "P(0.5) | A > BC -> CA",
-            }, out var nativeData);
+            }, out var nativeData, '[', ']');
         });
     }
     [Test]
@@ -651,7 +666,7 @@ public class LSystemTests
             var compiledRules = RuleParser.CompileRules(new string[] {
                 "C < A > B[C][D] -> AB",
                 "C < A > B[C][D] -> CA",
-            }, out var nativeData);
+            }, out var nativeData, '[', ']');
         });
     }
     [Test, Ignore("future feature could be to compare rules semantically instead of literally")]
@@ -662,7 +677,7 @@ public class LSystemTests
             var compiledRules = RuleParser.CompileRules(new string[] {
                 "A > B[C]D -> AB",
                 "A > B[C][D] -> CA",
-            }, out var nativeData);
+            }, out var nativeData, '[', ']');
         });
     }
 

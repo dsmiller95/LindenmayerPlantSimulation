@@ -203,7 +203,7 @@ public class ContextualMatcherTests
     public void FindsOpeningBranchLinks()
     {
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString("A[AA]AAA[A[AAA[A]]]A"));
-        using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
+        using var branchingCache = new SymbolStringBranchingCache('[', ']', new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         Assert.AreEqual(8, branchingCache.FindOpeningBranchIndexReadonly(18));
         Assert.AreEqual(10, branchingCache.FindOpeningBranchIndexReadonly(17));
@@ -213,7 +213,7 @@ public class ContextualMatcherTests
     public void FindsClosingBranchLinks()
     {
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString("A[AA]AAA[A[AAA[A]]]A"));
-        using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
+        using var branchingCache = new SymbolStringBranchingCache('[', ']', new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         Assert.AreEqual(4, branchingCache.FindClosingBranchIndexReadonly(1));
         Assert.AreEqual(17, branchingCache.FindClosingBranchIndexReadonly(10));
@@ -223,7 +223,7 @@ public class ContextualMatcherTests
     public void FindsBranchClosingLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString("EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]"));
-        using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
+        using var branchingCache = new SymbolStringBranchingCache('[', ']', new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         Assert.AreEqual(87, branchingCache.FindClosingBranchIndexReadonly(69));
         Assert.AreEqual(98, branchingCache.FindClosingBranchIndexReadonly(91));
@@ -232,7 +232,7 @@ public class ContextualMatcherTests
     public void FindsBranchForwardLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString("[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]"));
-        using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
+        using var branchingCache = new SymbolStringBranchingCache('[', ']', new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         Assert.AreEqual(64, branchingCache.FindOpeningBranchIndexReadonly(82));
         Assert.AreEqual(86, branchingCache.FindOpeningBranchIndexReadonly(93));
@@ -402,6 +402,18 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[BC]", "A[BC]", true);
         AssertForwardsMatch("EA[B][C]", "A[B][C]", true);
         AssertForwardsMatch("EA[[B]C]", "A[B][C]", true);
+    }
+    [Test]
+    public void ForwardsMatchesSimpleTreeStructureMatcherHasImmediateBrackets()
+    {
+        AssertForwardsMatch("AF[FB]", "[B]", true, ignoreSymbols: new int[] { 'F' });
+
+        AssertForwardsMatch("EF[A]B", "[A]", true, ignoreSymbols: new int[] { 'F' });
+        AssertForwardsMatch("EF[A]B", "[A][A]", false, ignoreSymbols: new int[] { 'F' });
+
+        AssertForwardsMatch("EF[A][A]B", "[A]", true, ignoreSymbols: new int[] { 'F' });
+        AssertForwardsMatch("EF[A][A]B", "[A][A]", true, ignoreSymbols: new int[] { 'F' });
+        AssertForwardsMatch("EF[A][A]B", "[A][A][A]", false, ignoreSymbols: new int[] { 'F' });
     }
     [Test]
     public void ForwardsDoubleMatchTreeStructure()
