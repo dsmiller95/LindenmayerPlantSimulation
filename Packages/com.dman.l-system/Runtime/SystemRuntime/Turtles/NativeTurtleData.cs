@@ -65,8 +65,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public int indexInVertexes = 0;
         public int indexInTriangles = 0;
         public int indexInOrganTemplates = 0;
-        public List<KeyValuePair<int, TurtleOperation>> operators = new List<KeyValuePair<int, TurtleOperation>>();
+        public List<TurtleOperationWithCharacter> operators = new List<TurtleOperationWithCharacter>();
         public List<Material> materialsInOrder = new List<Material>();
+    }
+
+    public class TurtleOperationWithCharacter
+    {
+        public char characterInRootFile;
+        public TurtleOperation operation;
     }
 
     public interface ITurtleNativeDataWritable

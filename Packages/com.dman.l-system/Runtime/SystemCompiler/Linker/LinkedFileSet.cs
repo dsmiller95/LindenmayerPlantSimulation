@@ -87,6 +87,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
             return originFileData.iterations;
         }
 
+        public int GetSymbolFromRoot(char characterInFile)
+        {
+            return this.GetSymbol(originFile, characterInFile);
+        }
         public int GetSymbol(string fileName, char characterInFile)
         {
             var fileData = allFiles[fileIndexesByFullIdentifier[fileName]];

@@ -52,20 +52,34 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             return dep;
         }
 
-        private void Awake()
+        public void InitializeWithSpecificSystem(LSystemObject systemObject)
         {
+            if(turtle != null)
+            {
+                turtle.Dispose();
+            }
+            if(systemObject == null)
+            {
+                return;
+            }
             turtle = new TurtleInterpretor(
                 operationSets,
                 new TurtleState
                 {
                     transformation = Matrix4x4.Scale(initialScale),
                     thickness = 1f
-                });
+                },
+                systemObject.linkedFiles);
             turtle.submeshIndexIncrementChar = submeshIndexIncrementor;
+        }
 
-            if (System != null)
+        private void Awake()
+        {
+            if(System != null)
             {
+                this.InitializeWithSpecificSystem(System.systemObject);
                 System.OnSystemStateUpdated += OnSystemStateUpdated;
+                System.OnSystemObjectUpdated += OnSystemObjectUpdated;
             }
             GetComponent<MeshFilter>().mesh = new Mesh();
         }
@@ -75,10 +89,19 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             if (System != null)
             {
                 System.OnSystemStateUpdated -= OnSystemStateUpdated;
+                System.OnSystemObjectUpdated -= OnSystemObjectUpdated;
             }
             if (turtle != null)
             {
                 turtle.Dispose();
+            }
+        }
+
+        private void OnSystemObjectUpdated()
+        {
+            if (System != null)
+            {
+                this.InitializeWithSpecificSystem(System.systemObject);
             }
         }
 
