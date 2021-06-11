@@ -246,7 +246,7 @@ public class LSystemPerformanceTests
 #iterations 70
 
 #ignore /\&^F$`@
-#symbols /\&^F$`@
+#symbols /\&^+-F$`@
 
 ## flags set based on the pollination state
 #runtime hasAnther 1
@@ -322,7 +322,7 @@ $(y) > D(z, x) : x < fruitSize -> $(y * 1.3)
 D(y, x) : x < fruitSize -> D(y, x + 1)
 
 ## P is the petiole, x is number of leaves
-#symbols P
+#symbols PILO
 #define petiole( P(
 petiole(x) : x >= 2 -> I(3)[O((x - 1) / 2, -petioleLeafAngularDist)]L[O((x - 1) / 2, petioleLeafAngularDist)]
 petiole(x) : x > 0 -> L

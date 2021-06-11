@@ -33,7 +33,7 @@ A -> AB";
 
         Assert.AreEqual("/(20)S(1)R(0)", parsed.axiom);
         Assert.AreEqual(1000, parsed.iterations);
-        Assert.AreEqual("ZXC", parsed.globalCharacters);
+        Assert.AreEqual("[]ZXC", parsed.globalCharacters);
         Assert.AreEqual("QWE", parsed.ignoredCharacters);
 
         Assert.AreEqual(1, parsed.delaredInFileCompileTimeParameters.Count);
@@ -96,7 +96,7 @@ A -> AB";
 
         var parsed = new ParsedFile("root.lsyslib", fullTopLevelFile, isLibrary: true);
 
-        Assert.AreEqual("ZXC", parsed.globalCharacters);
+        Assert.AreEqual("[]ZXC", parsed.globalCharacters);
         Assert.AreEqual("QWE", parsed.ignoredCharacters);
 
         Assert.AreEqual(1, parsed.delaredInFileCompileTimeParameters.Count);

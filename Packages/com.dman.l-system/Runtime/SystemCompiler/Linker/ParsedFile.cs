@@ -27,9 +27,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public List<DefineDirective> delaredInFileCompileTimeParameters;
         public List<RuntimeParameterAndDefault> declaredInFileRuntimeParameters;
 
-        public string allSymbols;
+        public string allSymbols = "[]";
         public string ignoredCharacters = "";
-        public string globalCharacters = "";
+        public string globalCharacters = "[]";
 
         public List<IncludeLink> links;
         public List<ExportDirective> exports;

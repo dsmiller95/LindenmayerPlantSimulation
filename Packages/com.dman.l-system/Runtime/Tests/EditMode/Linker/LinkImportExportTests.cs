@@ -52,7 +52,7 @@ B -> AB
 
 #global DE
 
-#include lib.lsyslib
+#include lib.lsyslib (Exported->X)
 Y -> ZX
 ");
 
@@ -82,8 +82,8 @@ B -> AB
         Assert.AreEqual(rootFile.GetSymbolInFile('D'), libFile.GetSymbolInFile('D'));
         Assert.AreNotEqual(rootFile.GetSymbolInFile('E'), libFile.GetSymbolInFile('E'));
 
-        Assert.AreEqual(rootFile.GetSymbolInFile('['), libFile.GetSymbolInFile(']'));
-        Assert.AreEqual(rootFile.GetSymbolInFile('['), libFile.GetSymbolInFile(']'));
+        Assert.AreEqual(rootFile.GetSymbolInFile('['), libFile.GetSymbolInFile('['));
+        Assert.AreEqual(rootFile.GetSymbolInFile(']'), libFile.GetSymbolInFile(']'));
     }
     [Test]
     public void LinksDependencyWithoutRemapping()

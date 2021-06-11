@@ -35,6 +35,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         private List<SymbolDefinition> AssignSymbolRemappingsToFiles(Dictionary<string, ParsedFile> allFiles, List<string> leafFirstSortedFiles)
         {
+            var globalSymbols = new Dictionary<char, int>();
             var completeSymbolDefinitions = new List<SymbolDefinition>();
             int nextSymbolAssignment = 0;
             foreach (var fileIdentifier in leafFirstSortedFiles)
@@ -42,8 +43,16 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 var parsedFile = allFiles[fileIdentifier];
                 var remappedInFile = new Dictionary<char, int>();
 
+                foreach (var globalSymbol in parsedFile.globalCharacters)
+                {
+                    if(!globalSymbols.TryGetValue(globalSymbol, out var remapped))
+                    {
+                        remapped = globalSymbols[globalSymbol] = nextSymbolAssignment;
+                        nextSymbolAssignment++;
+                    }
+                    remappedInFile[globalSymbol] = remapped;
+                }
 
-                // TODO: check for bad imports which cause impossible remapping arrangements
                 foreach (var include in parsedFile.links)
                 {
                     var referencedFile = allFiles[include.fullImportIdentifier];
@@ -55,7 +64,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                             {
                                 throw new LinkException(
                                     LinkExceptionType.IMPORT_COLLISION, 
-                                    $"Import collision on '{remappedImport.remappedSymbol}'. Import of {remappedImport.importName} from {referencedFile.fileSource} would conflict with a previous import of the same symbol", fileIdentifier);
+                                    $"Import collision on '{remappedImport.remappedSymbol}'. Import of {remappedImport.importName} from {referencedFile.fileSource} would conflict with a previous definition on that same symbol", fileIdentifier);
                             }
                         }else
                         {
@@ -65,7 +74,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                                 var existing = existingValues.First();
                                 throw new LinkException(
                                     LinkExceptionType.IMPORT_DISSONANCE,
-                                    $"Import dissonance on '{remappedImport.remappedSymbol}'. Import of {remappedImport.importName} from {referencedFile.fileSource} would re-import the same symbols already defined as {existing.Key}", fileIdentifier);
+                                    $"Import dissonance on '{remappedImport.remappedSymbol}'. Import of {remappedImport.importName} from {referencedFile.fileSource} would re-import the same symbol already defined as {existing.Key}", fileIdentifier);
                             }
                             remappedInFile[remappedImport.remappedSymbol] = exportedSymbolIdentity;
                         }
