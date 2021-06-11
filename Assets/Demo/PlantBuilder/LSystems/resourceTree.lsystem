@@ -6,7 +6,7 @@
 
 
 #symbols SRWAQB
-#include resourceDistributionNodes.lsyslib (SourceNode->S) (DistributorNode->R) (LeafNode->W) (DownwardSubtraction->A) (LeafBaseNode->Q) (UpwardAddition->B)
+#include resourceDistributionNodes.lsyslib (SourceNode->S) (DistributorNode->R) (UpwardAddition->B) (DownwardSubtraction->A) (LeafNode->W) (LeafBaseNode->Q)
 
 #symbols TFK
 #matches TKR

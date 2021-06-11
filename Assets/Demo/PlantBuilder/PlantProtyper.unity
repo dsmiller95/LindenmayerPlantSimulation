@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1905895031}
-  m_IndirectSpecularColor: {r: 0.18095954, g: 0.22651605, b: 0.3072546, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0.99999905, b: 0.99999905, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1999,9 +1999,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78755203f1cf4e742b0faa6bb03bf6f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  secondsPerUpdate: 0.01
+  secondsPerUpdate: 0.1
   timeBeforeRestart: 1
-  systemObject: {fileID: 378491273550888993, guid: 42bbb8b9ba230704b86c74238cafacca, type: 3}
+  systemObject: {fileID: 378491273550888993, guid: bc61066174425fa4aa2856c9e1f0e252, type: 3}
 --- !u!4 &2023392570
 Transform:
   m_ObjectHideFlags: 0
@@ -2117,14 +2117,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2023392570}
     m_Modifications:
-    - target: {fileID: 9089396036891669031, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: logStates
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9089396036891669036, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: m_Name
-      value: turtle string reader A
-      objectReference: {fileID: 0}
     - target: {fileID: 9089396037661369505, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_RootOrder
       value: 0
