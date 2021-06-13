@@ -19,7 +19,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public SerializableDictionary<string, int> fileIndexesByFullIdentifier = new SerializableDictionary<string, int>();
         public List<ParsedFile> allFiles;
-        public List<SymbolDefinition> allSymbolDefinitions;
+        public List<SymbolDefinition> allSymbolDefinitionsLeafFirst;
+        public SerializableDictionary<int, int> defaultSymbolDefinitionIndexBySymbol = new SerializableDictionary<int, int>();
 
         public List<DefineDirective> allGlobalCompileTimeParams;
         public List<RuntimeParameterAndDefault> allGlobalRuntimeParams;
@@ -27,10 +28,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public LinkedFileSet(
             string originFile,
             Dictionary<string, ParsedFile> allFilesByFullIdentifier,
-            List<SymbolDefinition> allSymbolDefinitions)
+            List<SymbolDefinition> allSymbolDefinitionsLeafFirst)
         {
             this.fileIndexesByFullIdentifier = new SerializableDictionary<string, int>();
-            this.allSymbolDefinitions = allSymbolDefinitions;
+            this.allSymbolDefinitionsLeafFirst = allSymbolDefinitionsLeafFirst;
             this.originFile = originFile;
 
             var originFileData = allFilesByFullIdentifier[originFile];
@@ -73,6 +74,17 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 }
                 this.allGlobalRuntimeParams = runTimes.Values.ToList();
             }
+
+            this.defaultSymbolDefinitionIndexBySymbol = new SerializableDictionary<int, int>();
+            for (var i = 0; i < allSymbolDefinitionsLeafFirst.Count; i++)
+            {
+                var definition = allSymbolDefinitionsLeafFirst[i];
+                if (defaultSymbolDefinitionIndexBySymbol.ContainsKey(definition.actualSymbol))
+                {
+                    continue;
+                }
+                defaultSymbolDefinitionIndexBySymbol[definition.actualSymbol] = i;
+            }
         }
 
         public SymbolString<float> GetAxiom(Allocator allocator = Allocator.Persistent)
@@ -81,6 +93,12 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
             return SymbolString<float>.FromString(originFileData.axiom, allocator, chr => originFileData.GetSymbolInFile(chr));
         }
+
+        public SymbolDefinition GetLeafMostSymbolDefinition(int symbol)
+        {
+            return allSymbolDefinitionsLeafFirst[defaultSymbolDefinitionIndexBySymbol[symbol]];
+        }
+
         public int GetIterations()
         {
             var originFileData = allFiles[fileIndexesByFullIdentifier[originFile]];

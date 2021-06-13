@@ -14,7 +14,15 @@ namespace Dman.LSystem.SystemCompiler
         }
         public ExpressionCompiler(params string[] floatParams)
         {
-            parameters = floatParams.ToDictionary(x => x, x => Expression.Parameter(typeof(float), x));
+            parameters = new Dictionary<string, ParameterExpression>();
+            foreach (var parameterName in floatParams)
+            {
+                if (parameters.ContainsKey(parameterName))
+                {
+                    throw new SyntaxException($"Attempted to declare the same parameter twice: '${parameterName}");
+                }
+                parameters[parameterName] = Expression.Parameter(typeof(float), parameterName);
+            }
         }
 
         public static DynamicExpressionData CompileExpressionToDelegateWithParameters(string expressionString, string[] namedNumericParameters = null)

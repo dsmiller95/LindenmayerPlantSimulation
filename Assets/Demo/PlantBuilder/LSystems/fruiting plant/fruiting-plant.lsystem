@@ -1,8 +1,14 @@
-#axiom S(0)
+#axiom s(1)r(0)qS(0)
 #iterations 200
 
 #symbols +-!/\&^F$`@
 #matches +-!
+
+
+#include ../resourceDistributionNodes.lsyslib (SourceNode->s) (DistributorNode->r) (DownwardSubtraction->a) (LeafNode->w) (LeafBaseNode->q)
+#symbols srawq
+#matches r
+
 
 ## flags set based on the pollination state
 #runtime hasAnther 1
@@ -24,7 +30,7 @@
 
 ## variables defined for utility
 #define shootHeight 5
-#define internodeHeight 3
+#define internodeHeight 5
 #define leafAge 3
 #define leavesPerPetiole 3
 #define petioleLeafAngularDist 50
@@ -36,16 +42,16 @@
 ## S is the Shoot symbol
 #symbols S
 #matches S
-S(x) : x == 0 -> @FS(x + 1)NT(-shootHeight)
-S(x) : x < shootHeight && x > 0-> FS(x+1)
-S(x) : x == shootHeight -> 
+r(o) < S(x) : o >= 1 && x == 0						-> a(-1)@FS(x + 1)NT
+r(o) < S(x) : o >= 1 && x <  shootHeight && x > 0	-> a(-1)FS(x+1)
+r(o) < S(x) : 			x == shootHeight -> 
 
 ## T is the terminal bud
 #symbols T
 #matches T
-T(x) : x < 0 -> T(x + 1)
-T(x) : x < primaryBranchInternodes && x >= 0 -> I(internodeHeight)[&(60)B(x + 1)][\(180)&(60)B(x + 1)]\(primaryAngularSeparation)T(x + 1)
-T(x) : x >= primaryBranchInternodes -> J(internodeHeight)
+S(n) < T    : n >= shootHeight -> T(0)
+r(o) < T(x) : o > 2 && x < primaryBranchInternodes && x >= 0 -> a(-2)I(internodeHeight)wr(0)q[&(60)B(x + 1)][\(180)&(60)B(x + 1)]\(primaryAngularSeparation)T(x + 1)
+       T(x) : x >= primaryBranchInternodes -> J(internodeHeight)
 
 
 #define flowerStalkLength 6
@@ -61,8 +67,8 @@ B(x) -> [^(50)V]petiole(leavesPerPetiole)
 P(flowerFailureChance) | V -> []
 P(1 - flowerFailureChance) | V -> V(flowerStalkLength)
 
-        V(x) : x > 0 -> $(0.03)FV(x - 1)
-JI(a) < V(x) : x <= 0 -> C(x)[K(flowerMeshIndex, 1)][A(1)]
+            V(x) : x > 0 -> $(0.03)FV(x - 1)
+JI(a)r(b) < V(x) : x <= 0 -> C(x)[K(flowerMeshIndex, 1)][A(1)]
 
 ## J is a signal which propigates from the apex, signaling flowering.
 #symbols J
@@ -70,7 +76,7 @@ JI(a) < V(x) : x <= 0 -> C(x)[K(flowerMeshIndex, 1)][A(1)]
 J(x) : x > 0 -> J(x - 1)
 J(x) : x <= 0 -> J
 J ->
- 
+
 ## C is a fruiting controller. transitions to a fruit after waiting
 #symbols C
 #matches C
@@ -95,8 +101,9 @@ O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 ## I is an internode, used to just build length of certain size
 #symbols JIF
 #matches JI
-I(x) : x > 0 -> I(x - 1)$(0.003)@F
-I(x) > J     -> JI(x)
+I(x)         : x > 0 -> I(x - 1)$(0.003)@F
+I(x) > r(y)J         -> JI(x)
+
 
 ## organs
 

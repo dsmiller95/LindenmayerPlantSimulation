@@ -89,7 +89,7 @@ There are 5 types of directives. parameters to the directives are parsed based o
 
 - `#axiom <string>` defines the axiom for this system
 - `#iterations <int>` defines how many iterations the system should step for, by default. x must be an integer.
-- `#matches <string>` sets every symbol in the string to be included in when evaluating contextual matches defined in this file. Every symbol not in this set will be treated as if it was not part of the l-system string when matching
+- `#matches <string>` sets every symbol in the string to be included in when evaluating contextual matches defined in this file. Every symbol not in this set will be treated as if it was not part of the l-system string when matching. Can be declared multiple times
 - `#symbols <symbols>` required to define character symbols which are used as part of this file. Must include every symbol used by the system, including those declared in `#global`, `#include`, and `#export` directives. The symbols can be spread across several directives, and all `<symbols>` declared in the file will be combined together into one set for the file
 - `#runtime <string> <float>` defines a global runtime value named <string> with a default value of <float>
   - The identifier used must be globally unique when using `.lsyslib` files. It is suggested to scope global variables defined in library files by the name of the library file, for EX (`std:growthRate`). Scoping does nothing special, it's just an easy way to avoid collisions when using multiple files

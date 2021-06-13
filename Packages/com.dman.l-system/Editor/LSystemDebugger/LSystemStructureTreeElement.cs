@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using Dman.LSystem.SystemCompiler.Linker;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using System.Linq;
 
 namespace Dman.LSystem.Editor.LSystemDebugger
 {
@@ -10,14 +13,26 @@ namespace Dman.LSystem.Editor.LSystemDebugger
         private int symbol;
         private float[] parameters;
 
-        public LSystemStructureTreeElement(SymbolString<float> symbols, int indexInSymbols, int branchSymbolIndex = -1)
+        public LSystemStructureTreeElement(
+            LinkedFileSet sourceFileSet,
+            SymbolString<float> symbols,
+            int indexInSymbols,
+            int branchSymbolIndex = -1)
         {
             symbol = symbols[indexInSymbols];
             parameters = symbols.newParameters.AsArray(indexInSymbols);
 
 
+            var symbolDefinition = sourceFileSet.GetLeafMostSymbolDefinition(symbol);
+
             var builder = new StringBuilder();
-            symbols.ToString(indexInSymbols, builder);
+            builder.Append(symbolDefinition.characterInSourceFile);
+            if (!"[]".Contains(symbolDefinition.characterInSourceFile))
+            {
+                symbols.WriteParamString(indexInSymbols, builder);
+                builder.Append(" : ");
+                builder.Append(Path.GetFileName(symbolDefinition.sourceFileDefinition));
+            }
             displayName = builder.ToString();
 
             if (branchSymbolIndex != -1)
@@ -73,6 +88,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
         }
 
         public static TreeViewItem ConstructTreeFromString(
+            LinkedFileSet sourceFileSet,
             SymbolString<float> systemState,
             ISet<int> includeSymbols,
             int branchStartChar,
@@ -119,7 +135,11 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                     var newBranchState = new TreeConstructingState
                     {
                         indexInString = indexInString,
-                        treeElement = new LSystemStructureTreeElement(systemState, indexInString, currentState.branchingIndexer),
+                        treeElement = new LSystemStructureTreeElement(
+                            sourceFileSet, 
+                            systemState, 
+                            indexInString, 
+                            currentState.branchingIndexer),
                         currentParent = currentState.currentParent,
                         branchingIndexer = currentState.branchingIndexer
                     };
@@ -144,7 +164,10 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 var newState = new TreeConstructingState
                 {
                     indexInString = indexInString,
-                    treeElement = new LSystemStructureTreeElement(systemState, indexInString),
+                    treeElement = new LSystemStructureTreeElement(
+                        sourceFileSet,
+                        systemState, 
+                        indexInString),
                     currentParent = currentState.currentParent,
                     branchingIndexer = currentState.branchingIndexer
                 };

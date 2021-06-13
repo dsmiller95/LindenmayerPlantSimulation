@@ -12,6 +12,11 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public string sourceFileDefinition;
         public char characterInSourceFile;
         public int actualSymbol;
+
+        public override string ToString()
+        {
+            return $"{characterInSourceFile} : {sourceFileDefinition.Split('.')[0]}";
+        }
     }
 
     public class FileLinker

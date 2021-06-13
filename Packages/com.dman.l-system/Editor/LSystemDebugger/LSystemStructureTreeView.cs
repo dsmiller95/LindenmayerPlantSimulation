@@ -47,6 +47,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             try
             {
                 var rootNode = LSystemStructureTreeElement.ConstructTreeFromString(
+                    inspectedMachine.systemObject.linkedFiles,
                     inspectedMachine.steppingHandle.currentState.currentSymbols.Data,
                     stepper.includedCharacters.Aggregate(new HashSet<int>(), (acc, next) =>
                     {
