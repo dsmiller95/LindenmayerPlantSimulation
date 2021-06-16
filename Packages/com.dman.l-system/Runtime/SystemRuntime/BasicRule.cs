@@ -145,7 +145,7 @@ namespace Dman.LSystem.SystemRuntime
                 possibleOutcomeIndexing = possibleOutcomeIndexing,
                 hasConditional = conditionalChecker != null,
                 conditional = conditionalCheckerBlittable,
-                ruleGroupIndex = this.ruleGroupIndex
+                ruleGroupIndex = ruleGroupIndex
             };
         }
 

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Dman.LSystem.SystemCompiler.Linker
 {
     [System.Serializable]
-    public class ExportDirective: IEquatable<ExportDirective>
+    public class ExportDirective : IEquatable<ExportDirective>
     {
         public string name;
         public char exportedSymbol;

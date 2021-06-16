@@ -1,10 +1,10 @@
 ﻿using Dman.LSystem.SystemCompiler.Linker;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using System.Linq;
 
 namespace Dman.LSystem.Editor.LSystemDebugger
 {
@@ -136,9 +136,9 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                     {
                         indexInString = indexInString,
                         treeElement = new LSystemStructureTreeElement(
-                            sourceFileSet, 
-                            systemState, 
-                            indexInString, 
+                            sourceFileSet,
+                            systemState,
+                            indexInString,
                             currentState.branchingIndexer),
                         currentParent = currentState.currentParent,
                         branchingIndexer = currentState.branchingIndexer
@@ -152,7 +152,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 }
                 if (symbol == branchEndChar)
                 {
-                    if(stateStack.Count <= 0)
+                    if (stateStack.Count <= 0)
                     {
                         Debug.LogWarning($"Too many branch end characters. aborting debug at index {indexInString}");
                         Debug.Log(systemState);
@@ -166,7 +166,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                     indexInString = indexInString,
                     treeElement = new LSystemStructureTreeElement(
                         sourceFileSet,
-                        systemState, 
+                        systemState,
                         indexInString),
                     currentParent = currentState.currentParent,
                     branchingIndexer = currentState.branchingIndexer
@@ -192,10 +192,11 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                         root.children.RemoveAt(i);
                     }
                 }
-            } else if (
-                root is LSystemStructureTreeElement element &&
-                element.symbol == openBranchSymbol
-                )
+            }
+            else if (
+              root is LSystemStructureTreeElement element &&
+              element.symbol == openBranchSymbol
+              )
             {
                 return true;
             }

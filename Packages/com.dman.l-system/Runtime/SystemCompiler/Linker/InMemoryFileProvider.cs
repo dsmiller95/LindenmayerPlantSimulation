@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dman.LSystem.SystemCompiler.Linker
 {
-    public class InMemoryFileProvider: IFileProvider
+    public class InMemoryFileProvider : IFileProvider
     {
         private Dictionary<string, string> fileContents = new Dictionary<string, string>();
 

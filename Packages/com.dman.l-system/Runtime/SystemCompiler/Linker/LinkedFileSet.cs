@@ -5,8 +5,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
 
@@ -30,7 +28,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             Dictionary<string, ParsedFile> allFilesByFullIdentifier,
             List<SymbolDefinition> allSymbolDefinitionsLeafFirst)
         {
-            this.fileIndexesByFullIdentifier = new SerializableDictionary<string, int>();
+            fileIndexesByFullIdentifier = new SerializableDictionary<string, int>();
             this.allSymbolDefinitionsLeafFirst = allSymbolDefinitionsLeafFirst;
             this.originFile = originFile;
 
@@ -59,7 +57,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                         compileTimes[compileTime.name] = compileTime;
                     }
                 }
-                this.allGlobalCompileTimeParams = compileTimes.Values.ToList();
+                allGlobalCompileTimeParams = compileTimes.Values.ToList();
 
                 foreach (var runTime in kvp.Value.declaredInFileRuntimeParameters)
                 {
@@ -72,10 +70,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
                         runTimes[runTime.name] = runTime;
                     }
                 }
-                this.allGlobalRuntimeParams = runTimes.Values.ToList();
+                allGlobalRuntimeParams = runTimes.Values.ToList();
             }
 
-            this.defaultSymbolDefinitionIndexBySymbol = new SerializableDictionary<int, int>();
+            defaultSymbolDefinitionIndexBySymbol = new SerializableDictionary<int, int>();
             for (var i = 0; i < allSymbolDefinitionsLeafFirst.Count; i++)
             {
                 var definition = allSymbolDefinitionsLeafFirst[i];
@@ -107,7 +105,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public int GetSymbolFromRoot(char characterInFile)
         {
-            return this.GetSymbol(originFile, characterInFile);
+            return GetSymbol(originFile, characterInFile);
         }
         public int GetSymbol(string fileName, char characterInFile)
         {
@@ -119,8 +117,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
         {
             UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
 
-            var openSymbol = this.GetSymbol(originFile, '[');
-            var closeSymbol = this.GetSymbol(originFile, ']');
+            var openSymbol = GetSymbol(originFile, '[');
+            var closeSymbol = GetSymbol(originFile, ']');
 
             var compiledRules = CompileAllRules(
                 globalCompileTimeOverrides,
@@ -154,9 +152,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
             int openSymbol, int closeSymbol
             )
         {
-            var allValidRuntimeParameters = this.allGlobalRuntimeParams.Select(x => x.name).ToArray();
+            var allValidRuntimeParameters = allGlobalRuntimeParams.Select(x => x.name).ToArray();
             var allReplacementDirectives = GetCompileTimeReplacementsWithOverrides(compileTimeOverrides);
-            var parsedRules = this.allFiles
+            var parsedRules = allFiles
                 .SelectMany((file, index) =>
                 {
                     Func<char, int> remappingFunction = character => file.GetSymbolInFile(character);

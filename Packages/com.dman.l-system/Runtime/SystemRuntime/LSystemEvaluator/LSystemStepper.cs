@@ -114,7 +114,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             this.branchOpenSymbol = branchOpenSymbol;
             this.branchCloseSymbol = branchCloseSymbol;
-            this.includedCharacters = includedCharactersByRuleIndex == null ? new HashSet<int>[0] : includedCharactersByRuleIndex;
+            includedCharacters = includedCharactersByRuleIndex == null ? new HashSet<int>[0] : includedCharactersByRuleIndex;
 
             rulesByTargetSymbol = new Dictionary<int, IList<BasicRule>>();
             foreach (var rule in rules)

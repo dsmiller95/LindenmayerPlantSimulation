@@ -40,7 +40,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         {
             this.fileSource = fileSource;
             this.isLibrary = isLibrary;
-            this.uuid = Guid.NewGuid();
+            uuid = Guid.NewGuid();
 
             delaredInFileCompileTimeParameters = new List<DefineDirective>();
             declaredInFileRuntimeParameters = new List<RuntimeParameterAndDefault>();
@@ -74,7 +74,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 }
             }
 
-            if(allSymbols == null)
+            if (allSymbols == null)
             {
                 throw new SyntaxException($"{fileSource} must define #symbols directive(s)");
             }
@@ -121,7 +121,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 throw new LinkException(LinkExceptionType.MISSING_EXPORT, $"trying to import \"{exportedName}\" from {fileSource}, but it is not exported");
             }
             var remappedSymbolInSource = allSymbolAssignments.Find(x => x.sourceCharacter == sourceSymbol.exportedSymbol);
-            if(remappedSymbolInSource == null)
+            if (remappedSymbolInSource == null)
             {
                 throw new Exception($"poorly ordered linking. tried to get ${exportedName} from ${fileSource}, but ${fileSource} has not been fully linked yet");
             }
@@ -131,7 +131,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public int GetSymbolInFile(char symbol)
         {
             var match = allSymbolAssignments.Find(x => x.sourceCharacter == symbol);
-            if(match == null)
+            if (match == null)
             {
                 throw new Exception($"{fileSource} does not contain requested symbol '{symbol}'. Did you forget to declare it in a <color=blue>#symbols</color> directive?");
             }
@@ -154,14 +154,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
             switch (directiveMatch.Groups["directive"].Value)
             {
                 case "axiom":
-                    if (this.isLibrary)
+                    if (isLibrary)
                     {
                         throw new SyntaxException($"axiom cannot be defined in a library file", directiveMatch.Groups["directive"]);
                     }
                     axiom = directiveMatch.Groups["parameter"].Value;
                     return;
                 case "iterations":
-                    if (this.isLibrary)
+                    if (isLibrary)
                     {
                         throw new SyntaxException($"iterations cannot be defined in a library file", directiveMatch.Groups["directive"]);
                     }
@@ -228,7 +228,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     }
                     return;
                 case "export":
-                    if (!this.isLibrary)
+                    if (!isLibrary)
                     {
                         throw new SyntaxException($"export can only be defined in a library file", directiveMatch.Groups["directive"]);
                     }
@@ -250,7 +250,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                         throw new SyntaxException($"include directive requires a filepath", directiveMatch.Groups["parameter"]);
                     }
                     var relativeImportPath = includeDirective.Groups["filepath"].Value;
-                    var absoluteIdentifier = Path.Combine(Path.GetDirectoryName(this.fileSource), relativeImportPath);
+                    var absoluteIdentifier = Path.Combine(Path.GetDirectoryName(fileSource), relativeImportPath);
                     var link = new IncludeLink
                     {
                         fullImportIdentifier = absoluteIdentifier,

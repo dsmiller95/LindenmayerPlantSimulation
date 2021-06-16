@@ -1,12 +1,7 @@
-using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemCompiler.Linker;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -94,7 +89,7 @@ namespace Dman.LSystem.UnityObjects
         {
 #if UNITY_EDITOR
             var assetPath = UnityEditor.AssetDatabase.GetAssetPath(this);
-            this.LoadFromFilePath(assetPath);
+            LoadFromFilePath(assetPath);
 #endif
         }
 

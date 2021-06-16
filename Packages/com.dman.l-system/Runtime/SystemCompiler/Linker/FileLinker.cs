@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dman.LSystem.SystemCompiler.Linker
 {
@@ -31,8 +29,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public LinkedFileSet LinkFiles(string basePath)
         {
             var allFilesByFullIdentifier = new Dictionary<string, ParsedFile>();
-            this.ParseFullFileTree(basePath, allFilesByFullIdentifier);
-            var leafFirstFileSort = this.GetTopologicalSort(basePath, allFilesByFullIdentifier);
+            ParseFullFileTree(basePath, allFilesByFullIdentifier);
+            var leafFirstFileSort = GetTopologicalSort(basePath, allFilesByFullIdentifier);
             var allSymbols = AssignSymbolRemappingsToFiles(allFilesByFullIdentifier, leafFirstFileSort);
 
             return new LinkedFileSet(basePath, allFilesByFullIdentifier, allSymbols);
@@ -50,7 +48,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
                 foreach (var globalSymbol in parsedFile.globalCharacters)
                 {
-                    if(!globalSymbols.TryGetValue(globalSymbol, out var remapped))
+                    if (!globalSymbols.TryGetValue(globalSymbol, out var remapped))
                     {
                         remapped = globalSymbols[globalSymbol] = nextSymbolAssignment;
                         nextSymbolAssignment++;
@@ -64,14 +62,16 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     foreach (var remappedImport in include.importedSymbols)
                     {
                         var exportedSymbolIdentity = referencedFile.GetExportedSymbol(remappedImport.importName);
-                        if (remappedInFile.ContainsKey(remappedImport.remappedSymbol)){
-                            if(exportedSymbolIdentity != remappedInFile[remappedImport.remappedSymbol])
+                        if (remappedInFile.ContainsKey(remappedImport.remappedSymbol))
+                        {
+                            if (exportedSymbolIdentity != remappedInFile[remappedImport.remappedSymbol])
                             {
                                 throw new LinkException(
-                                    LinkExceptionType.IMPORT_COLLISION, 
+                                    LinkExceptionType.IMPORT_COLLISION,
                                     $"Import collision on '{remappedImport.remappedSymbol}'. Import of {remappedImport.importName} from {referencedFile.fileSource} would conflict with a previous definition on that same symbol", fileIdentifier);
                             }
-                        }else
+                        }
+                        else
                         {
                             var existingValues = remappedInFile.Where(x => x.Value == exportedSymbolIdentity && x.Key != remappedImport.remappedSymbol).ToList();
                             if (existingValues.Any())
@@ -117,7 +117,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             var leafIdentifiers = new Stack<string>();
             leafIdentifiers.Push(basePath);
 
-            while(leafIdentifiers.Count > 0)
+            while (leafIdentifiers.Count > 0)
             {
                 var next = leafIdentifiers.Pop();
                 if (allFiles.ContainsKey(next))
@@ -126,7 +126,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 }
 
                 var file = fileProvider.ReadLinkedFile(next);
-                if(file == null)
+                if (file == null)
                 {
                     throw new LinkException(LinkExceptionType.MISSING_FILE, $"Tried to import {next}, but file does not exist");
                 }

@@ -48,9 +48,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 nativeData.operationsByKey[realSymbol] = ops.operation;
             }
 
-            this.submeshIndexIncrementChar = linkedFiles.GetSymbolFromRoot(submeshIndex);
-            this.branchStartChar = linkedFiles.GetSymbolFromRoot(startChar);
-            this.branchEndChar = linkedFiles.GetSymbolFromRoot(endChar);
+            submeshIndexIncrementChar = linkedFiles.GetSymbolFromRoot(submeshIndex);
+            branchStartChar = linkedFiles.GetSymbolFromRoot(startChar);
+            branchEndChar = linkedFiles.GetSymbolFromRoot(endChar);
 
             nativeDataTracker = new DependencyTracker<NativeTurtleData>(nativeData);
             this.defaultState = defaultState;

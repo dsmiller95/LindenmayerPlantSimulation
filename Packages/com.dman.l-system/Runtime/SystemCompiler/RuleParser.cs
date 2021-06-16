@@ -1,5 +1,4 @@
-﻿using Dman.LSystem.SystemCompiler.Linker;
-using Dman.LSystem.SystemRuntime;
+﻿using Dman.LSystem.SystemRuntime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +26,7 @@ namespace Dman.LSystem.SystemCompiler
             short sourceFileIndex = 0,
             string[] globalParameters = null)
         {
-            if(symbolRemapper == null)
+            if (symbolRemapper == null)
             {
                 symbolRemapper = x => x;
             }

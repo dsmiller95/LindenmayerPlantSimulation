@@ -18,11 +18,11 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public LinkExceptionType exceptionType;
         public override string StackTrace => fileStack.Length <= 0 ? base.StackTrace : fileStack.JoinText("\n");
         private string[] fileStack;
-        
+
         public LinkException(LinkExceptionType type, string message, params string[] file) : base(message)
         {
             fileStack = file;
-            this.exceptionType = type;
+            exceptionType = type;
         }
     }
 }

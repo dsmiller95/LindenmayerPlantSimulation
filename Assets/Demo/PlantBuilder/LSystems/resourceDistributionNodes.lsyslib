@@ -64,16 +64,6 @@ Q > [A(x)][A(y)][A(z)] -> A(x + y + z)Q
 Q > [A(x)][A(y)] -> A(x + y)Q
 Q > [A(x)] -> A(x)Q
 
-## T is a resource amount up and down propigator
-## use T to mark strings of non-branching another resource node s
-## #symbols T
-## #matches T
-## #export StringNode T
-## P(0.5) | R(a) < T > R(x) : a >= 1 && x < a -> A(-(a - x) * .9)TB((a - x) * .9)
-## P(0.5) | R(a) < T > R(x) : a >= 1 && x < a -> T
-## P(0.5) | R(a)Q < T > R(x) : a >= 1 && x < a -> A(-(a - x) * .9)TB((a - x) * .9)
-## P(0.5) | R(a)Q < T > R(x) : a >= 1 && x < a -> T
-
 
 ## A is a resource amount, propigating downwards, to be captured by a resource node
 #symbols A

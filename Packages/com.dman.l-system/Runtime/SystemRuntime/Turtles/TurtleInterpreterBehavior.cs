@@ -54,11 +54,11 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 
         public void InitializeWithSpecificSystem(LSystemObject systemObject)
         {
-            if(turtle != null)
+            if (turtle != null)
             {
                 turtle.Dispose();
             }
-            if(systemObject == null)
+            if (systemObject == null)
             {
                 return;
             }
@@ -75,9 +75,9 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 
         private void Awake()
         {
-            if(System != null)
+            if (System != null)
             {
-                this.InitializeWithSpecificSystem(System.systemObject);
+                InitializeWithSpecificSystem(System.systemObject);
                 System.OnSystemStateUpdated += OnSystemStateUpdated;
                 System.OnSystemObjectUpdated += OnSystemObjectUpdated;
             }
@@ -101,7 +101,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         {
             if (System != null)
             {
-                this.InitializeWithSpecificSystem(System.systemObject);
+                InitializeWithSpecificSystem(System.systemObject);
             }
         }
 

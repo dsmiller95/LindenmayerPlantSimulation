@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace Dman.LSystem.SystemCompiler.Linker
 {
-    public class FileSystemFileProvider: IFileProvider
+    public class FileSystemFileProvider : IFileProvider
     {
         public ParsedFile ReadLinkedFile(string fullIdentifier)
         {

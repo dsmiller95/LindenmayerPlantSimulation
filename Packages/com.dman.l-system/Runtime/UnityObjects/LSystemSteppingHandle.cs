@@ -239,7 +239,8 @@ namespace Dman.LSystem.UnityObjects
             if (useSharedSystem)
             {
                 mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
-            }else
+            }
+            else
             {
                 compiledSystem?.Dispose();
                 compiledSystem = null;

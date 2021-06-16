@@ -2,7 +2,6 @@
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
@@ -34,7 +33,7 @@ namespace Dman.LSystem.SystemRuntime
         {
             branchOpenSymbol = open;
             branchCloseSymbol = close;
-            this.includeSymbols = new NativeMultipleHashSets(includedSymbolsByRuleSetIndex, allocator);
+            includeSymbols = new NativeMultipleHashSets(includedSymbolsByRuleSetIndex, allocator);
             this.nativeRuleData = nativeRuleData;
 
             branchingJumpIndexes = default;

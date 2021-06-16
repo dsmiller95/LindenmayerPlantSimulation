@@ -121,7 +121,7 @@ namespace Dman.LSystem
         {
             var mappedSymbol = symbolMapping == null ? (char)symbols[index] : symbolMapping[symbols[index]];
             builder.Append(mappedSymbol);
-            this.WriteParamString(index, builder);
+            WriteParamString(index, builder);
         }
         public void WriteParamString(int index, StringBuilder builder)
         {

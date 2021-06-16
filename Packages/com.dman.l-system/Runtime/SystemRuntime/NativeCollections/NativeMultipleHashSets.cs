@@ -15,10 +15,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         private NativeHashSet<HashSetKey> data;
         public bool IsCreated => data.IsCreated;
 
-        public HashSetSlice this[short index]
-        {
-            get => new HashSetSlice(this, index);
-        }
+        public HashSetSlice this[short index] => new HashSetSlice(this, index);
 
         public NativeMultipleHashSets(int initialCapacity, Allocator allocator)
         {
@@ -27,14 +24,14 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         public NativeMultipleHashSets(ISet<int>[] initialValues, Allocator allocator)
         {
             data = new NativeHashSet<HashSetKey>(initialValues.Sum(x => x.Count), allocator);
-            if(initialValues.Length >= short.MaxValue)
+            if (initialValues.Length >= short.MaxValue)
             {
                 throw new Exception("Too many individual sets to be stored in a short");
             }
             for (short i = 0; i < initialValues.Length; i++)
             {
                 var set = initialValues[i];
-                if(set == null || set.Count <= 0)
+                if (set == null || set.Count <= 0)
                 {
                     continue;
                 }
@@ -99,19 +96,19 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         public bool Contains(short index, int item)
         {
             var dataItem = new HashSetKey(index, item);
-            return this.data.Contains(dataItem);
+            return data.Contains(dataItem);
         }
 
         public bool Add(short index, int item)
         {
             var dataItem = new HashSetKey(index, item);
-            return this.data.Add(dataItem);
+            return data.Add(dataItem);
         }
 
         public bool Remove(short index, int item)
         {
             var dataItem = new HashSetKey(index, item);
-            return this.data.Remove(dataItem);
+            return data.Remove(dataItem);
         }
 
         public void Dispose()
