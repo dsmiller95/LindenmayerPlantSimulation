@@ -33,20 +33,23 @@ B(b) < R(x, y)        -> R(x + b, y)
 ## Randomly decide whether or not to pull resources forward
 ## use W to mark the root of each leaf in a branching section
 
+#define distributionChance 1
+#define distributionFraction 0.4
+
 #symbols W
 #matches W
 #export LeafNode W
-P(0.5) | R(a   )Q < W > R(b   ) : a >= 1 && b < a -> A(-(a - b) * .9)WB((a - b) * .9)
-P(0.5) | R(a   )Q < W > R(b   ) : a >= 1 && b < a -> W
+P(distributionChance)     | R(a   )Q < W > R(b   ) : a >= 1 && b < a          -> A(-(a) * distributionFraction)WB((a) * distributionFraction)
+P(1 - distributionChance) | R(a   )Q < W > R(b   ) : a >= 1 && b < a          -> W
 
-P(0.5) | R(a, x)Q < W > R(b   ) : a >= 1 && b < a -> A(-(a - b) * .9)WB((a - b) * .9)
-P(0.5) | R(a, x)Q < W > R(b   ) : a >= 1 && b < a -> W
+P(distributionChance)     | R(a, x)Q < W > R(b   ) : a >= 1 && b < a          -> A(-(a) * distributionFraction)WB((a) * distributionFraction)
+P(1 - distributionChance) | R(a, x)Q < W > R(b   ) : a >= 1 && b < a          -> W
 
-P(0.5) | R(a   )Q < W > R(b, y) : a >= 1 && b < a && b < y -> A(-(a - b) * .9)WB((a - b) * .9)
-P(0.5) | R(a   )Q < W > R(b, y) : a >= 1 && b < a && b < y -> W
+P(distributionChance)     | R(a   )Q < W > R(b, y) : a >= 1 && b < a && b < y -> A(-(a) * distributionFraction)WB((a) * distributionFraction)
+P(1 - distributionChance) | R(a   )Q < W > R(b, y) : a >= 1 && b < a && b < y -> W
 
-P(0.5) | R(a, x)Q < W > R(b, y) : a >= 1 && b < a && b < y -> A(-(a - b) * .9)WB((a - b) * .9)
-P(0.5) | R(a, x)Q < W > R(b, y) : a >= 1 && b < a && b < y -> W
+P(distributionChance)     | R(a, x)Q < W > R(b, y) : a >= 1 && b < a && b < y -> A(-(a) * distributionFraction)WB((a) * distributionFraction)
+P(1 - distributionChance) | R(a, x)Q < W > R(b, y) : a >= 1 && b < a && b < y -> W
 
 
 

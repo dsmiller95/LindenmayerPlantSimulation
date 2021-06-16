@@ -4,6 +4,7 @@
 
 #symbols /\+-^&`
 #symbols PILYQESWF
+#matches PILYQESWF
 
 P -> I+[P+Y]--//[--L]I[++L]-[PY]++P
 I -> FSWFS

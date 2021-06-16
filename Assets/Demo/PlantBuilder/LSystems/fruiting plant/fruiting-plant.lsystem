@@ -1,8 +1,9 @@
 #axiom s(1)r(0)qS(0)
-#iterations 200
+#iterations 600
 
 #symbols +-!/\&^F$`@
 #matches +-!
+
 
 
 #include ../resourceDistributionNodes.lsyslib (SourceNode->s) (DistributorNode->r) (DownwardSubtraction->a) (LeafNode->w) (LeafBaseNode->q)
@@ -28,6 +29,7 @@
 #define primaryAngularSeparation 137
 
 
+
 ## variables defined for utility
 #define shootHeight 5
 #define internodeHeight 5
@@ -50,7 +52,7 @@ r(o) < S(x) : 			x == shootHeight ->
 #symbols T
 #matches T
 S(n) < T    : n >= shootHeight -> T(0)
-r(o) < T(x) : o > 2 && x < primaryBranchInternodes && x >= 0 -> a(-2)I(internodeHeight)wr(0)q[&(60)B(x + 1)][\(180)&(60)B(x + 1)]\(primaryAngularSeparation)T(x + 1)
+r(o) < T(x) : o > 2 && x < primaryBranchInternodes && x >= 0 -> a(-2)I(internodeHeight)wr(0)q[wr(0, 10)&(60)B(x + 1)][wr(0, 10)\(180)&(60)B(x + 1)]\(primaryAngularSeparation)T(x + 1)
        T(x) : x >= primaryBranchInternodes -> J(internodeHeight)
 
 
@@ -64,11 +66,11 @@ B(x) -> [^(50)V]petiole(leavesPerPetiole)
 ## V is a flowering bud
 #symbols V
 #matches V
-P(flowerFailureChance) | V -> []
+P(flowerFailureChance)     | V -> []
 P(1 - flowerFailureChance) | V -> V(flowerStalkLength)
 
-            V(x) : x > 0 -> $(0.03)FV(x - 1)
-JI(a)r(b) < V(x) : x <= 0 -> C(x)[K(flowerMeshIndex, 1)][A(1)]
+         r(b, n) < V(x) : x > 0 && b >= 1 -> a(-1)$(0.03)FV(x - 1)
+JI(a)r(m)r(b, n) < V(x) : x <= 0          -> C(x)[K(flowerMeshIndex, 1)][A(1)]
 
 ## J is a signal which propigates from the apex, signaling flowering.
 #symbols J
@@ -82,20 +84,21 @@ J ->
 #matches C
 C(x) : x < timeToFruit -> C(x + 1)
 C(x) : x >= timeToFruit -> [D(fruitColorIndex, 1)]
-$(y) > D(z, x) : x < fruitSize -> $(y * 1.3)
 
 #define fruitSize 5
 ## D is a fruiting body
 #symbols D
 #matches D
-D(y, x) : x < fruitSize -> D(y, x + 1)
+r(a, n) < D(y, x)        : x < fruitSize && a >= 7 -> a(-5)D(y, x + 1)
+
+r(a, n) < $(y) > D(z, x) : x < fruitSize && a >= 7 -> $(y * 1.3)
 
 ## P is the petiole, x is number of leaves
 #define petiole( P(
 #symbols PO
 #matches PO
-petiole(x) : x >= 2 -> I(3)[O((x - 1) / 2, -petioleLeafAngularDist)]L[O((x - 1) / 2, petioleLeafAngularDist)]
-petiole(x) : x > 0 -> L
+r(a, n) < petiole(x) : x >= 2 && a >= 1 -> a(-1)I(3)[O((x - 1) / 2, -petioleLeafAngularDist)]L[O((x - 1) / 2, petioleLeafAngularDist)]
+r(a, n) < petiole(x) : x > 0  && a >= 1 -> a(-1)L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size

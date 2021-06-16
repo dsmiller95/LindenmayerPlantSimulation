@@ -1,7 +1,6 @@
 #axiom Z(0)T(0)
 #iterations 70
 
-#ignore /\&^F$
 #symbols /\&^F$
 
 #runtime terminalBudGrowth 15
@@ -16,10 +15,12 @@
 
 ## T is the terminal bud
 #symbols T
+#matches T
 T(x) : x < terminalBudGrowth -> I(primaryInternodeHeight)[&(15)B(x)][\(180)&(15)B(x)]\(137)T(x + 1)
 T(x) : x >= terminalBudGrowth -> J
 
 #symbols JX
+#matches JX
 ## J is a signal which propigates from the apex, signalling branch growth.
 J ->
 ## X is a signal which propigates from the root, signalling flower growth
@@ -28,6 +29,7 @@ X ->
 #define rootBounceTime 10
 ## Z is the root, and bounces signals
 #symbols ZJ
+#matches ZJ
 Z(x) : x == 1 -> Z(0)X
 Z(x) : x > 1 -> Z(x - 1)
 Z(x) > J -> Z(rootBounceTime)
@@ -35,19 +37,23 @@ Z(x) > J -> Z(rootBounceTime)
 
 ## B is a bud, and randomly chooses what it will become
 #symbols BJIR
+#matches BJIR
 JI(Y) < B(x) -> R((terminalBudGrowth - x)^0.6)
 
 ## G is a dormant flowering bud
 #symbols GV
+#matches GV
 G(x) -> V(x)
 
 ## V is a flowering bud
 #symbols V
+#matches V
 V(x) : x > 0 -> ^(7)FV(x - 1)
 X < V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
 #symbols RPO
+#matches RPO
 P(shootStemLeafProbability) | R(x) : x > 0 -> I(sideInternodeLength)[-(75)^(20)P(leavesPerPetiole)][+(75)^(20)P(leavesPerPetiole)]R(x - 1)
 P(1 - shootStemLeafProbability) | R(x) : x > 0 -> I(sideInternodeLength)R(x - 1)
 R(x) : x <= 0 -> [^G(2)]P(leavesPerPetiole)
@@ -58,12 +64,14 @@ O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
 #symbols IJX
+#matches IJX
 I(x) : x > 0 -> $(0.05 / x)FI(x - 1)
 I(x) > J -> JI(x)
 X < I(x) -> I(x)X
 
 ## organs
 #symbols LlK
+#matches L1K
 L -> [`!(1, 0.5, 0.5)l(1, leafAge)]
 L(x) -> [`!(1, 0.5, 0.5)l(1, x)]
 l(x, y) : x < y -> l(x + 1, y)
