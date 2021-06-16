@@ -205,11 +205,11 @@ x || y
 
 `.lsyslib` files are interpreted as library files, and can be imported into `.lsystem` files or other `.lsyslib` files using the `#include` directive. The library files can be used to define another independent or partially independent set of rules, which are useful to import into other rule files.
 
-By default, all symbols between each library file and the top-level system file will be completely separate, and contextual matching will automatically ignore all symbols not accessible from the current file. When using `#global` or `#include` directives, the symbols defined in each of those statements will be included in contextual matching
+By default, all symbols between each library file and the top-level system file will be completely separate, and contextual matching will automatically ignore all symbols not accessible from the current file. When using `#global` or `#include` directives, the symbols defined in each of those statements will be included in this file. Which means they can be defined as matching inputs or produced outputs of rules, and when included in `#matches`
 
 ### #global Directive
 
-The global directive is a way to define a standard set of symbols which are always shared between all libraries. Things like turtle operations should be defined this way, so that when they are used across every library file they share the same identity. This could also be useful for things like
+The global directive is a way to define a standard set of symbols which are always shared between all libraries. Things like turtle operations should be defined this way, so that when they are used across every library file they share the same identity.
 
 ### #export Directive
 
