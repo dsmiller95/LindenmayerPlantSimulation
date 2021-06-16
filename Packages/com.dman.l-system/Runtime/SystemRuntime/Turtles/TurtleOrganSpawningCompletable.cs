@@ -49,7 +49,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("configuring job");
-            var turtleEntitySpawnJob = new TurtleEntitySpawningJob
+            var turtleEntitySpawnJob = new TurtleMeshBuildingJob
             {
                 templateVertexData = nativeData.Data.vertexData,
                 templateTriangleData = nativeData.Data.triangleData,
@@ -104,7 +104,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
 
         [BurstCompile]
-        struct TurtleEntitySpawningJob : IJob
+        struct TurtleMeshBuildingJob : IJob
         {
             [ReadOnly]
             [NativeDisableParallelForRestriction]

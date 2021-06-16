@@ -192,8 +192,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         ///         and if no higher-ranking rule has matched yet. Allocate memory for the possible match array, and the parameter match array
         ///     2. batch process each potential match, and each possible conditional. stop processing rules for a specific symbol once any non-conditional
         ///         rule matches. write all matched parameters for every matched rule into temporary parameter memory space.
-        ///         TODO: will have to store the "range" of rules which have matched. it is gauranteed to be contiguous. For this reason, delay stochastic selection
-        ///         until later, to avoid storing any extra per-rule data
         ///     3. Match selection: For each symbol, iterate through the possible matches identified in #2. When the first match is found, populate info about the selected
         ///         match and the size of the replacement into singleton
         ///     4. Sum up the new symbol string length, and allocate memory for it.
