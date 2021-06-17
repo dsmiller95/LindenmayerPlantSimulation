@@ -7,7 +7,8 @@
         "com.dman.LSystem",
         "Unity.Mathematics",
         "Unity.PerformanceTesting",
-        "Unity.Collections"
+        "Unity.Collections",
+        "Utilities"
     ],
     "includePlatforms": [
         "Editor"
