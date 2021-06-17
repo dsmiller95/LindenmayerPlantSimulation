@@ -1,5 +1,7 @@
 ﻿using Dman.LSystem.UnityObjects;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -20,12 +22,12 @@ namespace Dman.LSystem.Editor.LSystemDebugger
         {
             if (newMachine != inspectedMachine)
             {
-                if(inspectedMachine != null)
+                if (inspectedMachine != null)
                 {
-                    inspectedMachine.OnSystemStateUpdated -= this.LSystemStateWasUpdated;
+                    inspectedMachine.OnSystemStateUpdated -= LSystemStateWasUpdated;
                 }
                 inspectedMachine = newMachine;
-                inspectedMachine.OnSystemStateUpdated += this.LSystemStateWasUpdated;
+                inspectedMachine.OnSystemStateUpdated += LSystemStateWasUpdated;
             }
         }
 
@@ -45,8 +47,13 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             try
             {
                 var rootNode = LSystemStructureTreeElement.ConstructTreeFromString(
+                    inspectedMachine.systemObject.linkedFiles,
                     inspectedMachine.steppingHandle.currentState.currentSymbols.Data,
-                    stepper.ignoredCharacters,
+                    stepper.includedCharacters.Aggregate(new HashSet<int>(), (acc, next) =>
+                    {
+                        acc.UnionWith(next);
+                        return acc;
+                    }),
                     stepper.branchOpenSymbol,
                     stepper.branchCloseSymbol
                     );
@@ -58,7 +65,8 @@ namespace Dman.LSystem.Editor.LSystemDebugger
 
                 // Return root of the tree
                 return rootNode;
-            }catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Debug.LogException(e);
                 return EmptyTree("Exception encountered when building tree");

@@ -63,7 +63,7 @@ namespace Dman.LSystem.SystemRuntime
         }
         public static SymbolSeriesPrefixBuilder Parse(string symbolString)
         {
-            return new SymbolSeriesPrefixBuilder(InputSymbolParser.ParseInputSymbols(symbolString));
+            return new SymbolSeriesPrefixBuilder(InputSymbolParser.ParseInputSymbols(symbolString, x => x));
         }
     }
 
@@ -263,7 +263,7 @@ namespace Dman.LSystem.SystemRuntime
         }
         public static SymbolSeriesSuffixBuilder Parse(string symbolString)
         {
-            return new SymbolSeriesSuffixBuilder(InputSymbolParser.ParseInputSymbols(symbolString));
+            return new SymbolSeriesSuffixBuilder(InputSymbolParser.ParseInputSymbols(symbolString, x => x));
         }
     }
 

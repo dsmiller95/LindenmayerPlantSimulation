@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Dman.LSystem.SystemRuntime
@@ -10,15 +11,15 @@ namespace Dman.LSystem.SystemRuntime
         /// </summary>
         /// <param name="symbolSeries"></param>
         /// <returns></returns>
-        public static InputSymbol[] ParseInputSymbols(string symbolSeries)
+        public static InputSymbol[] ParseInputSymbols(string symbolSeries, Func<char, int> symbolRemapper)
         {
-            var individualSymbolTargets = Regex.Matches(symbolSeries, @"(?<symbol>[^:\s])(?:\((?<params>(?:\w+, )*\w+)\))?");
+            var individualSymbolTargets = Regex.Matches(symbolSeries, @"(?<symbol>[^:\s])(?:\(\s*(?<params>(?:\w+\s*,\s*)*\w+)\s*\))?");
 
             var targetSymbols = new List<InputSymbol>();
             for (int i = 0; i < individualSymbolTargets.Count; i++)
             {
                 var match = individualSymbolTargets[i];
-                var symbol = match.Groups["symbol"].Value[0];
+                var symbol = symbolRemapper(match.Groups["symbol"].Value[0]);
                 var namedParameters = match.Groups["params"];
                 var namedParamList = new List<string>();
                 if (namedParameters.Success)

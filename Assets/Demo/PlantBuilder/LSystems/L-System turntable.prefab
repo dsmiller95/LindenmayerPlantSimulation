@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 9089396036891669031}
   - component: {fileID: 4336313098753995651}
   m_Layer: 0
-  m_Name: turtle string reader
+  m_Name: turtle string reader A
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -95,7 +95,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c384c60503020c41b22d34e30528805, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  logStates: 0
+  logStates: 1
   systemObject: {fileID: 0}
 --- !u!114 &4336313098753995651
 MonoBehaviour:
@@ -114,7 +114,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f0df8a941df89244e90f702c402ca60d, type: 2}
   - {fileID: 11400000, guid: 3a418bd9f015dd44896661013b5a06b8, type: 2}
   - {fileID: 11400000, guid: caa0d1550254aca44a1cd1f9b80ff461, type: 2}
-  - {fileID: 11400000, guid: 0f286bd0126eb154fa56423e5f4020e0, type: 2}
+  - {fileID: 11400000, guid: 8f903fbd69477004e8a5c2e8c2d5f9bd, type: 2}
+  - {fileID: 11400000, guid: 2e09f423518dd7946bdb9dd9c2c8b27e, type: 2}
   initialScale: {x: 0.3, y: 0.3, z: 0.3}
   submeshIndexIncrementor: 96
 --- !u!1 &9089396037661369507
@@ -141,7 +142,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9089396037661369507}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -7.6988297, y: 22.319633, z: 48.706635}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:

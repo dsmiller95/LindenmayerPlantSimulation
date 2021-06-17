@@ -104,7 +104,7 @@ namespace Dman.LSystem.SystemCompiler
             foreach (var c in tokenString)
             {
                 indexInString++;
-                if (c == ' ')
+                if (char.IsWhiteSpace(c))
                 {
                     if (buffer != string.Empty) // don't track spaces before the buffer starts getting filled
                     {

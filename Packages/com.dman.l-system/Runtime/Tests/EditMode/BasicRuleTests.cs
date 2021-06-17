@@ -4,7 +4,9 @@ using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using NUnit.Framework;
+using System.Linq;
 using Unity.Collections;
+using System.Collections.Generic;
 
 public class BasicRuleTests
 {
@@ -19,9 +21,12 @@ public class BasicRuleTests
         int paramTempMemorySize = 0,
         float[] globalParams = null,
         string[] globalParamNames = null,
-        int expectedReplacementPatternIndex = 0
+        int expectedReplacementPatternIndex = 0,
+        string includedSymbols = "[]ABCDE"
         )
     {
+        var totalIncluded = new HashSet<int>(includedSymbols.Select(x => (int)x));
+
         globalParamNames = globalParamNames ?? new string[0];
 
         using var symbols = new DependencyTracker<SymbolString<float>>(
@@ -31,7 +36,9 @@ public class BasicRuleTests
             );
         using var expectedReplacement = SymbolString<float>.FromString(expectedReplacementText, Allocator.Persistent);
 
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
+        var ruleFromString = new BasicRule(
+            RuleParser.ParseToRule(ruleText, x => x, globalParameters: globalParamNames),
+            '[', ']');
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
@@ -42,7 +49,7 @@ public class BasicRuleTests
         var expectedTotalParamReplacement = expectedReplacement.newParameters.data.Length;
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
-        using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
+        using var branchCache = new SymbolStringBranchingCache('[', ']', new[] { totalIncluded }, ruleNativeData);
         branchCache.BuildJumpIndexesFromSymbols(symbols);
         var random = new Unity.Mathematics.Random();
         var matchSingleData = new LSystemSingleSymbolMatchData
@@ -101,16 +108,20 @@ public class BasicRuleTests
         int matchIndex = 0,
         int paramTempMemorySize = 0,
         float[] globalParams = null,
-        string[] globalParamNames = null
+        string[] globalParamNames = null,
+        string includedSymbols = "[]ABCDE"
         )
     {
+        var totalIncluded = new HashSet<int>(includedSymbols.Select(x => (int)x));
         globalParamNames = globalParamNames ?? new string[0];
         using var symbols = new DependencyTracker<SymbolString<float>>(
             axiom == null ?
             new SymbolString<float>(sourceSymbols, sourceParameters)
             : SymbolString<float>.FromString(axiom, Allocator.Persistent)
             );
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule(ruleText, globalParamNames));
+        var ruleFromString = new BasicRule(
+            RuleParser.ParseToRule(ruleText, x => x, globalParameters: globalParamNames),
+            '[', ']');
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
@@ -119,7 +130,7 @@ public class BasicRuleTests
         using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
-        using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
+        using var branchCache = new SymbolStringBranchingCache('[', ']', new[] { totalIncluded }, ruleNativeData);
         branchCache.BuildJumpIndexesFromSymbols(symbols);
         var random = new Unity.Mathematics.Random();
         var matchSingleData = new LSystemSingleSymbolMatchData
@@ -148,7 +159,10 @@ public class BasicRuleTests
     [Test]
     public void BasicRuleRejectsApplicationIfAnyParameters()
     {
-        var ruleFromString = new BasicRule(RuleParser.ParseToRule("A -> AB"));
+        var ruleFromString = new BasicRule(
+            RuleParser.ParseToRule("A -> AB", x => x),
+            '[', ']');
+        var totalIncluded = new HashSet<int>("[]AB".Select(x => (int)x));
         using var ruleNativeData = new SystemLevelRuleNativeData(new[] { ruleFromString });
         var nativeWriter = new SymbolSeriesMatcherNativeDataWriter();
         ruleFromString.WriteDataIntoMemory(ruleNativeData, nativeWriter);
@@ -161,7 +175,7 @@ public class BasicRuleTests
             var globalParams = new float[0];
             using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
             using var paramMemory = new NativeArray<float>(0, Allocator.Persistent);
-            using var branchCache = new SymbolStringBranchingCache(ruleNativeData);
+            using var branchCache = new SymbolStringBranchingCache('[', ']', new[] { totalIncluded }, ruleNativeData);
             branchCache.BuildJumpIndexesFromSymbols(symbols);
             var random = new Unity.Mathematics.Random();
             var matchSingleData = new LSystemSingleSymbolMatchData

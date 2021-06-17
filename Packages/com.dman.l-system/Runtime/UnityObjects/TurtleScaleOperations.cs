@@ -1,5 +1,4 @@
 using Dman.LSystem.SystemRuntime.Turtle;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -22,23 +21,31 @@ namespace Dman.LSystem.UnityObjects
 
         public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(scaleOperator, new TurtleOperation
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.SCALE_TRANSFORM,
-                scaleOperation = new TurtleScaleOperation
+                characterInRootFile = scaleOperator,
+                operation = new TurtleOperation
                 {
-                    nonUniformScale = Vector3.one,
-                    defaultScaleFactor = defaultScaleAmount
+                    operationType = TurtleOperationType.SCALE_TRANSFORM,
+                    scaleOperation = new TurtleScaleOperation
+                    {
+                        nonUniformScale = Vector3.one,
+                        defaultScaleFactor = defaultScaleAmount
+                    }
                 }
-            }));
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(thicknessScaleOperator, new TurtleOperation
+            });
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.SCALE_THICCNESS,
-                thiccnessOperation = new TurtleThiccnessOperation
+                characterInRootFile = thicknessScaleOperator,
+                operation = new TurtleOperation
                 {
-                    defaultThicknessScale = defaultThicknessScale
+                    operationType = TurtleOperationType.SCALE_THICCNESS,
+                    thiccnessOperation = new TurtleThiccnessOperation
+                    {
+                        defaultThicknessScale = defaultThicknessScale
+                    }
                 }
-            }));
+            });
         }
     }
 

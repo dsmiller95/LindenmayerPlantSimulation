@@ -17,19 +17,20 @@ public class ContextualMatcherTests
         int parameterMemorySize = 10,
         float[] expectedCapturedParameters = null,
         string message = null,
-        IEnumerable<int> ignoreSymbols = null)
+        string includeSymbols = "[]ABCDEFGJKZ")
     {
         var seriesMatcher = SymbolSeriesGraphTests.GenerateSingleMatcher(matcher, out var nativeData);
         using var nativeDataDisposable = nativeData;
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString(target));
         using var branchingCache = new SymbolStringBranchingCache(
             '[', ']',
-            ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
+            includeSymbols == null ? new HashSet<int>[0] : new[] { new HashSet<int>(includeSymbols.Select(x => (int)x)) },
             nativeDataDisposable);
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         using var parameterMemory = new NativeArray<float>(parameterMemorySize, Allocator.Persistent);
 
         var matches = branchingCache.MatchesForward(
+            branchingCache.includeSymbols[0],
             indexInTarget,
             seriesMatcher,
             targetString.Data,
@@ -58,11 +59,13 @@ public class ContextualMatcherTests
         string target,
         string matcher,
         bool shouldMatch,
+        string includeSymbols = "[]ABCDEFJ",
         int parameterMemorySize = 10,
         float[] expectedCapturedParameters = null,
-        int indexInTarget = -1,
-        IEnumerable<int> ignoreSymbols = null)
+        int indexInTarget = -1)
     {
+        var includedSymbolSet = includeSymbols.Select(x => (int)x);
+
         var prefixBuilder = SymbolSeriesPrefixBuilder.Parse(matcher);
         using var nativeData = new SystemLevelRuleNativeData(new RuleDataRequirements
         {
@@ -74,7 +77,7 @@ public class ContextualMatcherTests
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString(target));
         using var branchingCache = new SymbolStringBranchingCache(
             '[', ']',
-            ignoreSymbols == null ? new HashSet<int>() : new HashSet<int>(ignoreSymbols),
+            includedSymbolSet == null ? new HashSet<int>[0] : new[] { new HashSet<int>(includedSymbolSet) },
             nativeData);
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         using var parameterMemory = new NativeArray<float>(parameterMemorySize, Allocator.Persistent);
@@ -82,6 +85,7 @@ public class ContextualMatcherTests
 
         var realIndex = indexInTarget < 0 ? indexInTarget + targetString.Data.Length : indexInTarget;
         var hasMatched = branchingCache.MatchesBackwards(
+            branchingCache.includeSymbols[0],
             realIndex,
             seriesMatcher,
             targetString.Data,
@@ -119,33 +123,30 @@ public class ContextualMatcherTests
     [Test]
     public void BackwardsMatchFromInsideBranchWithIgnoreFailsGracefull()
     {
-        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
-        AssertBackwardsMatch("AB[12E]", "AB", true, indexInTarget: -2, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("B[12E]", "AB", false, indexInTarget: -2, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("AB[12E]", "AB", true, indexInTarget: -2);
+        AssertBackwardsMatch("B[12E]", "AB", false, indexInTarget: -2);
     }
     [Test]
     public void BackwardsSkipIgnoredCharacters()
     {
-        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
-        AssertBackwardsMatch("[C(2)]A(1)1234567890D(0)", "A(x)", true, expectedCapturedParameters: new[] { 1f }, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("[C(4)]A(3)1233344B(2)2555C(1)D(0)", "A(x)B(y)C(z)", true, expectedCapturedParameters: new[] { 3f, 2f, 1f }, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("[C(2)]A(1)1234567890", "A(x)", true, expectedCapturedParameters: new[] { 1f }, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("[C(2)]A(1)1234567890D(0)", "A(x)", true, expectedCapturedParameters: new[] { 1f });
+        AssertBackwardsMatch("[C(4)]A(3)1233344B(2)2555C(1)D(0)", "A(x)B(y)C(z)", true, expectedCapturedParameters: new[] { 3f, 2f, 1f });
+        AssertBackwardsMatch("[C(2)]A(1)1234567890", "A(x)", true, expectedCapturedParameters: new[] { 1f });
     }
     [Test]
     public void BackwardsMatchNoMatchWhenOverlapCloseToStringOrigin()
     {
-        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
-        AssertBackwardsMatch("[A]", "A", false, indexInTarget: 1, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("A4", "A", false, indexInTarget: 0, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("23A4", "A", false, indexInTarget: 2, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("3A4", "A", false, indexInTarget: 1, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("3A4", "A", true, indexInTarget: 2, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("3A4", "A", false, indexInTarget: 0, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("3A4124", "A", true, indexInTarget: -1, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("[A]", "A", false, indexInTarget: 1);
+        AssertBackwardsMatch("A4", "A", false, indexInTarget: 0);
+        AssertBackwardsMatch("23A4", "A", false, indexInTarget: 2);
+        AssertBackwardsMatch("3A4", "A", false, indexInTarget: 1);
+        AssertBackwardsMatch("3A4", "A", true, indexInTarget: 2);
+        AssertBackwardsMatch("3A4", "A", false, indexInTarget: 0);
+        AssertBackwardsMatch("3A4124", "A", true, indexInTarget: -1);
 
-        AssertBackwardsMatch("BCADE", "A", false, indexInTarget: 2, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("BCADE", "A", true, indexInTarget: 3, ignoreSymbols: defaultExclude);
-        AssertBackwardsMatch("BCADE", "A", false, indexInTarget: 4, ignoreSymbols: defaultExclude);
+        AssertBackwardsMatch("BCADE", "A", false, indexInTarget: 2);
+        AssertBackwardsMatch("BCADE", "A", true, indexInTarget: 3);
+        AssertBackwardsMatch("BCADE", "A", false, indexInTarget: 4);
     }
     [Test]
     public void BackwardsMultibranch()
@@ -201,7 +202,7 @@ public class ContextualMatcherTests
     public void FindsOpeningBranchLinks()
     {
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString("A[AA]AAA[A[AAA[A]]]A"));
-        using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
+        using var branchingCache = new SymbolStringBranchingCache('[', ']', new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         Assert.AreEqual(8, branchingCache.FindOpeningBranchIndexReadonly(18));
         Assert.AreEqual(10, branchingCache.FindOpeningBranchIndexReadonly(17));
@@ -211,7 +212,7 @@ public class ContextualMatcherTests
     public void FindsClosingBranchLinks()
     {
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString("A[AA]AAA[A[AAA[A]]]A"));
-        using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
+        using var branchingCache = new SymbolStringBranchingCache('[', ']', new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         Assert.AreEqual(4, branchingCache.FindClosingBranchIndexReadonly(1));
         Assert.AreEqual(17, branchingCache.FindClosingBranchIndexReadonly(10));
@@ -221,7 +222,7 @@ public class ContextualMatcherTests
     public void FindsBranchClosingLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString("EEEBE[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]"));
-        using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
+        using var branchingCache = new SymbolStringBranchingCache('[', ']', new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         Assert.AreEqual(87, branchingCache.FindClosingBranchIndexReadonly(69));
         Assert.AreEqual(98, branchingCache.FindClosingBranchIndexReadonly(91));
@@ -230,7 +231,7 @@ public class ContextualMatcherTests
     public void FindsBranchForwardLinksCorrectlyWhenBranchingAtSameIndexAsCharacterCodeForBranchingSymbol()
     {
         using var targetString = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString("[&E][&&E]&EEEE[&[EE]E][&&[EE]E]&EEEE[&[EEEE]EE][&&[EEEE]EE]&EEEA[&[EEEEEE]E[E]E[E]][&&[EEEEEE]E[E]E[E]]"));
-        using var branchingCache = new SymbolStringBranchingCache(new SystemLevelRuleNativeData());
+        using var branchingCache = new SymbolStringBranchingCache('[', ']', new SystemLevelRuleNativeData());
         branchingCache.BuildJumpIndexesFromSymbols(targetString);
         Assert.AreEqual(64, branchingCache.FindOpeningBranchIndexReadonly(82));
         Assert.AreEqual(86, branchingCache.FindOpeningBranchIndexReadonly(93));
@@ -304,20 +305,18 @@ public class ContextualMatcherTests
     [Test]
     public void ForwardSkipsOverIgnoredCharacters()
     {
-        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
-        AssertForwardsMatch("E1[23A4[5B67[890C]]]", "ABC", true, ignoreSymbols: defaultExclude);
-        AssertForwardsMatch("E1A2B3C", "ABC", true, ignoreSymbols: defaultExclude);
-        AssertForwardsMatch("1A2B3C", "ABC", true, ignoreSymbols: defaultExclude);
-        AssertForwardsMatch("1A3[2B]3[C3]3", "A[B][C]", true, ignoreSymbols: defaultExclude);
+        AssertForwardsMatch("E1[23A4[5B67[890C]]]", "ABC", true, includeSymbols: "[]ABCDE");
+        AssertForwardsMatch("E1A2B3C", "ABC", true, includeSymbols: "[]ABCDE");
+        AssertForwardsMatch("1A2B3C", "ABC", true, includeSymbols: "[]ABCDE");
+        AssertForwardsMatch("1A3[2B]3[C3]3", "A[B][C]", true, includeSymbols: "[]ABCDE");
     }
     [Test]
     public void ForwardSkipsOverIgnoredCharactersAndCapturesCorrectParams()
     {
-        var defaultExclude = "1234567890".Select(x => (int)x).ToArray();
-        AssertForwardsMatch("E1[23A(1)4[5B(5)67[890C(7)]]]", "A(x)B(y)C(z)", true, ignoreSymbols: defaultExclude, expectedCapturedParameters: new float[] { 1, 5, 7 });
-        AssertForwardsMatch("E1A(4)2B(6)3C(-1)", "A(x)B(y)C(z)", true, ignoreSymbols: defaultExclude, expectedCapturedParameters: new float[] { 4, 6, -1 });
-        AssertForwardsMatch("1A(9)2B(1)3C(6)", "A(x)B(y)C(z)", true, ignoreSymbols: defaultExclude, expectedCapturedParameters: new float[] { 9, 1, 6 });
-        AssertForwardsMatch("1A(-3)3[2B(3)]3[C(5)3]3", "A(x)[B(y)][C(z)]", true, ignoreSymbols: defaultExclude, expectedCapturedParameters: new float[] { -3, 3, 5 });
+        AssertForwardsMatch("E1[23A(1)4[5B(5)67[890C(7)]]]", "A(x)B(y)C(z)", true, includeSymbols: "[]ABCDE", expectedCapturedParameters: new float[] { 1, 5, 7 });
+        AssertForwardsMatch("E1A(4)2B(6)3C(-1)", "A(x)B(y)C(z)", true, includeSymbols: "[]ABCDE", expectedCapturedParameters: new float[] { 4, 6, -1 });
+        AssertForwardsMatch("1A(9)2B(1)3C(6)", "A(x)B(y)C(z)", true, includeSymbols: "[]ABCDE", expectedCapturedParameters: new float[] { 9, 1, 6 });
+        AssertForwardsMatch("1A(-3)3[2B(3)]3[C(5)3]3", "A(x)[B(y)][C(z)]", true, includeSymbols: "[]ABCDE", expectedCapturedParameters: new float[] { -3, 3, 5 });
     }
 
     [Test]
@@ -400,6 +399,18 @@ public class ContextualMatcherTests
         AssertForwardsMatch("EA[BC]", "A[BC]", true);
         AssertForwardsMatch("EA[B][C]", "A[B][C]", true);
         AssertForwardsMatch("EA[[B]C]", "A[B][C]", true);
+    }
+    [Test]
+    public void ForwardsMatchesSimpleTreeStructureMatcherHasImmediateBrackets()
+    {
+        AssertForwardsMatch("AF[FB]", "[B]", true, includeSymbols: "[]ABE");
+
+        AssertForwardsMatch("EF[A]B", "[A]", true, includeSymbols: "[]ABE");
+        AssertForwardsMatch("EF[A]B", "[A][A]", false, includeSymbols: "[]ABE");
+
+        AssertForwardsMatch("EF[A][A]B", "[A]", true, includeSymbols: "[]ABE");
+        AssertForwardsMatch("EF[A][A]B", "[A][A]", true, includeSymbols: "[]ABE");
+        AssertForwardsMatch("EF[A][A]B", "[A][A][A]", false, includeSymbols: "[]ABE");
     }
     [Test]
     public void ForwardsDoubleMatchTreeStructure()

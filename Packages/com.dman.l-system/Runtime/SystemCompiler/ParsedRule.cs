@@ -1,4 +1,5 @@
 using Dman.LSystem.SystemRuntime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ namespace Dman.LSystem.SystemCompiler
 
     public class ParsedRule
     {
+        public short ruleGroupIndex;
         public InputSymbol coreSymbol;
         public InputSymbol[] backwardsMatch;
         public InputSymbol[] forwardsMatch;
@@ -81,7 +83,7 @@ namespace Dman.LSystem.SystemCompiler
             }
         }
 
-        public void ParseContextualMatches(Capture contextualMatchInput)
+        public void ParseContextualMatches(Capture contextualMatchInput, Func<char, int> symbolRemapper)
         {
             var contextualMatchSection = contextualMatchInput.Value;
             var contextualMatch = Regex.Match(contextualMatchSection, @"(?:(?<prefix>[^<>]+)\s*<\s*)?(?<target>[^<>]+)(?:\s*>(?<suffix>[^<>]+))?");
@@ -90,7 +92,7 @@ namespace Dman.LSystem.SystemCompiler
             {
                 throw new SyntaxException("Must specify a single target symbol", contextualMatchInput);
             }
-            var targetSymbols = InputSymbolParser.ParseInputSymbols(contextualMatch.Groups["target"].Value);
+            var targetSymbols = InputSymbolParser.ParseInputSymbols(contextualMatch.Groups["target"].Value, symbolRemapper);
             if (targetSymbols.Length != 1)
             {
                 throw new SyntaxException("Multi match target symbols are not supported. Convert this rule into mutliple context-sensitive rules.", contextualMatch.Groups["target"]);
@@ -98,7 +100,7 @@ namespace Dman.LSystem.SystemCompiler
             coreSymbol = targetSymbols[0];
             if (contextualMatch.Groups["prefix"].Success)
             {
-                backwardsMatch = InputSymbolParser.ParseInputSymbols(contextualMatch.Groups["prefix"].Value);
+                backwardsMatch = InputSymbolParser.ParseInputSymbols(contextualMatch.Groups["prefix"].Value, symbolRemapper);
             }
             else
             {
@@ -106,7 +108,7 @@ namespace Dman.LSystem.SystemCompiler
             }
             if (contextualMatch.Groups["suffix"].Success)
             {
-                forwardsMatch = InputSymbolParser.ParseInputSymbols(contextualMatch.Groups["suffix"].Value);
+                forwardsMatch = InputSymbolParser.ParseInputSymbols(contextualMatch.Groups["suffix"].Value, symbolRemapper);
             }
             else
             {

@@ -1,5 +1,4 @@
 using Dman.LSystem.SystemRuntime.Turtle;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -21,65 +20,88 @@ namespace Dman.LSystem.UnityObjects
         public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
 
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(rollRight, new TurtleOperation
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.ROTATE,
-                rotationOperation = new TurtleRotationOperation
+                characterInRootFile = rollRight,
+                operation = new TurtleOperation
                 {
-                    unitEulerRotation = Vector3.right,
-                    defaultTheta = defaultRollTheta
+                    operationType = TurtleOperationType.ROTATE,
+                    rotationOperation = new TurtleRotationOperation
+                    {
+                        unitEulerRotation = Vector3.right,
+                        defaultTheta = defaultRollTheta
+                    }
                 }
-            }));
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(rollLeft, new TurtleOperation
+            });
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.ROTATE,
-                rotationOperation = new TurtleRotationOperation
+                characterInRootFile = rollLeft,
+                operation = new TurtleOperation
                 {
-                    unitEulerRotation = Vector3.left,
-                    defaultTheta = defaultRollTheta
+                    operationType = TurtleOperationType.ROTATE,
+                    rotationOperation = new TurtleRotationOperation
+                    {
+                        unitEulerRotation = Vector3.left,
+                        defaultTheta = defaultRollTheta
+                    }
                 }
-            }));
+            });
 
 
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(turnRight, new TurtleOperation
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.ROTATE,
-                rotationOperation = new TurtleRotationOperation
+                characterInRootFile = turnRight,
+                operation = new TurtleOperation
                 {
-                    unitEulerRotation = Vector3.down,
-                    defaultTheta = defaultRollTheta
+                    operationType = TurtleOperationType.ROTATE,
+                    rotationOperation = new TurtleRotationOperation
+                    {
+                        unitEulerRotation = Vector3.down,
+                        defaultTheta = defaultRollTheta
+                    }
                 }
-            }));
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(turnLeft, new TurtleOperation
+            });
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.ROTATE,
-                rotationOperation = new TurtleRotationOperation
+                characterInRootFile = turnLeft,
+                operation = new TurtleOperation
                 {
-                    unitEulerRotation = Vector3.up,
-                    defaultTheta = defaultRollTheta
+                    operationType = TurtleOperationType.ROTATE,
+                    rotationOperation = new TurtleRotationOperation
+                    {
+                        unitEulerRotation = Vector3.up,
+                        defaultTheta = defaultRollTheta
+                    }
                 }
-            }));
+            });
 
 
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(tiltUp, new TurtleOperation
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.ROTATE,
-                rotationOperation = new TurtleRotationOperation
+                characterInRootFile = tiltUp,
+                operation = new TurtleOperation
                 {
-                    unitEulerRotation = Vector3.forward,
-                    defaultTheta = defaultRollTheta
+                    operationType = TurtleOperationType.ROTATE,
+                    rotationOperation = new TurtleRotationOperation
+                    {
+                        unitEulerRotation = Vector3.forward,
+                        defaultTheta = defaultRollTheta
+                    }
                 }
-            }));
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(tiltDown, new TurtleOperation
+            });
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.ROTATE,
-                rotationOperation = new TurtleRotationOperation
+                characterInRootFile = tiltDown,
+                operation = new TurtleOperation
                 {
-                    unitEulerRotation = Vector3.back,
-                    defaultTheta = defaultRollTheta
+                    operationType = TurtleOperationType.ROTATE,
+                    rotationOperation = new TurtleRotationOperation
+                    {
+                        unitEulerRotation = Vector3.back,
+                        defaultTheta = defaultRollTheta
+                    }
                 }
-            }));
+            });
         }
     }
-
 }

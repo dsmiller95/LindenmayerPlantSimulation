@@ -19,6 +19,7 @@ namespace Dman.LSystem.UnityObjects
         public LSystemObject systemObject;
 
         public event Action OnSystemStateUpdated;
+        public event Action OnSystemObjectUpdated;
         public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
         /// the value of Time.time when this system was last updated
@@ -56,6 +57,7 @@ namespace Dman.LSystem.UnityObjects
                 }
                 steppingHandle.OnSystemStateUpdated += LSystemStateWasUpdated;
             }
+            OnSystemObjectUpdated?.Invoke();
 
             ResetState();
         }

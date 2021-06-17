@@ -1,5 +1,4 @@
 using Dman.LSystem.SystemRuntime.Turtle;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -17,15 +16,19 @@ namespace Dman.LSystem.UnityObjects
         public float defaultBendFactor = 0.1f;
         public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
-            writer.operators.Add(new KeyValuePair<int, TurtleOperation>(bendTowardsOperator, new TurtleOperation
+            writer.operators.Add(new TurtleOperationWithCharacter
             {
-                operationType = TurtleOperationType.BEND_TOWARDS,
-                bendTowardsOperation = new TurtleBendTowardsOperationNEW
+                characterInRootFile = bendTowardsOperator,
+                operation = new TurtleOperation
                 {
-                    defaultBendDirection = defaultBendDirection.normalized,
-                    defaultBendFactor = defaultBendFactor
+                    operationType = TurtleOperationType.BEND_TOWARDS,
+                    bendTowardsOperation = new TurtleBendTowardsOperationNEW
+                    {
+                        defaultBendDirection = defaultBendDirection.normalized,
+                        defaultBendFactor = defaultBendFactor
+                    }
                 }
-            }));
+            });
         }
     }
 

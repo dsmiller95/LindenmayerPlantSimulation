@@ -1,5 +1,4 @@
 using Dman.LSystem.UnityObjects;
-using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
@@ -11,8 +10,7 @@ namespace Dman.LSystem.Editor
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var systemObject = ScriptableObject.CreateInstance<LSystemObject>();
-            var lSystemCode = File.ReadAllText(ctx.assetPath);
-            systemObject.ParseRulesFromCode(lSystemCode);
+            systemObject.LoadFromFilePath(ctx.assetPath);
 
             ctx.AddObjectToAsset("lSystem", systemObject);
             ctx.SetMainObject(systemObject);

@@ -1,56 +1,15 @@
 #axiom /(20)@(1)S(1)R(0)T(5)
 #iterations 1000
 
-#ignore +-/\&^F$
-
-#define resourceNodeTargetMax 4
-##P(0.005) | T(x) -> FK
-##P(0.995) | T(x) -> T(x)
+#symbols +-/\&^F$@!`
+#matches @!`
 
 
+#symbols SRWAQB
+#include resourceDistributionNodes.lsyslib (SourceNode->S) (DistributorNode->R) (UpwardAddition->B) (DownwardSubtraction->A) (LeafNode->W) (LeafBaseNode->Q)
+
+#symbols TFK
+#matches TKR
          R(a) < T(x) : a >= 1 && x >  0 -> A(-1)FT(x - 1)
 P(0.6) | R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)Q/(90)[FW+(18)R(0)T(5)][FW-(18)R(0)T(5)]
 P(0.4) | R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)FK
-
-
-## S is a resource source node
-S(x) -> S(x)B(x)
-
-## R is a resource diffusion/distribution node
-
-       R(x) > A(a) -> R(x + a)
-B(b) < R(x) > A(a) -> R(x + a + b)
-B(b) < R(x)        -> R(x + b)
-       R(x)        -> R(x)
-
-## Randomly decide whether or not to pull resources forward
-## P(0.2) | R(a)Q < R(x) : a >= 1 && x < resourceNodeTargetMax -> A(-a / 2)R(x + a / 2)
-## P(0.8) | R(a)Q < R(x) : a >= 1 && x < resourceNodeTargetMax -> R(x)
-
-
-## W is a node which pull resources forward from the base into a branch
-##	Pulls resources when any are available from the root node, and will generate
-##	a back-propigating negative command and a forward-propigating positive command
-## Randomly decide whether or not to pull resources forward
-
-P(0.5) | R(a)Q < W > R(x) : a >= 1 && x < a -> A(-(a - x) * .9)WB((a - x) * .9)
-P(0.5) | R(a)Q < W > R(x) : a >= 1 && x < a -> W
-
-
-
-## A is a resource amount, propigating downwards, to be captured by a resource node
-A(x)        -> 
-A(x) > A(y) -> A(y)
-
-## Q is a resource amount downpropigation node
-
-Q > [A(x)][A(y)][A(z)][A(c)] -> A(x + y + z + c)Q
-Q > [A(x)][A(y)][A(z)] -> A(x + y + z)Q
-Q > [A(x)][A(y)] -> A(x + y)Q
-Q > [A(x)] -> A(x)Q
-
-## B is a resource amount, propigating upwards, to be captured by a resource node
-
-       B(x) -> 
-B(y) < B(x) -> B(y)
-

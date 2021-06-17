@@ -1,6 +1,8 @@
 #axiom S(0)
 #iterations 30
 
+#symbols /\+-^&`!
+
 #runtime growthStop 5
 #runtime segmentGrowth 6
 #runtime terminalBudGrowth 6
@@ -11,6 +13,8 @@
 #runtime leavesPerPetiole 7
 #runtime flowerAge 3
 
+#symbols L
+#matches L
 #define leafExpression [&&L][/(180)&&L]
 #define budBranchChanceFactor 0.2
 #define shootStemBranchingFactor 0.3
@@ -18,32 +22,44 @@
 
 
 ## S is the Shoot symbol
+#symbols FSN
+#matches FSN
 S(x) : x == 0 -> FS(x + 1)N
 S(x) : x < shootHeight && x > 0-> FS(x+1)
 S(x) : x == shootHeight -> T(0)
 
 ## T is the terminal bud
+#symbols T
+#matches T
 T(x) : x < terminalBudGrowth -> I(internodeHeight)[&(75)B(x + 1)][\(180)&(75)B(x + 1)]\(90)T(x + 1)
 
 ## B is a bud, and randomly chooses what it will become
-P(budBranchChanceFactor) | B(x) -> [^V(3)]R(x)
+#symbols B
+#matches B
+P(budBranchChanceFactor)     | B(x) -> [^V(3)]R(x)
 P(1 - budBranchChanceFactor) | B(x) -> [^V(3)]P(leavesPerPetiole)
 
 ## V is a flowering bud
+#symbols V
+#matches V
 P(1 - flowerIncrementFailureChance) | V(x) : x > 0 -> ^(7)FV(x - 1)
-P(flowerIncrementFailureChance) | V(x) : x > 0 -> []
-V(x) : x == 0 -> [``K(0)]
+P(flowerIncrementFailureChance)     | V(x) : x > 0 -> []
+                                      V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
-P(shootStemBranchingFactor) | R(x) : x < branchLength -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
+#symbols RPLO
+#matches RPLO
+P(shootStemBranchingFactor)     | R(x) : x < branchLength -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
 P(1 - shootStemBranchingFactor) | R(x) : x < branchLength -> I(internodeHeight)R(x + 1)
-R(x) : x == branchLength -> P(leavesPerPetiole)
+                                  R(x) : x == branchLength -> P(leavesPerPetiole)
 
 P(x) : x >= 2 -> I(1)[O((x - 1) / 2, -40)]L[O((x - 1) / 2, 40)]
 P(x) : x > 0 -> L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
+#symbols IAQNI
+#matches IAQN
 I(x) : x > 0 -> FI(x - 1)F
 
 A(x) : x < growthStop -> Q(x)NI(growthStop - x + 3)A(x + 1)
@@ -51,6 +67,8 @@ A(x) : x == growthStop -> Q(x)N
 
 Q(x) : x < segmentGrowth -> FQ(x + 1)F
 
+#symbols NLlK
+#matches NL1K
 N -> leafExpression
 L -> [`!(1, 0.5, 0.5)l(1, leafAge)]
 L(x) -> [`!(1, 0.5, 0.5)l(1, x)]

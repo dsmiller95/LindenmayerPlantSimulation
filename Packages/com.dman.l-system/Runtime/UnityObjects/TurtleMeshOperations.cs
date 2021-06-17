@@ -1,7 +1,6 @@
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.Turtle;
 using ProceduralToolkit;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -80,18 +79,22 @@ namespace Dman.LSystem.UnityObjects
 
                 organIndexes.length = (ushort)(writer.indexInOrganTemplates - organIndexes.index);
 
-                writer.operators.Add(new KeyValuePair<int, TurtleOperation>(meshKey.Character, new TurtleOperation
+                writer.operators.Add(new TurtleOperationWithCharacter
                 {
-                    operationType = TurtleOperationType.ADD_ORGAN,
-                    meshOperation = new TurtleMeshOperation
+                    characterInRootFile = meshKey.Character,
+                    operation = new TurtleOperation
                     {
-                        extraNonUniformScaleForOrgan = meshKey.ScalePerParameter,
-                        isVolumetricScale = meshKey.VolumetricScale,
-                        doScaleMesh = meshKey.ParameterScale,
-                        doApplyThiccness = meshKey.UseThickness,
-                        organTemplateVariants = organIndexes
+                        operationType = TurtleOperationType.ADD_ORGAN,
+                        meshOperation = new TurtleMeshOperation
+                        {
+                            extraNonUniformScaleForOrgan = meshKey.ScalePerParameter,
+                            isVolumetricScale = meshKey.VolumetricScale,
+                            doScaleMesh = meshKey.ParameterScale,
+                            doApplyThiccness = meshKey.UseThickness,
+                            organTemplateVariants = organIndexes
+                        }
                     }
-                }));
+                });
             }
         }
     }

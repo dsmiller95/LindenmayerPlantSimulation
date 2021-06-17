@@ -51,7 +51,7 @@ namespace Dman.LSystem.UnityObjects
         public void ResetState()
         {
             ResetState(
-                new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                new DefaultLSystemState(mySystemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
                 null);
         }
 
@@ -64,7 +64,7 @@ namespace Dman.LSystem.UnityObjects
             }
             var newSystem = mySystemObject.CompileWithParameters(globalCompileTimeOverrides);
             ResetState(
-                new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                new DefaultLSystemState(mySystemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
                 newSystem);
         }
         private void OnSharedSystemRecompiled()
@@ -75,7 +75,7 @@ namespace Dman.LSystem.UnityObjects
                 return;
             }
             ResetState(
-                new DefaultLSystemState(mySystemObject.axiom, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                new DefaultLSystemState(mySystemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
                 mySystemObject.compiledSystem);
         }
 
@@ -239,7 +239,8 @@ namespace Dman.LSystem.UnityObjects
             if (useSharedSystem)
             {
                 mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
-            }else
+            }
+            else
             {
                 compiledSystem?.Dispose();
                 compiledSystem = null;

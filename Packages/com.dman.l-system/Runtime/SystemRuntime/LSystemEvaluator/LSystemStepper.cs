@@ -17,22 +17,27 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// <param name="globalParameters">A list of global parameters.
         ///     The returned LSystem will require a double[] of the same length be passed in to the step function</param>
         /// <returns></returns>
+        [System.Obsolete("should use linker to compile systems")]
         public static LSystemStepper FloatSystem(
            IEnumerable<string> rules,
            string[] globalParameters = null,
-           string ignoredCharacters = "")
+           string includedCharacters = "[]ABCDEFD",
+           int branchOpenSymbol = '[',
+           int branchCloseSymbol = ']')
         {
             var compiledRules = RuleParser.CompileRules(
                         rules,
                         out var nativeRuleData,
+                        branchOpenSymbol, branchCloseSymbol,
                         globalParameters
                         );
 
             return new LSystemStepper(
                 compiledRules,
                 nativeRuleData,
+                branchOpenSymbol, branchCloseSymbol,
                 globalParameters?.Length ?? 0,
-                ignoredCharacters: new HashSet<int>(ignoredCharacters.Select(x => (int)x))
+                includedCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) }
             );
         }
     }
@@ -47,6 +52,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     {
         public DefaultLSystemState(string axiom, int seed) : this(axiom, (uint)seed)
         { }
+        public DefaultLSystemState(SymbolString<float> axiom, uint seed)
+        {
+            currentSymbols = new DependencyTracker<SymbolString<float>>(axiom);
+            randomProvider = new Unity.Mathematics.Random(seed);
+        }
         public DefaultLSystemState(string axiom, uint seed = 1)
         {
             currentSymbols = new DependencyTracker<SymbolString<float>>(SymbolString<float>.FromString(axiom));
@@ -88,25 +98,23 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// </summary>
         public bool orderingAgnosticContextMatching = false;
 
-        // currently just used for blocking out context matching. could be used in the future to exclude rule application from specific symbols, too.
-        // if that improves runtime.
-        public ISet<int> ignoredCharacters;
+        public ISet<int>[] includedCharacters;
 
         public bool isDisposed => nativeRuleData.IsDisposed;
 
         public LSystemStepper(
             IEnumerable<BasicRule> rules,
             SystemLevelRuleNativeData nativeRuleData,
+            int branchOpenSymbol,
+            int branchCloseSymbol,
             int expectedGlobalParameters = 0,
-            int branchOpenSymbol = '[',
-            int branchCloseSymbol = ']',
-            ISet<int> ignoredCharacters = null)
+            ISet<int>[] includedCharactersByRuleIndex = null)
         {
             GlobalParameters = expectedGlobalParameters;
 
             this.branchOpenSymbol = branchOpenSymbol;
             this.branchCloseSymbol = branchCloseSymbol;
-            this.ignoredCharacters = ignoredCharacters == null ? new HashSet<int>() : ignoredCharacters;
+            includedCharacters = includedCharactersByRuleIndex == null ? new HashSet<int>[0] : includedCharactersByRuleIndex;
 
             rulesByTargetSymbol = new Dictionary<int, IList<BasicRule>>();
             foreach (var rule in rules)
@@ -184,8 +192,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         ///         and if no higher-ranking rule has matched yet. Allocate memory for the possible match array, and the parameter match array
         ///     2. batch process each potential match, and each possible conditional. stop processing rules for a specific symbol once any non-conditional
         ///         rule matches. write all matched parameters for every matched rule into temporary parameter memory space.
-        ///         TODO: will have to store the "range" of rules which have matched. it is gauranteed to be contiguous. For this reason, delay stochastic selection
-        ///         until later, to avoid storing any extra per-rule data
         ///     3. Match selection: For each symbol, iterate through the possible matches identified in #2. When the first match is found, populate info about the selected
         ///         match and the size of the replacement into singleton
         ///     4. Sum up the new symbol string length, and allocate memory for it.
@@ -220,7 +226,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 maxMemoryRequirementsPerSymbol,
                 branchOpenSymbol,
                 branchCloseSymbol,
-                ignoredCharacters);
+                includedCharacters);
         }
 
         public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)

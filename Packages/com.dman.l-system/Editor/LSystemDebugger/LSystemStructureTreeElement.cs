@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Dman.LSystem.SystemCompiler.Linker;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -10,14 +13,26 @@ namespace Dman.LSystem.Editor.LSystemDebugger
         private int symbol;
         private float[] parameters;
 
-        public LSystemStructureTreeElement(SymbolString<float> symbols, int indexInSymbols, int branchSymbolIndex = -1)
+        public LSystemStructureTreeElement(
+            LinkedFileSet sourceFileSet,
+            SymbolString<float> symbols,
+            int indexInSymbols,
+            int branchSymbolIndex = -1)
         {
             symbol = symbols[indexInSymbols];
             parameters = symbols.newParameters.AsArray(indexInSymbols);
 
 
+            var symbolDefinition = sourceFileSet.GetLeafMostSymbolDefinition(symbol);
+
             var builder = new StringBuilder();
-            symbols.ToString(indexInSymbols, builder);
+            builder.Append(symbolDefinition.characterInSourceFile);
+            if (!"[]".Contains(symbolDefinition.characterInSourceFile))
+            {
+                symbols.WriteParamString(indexInSymbols, builder);
+                builder.Append(" : ");
+                builder.Append(Path.GetFileName(symbolDefinition.sourceFileDefinition));
+            }
             displayName = builder.ToString();
 
             if (branchSymbolIndex != -1)
@@ -73,8 +88,9 @@ namespace Dman.LSystem.Editor.LSystemDebugger
         }
 
         public static TreeViewItem ConstructTreeFromString(
+            LinkedFileSet sourceFileSet,
             SymbolString<float> systemState,
-            ISet<int> ignoreSymbols,
+            ISet<int> includeSymbols,
             int branchStartChar,
             int branchEndChar,
             int branchSymbolMaxBranchingFactorAsPowerOf2 = 4)
@@ -83,7 +99,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
 
             int indexInString = 0;
             for (;
-                indexInString < systemState.Length && ignoreSymbols.Contains(systemState[indexInString]);
+                indexInString < systemState.Length && !includeSymbols.Contains(systemState[indexInString]);
                 indexInString++)
             { }
             if (indexInString >= systemState.Length)
@@ -106,7 +122,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 indexInString++)
             {
                 var symbol = systemState[indexInString];
-                if (ignoreSymbols.Contains(symbol))
+                if (!includeSymbols.Contains(symbol))
                 {
                     continue;
                 }
@@ -119,7 +135,11 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                     var newBranchState = new TreeConstructingState
                     {
                         indexInString = indexInString,
-                        treeElement = new LSystemStructureTreeElement(systemState, indexInString, currentState.branchingIndexer),
+                        treeElement = new LSystemStructureTreeElement(
+                            sourceFileSet,
+                            systemState,
+                            indexInString,
+                            currentState.branchingIndexer),
                         currentParent = currentState.currentParent,
                         branchingIndexer = currentState.branchingIndexer
                     };
@@ -132,7 +152,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 }
                 if (symbol == branchEndChar)
                 {
-                    if(stateStack.Count <= 0)
+                    if (stateStack.Count <= 0)
                     {
                         Debug.LogWarning($"Too many branch end characters. aborting debug at index {indexInString}");
                         Debug.Log(systemState);
@@ -144,7 +164,10 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 var newState = new TreeConstructingState
                 {
                     indexInString = indexInString,
-                    treeElement = new LSystemStructureTreeElement(systemState, indexInString),
+                    treeElement = new LSystemStructureTreeElement(
+                        sourceFileSet,
+                        systemState,
+                        indexInString),
                     currentParent = currentState.currentParent,
                     branchingIndexer = currentState.branchingIndexer
                 };
@@ -169,10 +192,11 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                         root.children.RemoveAt(i);
                     }
                 }
-            } else if (
-                root is LSystemStructureTreeElement element &&
-                element.symbol == openBranchSymbol
-                )
+            }
+            else if (
+              root is LSystemStructureTreeElement element &&
+              element.symbol == openBranchSymbol
+              )
             {
                 return true;
             }

@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
+﻿using Dman.LSystem.SystemCompiler.Linker;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
 using System.Linq;
 using Unity.Collections;
@@ -11,13 +12,18 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         private DependencyTracker<NativeTurtleData> nativeDataTracker;
         public Material[] submeshMaterials;
 
-        public int submeshIndexIncrementChar = '`';
-        public int branchStartChar = '[';
-        public int branchEndChar = ']';
+        public int submeshIndexIncrementChar;
+        public int branchStartChar;
+        public int branchEndChar;
 
         private TurtleState defaultState;
 
-        public TurtleInterpretor(TurtleOperationSet[] operationSets, TurtleState defaultState)
+        public TurtleInterpretor(
+            TurtleOperationSet[] operationSets,
+            TurtleState defaultState,
+            LinkedFileSet linkedFiles,
+            char submeshIndex = '`',
+            char startChar = '[', char endChar = ']')
         {
             foreach (var operationSet in operationSets)
             {
@@ -38,8 +44,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             nativeData.operationsByKey = new NativeHashMap<int, TurtleOperation>(nativeWriter.operators.Count(), Allocator.Persistent);
             foreach (var ops in nativeWriter.operators)
             {
-                nativeData.operationsByKey[ops.Key] = ops.Value;
+                var realSymbol = linkedFiles.GetSymbolFromRoot(ops.characterInRootFile);
+                nativeData.operationsByKey[realSymbol] = ops.operation;
             }
+
+            submeshIndexIncrementChar = linkedFiles.GetSymbolFromRoot(submeshIndex);
+            branchStartChar = linkedFiles.GetSymbolFromRoot(startChar);
+            branchEndChar = linkedFiles.GetSymbolFromRoot(endChar);
 
             nativeDataTracker = new DependencyTracker<NativeTurtleData>(nativeData);
             this.defaultState = defaultState;

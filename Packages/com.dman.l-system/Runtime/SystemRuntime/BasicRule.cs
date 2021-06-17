@@ -20,6 +20,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public int CapturedLocalParameterCount { get; private set; }
 
+        private short ruleGroupIndex;
         private readonly InputSymbol _targetSymbolWithParameters;
         private DynamicExpressionData conditionalChecker;
         private StructExpression conditionalCheckerBlittable;
@@ -30,9 +31,14 @@ namespace Dman.LSystem.SystemRuntime
         private SymbolSeriesPrefixBuilder backwardsMatchBuilder;
         private SymbolSeriesSuffixBuilder forwardsMatchBuilder;
 
-        public BasicRule(ParsedRule parsedInfo, int branchOpenSymbol = '[', int branchCloseSymbol = ']')
+        public BasicRule(
+            ParsedRule parsedInfo,
+            int branchOpenSymbol,
+            int branchCloseSymbol)
         {
             _targetSymbolWithParameters = parsedInfo.coreSymbol;
+            ruleGroupIndex = parsedInfo.ruleGroupIndex;
+
             possibleOutcomes = new RuleOutcome[] {
                 new RuleOutcome(1, parsedInfo.replacementSymbols)
             };
@@ -56,14 +62,16 @@ namespace Dman.LSystem.SystemRuntime
         /// same parameters
         /// </summary>
         /// <param name="parsedRules"></param>
-        public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules, int branchOpenSymbol = '[', int branchCloseSymbol = ']')
+        public BasicRule(IEnumerable<ParsedStochasticRule> parsedRules, int branchOpenSymbol, int branchCloseSymbol)
         {
             possibleOutcomes = parsedRules
                 .Select(x =>
                     new RuleOutcome(x.probability, x.replacementSymbols)
                 ).ToArray();
             var firstOutcome = parsedRules.First();
+
             _targetSymbolWithParameters = firstOutcome.coreSymbol;
+            ruleGroupIndex = firstOutcome.ruleGroupIndex;
 
             conditionalChecker = firstOutcome.conditionalMatch;
 
@@ -136,7 +144,8 @@ namespace Dman.LSystem.SystemRuntime
                 capturedLocalParameterCount = CapturedLocalParameterCount,
                 possibleOutcomeIndexing = possibleOutcomeIndexing,
                 hasConditional = conditionalChecker != null,
-                conditional = conditionalCheckerBlittable
+                conditional = conditionalCheckerBlittable,
+                ruleGroupIndex = ruleGroupIndex
             };
         }
 
@@ -149,6 +158,8 @@ namespace Dman.LSystem.SystemRuntime
             public JaggedIndexing possibleOutcomeIndexing;
             public bool hasConditional;
             public StructExpression conditional;
+
+            public short ruleGroupIndex;
 
             public bool PreMatchCapturedParametersWithoutConditional(
                 SymbolStringBranchingCache branchingCache,
@@ -172,6 +183,7 @@ namespace Dman.LSystem.SystemRuntime
                 if (contextPrefix.IsValid && contextPrefix.graphNodeMemSpace.length > 0)
                 {
                     var backwardsMatchMatches = branchingCache.MatchesBackwards(
+                        branchingCache.includeSymbols[ruleGroupIndex],
                         indexInSymbols,
                         contextPrefix,
                         source,
@@ -205,6 +217,7 @@ namespace Dman.LSystem.SystemRuntime
                 if (contextSuffix.IsCreated && contextSuffix.graphNodeMemSpace.length > 0)
                 {
                     var forwardMatch = branchingCache.MatchesForward(
+                        branchingCache.includeSymbols[ruleGroupIndex],
                         indexInSymbols,
                         contextSuffix,
                         source,
