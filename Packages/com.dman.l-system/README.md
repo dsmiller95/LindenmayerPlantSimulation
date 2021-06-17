@@ -12,6 +12,7 @@ An attempt to implement most of the features present in L-systems described by [
   - [Rule examples](#rule-examples)
   - [Parameterization](#parameterization)
   - [Contextual Matching](#contextual-matching)
+  - [Library Files](#library-files)
 - [Examples](#example-showcase)
 
 ## [Installation](#installation)
@@ -201,7 +202,7 @@ x || y
 
 - Contextual matches must occur in-order, even if nested in branching structures. See the [Contextual match](Runtime/Tests/EditMode/ContextualMatcherTests.cs) tests for examples of how the matching rules work
 
-## [Library files](#library-filed)
+## [Library files](#library-files)
 
 `.lsyslib` files are interpreted as library files, and can be imported into `.lsystem` files or other `.lsyslib` files using the `#include` directive. The library files can be used to define another independent or partially independent set of rules, which are useful to import into other rule files.
 
