@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.alelievr.node-graph-processor": "0.10.3",
-    "com.dman.utilities": "0.3.6",
+    "com.dman.utilities": "0.3.8",
     "com.syomus.proceduraltoolkit": "0.2.3",
     "com.unity.collab-proxy": "1.5.7",
     "com.unity.ide.rider": "2.0.7",
