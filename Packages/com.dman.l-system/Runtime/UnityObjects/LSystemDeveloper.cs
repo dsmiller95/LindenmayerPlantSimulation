@@ -23,6 +23,10 @@ namespace Dman.LSystem.UnityObjects
         private void Start()
         {
             Debug.Log("Developer setting up");
+            if(systemObject == null)
+            {
+                throw new System.Exception("no l system object set in the developer");
+            }
 #if UNITY_EDITOR
             var assetPath = UnityEditor.AssetDatabase.GetAssetPath(systemObject);
             var directoryName = Path.GetDirectoryName(assetPath);

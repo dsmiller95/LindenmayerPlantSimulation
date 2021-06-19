@@ -49,11 +49,10 @@
       }
     },
     "com.dman.utilities": {
-      "version": "0.3.8",
+      "version": "file:../../UtilityPackages/Assets/UtilityScripts/com.dman.utilities",
       "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://package.openupm.com"
+      "source": "local",
+      "dependencies": {}
     },
     "com.syomus.proceduraltoolkit": {
       "version": "0.2.3",

@@ -83,10 +83,21 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 }
                 defaultSymbolDefinitionIndexBySymbol[definition.actualSymbol] = i;
             }
+
+
+            if (!fileIndexesByFullIdentifier.ContainsKey(originFile))
+            {
+                throw new LinkException(LinkExceptionType.BAD_ORIGIN_FILE, $"could not find origin file '{originFile}'");
+            }
         }
 
         public SymbolString<float> GetAxiom(Allocator allocator = Allocator.Persistent)
         {
+
+            if (!fileIndexesByFullIdentifier.ContainsKey(originFile))
+            {
+                throw new LinkException(LinkExceptionType.BAD_ORIGIN_FILE, $"could not find origin file '{originFile}'");
+            }
             var originFileData = allFiles[fileIndexesByFullIdentifier[originFile]];
 
             return SymbolString<float>.FromString(originFileData.axiom, allocator, chr => originFileData.GetSymbolInFile(chr));
@@ -99,6 +110,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public int GetIterations()
         {
+            if (!fileIndexesByFullIdentifier.ContainsKey(originFile))
+            {
+                throw new LinkException(LinkExceptionType.BAD_ORIGIN_FILE, $"could not find origin file '{originFile}'");
+            }
             var originFileData = allFiles[fileIndexesByFullIdentifier[originFile]];
             return originFileData.iterations;
         }
@@ -109,6 +124,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
         }
         public int GetSymbol(string fileName, char characterInFile)
         {
+            if (!fileIndexesByFullIdentifier.ContainsKey(fileName))
+            {
+                throw new LSystemRuntimeException("could not find file: " + fileName);
+            }
             var fileData = allFiles[fileIndexesByFullIdentifier[fileName]];
             return fileData.GetSymbolInFile(characterInFile);
         }
