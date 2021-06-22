@@ -194,5 +194,28 @@ public class LSystemCustomDiffusionTests
 
         state.currentSymbols.Dispose();
     }
+    [Test]
+    public void LSystemAppliesDiffusionRatesToDiffusion()
+    {
+        LSystemState<float> state = new DefaultLSystemState("n(0.5, 0, 10)Fn(0.1, 0, 10)Fn(0.5, 8, 10)");
+        var customSymbols = new CustomRuleSymbols
+        {
+            hasDiffusion = true,
+            diffusionNode = 'n',
+            diffusionAmount = 'a'
+        };
+        using var basicLSystem = BuildSystem(
+            new string[] { },
+            customSymbols: customSymbols);
+
+        Assert.AreEqual("n(0.5, 0, 10)Fn(0.1, 0, 10)Fn(0.5, 8, 10)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.5, 0, 10)Fn(0.1, 2.4, 10)Fn(0.5, 5.6, 10)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.5, 0.72, 10)Fn(0.1, 2.64, 10)Fn(0.5, 4.64, 10)", state.currentSymbols.Data.ToString());
+
+        state.currentSymbols.Dispose();
+    }
+
 
 }
