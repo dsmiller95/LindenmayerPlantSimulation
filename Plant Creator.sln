@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.plantbuilder", "co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplineMesh", "SplineMesh.csproj", "{464D9D06-54BB-0727-018A-41EE4F0542AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "Utilities.csproj", "{DE43B234-2FB4-B924-8F3C-78C467619AE5}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.MeshDraftExtensions", "com.dman.MeshDraftExtensions.csproj", "{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}"
@@ -22,6 +24,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplineMeshEditor", "SplineMeshEditor.csproj", "{C885711F-5180-1D83-A830-02373F016E25}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.plantbuilder.editor", "com.dman.plantbuilder.editor.csproj", "{1AAC77C1-84D8-E99F-149E-88B520EB052D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UtilitiesEditor", "UtilitiesEditor.csproj", "{7B63C3A1-4ECF-43DA-39AF-06BF92AA2065}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +49,10 @@ Global
 		{464D9D06-54BB-0727-018A-41EE4F0542AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{464D9D06-54BB-0727-018A-41EE4F0542AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{464D9D06-54BB-0727-018A-41EE4F0542AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE43B234-2FB4-B924-8F3C-78C467619AE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE43B234-2FB4-B924-8F3C-78C467619AE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE43B234-2FB4-B924-8F3C-78C467619AE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE43B234-2FB4-B924-8F3C-78C467619AE5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -73,6 +81,10 @@ Global
 		{1AAC77C1-84D8-E99F-149E-88B520EB052D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AAC77C1-84D8-E99F-149E-88B520EB052D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AAC77C1-84D8-E99F-149E-88B520EB052D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B63C3A1-4ECF-43DA-39AF-06BF92AA2065}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B63C3A1-4ECF-43DA-39AF-06BF92AA2065}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B63C3A1-4ECF-43DA-39AF-06BF92AA2065}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B63C3A1-4ECF-43DA-39AF-06BF92AA2065}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

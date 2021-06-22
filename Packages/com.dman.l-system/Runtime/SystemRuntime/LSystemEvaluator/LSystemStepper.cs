@@ -1,4 +1,5 @@
 using Dman.LSystem.SystemCompiler;
+using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System.Collections.Generic;
@@ -92,6 +93,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         public int branchOpenSymbol;
         public int branchCloseSymbol;
+        public CustomRuleSymbols customSymbols;
         /// <summary>
         /// Defaults to false. fully ordering agnostic matching is not yet implemented, setting to true will result in an approximation
         ///     with some failures on edge cases involving subsets of matches. look at the context matcher tests for more details.
@@ -108,8 +110,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             int branchOpenSymbol,
             int branchCloseSymbol,
             int expectedGlobalParameters = 0,
-            ISet<int>[] includedCharactersByRuleIndex = null)
+            ISet<int>[] includedCharactersByRuleIndex = null,
+            CustomRuleSymbols customSymbols = default)
         {
+            this.customSymbols = customSymbols;
             GlobalParameters = expectedGlobalParameters;
 
             this.branchOpenSymbol = branchOpenSymbol;
@@ -226,7 +230,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 maxMemoryRequirementsPerSymbol,
                 branchOpenSymbol,
                 branchCloseSymbol,
-                includedCharacters);
+                includedCharacters,
+                customSymbols);
         }
 
         public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)

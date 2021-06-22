@@ -6,20 +6,14 @@
 #export SourceNode S
 S(x) -> S(x)B(x)
 
-## R is a resource diffusion/distribution node
-## when a second parameter is specified, it is used as a soft resource cap. when the node has at least that much in resources, it will not request any more resources
+## R is a resource diffusion/distribution node with resource caps. each resource is defined as a pari of numbers, the first being the actual amount and the second is a soft resource cap. when the node has at least that much in resources, it will not request any more resources
 #symbols R
 #matches R
 #export DistributorNode R
-
-       R(x) > A(a) -> R(x + a)
-B(b) < R(x) > A(a) -> R(x + a + b)
-B(b) < R(x)        -> R(x + b)
-       R(x)        -> R(x)
-	   
+  
        R(x, y) > A(a) -> R(x + a, y)
-B(b) < R(x, y) > A(a) -> R(x + a + b, y)
-B(b) < R(x, y)        -> R(x + b, y)
+       R(x, y)        -> R(x, y)
+       R(x, y) > A(a) -> R(x + a, y)
        R(x, y)        -> R(x, y)
 
 ## Randomly decide whether or not to pull resources forward
@@ -71,12 +65,4 @@ Q > [A(x)] -> A(x)Q
 #export DownwardSubtraction A
 A(x)        -> 
 A(x) > A(y) -> A(y)
-
-## B is a resource amount, propigating upwards, to be captured by a resource node
-#symbols B
-#matches B
-#export UpwardAddition B
-
-       B(x) -> 
-B(y) < B(x) -> B(y)
 

@@ -20,7 +20,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             int branchSymbolIndex = -1)
         {
             symbol = symbols[indexInSymbols];
-            parameters = symbols.newParameters.AsArray(indexInSymbols);
+            parameters = symbols.parameters.AsArray(indexInSymbols);
 
 
             var symbolDefinition = sourceFileSet.GetLeafMostSymbolDefinition(symbol);

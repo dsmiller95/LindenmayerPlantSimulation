@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
+﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Unity.Burst;
@@ -14,6 +15,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         /////////////// things owned by this step /////////
         private SymbolString<float> target;
+        public SymbolStringBranchingCache branchingCache;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -28,8 +30,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             NativeArray<float> globalParamNative,
             NativeArray<float> tmpParameterMemory,
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
-            DependencyTracker<SystemLevelRuleNativeData> nativeData)
+            DependencyTracker<SystemLevelRuleNativeData> nativeData,
+            SymbolStringBranchingCache branchingCache,
+            CustomRuleSymbols customSymbols)
         {
+            this.branchingCache = branchingCache;
             target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
 
             this.randResult = randResult;
@@ -54,7 +59,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 outcomeData = nativeData.Data.ruleOutcomeMemorySpace,
 
                 targetData = target,
-                blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol
+                blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol,
+                branchingCache = branchingCache,
+                customSymbols = customSymbols
             };
 
             currentJobHandle = replacementJob.Schedule(
@@ -70,6 +77,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public ICompletable StepNext()
         {
             currentJobHandle.Complete();
+            branchingCache.Dispose();
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
@@ -101,6 +109,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             //TODO
             currentJobHandle.Complete();
             target.Dispose();
+            if (branchingCache.IsCreated) branchingCache.Dispose();
             return inputDeps;
         }
 
@@ -108,6 +117,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             currentJobHandle.Complete();
             target.Dispose();
+            if (branchingCache.IsCreated) branchingCache.Dispose();
         }
     }
 
@@ -131,6 +141,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolData;
+
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<StructExpression> structExpressionSpace;
@@ -147,18 +158,49 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         [ReadOnly]
         public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
+        [ReadOnly]
+        public SymbolStringBranchingCache branchingCache;
+
+        public CustomRuleSymbols customSymbols;
 
         public void Execute(int indexInSymbols)
         {
+            var helperStack = new TmpNativeStack<int>(5);
+
             var matchSingleton = matchSingletonData[indexInSymbols];
             var symbol = sourceData.symbols[indexInSymbols];
             if (matchSingleton.isTrivial)
             {
-                // if match is trivial, just copy the symbol over, nothing else.
                 var targetIndex = matchSingleton.replacementSymbolIndexing.index;
+                // check for custom rules
+                if (customSymbols.hasDiffusion)
+                {
+                    if (symbol == customSymbols.diffusionNode)
+                    {
+                        DiffusionRule.ApplyDiffusionAtIndex(
+                            sourceData,
+                            targetData,
+                            branchingCache: branchingCache,
+                            indexInSource: indexInSymbols,
+                            indexInTarget: targetIndex,
+                            indexInTargetParameters: matchSingleton.replacementParameterIndexing.index,
+                            customSymbols: customSymbols,
+                            forwardSearchHelperStack: helperStack
+                            );
+                        return;
+                    }
+                    if(symbol == customSymbols.diffusionAmount)
+                    {
+                        // amount node will always dissapear.
+                        // do nothing
+                        return;
+                    }
+                }
+
+                // match is trivial. just copy the existing symbol and parameters over, nothing else.
                 targetData.symbols[targetIndex] = symbol;
-                var sourceParamIndexer = sourceData.newParameters[indexInSymbols];
-                var targetDataIndexer = targetData.newParameters[targetIndex] = new JaggedIndexing
+                var sourceParamIndexer = sourceData.parameters[indexInSymbols];
+                var targetDataIndexer = targetData.parameters[targetIndex] = new JaggedIndexing
                 {
                     index = matchSingleton.replacementParameterIndexing.index,
                     length = sourceParamIndexer.length
@@ -167,7 +209,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 //      a non-trivial match
                 for (int i = 0; i < sourceParamIndexer.length; i++)
                 {
-                    targetData.newParameters[targetDataIndexer, i] = sourceData.newParameters[sourceParamIndexer, i];
+                    targetData.parameters[targetDataIndexer, i] = sourceData.parameters[sourceParamIndexer, i];
                 }
                 return;
             }

@@ -650,9 +650,6 @@
     <Reference Include="System.Xml.XPath.XDocument">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.3.11f1\Editor\Data\MonoBleedingEdge\lib\mono\4.7.1-api\Facades\System.Xml.XPath.XDocument.dll</HintPath>
     </Reference>
-    <Reference Include="UtilitiesEditor">
-      <HintPath>Library\ScriptAssemblies\UtilitiesEditor.dll</HintPath>
-    </Reference>
     <Reference Include="ProceduralToolkit">
       <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
     </Reference>
@@ -728,9 +725,6 @@
     <Reference Include="com.alelievr.NodeGraphProcessor.Editor">
       <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Utilities">
-      <HintPath>Library\ScriptAssemblies\Utilities.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Burst">
       <HintPath>Library\ScriptAssemblies\Unity.Burst.dll</HintPath>
     </Reference>
@@ -760,6 +754,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="UtilitiesEditor.csproj">
+      <Project>{7B63C3A1-4ECF-43DA-39AF-06BF92AA2065}</Project>
+      <Name>UtilitiesEditor</Name>
+    </ProjectReference>
     <ProjectReference Include="com.dman.plantbuilder.csproj">
       <Project>{CF9A44FD-C709-A2B6-30D5-0C4D4A524069}</Project>
       <Name>com.dman.plantbuilder</Name>
@@ -767,6 +765,10 @@
     <ProjectReference Include="com.dman.plantbuilder.nodegraph.csproj">
       <Project>{FF5C4E60-178B-5716-125C-C25F9F5CE299}</Project>
       <Name>com.dman.plantbuilder.nodegraph</Name>
+    </ProjectReference>
+    <ProjectReference Include="Utilities.csproj">
+      <Project>{DE43B234-2FB4-B924-8F3C-78C467619AE5}</Project>
+      <Name>Utilities</Name>
     </ProjectReference>
     <ProjectReference Include="com.dman.l-system.editor.csproj">
       <Project>{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}</Project>

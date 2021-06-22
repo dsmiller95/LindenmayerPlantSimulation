@@ -80,14 +80,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
             NativeList<TurtleOrganInstance> targetOrganInstances)
         {
-            var pIndex = sourceString.newParameters[indexInString];
+            var pIndex = sourceString.parameters[indexInString];
 
             var meshTransform = state.transformation;
 
             var selectedMeshIndex = 0;
             if (organTemplateVariants.length > 1 && pIndex.length > 0)
             {
-                var index = ((int)sourceString.newParameters[pIndex, 0]) % organTemplateVariants.length;
+                var index = ((int)sourceString.parameters[pIndex, 0]) % organTemplateVariants.length;
                 selectedMeshIndex = index;
             }
             var selectedOrganIndex = organTemplateVariants.index + selectedMeshIndex;
@@ -96,7 +96,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var scaleIndex = organTemplateVariants.length <= 1 ? 0 : 1;
             if (doScaleMesh && pIndex.length > scaleIndex)
             {
-                var scale = sourceString.newParameters[pIndex, scaleIndex];
+                var scale = sourceString.parameters[pIndex, scaleIndex];
                 if (isVolumetricScale)
                 {
                     scale = Mathf.Pow(scale, 1f / 3f);
@@ -143,11 +143,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int indexInString,
             SymbolString<float> sourceString)
         {
-            var paramIndex = sourceString.newParameters[indexInString];
+            var paramIndex = sourceString.parameters[indexInString];
             float bendFactor = defaultBendFactor;
             if (paramIndex.length == 1)
             {
-                bendFactor = sourceString.newParameters[paramIndex, 0];
+                bendFactor = sourceString.parameters[paramIndex, 0];
             }
             var localBendDirection = state.transformation.inverse.MultiplyVector(defaultBendDirection);
             var adjustment = (bendFactor) * (Vector3.Cross(localBendDirection, Vector3.right));
@@ -170,7 +170,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int indexInString,
             SymbolString<float> sourceString)
         {
-            var paramIndex = sourceString.newParameters[indexInString];
+            var paramIndex = sourceString.parameters[indexInString];
 
             if (paramIndex.length == 0)
             {
@@ -179,7 +179,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             else
             if (paramIndex.length == 1)
             {
-                state.thickness *= sourceString.newParameters[paramIndex, 0];
+                state.thickness *= sourceString.parameters[paramIndex, 0];
             }
             else
             {
@@ -196,7 +196,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int indexInString,
             SymbolString<float> sourceString)
         {
-            var paramIndex = sourceString.newParameters[indexInString];
+            var paramIndex = sourceString.parameters[indexInString];
             if (paramIndex.length == 0)
             {
                 state.transformation *= Matrix4x4.Scale(defaultScaleFactor * nonUniformScale);
@@ -204,16 +204,16 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             else
             if (paramIndex.length == 1)
             {
-                state.transformation *= Matrix4x4.Scale(sourceString.newParameters[paramIndex, 0] * nonUniformScale);
+                state.transformation *= Matrix4x4.Scale(sourceString.parameters[paramIndex, 0] * nonUniformScale);
             }
             else
             if (paramIndex.length == 3)
             {
                 state.transformation *= Matrix4x4.Scale(
                     new Vector3(
-                        sourceString.newParameters[paramIndex, 0],
-                        sourceString.newParameters[paramIndex, 1],
-                        sourceString.newParameters[paramIndex, 2]
+                        sourceString.parameters[paramIndex, 0],
+                        sourceString.parameters[paramIndex, 1],
+                        sourceString.parameters[paramIndex, 2]
                     ));
             }
             else
@@ -231,11 +231,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int indexInString,
             SymbolString<float> sourceString)
         {
-            var paramIndex = sourceString.newParameters[indexInString];
+            var paramIndex = sourceString.parameters[indexInString];
             float theta = defaultTheta;
             if (paramIndex.length == 1)
             {
-                theta = sourceString.newParameters[paramIndex, 0];
+                theta = sourceString.parameters[paramIndex, 0];
             }
             state.transformation *= Matrix4x4.Rotate(Quaternion.Euler(theta * unitEulerRotation));
         }

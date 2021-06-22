@@ -19,7 +19,7 @@ namespace Dman.LSystem
         [NativeDisableParallelForRestriction]
         public NativeArray<int> symbols;
         [NativeDisableParallelForRestriction]
-        public JaggedNativeArray<ParamType> newParameters;
+        public JaggedNativeArray<ParamType> parameters;
         public int Length => symbols.Length;
 
         public int this[int index]
@@ -47,7 +47,7 @@ namespace Dman.LSystem
             return new SymbolString<float>
             {
                 symbols = symbols,
-                newParameters = newParameters
+                parameters = newParameters
             };
         }
         public SymbolString(int symbol, ParamType[] parameters) :
@@ -60,22 +60,22 @@ namespace Dman.LSystem
         public SymbolString(int[] symbols, ParamType[][] paramArray, Allocator allocator = Allocator.Persistent)
         {
             this.symbols = new NativeArray<int>(symbols, allocator);
-            newParameters = new JaggedNativeArray<ParamType>(paramArray, allocator);
+            parameters = new JaggedNativeArray<ParamType>(paramArray, allocator);
         }
         public SymbolString(int symbolsTotal, int parametersTotal, Allocator allocator)
         {
             symbols = new NativeArray<int>(symbolsTotal, allocator, NativeArrayOptions.UninitializedMemory);
-            newParameters = new JaggedNativeArray<ParamType>(symbolsTotal, parametersTotal, allocator);
+            parameters = new JaggedNativeArray<ParamType>(symbolsTotal, parametersTotal, allocator);
         }
         public SymbolString(SymbolString<ParamType> other, Allocator newAllocator)
         {
             symbols = new NativeArray<int>(other.symbols, newAllocator);
-            newParameters = new JaggedNativeArray<ParamType>(other.newParameters, newAllocator);
+            parameters = new JaggedNativeArray<ParamType>(other.parameters, newAllocator);
         }
 
         public int ParameterSize(int index)
         {
-            return newParameters[index].length;
+            return parameters[index].length;
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Dman.LSystem
                 symbols[replacementSymbolIndex] = source.symbols[i];
             }
 
-            newParameters.CopyFrom(source.newParameters, targetIndex, targetParamIndex);
+            parameters.CopyFrom(source.parameters, targetIndex, targetParamIndex);
         }
 
         public override string ToString()
@@ -125,7 +125,7 @@ namespace Dman.LSystem
         }
         public void WriteParamString(int index, StringBuilder builder)
         {
-            var iIndex = newParameters[index];
+            var iIndex = parameters[index];
             if (iIndex.length <= 0)
             {
                 return;
@@ -133,7 +133,7 @@ namespace Dman.LSystem
             builder.Append("(");
             for (int j = 0; j < iIndex.length; j++)
             {
-                var paramValue = newParameters[iIndex, j];
+                var paramValue = parameters[iIndex, j];
                 builder.Append(paramValue.ToString());
                 if (j < iIndex.length - 1)
                 {
@@ -169,25 +169,25 @@ namespace Dman.LSystem
                     return false;
                 }
             }
-            if (!newParameters.Equals(other.newParameters))
+            if (!parameters.Equals(other.parameters))
             {
                 return false;
             }
             return true;
         }
 
-        public bool IsCreated => symbols.IsCreated || newParameters.IsCreated;
+        public bool IsCreated => symbols.IsCreated || parameters.IsCreated;
 
         public void Dispose()
         {
-            newParameters.Dispose();
+            parameters.Dispose();
             symbols.Dispose();
         }
 
         public JobHandle Dispose(JobHandle inputDeps)
         {
             return JobHandle.CombineDependencies(
-                newParameters.Dispose(inputDeps),
+                parameters.Dispose(inputDeps),
                 symbols.Dispose(inputDeps));
         }
     }

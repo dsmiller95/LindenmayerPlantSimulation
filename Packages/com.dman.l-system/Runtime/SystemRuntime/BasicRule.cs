@@ -198,7 +198,7 @@ namespace Dman.LSystem.SystemRuntime
                     matchedParameterNum += copiedParameters;
                 }
 
-                var coreParametersIndexing = source.newParameters[indexInSymbols];
+                var coreParametersIndexing = source.parameters[indexInSymbols];
                 if (coreParametersIndexing.length != target.parameterLength)
                 {
                     return false;
@@ -207,7 +207,7 @@ namespace Dman.LSystem.SystemRuntime
                 {
                     for (int i = 0; i < coreParametersIndexing.length; i++)
                     {
-                        var paramValue = source.newParameters[coreParametersIndexing, i];
+                        var paramValue = source.parameters[coreParametersIndexing, i];
 
                         parameterMemory[startIndexInParameterMemory + matchedParameterNum] = paramValue;
                         matchedParameterNum++;
