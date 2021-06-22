@@ -20,7 +20,7 @@ MonoBehaviour:
     IndividualScale: {x: 0.5, y: 0.5, z: 0.5}
     ParameterScale: 1
     VolumetricScale: 0
-    ScalePerParameter: {x: 1, y: 1, z: 1}
+    ScalePerParameter: {x: 0.1, y: 0.1, z: 0.1}
     AlsoMove: 0
     UseThickness: 0
   - Character: 75
