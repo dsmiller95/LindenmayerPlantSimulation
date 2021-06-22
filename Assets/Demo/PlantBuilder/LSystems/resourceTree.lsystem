@@ -1,15 +1,21 @@
-#axiom /(20)@(1)S(1)R(0)T(5)
+
+
+#axiom /(20)@(1)R(0.3, 0, 100)S(5)T(5)
 #iterations 1000
 
 #symbols +-/\&^F$@!`
 #matches @!`
 
+#define defaultMaxResource 100
 
-#symbols SRWAQB
-#include resourceDistributionNodes.lsyslib (SourceNode->S) (DistributorNode->R) (UpwardAddition->B) (DownwardSubtraction->A) (LeafNode->W) (LeafBaseNode->Q)
+#symbols SWQB
+#symbols Ra
+#include diffusion (Node->R) (Amount->a)
+
+S(x) -> a(x)S(x)
 
 #symbols TFK
 #matches TKR
-         R(a) < T(x) : a >= 1 && x >  0 -> A(-1)FT(x - 1)
-P(0.6) | R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)Q/(90)[FW+(18)R(0)T(5)][FW-(18)R(0)T(5)]
-P(0.4) | R(a) < T(x) : a >= 2 && x <= 0 -> A(-2)FK
+         R(a, water, c) < T(x) : water >= 1 && x >  0 -> a(-1)FT(x - 1)
+P(0.7) | R(a, water, c) < T(x) : water >= 2 && x <= 0 -> a(-2)/(90)[F+(18)R(.3, 0, defaultMaxResource)T(5)][FW-(18)R(.3, 0, defaultMaxResource)T(5)]
+P(0.3) | R(a, water, c) < T(x) : water >= 2 && x <= 0 -> a(-2)FK

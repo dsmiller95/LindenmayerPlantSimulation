@@ -28,15 +28,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public LinkedFileSet LinkFiles(string basePath)
         {
-            var allFilesByFullIdentifier = new Dictionary<string, ParsedFile>();
-            ParseFullFileTree(basePath, allFilesByFullIdentifier);
+            var allFilesByFullIdentifier = ParseFullFileTree(basePath);
             var leafFirstFileSort = GetTopologicalSort(basePath, allFilesByFullIdentifier);
             var allSymbols = AssignSymbolRemappingsToFiles(allFilesByFullIdentifier, leafFirstFileSort);
 
             return new LinkedFileSet(basePath, allFilesByFullIdentifier, allSymbols);
         }
 
-        private List<SymbolDefinition> AssignSymbolRemappingsToFiles(Dictionary<string, ParsedFile> allFiles, List<string> leafFirstSortedFiles)
+        private List<SymbolDefinition> AssignSymbolRemappingsToFiles(Dictionary<string, LinkedFile> allFiles, List<string> leafFirstSortedFiles)
         {
             var globalSymbols = new Dictionary<char, int>();
             var completeSymbolDefinitions = new List<SymbolDefinition>();
@@ -112,8 +111,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
             return completeSymbolDefinitions;
         }
 
-        private void ParseFullFileTree(string basePath, Dictionary<string, ParsedFile> allFiles)
+        private Dictionary<string, LinkedFile> ParseFullFileTree(string basePath)
         {
+            var allFiles = new Dictionary<string, LinkedFile>();
             var leafIdentifiers = new Stack<string>();
             leafIdentifiers.Push(basePath);
 
@@ -136,9 +136,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     leafIdentifiers.Push(link.fullImportIdentifier);
                 }
             }
+            return allFiles;
         }
 
-        private List<string> GetTopologicalSort(string basePath, Dictionary<string, ParsedFile> allFiles)
+        private List<string> GetTopologicalSort(string basePath, Dictionary<string, LinkedFile> allFiles)
         {
             // set of all files which have been visited
             var visited = new HashSet<string>();
@@ -157,7 +158,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             ISet<string> visited,
             Stack<string> lineage,
             List<string> sortedNodes,
-            Dictionary<string, ParsedFile> allFiles)
+            Dictionary<string, LinkedFile> allFiles)
         {
             visited.Add(node);
 

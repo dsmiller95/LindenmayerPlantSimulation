@@ -234,6 +234,30 @@ The include directive will import all the rules from the library file at the pro
 
 This remaps the exports `Node`, `Internode`, and `BasipetalSignal` defined in `lib.lsyslib`, to the `G`, `I`, and `x` symbols respectively in the importing file, so they can be used.
 
+## [Predefined libraries](#predefined-libraries)
+
+Some libraries are defined by default and provide additional functionality to the l-system via custom rules, implemented directly in Burst-compiled code. They can be imported in the same way as other library files, using the #include directive and remapping symbols.
+
+### Diffusion
+
+Import with `#include diffusion (Node->n) (Amount->a)`. This module will provide an efficient diffusion simulation, diffusing resources between Nodes. The amount diffused across each edge
+is directly proportional to the difference in resource amounts between nodes. If A and B are the amounts of resources in two nodes, the amount diffused into node A is defined as `(B - A) * (Ca + Cb) / 2`. Ca and Cb are the diffusion constants for each node.
+
+The Node symbol will mark a diffusion node, and all diffusion will occur in the parameters. The Node -must- have an odd number of parameters, and they're used as follows:
+
+- parameter 0
+  - used as a diffusion constant for this node, and controls how quickly all resources diffuse out of and into this node.
+  - when diffusing resources between nodes, the diffusion constants between the nodes are averaged
+- parameters 1...n
+  - Split into pairs. Each pair defines a unique resource type, which diffuse separately
+  - The first item in a pair is the actual amount of that type of resource in this node
+  - The second item in a pair is a soft cap on the amount of resources which will diffuse into this node.
+    - When the node is above this cap, no more resources will diffuse into the node.
+    - Due to the parallel nature of the diffusion update, it is possible for the resource amount to exceed this maximum if the amount of resources in adjacent nodes increases rapidly
+    - The resource amount cap will be ignored when processing Amount nodes
+
+The Amount symbol will mark an amount to add to the nearest diffusion node. As a signal, it will automatically disappear in a single step. The amount in the node will be added to the closest resource node found by traversing downwards through the tree. This symbol is the only way to make a modification to the total amount of resources across all Nodes, and each resource can be positive or negative. The amount node can have any number of parameters, each parameter corresponds to a unique resource amount at that index.
+
 # [Example Showcase](#example-showcase)
 
 [Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
