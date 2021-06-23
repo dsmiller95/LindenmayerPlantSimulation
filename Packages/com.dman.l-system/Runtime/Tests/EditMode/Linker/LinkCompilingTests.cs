@@ -275,7 +275,7 @@ A < B     -> D
     public void LinksBuiltinLibraryAndExecutes()
     {
         var builtins = new BuiltinLibraries();
-        builtins.RegisterBuiltin(new DiffusionLibrary());
+        builtins.Add(new DiffusionLibrary());
 
         var fileSystem = new InMemoryFileProvider(builtins);
 
@@ -316,15 +316,71 @@ S -> a(3)S
         currentState = system.StepSystem(currentState);
         Assert.AreEqual("n(0.5, 0, 10)a(3)Sn(0.5, 0, 10)FT(2)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 3, 10)a(3)Sn(0.5, 0, 10)Fn(0.5, 0, 10)FT(1)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 1.5, 10)a(3)Sn(0.5, 1.5, 10)Fn(0.5, 0, 10)FT(1)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 4.5, 10)a(3)Sn(0.5, 1.5, 10)Fn(0.5, 0, 10)Fn(0.5, 0, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 3, 10)a(3)Sn(0.5, 2.25, 10)Fn(0.5, 0.75, 10)Fn(0.5, 0, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 6, 10)a(3)Sn(0.5, 2.25, 10)Fn(0.5, 0.75, 10)Fn(0.5, 0, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 4.125, 10)a(3)Sn(0.5, 3.375, 10)Fn(0.5, 1.125, 10)Fn(0.5, 0.375, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 7.125, 10)a(3)Sn(0.5, 3.375, 10)Fn(0.5, 1.125, 10)Fn(0.5, 0.375, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 5.25, 10)a(3)Sn(0.5, 4.125, 10)Fn(0.5, 1.875, 10)Fn(0.5, 0.75, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 8.25, 10)a(3)Sn(0.5, 4.125, 10)Fn(0.5, 1.875, 10)Fn(0.5, 0.75, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 6.1875, 10)a(3)Sn(0.5, 5.0625, 10)Fn(0.5, 2.4375, 10)Fn(0.5, 1.3125, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+
+        currentState.currentSymbols.DisposeImmediate();
+    }
+    [Test]
+    public void LinksBuiltinLibraryWithCustomParameterAndExecutes()
+    {
+        var builtins = new BuiltinLibraries();
+        builtins.Add(new DiffusionLibrary());
+
+        var fileSystem = new InMemoryFileProvider(builtins);
+
+        fileSystem.RegisterFileWithIdentifier("root.lsystem", @"
+#axiom n(0.25, 18, 20)Fn(0.25, 0, 20)Fn(0.25, 0, 20)
+#iterations 10
+#symbols naF
+
+#define diffusionStepsPerStep 2
+#include diffusion (Node->n) (Amount->a)
+
+");
+        var linker = new FileLinker(fileSystem);
+        var linkedFiles = linker.LinkFiles("root.lsystem");
+
+        using var system = linkedFiles.CompileSystem();
+        LSystemState<float> currentState = new DefaultLSystemState(
+            linkedFiles.GetAxiom(),
+            (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+
+        var n = linkedFiles.GetSymbol("root.lsystem", 'n');
+        var a = linkedFiles.GetSymbol("root.lsystem", 'a');
+        var F = linkedFiles.GetSymbol("root.lsystem", 'F');
+
+        var symbolStringMapping = new Dictionary<int, char>()
+        {
+            {n, 'n' },
+            {a, 'a' },
+            {F, 'F' },
+        };
+
+        Assert.AreEqual("n(0.25, 18, 20)Fn(0.25, 0, 20)Fn(0.25, 0, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("n(0.25, 11.25, 20)Fn(0.25, 5.625, 20)Fn(0.25, 1.125, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("n(0.25, 8.859375, 20)Fn(0.25, 5.976563, 20)Fn(0.25, 3.164063, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("n(0.25, 7.602539, 20)Fn(0.25, 5.998535, 20)Fn(0.25, 4.398926, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("n(0.25, 6.901062, 20)Fn(0.25, 5.999908, 20)Fn(0.25, 5.09903, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("n(0.25, 6.506824, 20)Fn(0.25, 5.999994, 20)Fn(0.25, 5.493181, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("n(0.25, 6.285088, 20)Fn(0.25, 6, 20)Fn(0.25, 5.714913, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("n(0.25, 6.160362, 20)Fn(0.25, 6, 20)Fn(0.25, 5.839638, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("n(0.25, 6.090203, 20)Fn(0.25, 6, 20)Fn(0.25, 5.909797, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
 
         currentState.currentSymbols.DisposeImmediate();
     }

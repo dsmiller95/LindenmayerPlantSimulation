@@ -96,7 +96,6 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public SymbolString<float> GetAxiom(Allocator allocator = Allocator.Persistent)
         {
-
             if (!fileIndexesByFullIdentifier.ContainsKey(originFile))
             {
                 throw new LinkException(LinkExceptionType.BAD_ORIGIN_FILE, $"could not find origin file '{originFile}'");
@@ -142,8 +141,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
             var openSymbol = GetSymbol(originFile, '[');
             var closeSymbol = GetSymbol(originFile, ']');
 
+            var allReplacementDirectives = GetCompileTimeReplacementsWithOverrides(globalCompileTimeOverrides);
+
             var compiledRules = CompileAllRules(
-                globalCompileTimeOverrides,
+                allReplacementDirectives,
                 out var nativeRuleData,
                 openSymbol, closeSymbol);
 
@@ -160,6 +161,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
             {
                 file.SetCustomRuleSymbols(ref customSymbols);
             }
+            if (allReplacementDirectives.TryGetValue("diffusionStepsPerStep", out var defineValue))
+            {
+                if (!int.TryParse(defineValue, out var stepsPerStep))
+                {
+                    throw new LinkException(LinkExceptionType.BAD_GLOBAL_PARAMETER, $"global parameter 'diffusionStepsPerStep' is defined, but is not an integer. this parameter must be an integer: '{defineValue}'");
+                }
+                customSymbols.diffusionStepsPerStep = stepsPerStep;
+            }
 
             var result = new LSystemStepper(
                 compiledRules,
@@ -175,13 +184,12 @@ namespace Dman.LSystem.SystemCompiler.Linker
         }
 
         public IEnumerable<BasicRule> CompileAllRules(
-            Dictionary<string, string> compileTimeOverrides,
+            Dictionary<string, string> allReplacementDirectives,
             out SystemLevelRuleNativeData ruleNativeData,
             int openSymbol, int closeSymbol
             )
         {
             var allValidRuntimeParameters = allGlobalRuntimeParams.Select(x => x.name).ToArray();
-            var allReplacementDirectives = GetCompileTimeReplacementsWithOverrides(compileTimeOverrides);
             var parsedRules = allFiles.backing
                 .SelectMany((file, index) =>
                 {

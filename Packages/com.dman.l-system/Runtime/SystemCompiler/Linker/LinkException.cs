@@ -11,7 +11,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
         IMPORT_DISSONANCE,
         GLOBAL_VARIABLE_COLLISION,
         BASE_FILE_IS_LIBRARY,
-        BAD_ORIGIN_FILE
+        BAD_ORIGIN_FILE,
+        BAD_GLOBAL_PARAMETER
     }
 
     public class LinkException : Exception

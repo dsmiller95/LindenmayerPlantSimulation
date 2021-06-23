@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace Dman.LSystem
@@ -17,6 +18,7 @@ namespace Dman.LSystem
         where ParamType : unmanaged
     {
         [NativeDisableParallelForRestriction]
+        [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public NativeArray<int> symbols;
         [NativeDisableParallelForRestriction]
         public JaggedNativeArray<ParamType> parameters;

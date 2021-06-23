@@ -28,7 +28,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         {
             allSymbols = "[]";
             globalCharacters = "[]";
-            this.builtinLibraryNames = builtinLibraries;
+            this.builtinLibraryNames = builtinLibraries ?? new string[0];
             this.fileSource = fileSource;
             this.isLibrary = isLibrary;
             uuid = Guid.NewGuid();

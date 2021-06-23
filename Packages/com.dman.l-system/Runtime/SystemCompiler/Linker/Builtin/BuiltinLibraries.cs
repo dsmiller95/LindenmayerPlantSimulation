@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,11 +7,19 @@ using System.Threading.Tasks;
 
 namespace Dman.LSystem.SystemCompiler.Linker.Builtin
 {
-    public class BuiltinLibraries
+    public class BuiltinLibraries: IEnumerable<LinkedFile>
     {
         private Dictionary<string, LinkedFile> builtinFiles = new Dictionary<string, LinkedFile>();
 
-        public void RegisterBuiltin(LinkedFile builtin)
+        public static BuiltinLibraries Default()
+        {
+            return new BuiltinLibraries
+            {
+                new DiffusionLibrary()
+            };
+        }
+
+        public void Add(LinkedFile builtin)
         {
             this.builtinFiles[builtin.fileSource] = builtin;
         }
@@ -27,6 +36,16 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
                 return file;
             }
             return null;
+        }
+
+        public IEnumerator<LinkedFile> GetEnumerator()
+        {
+            return builtinFiles.Values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return builtinFiles.Values.GetEnumerator();
         }
     }
 }

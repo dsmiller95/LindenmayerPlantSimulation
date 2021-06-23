@@ -47,6 +47,7 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
             customSymbols.hasDiffusion = true;
             customSymbols.diffusionAmount = this.GetExportedSymbol("Amount");
             customSymbols.diffusionNode = this.GetExportedSymbol("Node");
+            customSymbols.diffusionStepsPerStep = 1;
         }
     }
 }

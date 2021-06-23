@@ -172,20 +172,32 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         }
         public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null, bool disposeOldSystem = true)
         {
-            var stepper = StepSystemJob(systemState, globalParameters);
-            while (!stepper.IsComplete())
+#if UNITY_EDITOR
+            try
             {
-                stepper = stepper.StepNextTyped();
+#endif
+                var stepper = StepSystemJob(systemState, globalParameters);
+                while (!stepper.IsComplete())
+                {
+                    stepper = stepper.StepNextTyped();
+                }
+                if (disposeOldSystem)
+                {
+                    systemState.currentSymbols.Dispose();
+                }
+                if (stepper.HasErrored())
+                {
+                    throw new LSystemRuntimeException("Error during stepping");
+                }
+                return stepper.GetData();
+#if UNITY_EDITOR
             }
-            if (disposeOldSystem)
+            catch (System.Exception e)
             {
-                systemState.currentSymbols.Dispose();
+                Debug.LogException(e);
+                throw;
             }
-            if (stepper.HasErrored())
-            {
-                throw new LSystemRuntimeException("Error during stepping");
-            }
-            return stepper.GetData();
+#endif
         }
 
         /// <summary>

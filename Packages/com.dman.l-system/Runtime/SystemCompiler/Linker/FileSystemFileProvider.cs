@@ -8,10 +8,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
         private BuiltinLibraries builtins;
         public FileSystemFileProvider(BuiltinLibraries builtins = null)
         {
-            if(builtins == null)
+            if (builtins == null)
             {
-                builtins = new BuiltinLibraries();
-                builtins.RegisterBuiltin(new DiffusionLibrary());
+                builtins = BuiltinLibraries.Default();
             }
             this.builtins = builtins;
         }

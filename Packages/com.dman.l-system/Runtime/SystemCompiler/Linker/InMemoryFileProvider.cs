@@ -11,6 +11,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public InMemoryFileProvider(BuiltinLibraries builtins = null)
         {
+            if (builtins == null)
+            {
+                builtins = BuiltinLibraries.Default();
+            }
             this.builtins = builtins;
         }
 

@@ -4,6 +4,7 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
@@ -16,6 +17,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /////////////// things owned by this step /////////
         private SymbolString<float> target;
         public SymbolStringBranchingCache branchingCache;
+        private NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
+
+        private DiffusionWorkingDataPack diffusionHelper;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -34,6 +38,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             SymbolStringBranchingCache branchingCache,
             CustomRuleSymbols customSymbols)
         {
+            this.matchSingletonData = matchSingletonData;
             this.branchingCache = branchingCache;
             target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
 
@@ -64,10 +69,40 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 customSymbols = customSymbols
             };
 
-            currentJobHandle = replacementJob.Schedule(
-                matchSingletonData.Length,
-                100
-            );
+
+            diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob);
+
+            var diffusionJob = new DiffusionReplacementJob
+            {
+                matchSingletonData = matchSingletonData,
+
+                sourceData = sourceSymbolString.Data,
+                targetData = target,
+                branchingCache = branchingCache,
+                customSymbols = customSymbols,
+
+                working = diffusionHelper
+            };
+
+            // agressively register dependencies, to ensure that if there is a problem
+            //  when scheduling any one job, they are still tracked.
+            var replacementHandle = replacementJob.Schedule(
+                    matchSingletonData.Length,
+                    100
+                );
+            sourceSymbolString.RegisterDependencyOnData(replacementHandle);
+            nativeData.RegisterDependencyOnData(replacementHandle);
+
+            var diffusionHandle = diffusionJob.Schedule();
+            sourceSymbolString.RegisterDependencyOnData(diffusionHandle);
+            nativeData.RegisterDependencyOnData(diffusionHandle);
+
+            currentJobHandle = JobHandle.CombineDependencies(
+                replacementHandle,
+                diffusionHandle
+             );
+
+
             sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
@@ -78,6 +113,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             currentJobHandle.Complete();
             branchingCache.Dispose();
+            matchSingletonData.Dispose();
+            diffusionHelper.Dispose();
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
@@ -109,6 +146,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             //TODO
             currentJobHandle.Complete();
             target.Dispose();
+            matchSingletonData.Dispose();
+            diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
             return inputDeps;
         }
@@ -117,6 +156,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             currentJobHandle.Complete();
             target.Dispose();
+            matchSingletonData.Dispose();
+            diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
         }
     }
@@ -132,7 +173,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         [DeallocateOnJobCompletion]
         [NativeDisableParallelForRestriction]
         public NativeArray<float> parameterMatchMemory;
-        [DeallocateOnJobCompletion]
+
+        [ReadOnly]
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
         [ReadOnly]
@@ -153,7 +195,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         [NativeDisableParallelForRestriction]
         public SymbolString<float> sourceData;
 
+        [WriteOnly]
         [NativeDisableParallelForRestriction]
+        [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public SymbolString<float> targetData;
 
         [ReadOnly]
@@ -165,8 +209,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         public void Execute(int indexInSymbols)
         {
-            var helperStack = new TmpNativeStack<int>(5);
-
             var matchSingleton = matchSingletonData[indexInSymbols];
             var symbol = sourceData.symbols[indexInSymbols];
             if (matchSingleton.isTrivial)
@@ -175,24 +217,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 // check for custom rules
                 if (customSymbols.hasDiffusion)
                 {
-                    if (symbol == customSymbols.diffusionNode)
+                    if (symbol == customSymbols.diffusionNode || symbol == customSymbols.diffusionAmount)
                     {
-                        DiffusionRule.ApplyDiffusionAtIndex(
-                            sourceData,
-                            targetData,
-                            branchingCache: branchingCache,
-                            indexInSource: indexInSymbols,
-                            indexInTarget: targetIndex,
-                            indexInTargetParameters: matchSingleton.replacementParameterIndexing.index,
-                            customSymbols: customSymbols,
-                            forwardSearchHelperStack: helperStack
-                            );
-                        return;
-                    }
-                    if(symbol == customSymbols.diffusionAmount)
-                    {
-                        // amount node will always dissapear.
-                        // do nothing
                         return;
                     }
                 }
@@ -200,11 +226,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 // match is trivial. just copy the existing symbol and parameters over, nothing else.
                 targetData.symbols[targetIndex] = symbol;
                 var sourceParamIndexer = sourceData.parameters[indexInSymbols];
-                var targetDataIndexer = targetData.parameters[targetIndex] = new JaggedIndexing
+                var targetDataIndexer = new JaggedIndexing
                 {
                     index = matchSingleton.replacementParameterIndexing.index,
                     length = sourceParamIndexer.length
                 };
+                targetData.parameters[targetIndex] = targetDataIndexer;
                 // when trivial, copy out of the source param array directly. As opposed to reading parameters out oof the parameterMatchMemory when evaluating
                 //      a non-trivial match
                 for (int i = 0; i < sourceParamIndexer.length; i++)
@@ -216,9 +243,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             if (!blittableRulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList.length <= 0)
             {
-                matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME;
-                matchSingletonData[indexInSymbols] = matchSingleton;
-                // could recover gracefully. but for now, going to force a failure
+                //throw new System.Exception(LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME.ToString());
+                
                 return;
             }
 
@@ -235,6 +261,114 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 structExpressionSpace
                 );
         }
+    }
+
+
+    public struct DiffusionEdge
+    {
+        public int nodeAIndex;
+        public int nodeBIndex;
+    }
+
+    public struct DiffusionNode
+    {
+        public int indexInTarget;
+        public JaggedIndexing targetParameters;
+
+        public int indexInTempAmountList;
+
+        public int totalResourceTypes;
+        public float diffusionConstant;
+    }
+
+
+    public struct DiffusionWorkingDataPack : INativeDisposable
+    {
+        [NativeDisableParallelForRestriction]
+        public NativeList<DiffusionEdge> allEdges;
+        [NativeDisableParallelForRestriction]
+        public NativeList<DiffusionNode> nodes;
+
+        [NativeDisableParallelForRestriction]
+        public NativeList<float> nodeMaxCapacities;
+        [NativeDisableParallelForRestriction]
+        public NativeList<float> nodeAmountsListA;
+        [NativeDisableParallelForRestriction]
+        public NativeList<float> nodeAmountsListB;
+
+        public DiffusionWorkingDataPack(int estimatedEdges, int estimatedNodes, int estimatedUniqueResources, Allocator allocator = Allocator.TempJob)
+        {
+            allEdges = new NativeList<DiffusionEdge>(estimatedEdges, allocator);
+            nodes = new NativeList<DiffusionNode>(estimatedNodes, allocator);
+
+            nodeMaxCapacities = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+            nodeAmountsListA = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+            nodeAmountsListB = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+        }
+
+        public JobHandle Dispose(JobHandle inputDeps)
+        {
+            return JobHandle.CombineDependencies(
+                JobHandle.CombineDependencies(
+                    allEdges.Dispose(inputDeps),
+                    nodes.Dispose(inputDeps)
+                ),
+                JobHandle.CombineDependencies(
+                    nodeMaxCapacities.Dispose(inputDeps),
+                    nodeAmountsListA.Dispose(inputDeps),
+                    nodeAmountsListB.Dispose(inputDeps)
+                ));
+        }
+
+        public void Dispose()
+        {
+            allEdges.Dispose();
+            nodes.Dispose();
+            nodeMaxCapacities.Dispose();
+            nodeAmountsListA.Dispose();
+            nodeAmountsListB.Dispose();
+        }
+    }
+
+    [BurstCompile]
+    struct DiffusionReplacementJob : IJob
+    {
+        [ReadOnly]
+        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
+
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public SymbolString<float> sourceData;
+
+        [WriteOnly]
+        [NativeDisableParallelForRestriction]
+        [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
+        public SymbolString<float> targetData;
+
+        [ReadOnly]
+        public SymbolStringBranchingCache branchingCache;
+
+        public DiffusionWorkingDataPack working;
+
+        public CustomRuleSymbols customSymbols;
+
+        public void Execute()
+        {
+            if (customSymbols.hasDiffusion)
+            {
+                DiffusionRule.ExtractEdgesAndNodes(sourceData, matchSingletonData, branchingCache, customSymbols, working);
+
+                var latestDataInA = true;
+                for (int i = 0; i < customSymbols.diffusionStepsPerStep; i++)
+                {
+                    DiffusionRule.DiffuseBetween(working, latestDataInA);
+                    latestDataInA = !latestDataInA;
+                }
+
+                DiffusionRule.ApplyDiffusionResults(targetData, working, customSymbols, latestDataInA);
+            }
+        }
+
     }
 
 }

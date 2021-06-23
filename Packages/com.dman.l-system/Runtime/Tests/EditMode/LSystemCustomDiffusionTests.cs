@@ -43,7 +43,8 @@ public class LSystemCustomDiffusionTests
         {
             hasDiffusion = true,
             diffusionNode = 'n',
-            diffusionAmount = 'a'
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 1
         };
         using var basicLSystem = BuildSystem(
             new string[] { },
@@ -65,7 +66,8 @@ public class LSystemCustomDiffusionTests
         {
             hasDiffusion = true,
             diffusionNode = 'n',
-            diffusionAmount = 'a'
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 1
         };
         using var basicLSystem = BuildSystem(
             new string[] { },
@@ -73,11 +75,36 @@ public class LSystemCustomDiffusionTests
 
         Assert.AreEqual("n(0.5, 4, 10)Fa(2)Fn(0.5, 0, 10)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("n(0.5, 4, 10)FFn(0.5, 2, 10)", state.currentSymbols.Data.ToString());
-        state = basicLSystem.StepSystem(state);
         Assert.AreEqual("n(0.5, 3, 10)FFn(0.5, 3, 10)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
         Assert.AreEqual("n(0.5, 3, 10)FFn(0.5, 3, 10)", state.currentSymbols.Data.ToString());
+
+        state.currentSymbols.Dispose();
+    }
+    [Test]
+    public void LSystemAppliesThreeNodeDiffusionAndAddsResource()
+    {
+        LSystemState<float> state = new DefaultLSystemState("n(0.5, 4, 10)a(2)n(0.5, 0, 10)n(0.5, 0, 10)");
+        var customSymbols = new CustomRuleSymbols
+        {
+            hasDiffusion = true,
+            diffusionNode = 'n',
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 1
+        };
+        using var basicLSystem = BuildSystem(
+            new string[] { },
+            customSymbols: customSymbols);
+
+        Assert.AreEqual("n(0.5, 4, 10)a(2)n(0.5, 0, 10)n(0.5, 0, 10)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.5, 3, 10)n(0.5, 3, 10)n(0.5, 0, 10)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.5, 3, 10)n(0.5, 1.5, 10)n(0.5, 1.5, 10)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.5, 2.25, 10)n(0.5, 2.25, 10)n(0.5, 1.5, 10)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.5, 2.25, 10)n(0.5, 1.875, 10)n(0.5, 1.875, 10)", state.currentSymbols.Data.ToString());
 
         state.currentSymbols.Dispose();
     }
@@ -90,7 +117,8 @@ public class LSystemCustomDiffusionTests
         {
             hasDiffusion = true,
             diffusionNode = 'n',
-            diffusionAmount = 'a'
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 1
         };
         using var basicLSystem = BuildSystem(
             new string[] { },
@@ -120,7 +148,8 @@ public class LSystemCustomDiffusionTests
         {
             hasDiffusion = true,
             diffusionNode = 'n',
-            diffusionAmount = 'a'
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 1
         };
         using var basicLSystem = BuildSystem(
             new string[] { },
@@ -147,7 +176,8 @@ public class LSystemCustomDiffusionTests
         {
             hasDiffusion = true,
             diffusionNode = 'n',
-            diffusionAmount = 'a'
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 1
         };
         using var basicLSystem = BuildSystem(
             new string[] { },
@@ -169,6 +199,41 @@ public class LSystemCustomDiffusionTests
 
         state.currentSymbols.Dispose();
     }
+    [Test]
+    public void LSystemDiffusesThroughChainSmootherWithMoreDiffusionSteps()
+    {
+        LSystemState<float> state = new DefaultLSystemState("n(0.25, 18, 20)Fn(0.25, 0, 20)Fn(0.25, 0, 20)");
+        var customSymbols = new CustomRuleSymbols
+        {
+            hasDiffusion = true,
+            diffusionNode = 'n',
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 2
+        };
+        using var basicLSystem = BuildSystem(
+            new string[] { },
+            customSymbols: customSymbols);
+
+        Assert.AreEqual("n(0.25, 18, 20)Fn(0.25, 0, 20)Fn(0.25, 0, 20)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.25, 11.25, 20)Fn(0.25, 5.625, 20)Fn(0.25, 1.125, 20)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.25, 8.859375, 20)Fn(0.25, 5.976563, 20)Fn(0.25, 3.164063, 20)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.25, 7.602539, 20)Fn(0.25, 5.998535, 20)Fn(0.25, 4.398926, 20)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.25, 6.901062, 20)Fn(0.25, 5.999908, 20)Fn(0.25, 5.09903, 20)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.25, 6.506824, 20)Fn(0.25, 5.999994, 20)Fn(0.25, 5.493181, 20)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.25, 6.285088, 20)Fn(0.25, 6, 20)Fn(0.25, 5.714913, 20)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.25, 6.160362, 20)Fn(0.25, 6, 20)Fn(0.25, 5.839638, 20)", state.currentSymbols.Data.ToString());
+        state = basicLSystem.StepSystem(state);
+        Assert.AreEqual("n(0.25, 6.090203, 20)Fn(0.25, 6, 20)Fn(0.25, 5.909797, 20)", state.currentSymbols.Data.ToString());
+
+        state.currentSymbols.Dispose();
+    }
 
     [Test]
     public void LSystemAppliesCapToDiffusion()
@@ -178,7 +243,8 @@ public class LSystemCustomDiffusionTests
         {
             hasDiffusion = true,
             diffusionNode = 'n',
-            diffusionAmount = 'a'
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 1
         };
         using var basicLSystem = BuildSystem(
             new string[] { },
@@ -202,7 +268,8 @@ public class LSystemCustomDiffusionTests
         {
             hasDiffusion = true,
             diffusionNode = 'n',
-            diffusionAmount = 'a'
+            diffusionAmount = 'a',
+            diffusionStepsPerStep = 1
         };
         using var basicLSystem = BuildSystem(
             new string[] { },
