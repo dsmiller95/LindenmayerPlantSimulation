@@ -1,26 +1,61 @@
 ﻿using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using System;
+using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.CustomRules
 {
-    public struct DiffusionRule
+    [BurstCompile]
+    struct DiffusionReplacementJob : IJob
     {
+        [ReadOnly]
+        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
-        public static void ExtractEdgesAndNodes(
-                SymbolString<float> source,
-                NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
-                SymbolStringBranchingCache branchingCache,
-                CustomRuleSymbols customSymbols,
-                DiffusionWorkingDataPack workingData)
+        [ReadOnly]
+        [NativeDisableParallelForRestriction]
+        public SymbolString<float> sourceData;
+
+        [WriteOnly]
+        [NativeDisableParallelForRestriction]
+        [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
+        public SymbolString<float> targetData;
+
+        [ReadOnly]
+        public SymbolStringBranchingCache branchingCache;
+
+        public DiffusionWorkingDataPack working;
+
+        public CustomRuleSymbols customSymbols;
+
+
+        public void Execute()
+        {
+            if (customSymbols.hasDiffusion)
+            {
+                ExtractEdgesAndNodes();
+
+                var latestDataInA = true;
+                for (int i = 0; i < customSymbols.diffusionStepsPerStep; i++)
+                {
+                    DiffuseBetween(latestDataInA);
+                    latestDataInA = !latestDataInA;
+                }
+
+                ApplyDiffusionResults(latestDataInA);
+            }
+        }
+
+        private void ExtractEdgesAndNodes()
         {
             var branchSymbolParentStack = new TmpNativeStack<BranchEvent>(5);
             var currentNodeParent = -1;
 
-            for (int symbolIndex = 0; symbolIndex < source.Length; symbolIndex++)
+            for (int symbolIndex = 0; symbolIndex < sourceData.Length; symbolIndex++)
             {
-                var symbol = source[symbolIndex];
+                var symbol = sourceData[symbolIndex];
                 if(symbol == customSymbols.diffusionNode)
                 {
                     if (currentNodeParent >= 0)
@@ -28,13 +63,13 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                         var newEdge = new DiffusionEdge
                         {
                             nodeAIndex = currentNodeParent,
-                            nodeBIndex = workingData.nodes.Length
+                            nodeBIndex = working.nodes.Length
                         };
-                        workingData.allEdges.Add(newEdge);
+                        working.allEdges.Add(newEdge);
                     }
-                    currentNodeParent = workingData.nodes.Length;
+                    currentNodeParent = working.nodes.Length;
 
-                    var nodeParams = source.parameters[symbolIndex];
+                    var nodeParams = sourceData.parameters[symbolIndex];
                     var nodeSingleton = matchSingletonData[symbolIndex];
 
                     var newNode = new DiffusionNode
@@ -42,21 +77,21 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                         indexInTarget = nodeSingleton.replacementSymbolIndexing.index,
                         targetParameters = nodeSingleton.replacementParameterIndexing,
 
-                        indexInTempAmountList = workingData.nodeAmountsListA.Length,
+                        indexInTempAmountList = working.nodeAmountsListA.Length,
 
                         totalResourceTypes = (nodeParams.length - 1) / 2,
-                        diffusionConstant = source.parameters[nodeParams, 0],
+                        diffusionConstant = sourceData.parameters[nodeParams, 0],
                     };
                     newNode.targetParameters.length = nodeParams.length;
-                    workingData.nodes.Add(newNode);
+                    working.nodes.Add(newNode);
 
                     for (int resourceType = 0; resourceType < newNode.totalResourceTypes; resourceType++)
                     {
-                        var currentAmount = source.parameters[nodeParams, resourceType * 2 + 1];
-                        var maxCapacity = source.parameters[nodeParams, resourceType * 2 + 1 + 1];
-                        workingData.nodeAmountsListA.Add(currentAmount);
-                        workingData.nodeAmountsListB.Add(0);
-                        workingData.nodeMaxCapacities.Add(maxCapacity);
+                        var currentAmount = sourceData.parameters[nodeParams, resourceType * 2 + 1];
+                        var maxCapacity = sourceData.parameters[nodeParams, resourceType * 2 + 1 + 1];
+                        working.nodeAmountsListA.Add(currentAmount);
+                        working.nodeAmountsListB.Add(0);
+                        working.nodeMaxCapacities.Add(maxCapacity);
                     }
 
                 }else if (symbol == customSymbols.diffusionAmount)
@@ -66,11 +101,11 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                         // problem: the amount will dissapear
                         continue;
                     }
-                    var modifiedNode = workingData.nodes[currentNodeParent];
-                    var amountParameters = source.parameters[symbolIndex];
+                    var modifiedNode = working.nodes[currentNodeParent];
+                    var amountParameters = sourceData.parameters[symbolIndex];
                     for (int resourceType = 0; resourceType < modifiedNode.totalResourceTypes && resourceType < amountParameters.length; resourceType++)
                     {
-                        workingData.nodeAmountsListA[modifiedNode.indexInTempAmountList + resourceType] += source.parameters[amountParameters, resourceType];
+                        working.nodeAmountsListA[modifiedNode.indexInTempAmountList + resourceType] += sourceData.parameters[amountParameters, resourceType];
                     }
                 }else if(symbol == branchingCache.branchOpenSymbol)
                 {
@@ -93,29 +128,28 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
             public int currentNodeParent;
         }
 
-        public static void DiffuseBetween(DiffusionWorkingDataPack workingData, bool diffuseAtoB)
+        private void DiffuseBetween(bool diffuseAtoB)
         {
-            var sourceDiffuseAmounts = diffuseAtoB ? workingData.nodeAmountsListA : workingData.nodeAmountsListB;
-            var targetDiffuseAmounts = diffuseAtoB ? workingData.nodeAmountsListB : workingData.nodeAmountsListA;
+            var sourceDiffuseAmounts = diffuseAtoB ? working.nodeAmountsListA : working.nodeAmountsListB;
+            var targetDiffuseAmounts = diffuseAtoB ? working.nodeAmountsListB : working.nodeAmountsListA;
 
             targetDiffuseAmounts.CopyFrom(sourceDiffuseAmounts);
 
-            for (int edgeIndex = 0; edgeIndex < workingData.allEdges.Length; edgeIndex++)
+            for (int edgeIndex = 0; edgeIndex < working.allEdges.Length; edgeIndex++)
             {
-                var edge = workingData.allEdges[edgeIndex];
-                DiffuseAcrossEdge(workingData, edge, sourceDiffuseAmounts, targetDiffuseAmounts);
+                var edge = working.allEdges[edgeIndex];
+                DiffuseAcrossEdge(edge, sourceDiffuseAmounts, targetDiffuseAmounts);
             }
         }
 
-        private static void DiffuseAcrossEdge(
-            DiffusionWorkingDataPack workingData,
+        private void DiffuseAcrossEdge(
             DiffusionEdge edge,
             NativeList<float> sourceAmounts,
             NativeList<float> targetAmounts
             )
         {
-            var nodeA = workingData.nodes[edge.nodeAIndex];
-            var nodeB = workingData.nodes[edge.nodeBIndex];
+            var nodeA = working.nodes[edge.nodeAIndex];
+            var nodeB = working.nodes[edge.nodeBIndex];
 
             var diffusionConstant = (nodeA.diffusionConstant + nodeB.diffusionConstant) / 2f;
             for (
@@ -124,10 +158,10 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                 resource++)
             {
                 var oldNodeAValue = sourceAmounts[nodeA.indexInTempAmountList + resource];
-                var nodeAValueCap = workingData.nodeMaxCapacities[nodeA.indexInTempAmountList + resource];
+                var nodeAValueCap = working.nodeMaxCapacities[nodeA.indexInTempAmountList + resource];
 
                 var oldNodeBValue = sourceAmounts[nodeB.indexInTempAmountList + resource];
-                var nodeBValueCap = workingData.nodeMaxCapacities[nodeB.indexInTempAmountList + resource];
+                var nodeBValueCap = working.nodeMaxCapacities[nodeB.indexInTempAmountList + resource];
 
                 var aToBTransferredAmount = diffusionConstant * (oldNodeBValue - oldNodeAValue);
 
@@ -151,27 +185,90 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
             }
         }
 
-        public static void ApplyDiffusionResults(
-            SymbolString<float> target,
-            DiffusionWorkingDataPack workingData,
-            CustomRuleSymbols customSymbols,
-            bool latestDataIsInA)
+        private void ApplyDiffusionResults(bool latestDataIsInA)
         {
-            var amountData = latestDataIsInA ? workingData.nodeAmountsListA : workingData.nodeAmountsListB;
-            for (int nodeIndex = 0; nodeIndex < workingData.nodes.Length; nodeIndex++)
+            var amountData = latestDataIsInA ? working.nodeAmountsListA : working.nodeAmountsListB;
+            for (int nodeIndex = 0; nodeIndex < working.nodes.Length; nodeIndex++)
             {
-                var node = workingData.nodes[nodeIndex];
-                target[node.indexInTarget] = customSymbols.diffusionNode;
+                var node = working.nodes[nodeIndex];
+                targetData[node.indexInTarget] = customSymbols.diffusionNode;
 
-                target.parameters[node.indexInTarget] = node.targetParameters;
+                targetData.parameters[node.indexInTarget] = node.targetParameters;
 
-                target.parameters[node.targetParameters, 0] = node.diffusionConstant;
+                targetData.parameters[node.targetParameters, 0] = node.diffusionConstant;
                 for (int resourceType = 0; resourceType < node.totalResourceTypes; resourceType++)
                 {
-                    target.parameters[node.targetParameters, resourceType * 2 + 1] = amountData[node.indexInTempAmountList + resourceType];
-                    target.parameters[node.targetParameters, resourceType * 2 + 2] = workingData.nodeMaxCapacities[node.indexInTempAmountList + resourceType];
+                    targetData.parameters[node.targetParameters, resourceType * 2 + 1] = amountData[node.indexInTempAmountList + resourceType];
+                    targetData.parameters[node.targetParameters, resourceType * 2 + 2] = working.nodeMaxCapacities[node.indexInTempAmountList + resourceType];
                 }
             }
         }
     }
+
+    public struct DiffusionEdge
+    {
+        public int nodeAIndex;
+        public int nodeBIndex;
+    }
+
+    public struct DiffusionNode
+    {
+        public int indexInTarget;
+        public JaggedIndexing targetParameters;
+
+        public int indexInTempAmountList;
+
+        public int totalResourceTypes;
+        public float diffusionConstant;
+    }
+
+
+    public struct DiffusionWorkingDataPack : INativeDisposable
+    {
+        [NativeDisableParallelForRestriction]
+        public NativeList<DiffusionEdge> allEdges;
+        [NativeDisableParallelForRestriction]
+        public NativeList<DiffusionNode> nodes;
+
+        [NativeDisableParallelForRestriction]
+        public NativeList<float> nodeMaxCapacities;
+        [NativeDisableParallelForRestriction]
+        public NativeList<float> nodeAmountsListA;
+        [NativeDisableParallelForRestriction]
+        public NativeList<float> nodeAmountsListB;
+
+        public DiffusionWorkingDataPack(int estimatedEdges, int estimatedNodes, int estimatedUniqueResources, Allocator allocator = Allocator.TempJob)
+        {
+            allEdges = new NativeList<DiffusionEdge>(estimatedEdges, allocator);
+            nodes = new NativeList<DiffusionNode>(estimatedNodes, allocator);
+
+            nodeMaxCapacities = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+            nodeAmountsListA = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+            nodeAmountsListB = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+        }
+
+        public JobHandle Dispose(JobHandle inputDeps)
+        {
+            return JobHandle.CombineDependencies(
+                JobHandle.CombineDependencies(
+                    allEdges.Dispose(inputDeps),
+                    nodes.Dispose(inputDeps)
+                ),
+                JobHandle.CombineDependencies(
+                    nodeMaxCapacities.Dispose(inputDeps),
+                    nodeAmountsListA.Dispose(inputDeps),
+                    nodeAmountsListB.Dispose(inputDeps)
+                ));
+        }
+
+        public void Dispose()
+        {
+            allEdges.Dispose();
+            nodes.Dispose();
+            nodeMaxCapacities.Dispose();
+            nodeAmountsListA.Dispose();
+            nodeAmountsListB.Dispose();
+        }
+    }
+
 }
