@@ -4,6 +4,11 @@
 #symbols +-!/\&^F$`@
 #matches +-!
 
+
+## diffusion
+#define diffusionStepsPerStep 10
+#define trunkDiffusion 0.1
+#define leafDiffusion 0.1
 #include diffusion (Node->r) (Amount->a)
 #symbols ra
 #matches r
@@ -17,7 +22,7 @@
 #define flowerMeshIndex (flowerColorOuterIndex + flowerColorInnerIndex * 3)
 
 ## variables controlled by genes
-#define primaryBranchInternodes 5
+#define primaryBranchInternodes 10
 #define flowerFailureChance 0.5
 #define stamenSize 0.6
 ## ranges from 0 to 2. 0 is least ripe, 2 is most ripe.
@@ -36,8 +41,6 @@
 #define flowerAge 7
 #define timeToFruit 10
 
-#define trunkDiffusion 0.4
-#define leafDiffusion 0.0
 
 #symbols s
 s(x) -> a(x)s(x)

@@ -171,7 +171,7 @@ public class LSystemCustomDiffusionTests
     [Test]
     public void LSystemDiffusesThroughChain()
     {
-        LSystemState<float> state = new DefaultLSystemState("n(0.5, 0, 10)Fn(0.5, 0, 10)Fn(0.5, 8, 10)");
+        LSystemState<float> state = new DefaultLSystemState("n(0.5, 18, 10)Fn(0.5, 0, 10)Fn(0.5, 0, 10)");
         var customSymbols = new CustomRuleSymbols
         {
             hasDiffusion = true,
@@ -183,19 +183,19 @@ public class LSystemCustomDiffusionTests
             new string[] { },
             customSymbols: customSymbols);
 
-        Assert.AreEqual("n(0.5, 0, 10)Fn(0.5, 0, 10)Fn(0.5, 8, 10)", state.currentSymbols.Data.ToString());
+        Assert.AreEqual("n(0.5, 18, 10)Fn(0.5, 0, 10)Fn(0.5, 0, 10)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("n(0.5, 0, 10)Fn(0.5, 4, 10)Fn(0.5, 4, 10)", state.currentSymbols.Data.ToString());
+        Assert.AreEqual("n(0.5, 9, 10)Fn(0.5, 9, 10)Fn(0.5, 0, 10)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("n(0.5, 2, 10)Fn(0.5, 2, 10)Fn(0.5, 4, 10)", state.currentSymbols.Data.ToString());
+        Assert.AreEqual("n(0.5, 9, 10)Fn(0.5, 4.5, 10)Fn(0.5, 4.5, 10)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("n(0.5, 2, 10)Fn(0.5, 3, 10)Fn(0.5, 3, 10)", state.currentSymbols.Data.ToString());
+        Assert.AreEqual("n(0.5, 6.75, 10)Fn(0.5, 6.75, 10)Fn(0.5, 4.5, 10)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("n(0.5, 2.5, 10)Fn(0.5, 2.5, 10)Fn(0.5, 3, 10)", state.currentSymbols.Data.ToString());
+        Assert.AreEqual("n(0.5, 6.75, 10)Fn(0.5, 5.625, 10)Fn(0.5, 5.625, 10)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("n(0.5, 2.5, 10)Fn(0.5, 2.75, 10)Fn(0.5, 2.75, 10)", state.currentSymbols.Data.ToString());
+        Assert.AreEqual("n(0.5, 6.1875, 10)Fn(0.5, 6.1875, 10)Fn(0.5, 5.625, 10)", state.currentSymbols.Data.ToString());
         state = basicLSystem.StepSystem(state);
-        Assert.AreEqual("n(0.5, 2.625, 10)Fn(0.5, 2.625, 10)Fn(0.5, 2.75, 10)", state.currentSymbols.Data.ToString());
+        Assert.AreEqual("n(0.5, 6.1875, 10)Fn(0.5, 5.90625, 10)Fn(0.5, 5.90625, 10)", state.currentSymbols.Data.ToString());
 
         state.currentSymbols.Dispose();
     }

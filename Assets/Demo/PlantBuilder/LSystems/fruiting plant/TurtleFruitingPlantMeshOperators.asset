@@ -74,7 +74,7 @@ MonoBehaviour:
     IndividualScale: {x: 1, y: 1, z: 1}
     ParameterScale: 1
     VolumetricScale: 0
-    ScalePerParameter: {x: 0.2, y: 0.2, z: 0.2}
+    ScalePerParameter: {x: 0.15, y: 0.15, z: 0.15}
     AlsoMove: 0
     UseThickness: 0
   - Character: 74

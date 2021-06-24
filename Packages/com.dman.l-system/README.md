@@ -240,14 +240,37 @@ Some libraries are defined by default and provide additional functionality to th
 
 ### Diffusion
 
-Import with `#include diffusion (Node->n) (Amount->a)`. This module will provide an efficient diffusion simulation, diffusing resources between Nodes. The amount diffused across each edge
-is directly proportional to the difference in resource amounts between nodes. If A and B are the amounts of resources in two nodes, the amount diffused into node A is defined as `(B - A) * (Ca + Cb) / 2`. Ca and Cb are the diffusion constants for each node.
+Import with `#include diffusion (Node->n) (Amount->a)`. This module will provide an efficient diffusion simulation, diffusing resources between Nodes. The amount diffused across each edge is directly proportional to the difference in resource amounts between nodes. If A and B are the amounts of resources in two nodes, the amount diffused into node A is defined as `(B - A) * (Ca + Cb) / 2`. Ca and Cb are the diffusion constants for each node.
+
+Since this is a rough approximation of true diffusion, there are ways to tweak the process to trade accuracy for efficiency. You can define a directive as so: `#define diffusionStepsPerStep 2` to set how many steps the diffusion simulation will step through per step of the L-system. With about 100-1000 resource nodes, each extra diffusion step per step costs about 0.01ms on a worker thread. The higher this value is, the smoother the diffusion simulation will be. For example, compare how a system with a high diffusion constant and 1 `diffusionStepsPerStep` with a system with half the diffusion constant, and 2 `diffusionStepsPerStep`
+
+coefficient = 0.5 ; diffusionStepsPerStep = 1
+| A | B | C |
+| - | - | - |
+| 18 | 0 | 0 |
+| 9 | 9 | 0 |
+| 9 | 4.5 | 4.5 |
+| 6.75 | 6.75 | 4.5 |
+| 6.75 | 5.625 | 5.625 |
+| 6.1875 | 6.1875 | 5.625 |
+
+coefficient = 0.25 ; diffusionStepsPerStep = 2
+| A | B | C |
+| - | - | - |
+| 18 | 0 | 0 |
+| 11.25 | 5.625 | 1.125 |
+| 8.85 | 5.97 | 3.16 |
+| 7.60 | 5.99 | 4.39 |
+| 6.90 | 5.99 | 5.09 |
+| 6.50 | 6 | 5.49 |
 
 The Node symbol will mark a diffusion node, and all diffusion will occur in the parameters. The Node -must- have an odd number of parameters, and they're used as follows:
 
 - parameter 0
   - used as a diffusion constant for this node, and controls how quickly all resources diffuse out of and into this node.
   - when diffusing resources between nodes, the diffusion constants between the nodes are averaged
+  - bad values of this parameter can lead to unpredictable behavior. For normal diffusion simulation, this value should always be between 0 and 0.5. Higher values would mean faster diffusion.
+  - In general, if this value is greater than `1/(number of nodes adjacent to this node)`, then its likely that the diffusion simulation will break down and start producing very large values, alternating positive and negative
 - parameters 1...n
   - Split into pairs. Each pair defines a unique resource type, which diffuse separately
   - The first item in a pair is the actual amount of that type of resource in this node
