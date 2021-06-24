@@ -1,13 +1,13 @@
-
-
-#axiom /(20)@(1)r(0.3, 0, 100)R(0)S(0.5)T(5)
+#axiom /(20)@(1)r(0.3, 0, 100, 10, 100)R(0)S(2)T(5)
 #iterations 1000
 
 #symbols +-/\&^F$@!`
 #matches @!`
 
 
-#define defaultMaxResource 100
+#define defaultMaxWater 100
+#define defaultMaxGlucose 20
+#define leafProduction 0.05
 
 #symbols SWQB
 
@@ -18,18 +18,24 @@
 
 S(x) -> a(x)S(x)
 
-
 #symbols TFK
 #matches TK
-P(0.2) | r(a, water, c) < T(x) : water >= 1 && x >  0 -> a(-1)FT(x - 1)
-P(0.8) | r(a, water, c) < T(x) : water >= 1 && x >  0 -> T(x)
-P(0.7) | r(a, water, c) < T(x) : water >= 2 && x <= 0 -> a(-2)/(90)[F+(18)r(.1, 0, defaultMaxResource)R(0)T(5)][FW-(18)r(.1, 0, defaultMaxResource)R(0)T(5)]
-P(0.3) | r(a, water, c) < T(x) : water >= 2 && x <= 0 -> a(-2)FK
+P(0.2) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)FT(x - 1)
+P(0.8) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> T(x)
+P(0.7) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2, -2)/(137)[\(180)&(90)l(.1)][&(90)l(.1)][F+(18)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)][FW-(18)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)]
+P(0.3) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2)FK
 
+## L is a leaf
+## l is a precursor to a leaf
+#symbols lL
+r(a, water, c, glucose, d) < l(x) : water >= 1 && glucose >= 1 -> L(x)
+r(a, water, c, glucose, d) < L(x) : water >= leafProduction / 2 -> a(-leafProduction / 2, leafProduction)L(x)
+
+## R is the resource visualizer
 #symbols R
+r(a, water, c, glucose, d) < R(x) -> R(glucose)
+							 R(x) -> 
 
-r(a, water, c) < R(x) -> R(water)
-				 R(x) -> 
-				 
+
 				 
 				 

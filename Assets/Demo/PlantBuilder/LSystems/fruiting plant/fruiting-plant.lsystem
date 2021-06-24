@@ -6,7 +6,7 @@
 
 
 ## diffusion
-#define diffusionStepsPerStep 10
+#define diffusionStepsPerStep 20
 #define trunkDiffusion 0.1
 #define leafDiffusion 0.1
 #include diffusion (Node->r) (Amount->a)
@@ -23,7 +23,7 @@
 
 ## variables controlled by genes
 #define primaryBranchInternodes 10
-#define flowerFailureChance 0.5
+#define flowerFailureChance 0.3
 #define stamenSize 0.6
 ## ranges from 0 to 2. 0 is least ripe, 2 is most ripe.
 #define fruitColorIndex 1
