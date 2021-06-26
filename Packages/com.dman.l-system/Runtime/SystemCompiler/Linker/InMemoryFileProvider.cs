@@ -26,7 +26,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public LinkedFile ReadLinkedFile(string fullIdentifier)
         {
             var builtin = builtins?.GetBuiltinIfExists(fullIdentifier);
-            if(builtin != null)
+            if (builtin != null)
             {
                 return builtin;
             }

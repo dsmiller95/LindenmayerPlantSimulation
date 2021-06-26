@@ -4,9 +4,9 @@ using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using System.Collections.Generic;
 
 public class BasicRuleTests
 {

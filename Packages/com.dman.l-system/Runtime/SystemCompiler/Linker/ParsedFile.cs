@@ -11,7 +11,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
     /// Represents one compiled file, included as part of the linking process
     /// </summary>
     [System.Serializable]
-    public class ParsedFile: LinkedFile
+    public class ParsedFile : LinkedFile
     {
         public Guid uuid;
         public List<string> ruleLines;
@@ -28,7 +28,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         {
             allSymbols = "[]";
             globalCharacters = "[]";
-            this.builtinLibraryNames = builtinLibraries ?? new string[0];
+            builtinLibraryNames = builtinLibraries ?? new string[0];
             this.fileSource = fileSource;
             this.isLibrary = isLibrary;
             uuid = Guid.NewGuid();

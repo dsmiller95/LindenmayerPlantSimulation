@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dman.LSystem.SystemCompiler.Linker.Builtin
 {
@@ -26,11 +23,11 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
 
         public override int GetExportedSymbol(string exportedName)
         {
-            if(exportedName == "Node")
+            if (exportedName == "Node")
             {
                 return this.GetSymbolInFile('n');
             }
-            if(exportedName == "Amount")
+            if (exportedName == "Amount")
             {
                 return this.GetSymbolInFile('a');
             }
@@ -45,8 +42,8 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
         public override void SetCustomRuleSymbols(ref SystemRuntime.CustomRules.CustomRuleSymbols customSymbols)
         {
             customSymbols.hasDiffusion = true;
-            customSymbols.diffusionAmount = this.GetExportedSymbol("Amount");
-            customSymbols.diffusionNode = this.GetExportedSymbol("Node");
+            customSymbols.diffusionAmount = GetExportedSymbol("Amount");
+            customSymbols.diffusionNode = GetExportedSymbol("Node");
             customSymbols.diffusionStepsPerStep = 1;
         }
     }

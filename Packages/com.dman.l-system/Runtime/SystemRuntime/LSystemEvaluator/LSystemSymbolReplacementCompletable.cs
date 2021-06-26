@@ -241,7 +241,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             if (!blittableRulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList.length <= 0)
             {
                 //throw new System.Exception(LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME.ToString());
-                
+
                 return;
             }
 
