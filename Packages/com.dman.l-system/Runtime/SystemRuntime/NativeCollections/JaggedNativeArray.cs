@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
@@ -12,8 +13,10 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         where TData : unmanaged
     {
         [NativeDisableParallelForRestriction]
+        [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public NativeArray<TData> data;
         [NativeDisableParallelForRestriction]
+        [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public NativeArray<JaggedIndexing> indexing;
 
         public int Length => indexing.Length;

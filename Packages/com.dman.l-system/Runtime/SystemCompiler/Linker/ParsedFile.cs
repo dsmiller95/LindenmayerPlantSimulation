@@ -11,33 +11,24 @@ namespace Dman.LSystem.SystemCompiler.Linker
     /// Represents one compiled file, included as part of the linking process
     /// </summary>
     [System.Serializable]
-    public class ParsedFile
+    public class ParsedFile : LinkedFile
     {
-        public bool isLibrary;
-        public string fileSource;
         public Guid uuid;
-
-        public string axiom = null;
-        public int iterations = -1;
         public List<string> ruleLines;
 
-        /// <summary>
-        /// These are used to build a list of truly global parameters, when the files are grouped into a <see cref="LinkedFileSet"/>
-        /// </summary>
-        public List<DefineDirective> delaredInFileCompileTimeParameters;
-        public List<RuntimeParameterAndDefault> declaredInFileRuntimeParameters;
 
-        public string allSymbols = "[]";
         public string contextualMatchingCharacters = "[]";
-        public string globalCharacters = "[]";
 
-        public List<IncludeLink> links;
         public List<ExportDirective> exports;
 
-        public List<SymbolRemap> allSymbolAssignments = new List<SymbolRemap>();
+        private string[] builtinLibraryNames;
 
-        public ParsedFile(string fileSource, string fullFile, bool isLibrary = false)
+
+        public ParsedFile(string fileSource, string fullFile, bool isLibrary = false, string[] builtinLibraries = null)
         {
+            allSymbols = "[]";
+            globalCharacters = "[]";
+            builtinLibraryNames = builtinLibraries ?? new string[0];
             this.fileSource = fileSource;
             this.isLibrary = isLibrary;
             uuid = Guid.NewGuid();
@@ -93,7 +84,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             }
         }
 
-        public IEnumerable<string> GetRulesWithReplacements(Dictionary<string, string> replacementDirectives)
+        public override IEnumerable<string> GetRulesWithReplacements(Dictionary<string, string> replacementDirectives)
         {
             IEnumerable<string> rulesPostReplacement = ruleLines;
             foreach (var replacement in replacementDirectives)
@@ -107,13 +98,13 @@ namespace Dman.LSystem.SystemCompiler.Linker
         /// returns every symbol which can be search contextually by rules in this file
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<int> GetAllIncludedContextualSymbols()
+        public override IEnumerable<int> GetAllIncludedContextualSymbols()
         {
             return contextualMatchingCharacters
-                .Select(x => GetSymbolInFile(x));
+                .Select(x => this.GetSymbolInFile(x));
         }
 
-        public int GetExportedSymbol(string exportedName)
+        public override int GetExportedSymbol(string exportedName)
         {
             var sourceSymbol = exports.Find(x => x.name == exportedName);
             if (sourceSymbol == null)
@@ -128,15 +119,6 @@ namespace Dman.LSystem.SystemCompiler.Linker
             return remappedSymbolInSource.remappedSymbol;
         }
 
-        public int GetSymbolInFile(char symbol)
-        {
-            var match = allSymbolAssignments.Find(x => x.sourceCharacter == symbol);
-            if (match == null)
-            {
-                throw new Exception($"{fileSource} does not contain requested symbol '{symbol}'. Did you forget to declare it in a <color=blue>#symbols</color> directive?");
-            }
-            return match.remappedSymbol;
-        }
 
         private void ParseDirective(string directiveText)
         {
@@ -249,11 +231,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     {
                         throw new SyntaxException($"include directive requires a filepath", directiveMatch.Groups["parameter"]);
                     }
-                    var relativeImportPath = includeDirective.Groups["filepath"].Value;
-                    var absoluteIdentifier = Path.Combine(Path.GetDirectoryName(fileSource), relativeImportPath);
+                    var namedImport = includeDirective.Groups["filepath"].Value;
+                    if (!builtinLibraryNames.Contains(namedImport))
+                    {
+                        namedImport = Path.Combine(Path.GetDirectoryName(fileSource), namedImport);
+                    }
                     var link = new IncludeLink
                     {
-                        fullImportIdentifier = absoluteIdentifier,
+                        fullImportIdentifier = namedImport,
                         importedSymbols = new List<IncludeImportRemap>()
                     };
                     if (includeDirective.Groups["remapping"].Success)

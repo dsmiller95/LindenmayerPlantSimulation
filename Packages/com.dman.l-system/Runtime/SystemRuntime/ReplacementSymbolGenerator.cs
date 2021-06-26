@@ -79,11 +79,12 @@ namespace Dman.LSystem.SystemRuntime
                 ref int writeIndexInParamSpace,
                 int indexInParams)
             {
-                var targetSpace = targetParams[indexInParams] = new JaggedIndexing
+                var targetSpace = new JaggedIndexing
                 {
                     index = writeIndexInParamSpace,
                     length = (ushort)structExpressionSpace.length
                 };
+                targetParams[indexInParams] = targetSpace;
                 for (int i = 0; i < structExpressionSpace.length; i++)
                 {
                     var structExp = structExpressionData[i + structExpressionSpace.index];

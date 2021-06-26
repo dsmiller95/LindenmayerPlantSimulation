@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TurtleFruitingPlantSignalVisualizers
   m_EditorClassIdentifier: 
   meshKeys:
-  - Character: 114
+  - Character: 82
     MeshRef: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
     MeshVariants: []
     material: {fileID: 2100000, guid: dbf3708e7e0fe054782a97f8cb4bceeb, type: 2}

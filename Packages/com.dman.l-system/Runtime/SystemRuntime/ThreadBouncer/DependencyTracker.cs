@@ -50,6 +50,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         public void DisposeImmediate()
         {
             if (IsDisposed) return;
+            dependencies.Complete();
             Data.Dispose();
             IsDisposed = true;
         }

@@ -23,7 +23,7 @@ namespace Dman.LSystem.UnityObjects
         private void Start()
         {
             Debug.Log("Developer setting up");
-            if(systemObject == null)
+            if (systemObject == null)
             {
                 throw new System.Exception("no l system object set in the developer");
             }

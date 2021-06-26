@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
+﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System.Collections.Generic;
@@ -16,15 +17,15 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     {
         public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public Unity.Mathematics.Random randResult;
-
+        public CustomRuleSymbols customSymbols;
 
         /////////////// things owned by this step /////////
         public NativeArray<int> totalSymbolCount;
         public NativeArray<int> totalSymbolParameterCount;
-        public SymbolStringBranchingCache branchingCache;
 
 
         /////////////// things transferred to the next step /////////
+        public SymbolStringBranchingCache branchingCache;
         public NativeArray<float> globalParamNative;
         public NativeArray<float> tmpParameterMemory;
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
@@ -43,8 +44,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             IDictionary<int, MaxMatchMemoryRequirements> maxMemoryRequirementsPerSymbol,
             int branchOpenSymbol,
             int branchCloseSymbol,
-            ISet<int>[] includedCharactersByRuleIndex)
+            ISet<int>[] includedCharactersByRuleIndex,
+            CustomRuleSymbols customSymbols)
         {
+            this.customSymbols = customSymbols;
             randResult = systemState.randomProvider;
             sourceSymbolString = systemState.currentSymbols;
             nativeData = lSystemNativeData;
@@ -125,7 +128,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData = matchSingletonData,
                 totalResultSymbolCount = totalSymbolCount,
                 totalResultParameterCount = totalSymbolParameterCount,
-                sourceParameterIndexes = systemState.currentSymbols.Data.newParameters.indexing,
+                sourceData = systemState.currentSymbols.Data,
+                customSymbols = customSymbols
             };
             currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
             systemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
@@ -143,7 +147,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var totalNewParamSize = totalSymbolParameterCount[0];
             totalSymbolCount.Dispose();
             totalSymbolParameterCount.Dispose();
-            branchingCache.Dispose();
 
             return new LSystemSymbolReplacementCompletable(
                 randResult,
@@ -153,7 +156,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 globalParamNative,
                 tmpParameterMemory,
                 matchSingletonData,
-                nativeData)
+                nativeData,
+                branchingCache,
+                customSymbols)
             {
                 randResult = randResult,
             };
@@ -307,9 +312,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public NativeArray<int> totalResultSymbolCount;
         public NativeArray<int> totalResultParameterCount;
 
-        public NativeArray<JaggedIndexing> sourceParameterIndexes;
+        public SymbolString<float> sourceData;
+
+        public CustomRuleSymbols customSymbols;
         public void Execute()
         {
+            var sourceParameterIndexes = sourceData.parameters;
             var totalResultSymbolSize = 0;
             var totalResultParamSize = 0;
             for (int i = 0; i < matchSingletonData.Length; i++)
@@ -318,16 +326,22 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 singleton.replacementSymbolIndexing.index = totalResultSymbolSize;
                 singleton.replacementParameterIndexing.index = totalResultParamSize;
                 matchSingletonData[i] = singleton;
-                if (singleton.isTrivial)
-                {
-                    totalResultSymbolSize += 1;
-                    totalResultParamSize += sourceParameterIndexes[i].length;
-                }
-                else
+                if (!singleton.isTrivial)
                 {
                     totalResultSymbolSize += singleton.replacementSymbolIndexing.length;
                     totalResultParamSize += singleton.replacementParameterIndexing.length;
+                    continue;
                 }
+                // custom rules
+                if (customSymbols.hasDiffusion && customSymbols.diffusionAmount == sourceData[i])
+                {
+                    //... do nothing if it matches the custom diffusion symbol.
+                    // will copy 0 data over, the symbol dissapears.
+                    continue;
+                }
+                // default behavior
+                totalResultSymbolSize += 1;
+                totalResultParamSize += sourceParameterIndexes[i].length;
             }
 
             totalResultSymbolCount[0] = totalResultSymbolSize;

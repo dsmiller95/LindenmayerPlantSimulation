@@ -78,7 +78,7 @@ namespace Dman.LSystem.SystemRuntime
                         matchedParameters,
                         parameterSpace,
                         operatorData,
-                        target.newParameters,
+                        target.parameters,
                         structExpressionSpace,
                         ref writeIndexInParams,
                         symbolIndex + firstIndexInSymbols

@@ -19,8 +19,8 @@ public class LSystemTests
         {
             index = 0,
             length = 0
-        }, systemState.currentSymbols.Data.newParameters.indexing[0]);
-        Assert.AreEqual(0, systemState.currentSymbols.Data.newParameters.data.Length);
+        }, systemState.currentSymbols.Data.parameters.indexing[0]);
+        Assert.AreEqual(0, systemState.currentSymbols.Data.parameters.data.Length);
         systemState.currentSymbols.Dispose();
     }
     [Test]

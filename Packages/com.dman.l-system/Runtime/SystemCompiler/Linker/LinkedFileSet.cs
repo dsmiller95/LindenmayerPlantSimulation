@@ -1,12 +1,11 @@
 ﻿using Dman.LSystem.SystemRuntime;
+using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.Utilities.SerializableUnityObjects;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemCompiler.Linker
 {
@@ -16,7 +15,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public string originFile;
 
         public SerializableDictionary<string, int> fileIndexesByFullIdentifier = new SerializableDictionary<string, int>();
-        public List<ParsedFile> allFiles;
+        public BinarySerialized<List<LinkedFile>> allFiles;
         public List<SymbolDefinition> allSymbolDefinitionsLeafFirst;
         public SerializableDictionary<int, int> defaultSymbolDefinitionIndexBySymbol = new SerializableDictionary<int, int>();
 
@@ -25,7 +24,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public LinkedFileSet(
             string originFile,
-            Dictionary<string, ParsedFile> allFilesByFullIdentifier,
+            Dictionary<string, LinkedFile> allFilesByFullIdentifier,
             List<SymbolDefinition> allSymbolDefinitionsLeafFirst)
         {
             fileIndexesByFullIdentifier = new SerializableDictionary<string, int>();
@@ -38,13 +37,13 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 throw new LinkException(LinkExceptionType.BASE_FILE_IS_LIBRARY, $"Origin file '{originFile}' is a library. origin file must be a .lsystem file");
             }
 
-            allFiles = new List<ParsedFile>();
+            allFiles = new BinarySerialized<List<LinkedFile>>();
             var compileTimes = new Dictionary<string, DefineDirective>();
             var runTimes = new Dictionary<string, RuntimeParameterAndDefault>();
             foreach (var kvp in allFilesByFullIdentifier)
             {
-                allFiles.Add(kvp.Value);
-                fileIndexesByFullIdentifier[kvp.Key] = allFiles.Count - 1;
+                allFiles.data.Add(kvp.Value);
+                fileIndexesByFullIdentifier[kvp.Key] = allFiles.data.Count - 1;
 
                 foreach (var compileTime in kvp.Value.delaredInFileCompileTimeParameters)
                 {
@@ -73,6 +72,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 allGlobalRuntimeParams = runTimes.Values.ToList();
             }
 
+
             defaultSymbolDefinitionIndexBySymbol = new SerializableDictionary<int, int>();
             for (var i = 0; i < allSymbolDefinitionsLeafFirst.Count; i++)
             {
@@ -93,12 +93,11 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public SymbolString<float> GetAxiom(Allocator allocator = Allocator.Persistent)
         {
-
             if (!fileIndexesByFullIdentifier.ContainsKey(originFile))
             {
                 throw new LinkException(LinkExceptionType.BAD_ORIGIN_FILE, $"could not find origin file '{originFile}'");
             }
-            var originFileData = allFiles[fileIndexesByFullIdentifier[originFile]];
+            var originFileData = allFiles.data[fileIndexesByFullIdentifier[originFile]];
 
             return SymbolString<float>.FromString(originFileData.axiom, allocator, chr => originFileData.GetSymbolInFile(chr));
         }
@@ -114,7 +113,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             {
                 throw new LinkException(LinkExceptionType.BAD_ORIGIN_FILE, $"could not find origin file '{originFile}'");
             }
-            var originFileData = allFiles[fileIndexesByFullIdentifier[originFile]];
+            var originFileData = allFiles.data[fileIndexesByFullIdentifier[originFile]];
             return originFileData.iterations;
         }
 
@@ -128,7 +127,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             {
                 throw new LSystemRuntimeException("could not find file: " + fileName);
             }
-            var fileData = allFiles[fileIndexesByFullIdentifier[fileName]];
+            var fileData = allFiles.data[fileIndexesByFullIdentifier[fileName]];
             return fileData.GetSymbolInFile(characterInFile);
         }
 
@@ -139,19 +138,34 @@ namespace Dman.LSystem.SystemCompiler.Linker
             var openSymbol = GetSymbol(originFile, '[');
             var closeSymbol = GetSymbol(originFile, ']');
 
+            var allReplacementDirectives = GetCompileTimeReplacementsWithOverrides(globalCompileTimeOverrides);
+
             var compiledRules = CompileAllRules(
-                globalCompileTimeOverrides,
+                allReplacementDirectives,
                 out var nativeRuleData,
                 openSymbol, closeSymbol);
 
 
-            var everySymbol = new HashSet<int>(allFiles.SelectMany(x => x.allSymbolAssignments).Select(x => x.remappedSymbol));
+            var everySymbol = new HashSet<int>(allFiles.data.SelectMany(x => x.allSymbolAssignments).Select(x => x.remappedSymbol));
 
-            var includedByFile = allFiles
+            var includedByFile = allFiles.data
                 .Select(x => x.GetAllIncludedContextualSymbols())
                 .Select(x => new HashSet<int>(x))
                 .ToArray();
 
+            var customSymbols = new CustomRuleSymbols();
+            foreach (var file in allFiles.data)
+            {
+                file.SetCustomRuleSymbols(ref customSymbols);
+            }
+            if (allReplacementDirectives.TryGetValue("diffusionStepsPerStep", out var defineValue))
+            {
+                if (!int.TryParse(defineValue, out var stepsPerStep))
+                {
+                    throw new LinkException(LinkExceptionType.BAD_GLOBAL_PARAMETER, $"global parameter 'diffusionStepsPerStep' is defined, but is not an integer. this parameter must be an integer: '{defineValue}'");
+                }
+                customSymbols.diffusionStepsPerStep = stepsPerStep;
+            }
 
             var result = new LSystemStepper(
                 compiledRules,
@@ -159,21 +173,21 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 expectedGlobalParameters: allGlobalRuntimeParams.Count,
                 includedCharactersByRuleIndex: includedByFile,
                 branchOpenSymbol: openSymbol,
-                branchCloseSymbol: closeSymbol
+                branchCloseSymbol: closeSymbol,
+                customSymbols: customSymbols
             );
             UnityEngine.Profiling.Profiler.EndSample();
             return result;
         }
 
         public IEnumerable<BasicRule> CompileAllRules(
-            Dictionary<string, string> compileTimeOverrides,
+            Dictionary<string, string> allReplacementDirectives,
             out SystemLevelRuleNativeData ruleNativeData,
             int openSymbol, int closeSymbol
             )
         {
             var allValidRuntimeParameters = allGlobalRuntimeParams.Select(x => x.name).ToArray();
-            var allReplacementDirectives = GetCompileTimeReplacementsWithOverrides(compileTimeOverrides);
-            var parsedRules = allFiles
+            var parsedRules = allFiles.data
                 .SelectMany((file, index) =>
                 {
                     Func<char, int> remappingFunction = character => file.GetSymbolInFile(character);

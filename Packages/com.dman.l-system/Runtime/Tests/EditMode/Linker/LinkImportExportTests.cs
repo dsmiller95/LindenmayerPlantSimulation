@@ -1,4 +1,3 @@
-using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemCompiler.Linker;
 using NUnit.Framework;
 using System.Linq;
@@ -28,11 +27,11 @@ B -> AB
         var linker = new FileLinker(fileSystem);
         var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
+        var rootFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(5, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(5, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZ[]").Count());
 
-        var libFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
+        var libFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
         Assert.AreEqual(4, libFile.allSymbolAssignments.Count);
         Assert.AreEqual(4, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
@@ -67,11 +66,11 @@ B -> AB
         var linker = new FileLinker(fileSystem);
         var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
+        var rootFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(7, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(7, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZDE[]").Count());
 
-        var libFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
+        var libFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
         Assert.AreEqual(6, libFile.allSymbolAssignments.Count);
         Assert.AreEqual(6, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("ABDE[]").Count());
 
@@ -108,11 +107,11 @@ B -> AB
         var linker = new FileLinker(fileSystem);
         var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
+        var rootFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(5, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(5, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XYZ[]").Count());
 
-        var libFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
+        var libFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib.lsyslib"]];
         Assert.AreEqual(4, libFile.allSymbolAssignments.Count);
         Assert.AreEqual(4, libFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
@@ -145,15 +144,15 @@ B -> AB
         var linker = new FileLinker(fileSystem);
         var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
+        var rootFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(4, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(4, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY[]").Count());
 
-        var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
+        var lib0File = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
         Assert.AreEqual(4, lib0File.allSymbolAssignments.Count);
         Assert.AreEqual(4, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
-        var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
+        var lib1File = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
         Assert.AreEqual(4, lib1File.allSymbolAssignments.Count);
         Assert.AreEqual(4, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD[]").Count());
 
@@ -196,19 +195,19 @@ B -> AB
         var linker = new FileLinker(fileSystem);
         var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
+        var rootFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(4, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(4, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY[]").Count());
 
-        var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
+        var lib0File = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
         Assert.AreEqual(4, lib0File.allSymbolAssignments.Count);
         Assert.AreEqual(4, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
-        var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
+        var lib1File = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
         Assert.AreEqual(4, lib1File.allSymbolAssignments.Count);
         Assert.AreEqual(4, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD[]").Count());
 
-        var lib2File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib2.lsyslib"]];
+        var lib2File = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib2.lsyslib"]];
         Assert.AreEqual(4, lib2File.allSymbolAssignments.Count);
         Assert.AreEqual(4, lib2File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("EF[]").Count());
 
@@ -256,19 +255,19 @@ B -> AB
         var linker = new FileLinker(fileSystem);
         var linkedSet = linker.LinkFiles("root.lsystem");
 
-        var rootFile = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
+        var rootFile = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["root.lsystem"]];
         Assert.AreEqual(4, rootFile.allSymbolAssignments.Count);
         Assert.AreEqual(4, rootFile.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("XY[]").Count());
 
-        var lib0File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
+        var lib0File = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib0.lsyslib"]];
         Assert.AreEqual(4, lib0File.allSymbolAssignments.Count);
         Assert.AreEqual(4, lib0File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("AB[]").Count());
 
-        var lib1File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
+        var lib1File = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib1.lsyslib"]];
         Assert.AreEqual(4, lib1File.allSymbolAssignments.Count);
         Assert.AreEqual(4, lib1File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("CD[]").Count());
 
-        var lib2File = linkedSet.allFiles[linkedSet.fileIndexesByFullIdentifier["lib2.lsyslib"]];
+        var lib2File = linkedSet.allFiles.data[linkedSet.fileIndexesByFullIdentifier["lib2.lsyslib"]];
         Assert.AreEqual(4, lib2File.allSymbolAssignments.Count);
         Assert.AreEqual(4, lib2File.allSymbolAssignments.Select(x => x.sourceCharacter).Intersect("EF[]").Count());
 

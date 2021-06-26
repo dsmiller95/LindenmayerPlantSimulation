@@ -1,0 +1,37 @@
+#axiom ABBBBBBBBBBBBB
+#iterations 1000
+
+#symbols +-/\&^F$@!`
+#matches @!`
+
+## low fidelity
+#define diffusionStepsPerStep 1
+#define diffusionRatio 0.5
+
+## high fidelity
+## #define diffusionStepsPerStep 5
+## #define diffusionRatio 0.1
+
+## high volume
+## #define diffusionStepsPerStep 5
+## #define diffusionRatio 0.5
+
+#symbols ra
+#matches r
+#include diffusion (Node->r) (Amount->a)
+
+#symbols S
+S(x) -> a(x)S(x)
+
+#symbols AB
+A -> r(diffusionRatio, 0, 100)R(0)S(2)FFFFF
+B -> r(diffusionRatio, 0, 100)R(0)FFFFF
+
+## R is the resource visualizer
+#symbols R
+r(a, water, c) < R(x) -> R(water)
+				 R(x) -> 
+
+
+				 
+				 

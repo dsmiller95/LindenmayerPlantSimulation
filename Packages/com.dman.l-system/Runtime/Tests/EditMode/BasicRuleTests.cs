@@ -4,9 +4,9 @@ using Dman.LSystem.SystemRuntime;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using System.Collections.Generic;
 
 public class BasicRuleTests
 {
@@ -46,7 +46,7 @@ public class BasicRuleTests
         globalParams = globalParams ?? new float[0];
         using var globalNative = new NativeArray<float>(globalParams, Allocator.Persistent);
 
-        var expectedTotalParamReplacement = expectedReplacement.newParameters.data.Length;
+        var expectedTotalParamReplacement = expectedReplacement.parameters.data.Length;
 
         using var paramMemory = new NativeArray<float>(paramTempMemorySize, Allocator.Persistent);
         using var branchCache = new SymbolStringBranchingCache('[', ']', new[] { totalIncluded }, ruleNativeData);
@@ -76,14 +76,14 @@ public class BasicRuleTests
         Assert.AreEqual(expectedReplacementPatternIndex, matchSingleData.selectedReplacementPattern);
         Assert.AreEqual(paramTempMemorySize, matchSingleData.tmpParameterMemorySpace.length, "parameter temp memory size mismatch");
         Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacementSymbolIndexing.length, "replacement symbols size mismatch");
-        Assert.AreEqual(expectedReplacement.newParameters.data.Length, matchSingleData.replacementParameterIndexing.length, "replacement parameter size mismatch");
+        Assert.AreEqual(expectedReplacement.parameters.data.Length, matchSingleData.replacementParameterIndexing.length, "replacement parameter size mismatch");
 
         matchSingleData.replacementSymbolIndexing.index = 0;
         matchSingleData.replacementParameterIndexing.index = 0;
 
         using var resultSymbols = new SymbolString<float>(
                 expectedReplacement.symbols.Length,
-                expectedReplacement.newParameters.data.Length,
+                expectedReplacement.parameters.data.Length,
                 Allocator.Persistent);
         ruleFromString.AsBlittable().WriteReplacementSymbols(
             globalNative,
@@ -204,7 +204,7 @@ public class BasicRuleTests
             Assert.AreEqual(0, matchSingleData.replacementParameterIndexing.length);
 
             var symbolRawData = symbols.Data;
-            symbolRawData.newParameters[0] = new JaggedIndexing
+            symbolRawData.parameters[0] = new JaggedIndexing
             {
                 index = 0,
                 length = 1

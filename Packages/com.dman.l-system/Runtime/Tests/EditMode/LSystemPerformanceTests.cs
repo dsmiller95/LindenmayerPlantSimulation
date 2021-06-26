@@ -149,6 +149,32 @@ public class LSystemPerformanceTests
             .Run();
         state.currentSymbols.Data.Dispose();
     }
+    [Test, Performance]
+    public void DiffusionNetworkPerformance()
+    {
+        LSystemState<float> state = new DefaultLSystemState("n(0.5, 0, 100)[n(0.5, 50, 100)[n(0.5, 0, 100)][n(0.5, 0, 100)]][n(0.5, 50, 100)[n(0.5, 0, 100)][n(0.5, 0, 100)]]");
+        using var basicLSystem = LSystemCustomDiffusionTests.BuildSystem(
+            new string[] { },
+            customSymbols: new Dman.LSystem.SystemRuntime.CustomRules.CustomRuleSymbols
+            {
+                hasDiffusion = true,
+                diffusionAmount = 'a',
+                diffusionNode = 'n',
+                diffusionStepsPerStep = 1
+            });
+        using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+        Assert.AreEqual("n(0.5, 50, 100)[n(0.5, -25, 100)[n(0.5, 25, 100)][n(0.5, 25, 100)]][n(0.5, -25, 100)[n(0.5, 25, 100)][n(0.5, 25, 100)]]", nextState.Data.ToString());
+        Measure.Method(() =>
+        {
+            using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+        })
+            .WarmupCount(10)
+            .MeasurementCount(10)
+            .IterationsPerMeasurement(10)
+            .GC()
+            .Run();
+        state.currentSymbols.Data.Dispose();
+    }
 
     [Test, Performance]
     public void BiggerInputFastGrowthPerformance()

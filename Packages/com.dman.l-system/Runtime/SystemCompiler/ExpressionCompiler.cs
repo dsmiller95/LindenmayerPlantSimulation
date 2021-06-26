@@ -19,7 +19,7 @@ namespace Dman.LSystem.SystemCompiler
             {
                 if (parameters.ContainsKey(parameterName))
                 {
-                    throw new SyntaxException($"Attempted to declare the same parameter twice: '${parameterName}");
+                    throw new SyntaxException($"Attempted to declare the same parameter twice: '{parameterName}'");
                 }
                 parameters[parameterName] = Expression.Parameter(typeof(float), parameterName);
             }

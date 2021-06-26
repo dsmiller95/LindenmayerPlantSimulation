@@ -1,8 +1,10 @@
-﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
+﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
@@ -14,6 +16,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         /////////////// things owned by this step /////////
         private SymbolString<float> target;
+        public SymbolStringBranchingCache branchingCache;
+        private NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
+
+        private DiffusionReplacementJob.DiffusionWorkingDataPack diffusionHelper;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -28,8 +34,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             NativeArray<float> globalParamNative,
             NativeArray<float> tmpParameterMemory,
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
-            DependencyTracker<SystemLevelRuleNativeData> nativeData)
+            DependencyTracker<SystemLevelRuleNativeData> nativeData,
+            SymbolStringBranchingCache branchingCache,
+            CustomRuleSymbols customSymbols)
         {
+            this.matchSingletonData = matchSingletonData;
+            this.branchingCache = branchingCache;
             target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
 
             this.randResult = randResult;
@@ -54,13 +64,42 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 outcomeData = nativeData.Data.ruleOutcomeMemorySpace,
 
                 targetData = target,
-                blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol
+                blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol,
+                branchingCache = branchingCache,
+                customSymbols = customSymbols
             };
 
-            currentJobHandle = replacementJob.Schedule(
-                matchSingletonData.Length,
-                100
-            );
+
+            var diffusionJob = new DiffusionReplacementJob
+            {
+                matchSingletonData = matchSingletonData,
+
+                sourceData = sourceSymbolString.Data,
+                targetData = target,
+                branchingCache = branchingCache,
+                customSymbols = customSymbols,
+                working = diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob)
+            };
+
+            // agressively register dependencies, to ensure that if there is a problem
+            //  when scheduling any one job, they are still tracked.
+            var replacementHandle = replacementJob.Schedule(
+                    matchSingletonData.Length,
+                    100
+                );
+            sourceSymbolString.RegisterDependencyOnData(replacementHandle);
+            nativeData.RegisterDependencyOnData(replacementHandle);
+
+            var diffusionHandle = diffusionJob.Schedule();
+            sourceSymbolString.RegisterDependencyOnData(diffusionHandle);
+            nativeData.RegisterDependencyOnData(diffusionHandle);
+
+            currentJobHandle = JobHandle.CombineDependencies(
+                replacementHandle,
+                diffusionHandle
+             );
+
+
             sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
@@ -70,6 +109,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public ICompletable StepNext()
         {
             currentJobHandle.Complete();
+            branchingCache.Dispose();
+            matchSingletonData.Dispose();
+            diffusionHelper.Dispose();
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
@@ -101,6 +143,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             //TODO
             currentJobHandle.Complete();
             target.Dispose();
+            matchSingletonData.Dispose();
+            diffusionHelper.Dispose();
+            if (branchingCache.IsCreated) branchingCache.Dispose();
             return inputDeps;
         }
 
@@ -108,6 +153,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             currentJobHandle.Complete();
             target.Dispose();
+            matchSingletonData.Dispose();
+            diffusionHelper.Dispose();
+            if (branchingCache.IsCreated) branchingCache.Dispose();
         }
     }
 
@@ -122,7 +170,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         [DeallocateOnJobCompletion]
         [NativeDisableParallelForRestriction]
         public NativeArray<float> parameterMatchMemory;
-        [DeallocateOnJobCompletion]
+
+        [ReadOnly]
         public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
         [ReadOnly]
@@ -131,6 +180,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolData;
+
         [ReadOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<StructExpression> structExpressionSpace;
@@ -142,11 +192,17 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         [NativeDisableParallelForRestriction]
         public SymbolString<float> sourceData;
 
+        [WriteOnly]
         [NativeDisableParallelForRestriction]
+        [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public SymbolString<float> targetData;
 
         [ReadOnly]
         public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
+        [ReadOnly]
+        public SymbolStringBranchingCache branchingCache;
+
+        public CustomRuleSymbols customSymbols;
 
         public void Execute(int indexInSymbols)
         {
@@ -154,29 +210,38 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var symbol = sourceData.symbols[indexInSymbols];
             if (matchSingleton.isTrivial)
             {
-                // if match is trivial, just copy the symbol over, nothing else.
                 var targetIndex = matchSingleton.replacementSymbolIndexing.index;
+                // check for custom rules
+                if (customSymbols.hasDiffusion)
+                {
+                    if (symbol == customSymbols.diffusionNode || symbol == customSymbols.diffusionAmount)
+                    {
+                        return;
+                    }
+                }
+
+                // match is trivial. just copy the existing symbol and parameters over, nothing else.
                 targetData.symbols[targetIndex] = symbol;
-                var sourceParamIndexer = sourceData.newParameters[indexInSymbols];
-                var targetDataIndexer = targetData.newParameters[targetIndex] = new JaggedIndexing
+                var sourceParamIndexer = sourceData.parameters[indexInSymbols];
+                var targetDataIndexer = new JaggedIndexing
                 {
                     index = matchSingleton.replacementParameterIndexing.index,
                     length = sourceParamIndexer.length
                 };
+                targetData.parameters[targetIndex] = targetDataIndexer;
                 // when trivial, copy out of the source param array directly. As opposed to reading parameters out oof the parameterMatchMemory when evaluating
                 //      a non-trivial match
                 for (int i = 0; i < sourceParamIndexer.length; i++)
                 {
-                    targetData.newParameters[targetDataIndexer, i] = sourceData.newParameters[sourceParamIndexer, i];
+                    targetData.parameters[targetDataIndexer, i] = sourceData.parameters[sourceParamIndexer, i];
                 }
                 return;
             }
 
             if (!blittableRulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList.length <= 0)
             {
-                matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME;
-                matchSingletonData[indexInSymbols] = matchSingleton;
-                // could recover gracefully. but for now, going to force a failure
+                //throw new System.Exception(LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME.ToString());
+
                 return;
             }
 
@@ -194,5 +259,4 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 );
         }
     }
-
 }

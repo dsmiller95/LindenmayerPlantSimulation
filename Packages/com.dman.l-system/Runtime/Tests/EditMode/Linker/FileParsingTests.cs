@@ -1,4 +1,3 @@
-using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemCompiler.Linker;
 using NUnit.Framework;
 using System.Linq;

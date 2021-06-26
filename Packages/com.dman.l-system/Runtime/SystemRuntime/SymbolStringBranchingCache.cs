@@ -128,14 +128,14 @@ namespace Dman.LSystem.SystemRuntime
                         indexInSymbolTarget = FindOpeningBranchIndexReadonly(indexInSymbolTarget) - 1;
                     }
                     else if (currentSymbol == symbolToMatch.targetSymbol &&
-                        symbolToMatch.parameterLength == symbolString.newParameters[indexInSymbolTarget].length)
+                        symbolToMatch.parameterLength == symbolString.parameters[indexInSymbolTarget].length)
                     {
                         // copy the parameters in reverse order, so they can be reversed in-place at end
                         //  on success
-                        var paramIndexing = symbolString.newParameters[indexInSymbolTarget];
+                        var paramIndexing = symbolString.parameters[indexInSymbolTarget];
                         for (int i = paramIndexing.length - 1; i >= 0; i--)
                         {
-                            parameterCopyMemory[paramsCopiedToMem + firstParameterCopyIndex] = symbolString.newParameters[paramIndexing, i];
+                            parameterCopyMemory[paramsCopiedToMem + firstParameterCopyIndex] = symbolString.parameters[paramIndexing, i];
                             paramsCopiedToMem++;
                         }
 
@@ -189,8 +189,8 @@ namespace Dman.LSystem.SystemRuntime
         }
 
         /// <summary>
-        /// Assumes that <paramref name="closingBranchIndex"/> is already an index of a closing branch symbol, without checking
-        ///     will return info without modifying the state of this object
+        /// Assumes that <paramref name="closingBranchIndex"/> is already an index of a closing branch symbol, without checking.
+        ///     Will return info without modifying the state of this object
         /// </summary>
         /// <param name="closingBranchIndex"></param>
         /// <returns></returns>
@@ -346,10 +346,10 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         targetIndexesToMatchIndexes.Add(indexInTarget, indexInMatch);
 
-                        var paramsToCopy = symbolString.newParameters[indexInTarget];
+                        var paramsToCopy = symbolString.parameters[indexInTarget];
                         for (int paramIndex = 0; paramIndex < paramsToCopy.length; paramIndex++)
                         {
-                            parameterCopyMemory[firstParameterCopyIndex + paramsCopiedToMem] = symbolString.newParameters[paramsToCopy, paramIndex];
+                            parameterCopyMemory[firstParameterCopyIndex + paramsCopiedToMem] = symbolString.parameters[paramsToCopy, paramIndex];
                             paramsCopiedToMem++;
                         }
 

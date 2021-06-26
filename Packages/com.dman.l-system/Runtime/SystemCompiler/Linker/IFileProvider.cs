@@ -2,6 +2,6 @@
 {
     public interface IFileProvider
     {
-        public ParsedFile ReadLinkedFile(string fullIdentifier);
+        public LinkedFile ReadLinkedFile(string fullIdentifier);
     }
 }
