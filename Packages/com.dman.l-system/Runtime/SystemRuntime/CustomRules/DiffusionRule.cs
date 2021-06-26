@@ -1,6 +1,4 @@
-﻿using Dman.LSystem.SystemRuntime.LSystemEvaluator;
-using Dman.LSystem.SystemRuntime.NativeCollections;
-using System;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -26,7 +24,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
         [ReadOnly]
         public SymbolStringBranchingCache branchingCache;
 
-        public DiffusionWorkingDataPack working;
+        internal DiffusionWorkingDataPack working;
 
         public CustomRuleSymbols customSymbols;
 
@@ -56,7 +54,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
             for (int symbolIndex = 0; symbolIndex < sourceData.Length; symbolIndex++)
             {
                 var symbol = sourceData[symbolIndex];
-                if(symbol == customSymbols.diffusionNode)
+                if (symbol == customSymbols.diffusionNode)
                 {
                     if (currentNodeParent >= 0)
                     {
@@ -94,9 +92,10 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                         working.nodeMaxCapacities.Add(maxCapacity);
                     }
 
-                }else if (symbol == customSymbols.diffusionAmount)
+                }
+                else if (symbol == customSymbols.diffusionAmount)
                 {
-                    if(currentNodeParent < 0)
+                    if (currentNodeParent < 0)
                     {
                         // problem: the amount will dissapear
                         continue;
@@ -107,14 +106,16 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                     {
                         working.nodeAmountsListA[modifiedNode.indexInTempAmountList + resourceType] += sourceData.parameters[amountParameters, resourceType];
                     }
-                }else if(symbol == branchingCache.branchOpenSymbol)
+                }
+                else if (symbol == branchingCache.branchOpenSymbol)
                 {
                     branchSymbolParentStack.Push(new BranchEvent
                     {
                         openBranchSymbolIndex = symbolIndex,
                         currentNodeParent = currentNodeParent
                     });
-                }else if(symbol == branchingCache.branchCloseSymbol)
+                }
+                else if (symbol == branchingCache.branchCloseSymbol)
                 {
                     var lastBranchState = branchSymbolParentStack.Pop();
                     currentNodeParent = lastBranchState.currentNodeParent;
@@ -203,71 +204,71 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                 }
             }
         }
-    }
 
-    public struct DiffusionEdge
-    {
-        public int nodeAIndex;
-        public int nodeBIndex;
-    }
-
-    public struct DiffusionNode
-    {
-        public int indexInTarget;
-        public JaggedIndexing targetParameters;
-
-        public int indexInTempAmountList;
-
-        public int totalResourceTypes;
-        public float diffusionConstant;
-    }
-
-
-    public struct DiffusionWorkingDataPack : INativeDisposable
-    {
-        [NativeDisableParallelForRestriction]
-        public NativeList<DiffusionEdge> allEdges;
-        [NativeDisableParallelForRestriction]
-        public NativeList<DiffusionNode> nodes;
-
-        [NativeDisableParallelForRestriction]
-        public NativeList<float> nodeMaxCapacities;
-        [NativeDisableParallelForRestriction]
-        public NativeList<float> nodeAmountsListA;
-        [NativeDisableParallelForRestriction]
-        public NativeList<float> nodeAmountsListB;
-
-        public DiffusionWorkingDataPack(int estimatedEdges, int estimatedNodes, int estimatedUniqueResources, Allocator allocator = Allocator.TempJob)
+        internal struct DiffusionEdge
         {
-            allEdges = new NativeList<DiffusionEdge>(estimatedEdges, allocator);
-            nodes = new NativeList<DiffusionNode>(estimatedNodes, allocator);
-
-            nodeMaxCapacities = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
-            nodeAmountsListA = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
-            nodeAmountsListB = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+            public int nodeAIndex;
+            public int nodeBIndex;
         }
 
-        public JobHandle Dispose(JobHandle inputDeps)
+        internal struct DiffusionNode
         {
-            return JobHandle.CombineDependencies(
-                JobHandle.CombineDependencies(
-                    allEdges.Dispose(inputDeps),
-                    nodes.Dispose(inputDeps)
-                ),
-                JobHandle.CombineDependencies(
-                    nodeMaxCapacities.Dispose(inputDeps),
-                    nodeAmountsListA.Dispose(inputDeps),
-                    nodeAmountsListB.Dispose(inputDeps)
-                ));
+            public int indexInTarget;
+            public JaggedIndexing targetParameters;
+
+            public int indexInTempAmountList;
+
+            public int totalResourceTypes;
+            public float diffusionConstant;
         }
 
-        public void Dispose()
+
+        internal struct DiffusionWorkingDataPack : INativeDisposable
         {
-            allEdges.Dispose();
-            nodes.Dispose();
-            nodeMaxCapacities.Dispose();
-            nodeAmountsListA.Dispose();
-            nodeAmountsListB.Dispose();
+            [NativeDisableParallelForRestriction]
+            public NativeList<DiffusionEdge> allEdges;
+            [NativeDisableParallelForRestriction]
+            public NativeList<DiffusionNode> nodes;
+
+            [NativeDisableParallelForRestriction]
+            public NativeList<float> nodeMaxCapacities;
+            [NativeDisableParallelForRestriction]
+            public NativeList<float> nodeAmountsListA;
+            [NativeDisableParallelForRestriction]
+            public NativeList<float> nodeAmountsListB;
+
+            public DiffusionWorkingDataPack(int estimatedEdges, int estimatedNodes, int estimatedUniqueResources, Allocator allocator = Allocator.TempJob)
+            {
+                allEdges = new NativeList<DiffusionEdge>(estimatedEdges, allocator);
+                nodes = new NativeList<DiffusionNode>(estimatedNodes, allocator);
+
+                nodeMaxCapacities = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+                nodeAmountsListA = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+                nodeAmountsListB = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
+            }
+
+            public JobHandle Dispose(JobHandle inputDeps)
+            {
+                return JobHandle.CombineDependencies(
+                    JobHandle.CombineDependencies(
+                        allEdges.Dispose(inputDeps),
+                        nodes.Dispose(inputDeps)
+                    ),
+                    JobHandle.CombineDependencies(
+                        nodeMaxCapacities.Dispose(inputDeps),
+                        nodeAmountsListA.Dispose(inputDeps),
+                        nodeAmountsListB.Dispose(inputDeps)
+                    ));
+            }
+
+            public void Dispose()
+            {
+                allEdges.Dispose();
+                nodes.Dispose();
+                nodeMaxCapacities.Dispose();
+                nodeAmountsListA.Dispose();
+                nodeAmountsListB.Dispose();
+            }
         }
     }
 

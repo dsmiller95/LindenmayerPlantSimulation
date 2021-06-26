@@ -19,7 +19,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public SymbolStringBranchingCache branchingCache;
         private NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
-        private DiffusionWorkingDataPack diffusionHelper;
+        private DiffusionReplacementJob.DiffusionWorkingDataPack diffusionHelper;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -70,8 +70,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             };
 
 
-            diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob);
-
             var diffusionJob = new DiffusionReplacementJob
             {
                 matchSingletonData = matchSingletonData,
@@ -80,8 +78,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 targetData = target,
                 branchingCache = branchingCache,
                 customSymbols = customSymbols,
-
-                working = diffusionHelper
+                working = diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob)
             };
 
             // agressively register dependencies, to ensure that if there is a problem
