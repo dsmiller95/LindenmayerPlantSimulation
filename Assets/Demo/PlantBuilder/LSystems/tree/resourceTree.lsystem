@@ -1,5 +1,6 @@
-#axiom /(20)@(1)r(0.3, 0, 100, 10, 20)R(0)S(2)F[&(90)L(0.05)]T(5)
+#axiom /(-50)@(1)r(0.3, 0, 100, 10, 20)R(0)S(2)F[&(90)L(0.05)]T(5)
 #iterations 1000
+
 
 #symbols +-/\&^F$@!`
 #matches @!`
@@ -9,6 +10,8 @@
 #define defaultMaxWater 100
 #define defaultMaxGlucose 20
 #define leafProduction 0.05
+
+
 
 #symbols SWQB
 
@@ -21,10 +24,11 @@ S(x) -> a(x)S(x)
 
 #symbols TFK
 #matches TK
-P(0.2) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)FT(x - 1)
-P(0.8) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> T(x)
-P(0.7) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2, -2)/(137)[\(180)&(90)l(.1)][&(90)l(.1)][F+(18)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)][FW-(18)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)]
-P(0.3) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2)FK
+P(0.5) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)FT(x - 1)
+P(0.5) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> T(x)
+
+P(0.5) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2, -2)/(137)[\(180)&(90)l(.1)][&(90)l(.1)][+(18)Fr(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)][-(18)Fr(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)]
+P(0.5) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2)FK
 
 ## L is a leaf
 ## l is a precursor to a leaf

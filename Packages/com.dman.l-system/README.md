@@ -270,14 +270,20 @@ The Amount symbol will mark an amount to add to the nearest diffusion node. As a
 
 # [Example Showcase](#example-showcase)
 
-[Field Flower](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
+[Simulated Bush](../../Assets/Demo/PlantBuilder/LSystems/tree/resourceTree.lsystem)
+
+This example uses the diffusion systems to simulate the flow of water up from the base, and glucose production flowing out from the leaves. The nodes at the base of each branch segment represent the amount of glucose in that node. The growth of the plant accelerates as more leaves grow, since each leaf will convert water into glucose, which is required for growth.
+
+![resource branching gif](../../DemoPhotos/branching_resources.gif)
+
+[Field Flower](../../Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
 
 ![flower generation gif](../../DemoPhotos/field-flower-system.gif)
 
-[Herbaceous Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceous-plant.lsystem)
+[Herbaceous Plant](../../Assets/Demo/PlantBuilder/LSystems/herbaceous-plant.lsystem)
 
 ![herbaceous plant gif](../../DemoPhotos/herbaceous-plant.gif)
 
-[Fruiting Plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/fruiting-plant.lsystem)
+[Fruiting Plant](../../Assets/Demo/PlantBuilder/LSystems/fruiting-plant.lsystem)
 
 ![fruiting plant gif](../../DemoPhotos/fruiting-plant.gif)
