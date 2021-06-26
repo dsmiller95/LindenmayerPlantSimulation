@@ -13,6 +13,7 @@ An attempt to implement most of the features present in L-systems described by [
   - [Parameterization](#parameterization)
   - [Contextual Matching](#contextual-matching)
   - [Library Files](#library-files)
+  - [Predefined libraries](#predefined-libraries)
 - [Examples](#example-showcase)
 
 ## [Installation](#installation)
