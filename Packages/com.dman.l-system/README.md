@@ -14,6 +14,7 @@ An attempt to implement most of the features present in L-systems described by [
   - [Contextual Matching](#contextual-matching)
   - [Library Files](#library-files)
   - [Predefined libraries](#predefined-libraries)
+- [Contributing](#contributing)
 - [Examples](#example-showcase)
 
 ## [Installation](#installation)
@@ -287,3 +288,9 @@ This example uses the diffusion systems to simulate the flow of water up from th
 [Fruiting Plant](../../Assets/Demo/PlantBuilder/LSystems/fruiting-plant.lsystem)
 
 ![fruiting plant gif](../../DemoPhotos/fruiting-plant.gif)
+
+# [Contributing](#contributing)
+
+If you encounter any problems using this library, open an issue on the [github here](https://github.com/dsmiller95/plantbuilder/issues) .
+
+Before contributing to the code base you should open an issue and describe it as either a feature request or bug. This is to make sure that the proposed addition is compatible with the project's goals.
