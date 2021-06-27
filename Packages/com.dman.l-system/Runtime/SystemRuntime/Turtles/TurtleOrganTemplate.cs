@@ -43,7 +43,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     vertex = draft.vertices[i],
                     normal = draft.normals[i],
                     uv = draft.uv[i],
-                    tangent = draft.tangents[i]
+                    tangent = draft.tangents[i],
+                    color = (Vector4)draft.colors[i]
                 };
                 nativeData.vertexData[i + writer.indexInVertexes] = vertexDatum;
             }

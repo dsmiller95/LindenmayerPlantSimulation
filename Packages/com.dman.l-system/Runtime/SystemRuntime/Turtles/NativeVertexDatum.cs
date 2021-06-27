@@ -8,5 +8,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public float3 normal;
         public float2 uv;
         public float4 tangent;
+        public float4 color;
     }
 }

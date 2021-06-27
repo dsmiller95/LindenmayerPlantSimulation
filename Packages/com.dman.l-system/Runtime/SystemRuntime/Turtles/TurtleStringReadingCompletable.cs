@@ -16,6 +16,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public JaggedIndexing trianglesMemorySpace;
     }
 
+    /// <summary>
+    /// Used to track how big a submesh will have to be, while also tracking the current index in each array
+    ///     to be used while writing to the mesh data array
+    /// </summary>
     public struct TurtleMeshAllocationCounter
     {
         public int indexInVertexes;

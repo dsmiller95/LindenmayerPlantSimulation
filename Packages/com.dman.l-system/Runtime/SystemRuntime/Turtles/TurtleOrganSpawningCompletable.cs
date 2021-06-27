@@ -23,6 +23,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             public Vector3 pos;
             public Vector3 normal;
             public Vector2 uv;
+            public uShort4Color color;
         }
 
         public TurtleOrganSpawningCompletable(
@@ -39,9 +40,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var meshData = meshDataArray[0];
             var lastMeshSize = resultMeshSizeBySubmesh[resultMeshSizeBySubmesh.Length - 1];
             meshData.SetVertexBufferParams(lastMeshSize.indexInVertexes + lastMeshSize.totalVertexes,
-                new VertexAttributeDescriptor(VertexAttribute.Position),
-                new VertexAttributeDescriptor(VertexAttribute.Normal),
-                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
+                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32),
+                new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32),
+                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
+                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UInt16, 4)
             );
 
             meshData.SetIndexBufferParams(lastMeshSize.indexInTriangles + lastMeshSize.totalTriangleIndexes, IndexFormat.UInt32);
@@ -132,7 +134,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 var triangleIndexes = targetMesh.GetIndexData<uint>();
                 for (int index = 0; index < organInstances.Length; index++)
                 {
-                    // TODO: write meshes based on their position in the submesh data
                     var organInstance = organInstances[index];
                     var organTemplate = templateOrganData[organInstance.organIndexInAllOrgans];
                     var submeshData = submeshSizes[organTemplate.materialIndex];
@@ -148,7 +149,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                         {
                             pos = matrixTransform.MultiplyPoint(sourceVertexData.vertex),
                             normal = matrixTransform.MultiplyVector(sourceVertexData.normal),
-                            uv = sourceVertexData.uv
+                            uv = sourceVertexData.uv,
+                            color = new uShort4Color(sourceVertexData.color)
                         };
                     }
 
