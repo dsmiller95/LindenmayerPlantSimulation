@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemCompiler.Linker;
+using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
 using System.Linq;
@@ -17,11 +18,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public int branchEndChar;
 
         private TurtleState defaultState;
+        private CustomRuleSymbols customSymbols;
 
         public TurtleInterpretor(
             TurtleOperationSet[] operationSets,
             TurtleState defaultState,
             LinkedFileSet linkedFiles,
+            CustomRuleSymbols customSymbols,
             char submeshIndex = '`',
             char startChar = '[', char endChar = ']')
         {
@@ -51,6 +54,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             submeshIndexIncrementChar = linkedFiles.GetSymbolFromRoot(submeshIndex);
             branchStartChar = linkedFiles.GetSymbolFromRoot(startChar);
             branchEndChar = linkedFiles.GetSymbolFromRoot(endChar);
+            this.customSymbols = customSymbols;
+
 
             nativeDataTracker = new DependencyTracker<NativeTurtleData>(nativeData);
             this.defaultState = defaultState;
@@ -68,7 +73,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 submeshIndexIncrementChar,
                 branchStartChar,
                 branchEndChar,
-                defaultState
+                defaultState,
+                customSymbols
                 );
         }
 

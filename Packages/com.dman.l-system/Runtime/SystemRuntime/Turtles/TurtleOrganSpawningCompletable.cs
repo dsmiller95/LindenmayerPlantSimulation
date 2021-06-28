@@ -23,7 +23,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             public float3 pos;
             public float3 normal;
-            public float4 color;
+            public Color32 color;
             public float2 uv;
         }
 
@@ -43,7 +43,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             meshData.SetVertexBufferParams(lastMeshSize.indexInVertexes + lastMeshSize.totalVertexes,
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32),
                 new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32),
-                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
+                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.SNorm8, 4),
                 new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
             );
 
@@ -150,8 +150,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                         {
                             pos = matrixTransform.MultiplyPoint(sourceVertexData.vertex),
                             normal = matrixTransform.MultiplyVector(sourceVertexData.normal),
-                            color = sourceVertexData.color,// new uShort4Color(sourceVertexData.color),
-                            uv = sourceVertexData.uv
+                            uv = sourceVertexData.uv,
+                            color = ColorFromIdentity(organInstance.organIdentity, (uint)index),
                         };
                     }
 
@@ -162,6 +162,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             + organVertexOffset); // offset the triangle indexes by the current index in vertex mem space
                     }
                 }
+            }
+
+            private Color32 ColorFromIdentity(UIntFloatColor32 identity, uint index)
+            {
+                return identity.color;
             }
         }
 

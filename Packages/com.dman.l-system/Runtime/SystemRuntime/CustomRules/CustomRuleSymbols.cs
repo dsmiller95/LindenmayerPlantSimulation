@@ -6,5 +6,8 @@
         public int diffusionNode;
         public int diffusionAmount;
         public int diffusionStepsPerStep;
+
+        public bool hasIdentifiers;
+        public int identifier;
     }
 }

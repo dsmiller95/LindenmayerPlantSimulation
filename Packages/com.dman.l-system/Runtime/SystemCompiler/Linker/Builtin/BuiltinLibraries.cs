@@ -12,7 +12,8 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
         {
             return new BuiltinLibraries
             {
-                new DiffusionLibrary()
+                new DiffusionLibrary(),
+                new OrganIdentifyingLibrary()
             };
         }
 

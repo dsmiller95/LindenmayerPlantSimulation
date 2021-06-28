@@ -81,6 +81,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 working = diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob)
             };
 
+            var identityAssignmentJob = new IdentityAssignmentRule
+            {
+                targetData = target,
+                customSymbols = customSymbols
+            };
+
             // agressively register dependencies, to ensure that if there is a problem
             //  when scheduling any one job, they are still tracked.
             var replacementHandle = replacementJob.Schedule(
@@ -94,14 +100,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             sourceSymbolString.RegisterDependencyOnData(diffusionHandle);
             nativeData.RegisterDependencyOnData(diffusionHandle);
 
-            currentJobHandle = JobHandle.CombineDependencies(
-                replacementHandle,
-                diffusionHandle
-             );
-
-
-            sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
-            nativeData.RegisterDependencyOnData(currentJobHandle);
+            // identity assignment job is not dependent on the source string or any other native data. can skip assigning it as a dependent
+            currentJobHandle = identityAssignmentJob.Schedule(
+                JobHandle.CombineDependencies(
+                    replacementHandle,
+                    diffusionHandle
+                 ));
 
             UnityEngine.Profiling.Profiler.EndSample();
         }

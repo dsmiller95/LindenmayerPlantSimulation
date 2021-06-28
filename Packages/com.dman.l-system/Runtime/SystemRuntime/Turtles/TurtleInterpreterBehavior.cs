@@ -60,16 +60,25 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
             if (systemObject == null)
             {
-                return;
+                return; 
+            }
+            if(systemObject.compiledSystem == null)
+            {
+                // compiles so that the custom symbols can be pulled out
+                // TODO: extract custom symbols w/o a full system compilation
+                systemObject.CompileToCached(silent: true);
             }
             turtle = new TurtleInterpretor(
                 operationSets,
                 new TurtleState
                 {
                     transformation = Matrix4x4.Scale(initialScale),
-                    thickness = 1f
+                    thickness = 1f,
+                    submeshIndex = 0,
+                    organIdentity = new UIntFloatColor32(0)
                 },
-                systemObject.linkedFiles);
+                systemObject.linkedFiles,
+                systemObject.compiledSystem.customSymbols);
             turtle.submeshIndexIncrementChar = submeshIndexIncrementor;
         }
 

@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
+﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Unity.Burst;
 using Unity.Collections;
@@ -14,6 +15,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public float4x4 organTransform;
         public JaggedIndexing vertexMemorySpace;
         public JaggedIndexing trianglesMemorySpace;
+        /// <summary>
+        /// floating point identity. a uint value of 0, or a color of RGBA(0,0,0,0) indicates there is no organ identity
+        /// </summary>
+        public UIntFloatColor32 organIdentity;
     }
 
     /// <summary>
@@ -46,7 +51,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int submeshIndexIncrementChar,
             int branchStartChar,
             int branchEndChar,
-            TurtleState defaultState)
+            TurtleState defaultState,
+            CustomRuleSymbols customSymbols)
         {
             this.targetMesh = targetMesh;
             this.nativeData = nativeData;
@@ -69,7 +75,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 branchStartChar = branchStartChar,
                 branchEndChar = branchEndChar,
 
-                currentState = defaultState
+                currentState = defaultState,
+
+                customRules = customSymbols
             };
 
             currentJobHandle = turtleCompileJob.Schedule();
@@ -109,6 +117,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             // tmp Working memory
             public TmpNativeStack<TurtleState> nativeTurtleStack;
 
+            public CustomRuleSymbols customRules;
+
             public int submeshIndexIncrementChar;
             public int branchStartChar;
             public int branchEndChar;
@@ -118,7 +128,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             public void Execute()
             {
-                for (int symbolIndex = 0; symbolIndex < symbols.symbols.Length; symbolIndex++)
+                for (int symbolIndex = 0; symbolIndex < symbols.Length; symbolIndex++)
                 {
                     var symbol = symbols.symbols[symbolIndex];
                     if (symbol == branchStartChar)
@@ -134,6 +144,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     if (symbol == submeshIndexIncrementChar)
                     {
                         currentState.submeshIndex++;
+                        continue;
+                    }
+                    if(customRules.hasIdentifiers && customRules.identifier == symbol)
+                    {
+                        currentState.organIdentity = new UIntFloatColor32(symbols.parameters[symbolIndex, 0]);
                         continue;
                     }
                     if (operationsByKey.TryGetValue(symbol, out var operation))

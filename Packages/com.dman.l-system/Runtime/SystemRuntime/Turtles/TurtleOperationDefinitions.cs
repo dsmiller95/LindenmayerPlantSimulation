@@ -123,7 +123,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 {
                     index = meshSizeForSubmesh.totalTriangleIndexes,
                     length = selectedOrgan.trianges.length
-                }
+                },
+                organIdentity = state.organIdentity
             };
             targetOrganInstances.Add(newOrganEntry);
 

@@ -30,7 +30,7 @@ namespace Dman.LSystem.UnityObjects
         /// Compile this L-system into the <see cref="compiledSystem"/> property
         /// </summary>
         /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
-        public void CompileToCached(Dictionary<string, string> globalCompileTimeOverrides = null)
+        public void CompileToCached(Dictionary<string, string> globalCompileTimeOverrides = null, bool silent = false)
         {
             var newSystem = CompileSystem(globalCompileTimeOverrides);
             if (newSystem != null)
@@ -38,7 +38,10 @@ namespace Dman.LSystem.UnityObjects
                 compiledSystem?.Dispose();
                 compiledSystem = newSystem;
 
-                OnCachedSystemUpdated?.Invoke();
+                if (!silent)
+                {
+                    OnCachedSystemUpdated?.Invoke();
+                }
             }
         }
 
