@@ -10,10 +10,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public struct uShort4Color
     {
-        public ushort r;
-        public ushort g;
-        public ushort b;
-        public ushort a;
+        public UInt16 r;
+        public UInt16 g;
+        public UInt16 b;
+        public UInt16 a;
 
         /// <summary>
         /// Assumes sourceFloats vary from 0 to 1

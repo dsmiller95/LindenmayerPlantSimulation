@@ -2,6 +2,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -20,10 +21,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
         struct MeshVertexLayout
         {
-            public Vector3 pos;
-            public Vector3 normal;
-            public Vector2 uv;
-            public uShort4Color color;
+            public float3 pos;
+            public float3 normal;
+            public float4 color;
+            public float2 uv;
         }
 
         public TurtleOrganSpawningCompletable(
@@ -42,8 +43,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             meshData.SetVertexBufferParams(lastMeshSize.indexInVertexes + lastMeshSize.totalVertexes,
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32),
                 new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32),
-                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
-                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UInt16, 4)
+                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
+                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
             );
 
             meshData.SetIndexBufferParams(lastMeshSize.indexInTriangles + lastMeshSize.totalTriangleIndexes, IndexFormat.UInt32);
@@ -149,8 +150,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                         {
                             pos = matrixTransform.MultiplyPoint(sourceVertexData.vertex),
                             normal = matrixTransform.MultiplyVector(sourceVertexData.normal),
-                            uv = sourceVertexData.uv,
-                            color = new uShort4Color(sourceVertexData.color)
+                            color = sourceVertexData.color,// new uShort4Color(sourceVertexData.color),
+                            uv = sourceVertexData.uv
                         };
                     }
 

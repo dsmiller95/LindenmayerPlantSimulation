@@ -57,6 +57,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Demo\PlantBuilder\Turntable.cs" />
+    <Compile Include="Assets\Demo\PlantBuilder\LSystems\Leaf Rendering\RenderTrigger.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Demo\PlantBuilder\LSystems\Leaf Rendering\VertexColorAsIdOutUint.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
