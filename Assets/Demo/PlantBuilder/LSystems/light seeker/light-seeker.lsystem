@@ -1,0 +1,66 @@
+#axiom /(-50)@(1)T(30)
+#iterations 2000
+
+
+#symbols +-/\&^F$@!`
+#matches @!`
+
+#define leafProbability 1
+
+#define defaultMaxWater 100
+#define defaultMaxGlucose 20
+#define leafSunlightMultiplier 10
+#define maxGlucoseFromLeaf 3
+
+
+#symbols TISC
+#matches s
+
+
+#symbols i
+#include organIdentity (Identifier->i)
+#symbols s
+#matches s
+#include sunlight (LightAmount->s)
+
+## T is a terminal bud
+T(x) : x > 0 -> [^(60)S]\(137)I(1)T(x - 1)
+T(x) : x <= 0 ->
+
+## I is an internode
+I(x) : x > 0 -> FI(x - 1)
+I(x) : x <= 0 ->
+
+## S is an initializer of a seeking leef
+S -> FC[l][\(120)l][\(240)l]
+
+## l is an initializer for a sensor leaf
+#symbols l
+l -> i(0)s(0)^(5)L(.2)^(35)\(180)L(.2)
+
+## C is a directional controller to seek out sunlight
+
+C > [s(a)][s(b)][s(c)] : a > b && a > c -> ^(5)FC
+C > [s(a)][s(b)][s(c)] : b > a && b > c -> \(120)^(5)FC
+C > [s(a)][s(b)][s(c)] : c > a && c > b -> \(240)^(5)FC
+
+
+C > [s(a)][s(b)][s(c)] : a == b && a > c -> \(60)^(5)FC
+C > [s(a)][s(b)][s(c)] : a == c && a > b -> \(300)^(5)FC
+
+C > [s(a)][s(b)][s(c)] : b == c && b > a -> \(180)^(5)FC
+
+## L is a leaf mesh
+#symbols L
+## L(x) -> L(x)
+
+## R is a node size visualizer
+#symbols R
+
+## K is a flower mesh
+#symbols K
+
+
+
+				 
+				 

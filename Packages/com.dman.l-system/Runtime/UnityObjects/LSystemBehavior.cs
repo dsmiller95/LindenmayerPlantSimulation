@@ -1,3 +1,4 @@
+using Dman.LSystem.SystemRuntime.Sunlight;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,6 +21,8 @@ namespace Dman.LSystem.UnityObjects
 
         public event Action OnSystemStateUpdated;
         public event Action OnSystemObjectUpdated;
+        public RenderTexture sunlightTexture;
+        private SunlightCalculator sunlight;
         public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
         /// the value of Time.time when this system was last updated
@@ -29,6 +32,10 @@ namespace Dman.LSystem.UnityObjects
 
         private void Awake()
         {
+            if (sunlightTexture != null)
+            {
+                sunlight = new SunlightCalculator(sunlightTexture);
+            }
             lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
             if (systemObject != null)
             {
@@ -95,6 +102,11 @@ namespace Dman.LSystem.UnityObjects
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
+            if(sunlight != null)
+            {
+                var system = steppingHandle.Stepper();
+                sunlight.ApplySunlightToSymbols(steppingHandle.currentState.currentSymbols, 10, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
+            }
             steppingHandle.StepSystem();
         }
 

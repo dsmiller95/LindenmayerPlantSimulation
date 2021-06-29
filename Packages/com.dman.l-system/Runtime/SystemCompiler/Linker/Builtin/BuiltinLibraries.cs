@@ -13,7 +13,8 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
             return new BuiltinLibraries
             {
                 new DiffusionLibrary(),
-                new OrganIdentifyingLibrary()
+                new OrganIdentifyingLibrary(),
+                new SunlightApplicationLibrary()
             };
         }
 

@@ -1,3 +1,4 @@
+using Dman.LSystem;
 using Dman.LSystem.SystemRuntime.Turtle;
 using System.Collections;
 using System.Collections.Generic;
@@ -46,7 +47,11 @@ public class RenderTrigger : MonoBehaviour
             for (int y = 0; y < texture.height; y++)
             {
                 var pixelValue = new UIntFloatColor32((Color32)targetTexture.GetPixel(x, y)).UIntValue;
-                if(!textureClassificiations.TryGetValue(pixelValue, out var count))
+
+                pixelValue = BitMixer.UnMix(pixelValue);
+
+
+                if (!textureClassificiations.TryGetValue(pixelValue, out var count))
                 {
                     count = 0;
                 }

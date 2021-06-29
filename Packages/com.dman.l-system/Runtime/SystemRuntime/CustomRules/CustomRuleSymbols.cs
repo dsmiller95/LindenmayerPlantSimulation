@@ -9,5 +9,8 @@
 
         public bool hasIdentifiers;
         public int identifier;
+
+        public bool hasSunlight;
+        public int sunlightSymbol;
     }
 }

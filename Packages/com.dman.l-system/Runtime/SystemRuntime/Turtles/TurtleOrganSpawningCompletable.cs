@@ -43,7 +43,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             meshData.SetVertexBufferParams(lastMeshSize.indexInVertexes + lastMeshSize.totalVertexes,
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32),
                 new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32),
-                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.SNorm8, 4),
+                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, 4),
                 new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
             );
 
@@ -166,6 +166,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             private Color32 ColorFromIdentity(UIntFloatColor32 identity, uint index)
             {
+                identity.UIntValue = BitMixer.Mix(identity.UIntValue);
+
                 return identity.color;
             }
         }
@@ -203,6 +205,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         }
 
         public bool IsComplete()
+
         {
             return false;
         }
