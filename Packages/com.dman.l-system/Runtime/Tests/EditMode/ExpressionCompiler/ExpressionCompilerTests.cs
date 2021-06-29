@@ -118,6 +118,21 @@ public class ExpressionCompilerTests
             new object[] { 1f }
             );
     }
+
+    [Test]
+    public void CompilesBooleanExpressions()
+    {
+        AssertFunctionResults(
+            "(!(2 > 4))",
+            new float[1, 0],
+            new object[] { 1f }
+            );
+        AssertFunctionResults(
+            "(!(2 > 4) && !(4 - 3 >= 0))",
+            new float[1, 0],
+            new object[] { 0f }
+            );
+    }
     [Test]
     public void CompilesExpressionWithExtraParensOutside()
     {

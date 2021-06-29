@@ -82,24 +82,24 @@ namespace Dman.LSystem.SystemRuntime.DynamicExpressions
                     case OperatorType.EXPONENT:
                         return Mathf.Pow(InternalEval(actualOp.lhs), InternalEval(actualOp.rhs));
                     case OperatorType.GREATER_THAN:
-                        return InternalEval(actualOp.lhs) > InternalEval(actualOp.rhs) ? 10 : 0;
+                        return InternalEval(actualOp.lhs) > InternalEval(actualOp.rhs) ? 1 : 0;
                     case OperatorType.LESS_THAN:
-                        return InternalEval(actualOp.lhs) < InternalEval(actualOp.rhs) ? 10 : 0;
+                        return InternalEval(actualOp.lhs) < InternalEval(actualOp.rhs) ? 1 : 0;
                     case OperatorType.GREATER_THAN_OR_EQ:
-                        return InternalEval(actualOp.lhs) >= InternalEval(actualOp.rhs) ? 10 : 0;
+                        return InternalEval(actualOp.lhs) >= InternalEval(actualOp.rhs) ? 1 : 0;
                     case OperatorType.LESS_THAN_OR_EQ:
-                        return InternalEval(actualOp.lhs) <= InternalEval(actualOp.rhs) ? 10 : 0;
+                        return InternalEval(actualOp.lhs) <= InternalEval(actualOp.rhs) ? 1 : 0;
                     case OperatorType.EQUAL:
-                        return InternalEval(actualOp.lhs) == InternalEval(actualOp.rhs) ? 10 : 0;
+                        return InternalEval(actualOp.lhs) == InternalEval(actualOp.rhs) ? 1 : 0;
                     case OperatorType.NOT_EQUAL:
-                        return InternalEval(actualOp.lhs) != InternalEval(actualOp.rhs) ? 10 : 0;
+                        return InternalEval(actualOp.lhs) != InternalEval(actualOp.rhs) ? 1 : 0;
                     case OperatorType.BOOLEAN_AND:
-                        return ((InternalEval(actualOp.lhs) > 0.1f) && (InternalEval(actualOp.rhs) > 0.1f)) ? 10 : 0;
+                        return ((InternalEval(actualOp.lhs) > 0.1f) && (InternalEval(actualOp.rhs) > 0.1f)) ? 1 : 0;
                     case OperatorType.BOOLEAN_OR:
                         return InternalEval(actualOp.lhs) + InternalEval(actualOp.rhs);
 
                     case OperatorType.BOOLEAN_NOT:
-                        return (InternalEval(actualOp.rhs) > 0.1f) ? 10 : 0;
+                        return (InternalEval(actualOp.rhs) > 0.1f) ? 0 : 1;
                     case OperatorType.NEGATE_UNARY:
                         return -InternalEval(actualOp.rhs);
                     default:
