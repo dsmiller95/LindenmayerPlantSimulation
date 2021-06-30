@@ -41,14 +41,14 @@ l -> i(0)s(0)^(5)L(.2)^(35)\(180)L(.2)
 ## C is a directional controller to seek out sunlight
 
 C > [s(a)][s(b)][s(c)] : a > b && a > c -> ^(5)FC
-C > [s(a)][s(b)][s(c)] : b > a && b > c -> \(120)^(5)FC
-C > [s(a)][s(b)][s(c)] : c > a && c > b -> \(240)^(5)FC
+C > [s(a)][s(b)][s(c)] : b > a && b > c -> \(120)^(5)/(120)FC
+C > [s(a)][s(b)][s(c)] : c > a && c > b -> \(240)^(5)/(240)FC
 
 
-C > [s(a)][s(b)][s(c)] : a == b && a > c -> \(60)^(5)FC
-C > [s(a)][s(b)][s(c)] : a == c && a > b -> \(300)^(5)FC
+C > [s(a)][s(b)][s(c)] : a == b && a > c -> \(60)^(5)/(60)FC
+C > [s(a)][s(b)][s(c)] : a == c && a > b -> \(300)^(5)/(300)FC
 
-C > [s(a)][s(b)][s(c)] : b == c && b > a -> \(180)^(5)FC
+C > [s(a)][s(b)][s(c)] : b == c && b > a -> \(180)^(5)/(180)FC
 
 ## L is a leaf mesh
 #symbols L

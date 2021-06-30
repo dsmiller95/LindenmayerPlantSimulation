@@ -21,7 +21,7 @@ namespace Dman.LSystem.UnityObjects
 
         public event Action OnSystemStateUpdated;
         public event Action OnSystemObjectUpdated;
-        public RenderTexture sunlightTexture;
+        public SunlightCamera sunlightTexture;
         private SunlightCalculator sunlight;
         public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
@@ -105,7 +105,7 @@ namespace Dman.LSystem.UnityObjects
             if(sunlight != null)
             {
                 var system = steppingHandle.Stepper();
-                sunlight.ApplySunlightToSymbols(steppingHandle.currentState.currentSymbols, 10, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
+                sunlight.ApplySunlightToSymbols(steppingHandle.currentState.currentSymbols, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
             }
             steppingHandle.StepSystem();
         }

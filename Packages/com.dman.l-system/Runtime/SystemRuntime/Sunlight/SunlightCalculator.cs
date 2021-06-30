@@ -16,15 +16,14 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 {
     public class SunlightCalculator
     {
-        private RenderTexture sunlightTexture;
-        public SunlightCalculator(RenderTexture sunlightTexture)
+        private SunlightCamera sunlightCamera;
+        public SunlightCalculator(SunlightCamera sunlightCamera)
         {
-            this.sunlightTexture = sunlightTexture;
+            this.sunlightCamera = sunlightCamera;
         }
 
         public void ApplySunlightToSymbols(
             DependencyTracker<SymbolString<float>> symbolsTracker,
-            float totalSunlight,
             CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
         {
             if(!(customSymbols.hasSunlight && customSymbols.hasIdentifiers))
@@ -33,6 +32,8 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             }
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight Texture Getting");
+
+            var sunlightTexture = sunlightCamera.sunlightTexture;
             var targetTexture = new Texture2D(sunlightTexture.width, sunlightTexture.height, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
             targetTexture.alphaIsTransparency = false;
 
@@ -62,7 +63,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight result apply");
-            var sunlightPerPixel = totalSunlight / (targetTexture.width * targetTexture.height);
+
             using var tmpIdentityStack = new TmpNativeStack<SunlightExposureApplyJob.BranchIdentity>(10, Allocator.TempJob);
             var applyJob = new SunlightExposureApplyJob
             {
@@ -70,7 +71,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 organIdCounts = organCounts,
                 lastIdentityStack = tmpIdentityStack,
 
-                sunlightPerPixel = sunlightPerPixel,
+                sunlightPerPixel = sunlightCamera.sunlightPerPixel,
                 branchOpen = openBranchSymbol,
                 branchClose = closeBranchSymbol,
                 customSymbols = customSymbols

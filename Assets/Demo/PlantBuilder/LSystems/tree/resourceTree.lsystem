@@ -1,6 +1,5 @@
-#axiom /(-50)@(1)r(0.3, 0, 100, 10, 20)R(0)S(2)F[&(90)i(0)s(0)L(0.05)]T(5)
-#iterations 2000
-
+#axiom /(-50)@(1)r(0.3, 0, 100, 10, 20)R(0)S(10)F[&(90)i(0)s(0)L(3)]T(5)
+#iterations 3000
 
 #symbols +-/\&^F$@!`
 #matches @!`
@@ -10,9 +9,7 @@
 #define defaultMaxWater 100
 #define defaultMaxGlucose 20
 #define leafSunlightMultiplier 10
-#define maxGlucoseFromLeaf 3
-
-
+#define maxGlucoseFromLeaf 2.5
 
 
 
@@ -20,7 +17,7 @@
 
 #symbols ra
 #matches r
-#define diffusionStepsPerStep 2
+#define diffusionStepsPerStep 1
 #include diffusion (Node->r) (Amount->a)
 
 #symbols i
@@ -34,19 +31,34 @@ S(x) -> a(x)S(x)
 
 #symbols TFK
 #matches TK
-P(0.5) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)FT(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)FT(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)^(10)FT(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)&(10)FT(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)+(10)FT(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)-(10)FT(x - 1)
 P(0.5) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> T(x)
 
-P(0.9) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2, -2)/(137)[\(180)&(90)l(.1)][&(90)l(.1)][+(18)Fr(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)][-(18)Fr(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)]
+P(0.9) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2, -2)/(137)[\(180)&(90)l][&(90)l][+(35)Fr(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)][-(35)Fr(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)]
 P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2)FK
 
 
-## L is a leaf
+
+## L is a leaf. parameter is the size of the leaf, and also is is the health of the leaf which decreases when receiving a small amount of sunlight
+## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight
+#define leafMinSunlight 0.05
+#define leafMaxHealth 3
 ## l is a precursor to a leaf
 #symbols lL
-P(leafProbability)     | r(a, water, c, glucose, d) < l(x) : water >= 1 && glucose >= 1 -> i(0)s(0)L(x)
-P(1 - leafProbability) | r(a, water, c, glucose, d) < l(x) : water >= 1 && glucose >= 1 ->
-r(a, water, c, glucose, d)s(sunlight) < L(x) : water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(x)
+#matches L
+P(leafProbability)     | r(a, water, c, glucose, d) < l : water >= 1 && glucose >= 1 -> i(0)s(0)L(leafMaxHealth)
+P(1 - leafProbability) | r(a, water, c, glucose, d) < l : water >= 1 && glucose >= 1 ->
+r(a, water, c, glucose, d)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
+r(a, water, c, glucose, d)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
+
+
+r(a, water, c, glucose, d)s(sunlight) < L(health) : !(water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> L(health + sunlight - leafMinSunlight)
+
+r(a, water, c, glucose, d)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
 
 ## R is the resource visualizer
 #symbols R

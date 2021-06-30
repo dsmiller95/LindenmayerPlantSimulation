@@ -23,23 +23,3 @@ MonoBehaviour:
     ScalePerParameter: {x: 0.5, y: 0.5, z: 0.5}
     AlsoMove: 0
     UseThickness: 0
-  - Character: 75
-    MeshRef: {fileID: 5691666353457927829, guid: a381acc0272832b44bdaff9265914e18, type: 3}
-    MeshVariants: []
-    material: {fileID: 2100000, guid: 2c82f0931f461c54184b79cdbba8edf8, type: 2}
-    IndividualScale: {x: 2, y: 2, z: 2}
-    ParameterScale: 0
-    VolumetricScale: 0
-    ScalePerParameter: {x: 0.1, y: 0.1, z: 0.1}
-    AlsoMove: 0
-    UseThickness: 0
-  - Character: 76
-    MeshRef: {fileID: -5966198621110897880, guid: a381acc0272832b44bdaff9265914e18, type: 3}
-    MeshVariants: []
-    material: {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
-    IndividualScale: {x: 2, y: 2, z: 2}
-    ParameterScale: 0
-    VolumetricScale: 0
-    ScalePerParameter: {x: 0.1, y: 0.1, z: 0.1}
-    AlsoMove: 0
-    UseThickness: 0
