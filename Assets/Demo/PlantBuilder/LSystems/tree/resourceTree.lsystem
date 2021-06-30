@@ -46,7 +46,7 @@ P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 
 ## L is a leaf. parameter is the size of the leaf, and also is is the health of the leaf which decreases when receiving a small amount of sunlight
 ## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight
 #define leafMinSunlight 0.05
-#define leafMaxHealth 3
+#define leafMaxHealth 5
 ## l is a precursor to a leaf
 #symbols lL
 #matches L

@@ -36,7 +36,19 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         public JobHandle currentJobHandle { get; private set; }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="systemState"></param>
+        /// <param name="lSystemNativeData"></param>
+        /// <param name="globalParameters"></param>
+        /// <param name="maxMemoryRequirementsPerSymbol"></param>
+        /// <param name="branchOpenSymbol"></param>
+        /// <param name="branchCloseSymbol"></param>
+        /// <param name="includedCharactersByRuleIndex"></param>
+        /// <param name="customSymbols"></param>
+        /// <param name="parameterModificationJobDependency">A dependency on a job which only makes changes to the parameters of the source symbol string.
+        ///     the symbols themselves must be constant</param>
         public LSystemRuleMatchCompletable(
             LSystemState<float> systemState,
             DependencyTracker<SystemLevelRuleNativeData> lSystemNativeData,
@@ -45,7 +57,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             int branchOpenSymbol,
             int branchCloseSymbol,
             ISet<int>[] includedCharactersByRuleIndex,
-            CustomRuleSymbols customSymbols)
+            CustomRuleSymbols customSymbols,
+            JobHandle parameterModificationJobDependency)
         {
             this.customSymbols = customSymbols;
             randResult = systemState.randomProvider;
@@ -54,12 +67,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
-            matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(sourceSymbolString.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var parameterTotalSum = 0;
             var possibleMatchesTotalSum = 0;
-            for (int i = 0; i < systemState.currentSymbols.Data.Length; i++)
+            for (int i = 0; i < sourceSymbolString.Data.Length; i++)
             {
-                var symbol = systemState.currentSymbols.Data[i];
+                var symbol = sourceSymbolString.Data[i];
                 var matchData = new LSystemSingleSymbolMatchData()
                 {
                     tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(parameterTotalSum)
@@ -89,7 +102,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 branchCloseSymbol,
                 includedCharactersByRuleIndex,
                 nativeData.Data);
-            branchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
+            branchingCache.BuildJumpIndexesFromSymbols(sourceSymbolString);
             UnityEngine.Profiling.Profiler.EndSample();
 
             globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
@@ -98,7 +111,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             {
                 matchSingletonData = matchSingletonData,
 
-                sourceData = systemState.currentSymbols.Data,
+                sourceData = sourceSymbolString.Data,
                 tmpParameterMemory = tmpParameterMemory,
 
                 globalOperatorData = nativeData.Data.dynamicOperatorMemory,
@@ -112,7 +125,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             var matchingJobHandle = prematchJob.ScheduleBatch(
                 matchSingletonData.Length,
-                100);
+                100,
+                parameterModificationJobDependency);
 
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -128,11 +142,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData = matchSingletonData,
                 totalResultSymbolCount = totalSymbolCount,
                 totalResultParameterCount = totalSymbolParameterCount,
-                sourceData = systemState.currentSymbols.Data,
+                sourceData = sourceSymbolString.Data,
                 customSymbols = customSymbols
             };
             currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
-            systemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
+            sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
             UnityEngine.Profiling.Profiler.EndSample();

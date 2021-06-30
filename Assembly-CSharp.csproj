@@ -8,8 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{F5E7E268-3178-1321-DAD5-E3F0C433CDFE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -57,8 +56,8 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Demo\PlantBuilder\Turntable.cs" />
     <Compile Include="Assets\Demo\PlantBuilder\CameraOrbitMRI.cs" />
+    <Compile Include="Assets\Demo\PlantBuilder\Turntable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Demo\PlantBuilder\LSystems\Leaf Rendering\VertexColorAsIdOutUint.shader" />

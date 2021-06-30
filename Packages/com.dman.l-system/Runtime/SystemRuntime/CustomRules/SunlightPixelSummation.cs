@@ -1,5 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.Turtle;
+using System;
 using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections;
@@ -9,28 +10,71 @@ using Unity.Jobs;
 namespace Dman.LSystem.SystemRuntime.CustomRules
 {
     [BurstCompile]
-    struct SunlightExposureRule : IJob
+    struct SunlightPixelSummation : IJobParallelFor
     {
         public NativeArray<uint> allOrganIds;
-        public NativeHashMap<uint, uint> organIdCounts;
+        public NativeHashMap<ThreadTypeId, uint> organIdCountsPerThread;
 
+        [NativeSetThreadIndex]
+        int threadIndex;
+
+        public void Execute(int i)
+        {
+            var organId = BitMixer.UnMix(allOrganIds[i]);
+
+            if(organId == 0)
+            {
+                return;
+            }
+            var idOnThread = new ThreadTypeId
+            {
+                organId = organId,
+                threadId = threadIndex
+            };
+            if(!organIdCountsPerThread.TryGetValue(idOnThread, out var count))
+            {
+                count = 0;
+            }
+            organIdCountsPerThread[idOnThread] = count + 1;
+        }
+    }
+    [BurstCompile]
+    struct SunlightPixelJobsCombination : IJob
+    {
+        public NativeHashMap<ThreadTypeId, uint>.Enumerator organIdCountsPerThreadEnumerator;
+        public NativeHashMap<uint, uint> organIdCounts;
 
         public void Execute()
         {
-            for(int i = 0; i < allOrganIds.Length; i++)
+            while (organIdCountsPerThreadEnumerator.MoveNext())
             {
-                var organId = BitMixer.UnMix(allOrganIds[i]);
+                var entry = organIdCountsPerThreadEnumerator.Current;
 
-                if(organId == 0)
-                {
-                    continue;
-                }
-                if(!organIdCounts.TryGetValue(organId, out var count))
+                var organId = entry.Key.organId;
+                var organCount = entry.Value;
+
+                if (!organIdCounts.TryGetValue(organId, out var count))
                 {
                     count = 0;
                 }
-                organIdCounts[organId] = count + 1;
+                organIdCounts[organId] = count + organCount;
             }
+            organIdCountsPerThreadEnumerator.Dispose();
+        }
+    }
+    public struct ThreadTypeId : IEquatable<ThreadTypeId>
+    {
+        public uint organId;
+        public int threadId;
+
+        public bool Equals(ThreadTypeId other)
+        {
+            return other.organId == organId && other.threadId == threadId;
+        }
+
+        public override int GetHashCode()
+        {
+            return (int)organId << 32 ^ threadId;
         }
     }
 

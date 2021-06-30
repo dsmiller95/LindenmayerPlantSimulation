@@ -22,13 +22,13 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             this.sunlightCamera = sunlightCamera;
         }
 
-        public void ApplySunlightToSymbols(
+        public JobHandle ApplySunlightToSymbols(
             DependencyTracker<SymbolString<float>> symbolsTracker,
             CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
         {
             if(!(customSymbols.hasSunlight && customSymbols.hasIdentifiers))
             {
-                return;
+                return default;
             }
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight Texture Getting");
@@ -45,26 +45,36 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight Texture Summation");
             var textureData = targetTexture.GetRawTextureData<uint>();
-            using var organCounts = new NativeHashMap<uint, uint>(100, Allocator.TempJob);
+            var organCountsPerThread = new NativeHashMap<ThreadTypeId, uint>(100, Allocator.TempJob);
 
-            if(textureData.Length != targetTexture.width * targetTexture.height)
+            if (textureData.Length != targetTexture.width * targetTexture.height)
             {
                 Debug.LogError("texture data size does not match pixel size");
             }
 
-            var sunlightExposureJob = new SunlightExposureRule()
+            var sunlightExposureJob = new SunlightPixelSummation()
             {
                 allOrganIds = textureData,
+                organIdCountsPerThread = organCountsPerThread
+            };
+            var dependency = sunlightExposureJob.Schedule(textureData.Length, 10000);
+
+            var organCounts = new NativeHashMap<uint, uint>(100, Allocator.TempJob);
+            var organCountsPerThreadEnumerator = organCountsPerThread.GetEnumerator();
+            var sunlightCompilationJob = new SunlightPixelJobsCombination
+            {
+                organIdCountsPerThreadEnumerator = organCountsPerThreadEnumerator,
                 organIdCounts = organCounts
             };
+            dependency = sunlightCompilationJob.Schedule(dependency);
+            // todo: better parallelization
+            dependency = organCountsPerThread.Dispose(dependency);
 
-            var dependency = sunlightExposureJob.Schedule();
-            dependency.Complete();
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight result apply");
 
-            using var tmpIdentityStack = new TmpNativeStack<SunlightExposureApplyJob.BranchIdentity>(10, Allocator.TempJob);
+            var tmpIdentityStack = new TmpNativeStack<SunlightExposureApplyJob.BranchIdentity>(10, Allocator.TempJob);
             var applyJob = new SunlightExposureApplyJob
             {
                 symbols = symbolsTracker.Data,
@@ -77,13 +87,18 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 customSymbols = customSymbols
             };
 
-            dependency = applyJob.Schedule();
+            dependency = applyJob.Schedule(dependency);
             symbolsTracker.RegisterDependencyOnData(dependency);
 
-            dependency.Complete();
+            dependency = JobHandle.CombineDependencies(
+                organCounts.Dispose(dependency),
+                tmpIdentityStack.Dispose(dependency)
+                );
+
             UnityEngine.Profiling.Profiler.EndSample();
 
 
+            return dependency;
         }
 
     }

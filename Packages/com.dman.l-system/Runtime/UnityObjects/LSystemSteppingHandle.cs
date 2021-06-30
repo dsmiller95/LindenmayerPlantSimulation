@@ -2,6 +2,7 @@
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
 using System.Collections.Generic;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -136,14 +137,14 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         /// <param name="CompleteInLateUpdate">When set to true, the behavior will queue up the jobs and wait until the next frame to complete them</param>
         /// <returns>true if the state changed. false otherwise</returns>
-        public void StepSystem()
+        public void StepSystem(JobHandle jobDependency)
         {
             if (!CanStep())
             {
                 Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }
-            StepSystemAsync(runtimeParameters);
+            StepSystemAsync(runtimeParameters, jobDependency: jobDependency);
         }
         public void StepSystemImmediate()
         {
@@ -163,13 +164,14 @@ namespace Dman.LSystem.UnityObjects
                 Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }
-            StepSystemAsync(runtimeParameters, true);
+            StepSystemAsync(runtimeParameters, repeatLast: true);
             lSystemPendingCompletable.CompleteImmediate();
         }
 
 
         private void StepSystemAsync(
             ArrayParameterRepresenation<float> runtimeParameters,
+            JobHandle jobDependency = default,
             bool repeatLast = false)
         {
             ICompletable<LSystemState<float>> pendingStateHandle;
@@ -181,11 +183,11 @@ namespace Dman.LSystem.UnityObjects
                 }
                 if (repeatLast)
                 {
-                    pendingStateHandle = compiledSystem.StepSystemJob(lastState, runtimeParameters.GetCurrentParameters());
+                    pendingStateHandle = compiledSystem.StepSystemJob(lastState, runtimeParameters.GetCurrentParameters(), parameterWriteDependency: jobDependency);
                 }
                 else
                 {
-                    pendingStateHandle = compiledSystem.StepSystemJob(currentState, runtimeParameters.GetCurrentParameters());
+                    pendingStateHandle = compiledSystem.StepSystemJob(currentState, runtimeParameters.GetCurrentParameters(), parameterWriteDependency: jobDependency);
                 }
                 if (pendingStateHandle == null)
                 {

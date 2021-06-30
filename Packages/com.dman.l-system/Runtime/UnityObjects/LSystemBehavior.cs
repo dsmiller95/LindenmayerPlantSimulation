@@ -1,6 +1,7 @@
 using Dman.LSystem.SystemRuntime.Sunlight;
 using System;
 using System.Collections.Generic;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -102,12 +103,13 @@ namespace Dman.LSystem.UnityObjects
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
+            var dep = default(JobHandle);
             if(sunlight != null)
             {
                 var system = steppingHandle.Stepper();
-                sunlight.ApplySunlightToSymbols(steppingHandle.currentState.currentSymbols, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
+                dep = sunlight.ApplySunlightToSymbols(steppingHandle.currentState.currentSymbols, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
             }
-            steppingHandle.StepSystem();
+            steppingHandle.StepSystem(dep);
         }
 
         private void LSystemStateWasUpdated()
