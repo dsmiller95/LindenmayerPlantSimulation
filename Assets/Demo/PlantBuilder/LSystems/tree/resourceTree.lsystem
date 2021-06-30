@@ -1,4 +1,4 @@
-#axiom /(-50)@(1)r(0.3, 0, 100, 10, 20)R(0)S(10)F[&(90)i(0)s(0)L(3)]T(5)
+#axiom /(-50)@(1)r(0.3, 0, 1000, 10, 20)R(0)S(10)F[&(90)i(0)s(0)L(3)]T(5)
 #iterations 3000
 
 #symbols +-/\&^F$@!`
@@ -6,9 +6,9 @@
 
 #define leafProbability 1
 
-#define defaultMaxWater 100
+#define defaultMaxWater 1000
 #define defaultMaxGlucose 20
-#define leafSunlightMultiplier 10
+#define leafSunlightMultiplier 1
 #define maxGlucoseFromLeaf 2.5
 
 

@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="Assets\Demo\PlantBuilder\Turntable.cs" />
     <Compile Include="Assets\Demo\PlantBuilder\LSystems\Leaf Rendering\RenderTrigger.cs" />
+    <Compile Include="Assets\Demo\PlantBuilder\CameraOrbitMRI.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Demo\PlantBuilder\LSystems\Leaf Rendering\VertexColorAsIdOutUint.shader" />

@@ -1,16 +1,10 @@
-#axiom /(-50)@(1)T(30)
+#axiom B(0)/(-50)@(1)T(30)
 #iterations 2000
-
 
 #symbols +-/\&^F$@!`
 #matches @!`
 
 #define leafProbability 1
-
-#define defaultMaxWater 100
-#define defaultMaxGlucose 20
-#define leafSunlightMultiplier 10
-#define maxGlucoseFromLeaf 3
 
 
 #symbols TISC
@@ -22,6 +16,10 @@
 #symbols s
 #matches s
 #include sunlight (LightAmount->s)
+
+#symbols B
+## B prevents system recycling
+B(x) -> B(x - 1)
 
 ## T is a terminal bud
 T(x) : x > 0 -> [^(60)S]\(137)I(1)T(x - 1)
@@ -40,15 +38,20 @@ l -> i(0)s(0)^(5)L(.2)^(35)\(180)L(.2)
 
 ## C is a directional controller to seek out sunlight
 
-C > [s(a)][s(b)][s(c)] : a > b && a > c -> ^(5)FC
-C > [s(a)][s(b)][s(c)] : b > a && b > c -> \(120)^(5)/(120)FC
-C > [s(a)][s(b)][s(c)] : c > a && c > b -> \(240)^(5)/(240)FC
+C > [s(a)][s(b)][s(c)] : a > b && a > c -> ^(5)PC
+C > [s(a)][s(b)][s(c)] : b > a && b > c -> \(120)^(5)/(120)PC
+C > [s(a)][s(b)][s(c)] : c > a && c > b -> \(240)^(5)/(240)PC
 
 
-C > [s(a)][s(b)][s(c)] : a == b && a > c -> \(60)^(5)/(60)FC
-C > [s(a)][s(b)][s(c)] : a == c && a > b -> \(300)^(5)/(300)FC
+C > [s(a)][s(b)][s(c)] : a == b && a > c -> \(60)^(5)/(60)PC
+C > [s(a)][s(b)][s(c)] : a == c && a > b -> \(300)^(5)/(300)PC
 
-C > [s(a)][s(b)][s(c)] : b == c && b > a -> \(180)^(5)/(180)FC
+C > [s(a)][s(b)][s(c)] : b == c && b > a -> \(180)^(5)/(180)PC
+
+#symbols P
+P -> $(0.003)F
+
+
 
 ## L is a leaf mesh
 #symbols L
