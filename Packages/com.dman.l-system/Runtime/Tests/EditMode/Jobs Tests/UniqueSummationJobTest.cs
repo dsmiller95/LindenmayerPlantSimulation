@@ -88,12 +88,132 @@ public class UniqueSummationJobTest
     }
 
     [Test, Performance]
-    public void PerformanceTestCointingBits()
+    public void PerformanceTestCountingBitsNoRuns()
+    {
+        var data = new NativeArray<uint>(1024 * 1024, Allocator.Persistent);
+
+        var uniqueEntries = new Dictionary<uint, uint>();
+        var idGenerator = RunSequenceGenerator(1, 0, 200).GetEnumerator();
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            idGenerator.MoveNext();
+            var idHere = idGenerator.Current;
+            if (!uniqueEntries.TryGetValue(idHere, out var cnt))
+            {
+                cnt = 0;
+            }
+            uniqueEntries[idHere] = cnt + 1;
+            data[i] = idHere;
+        }
+        using (data)
+        {
+            NativeHashMap<uint, uint> idCounts = default;
+            Measure.Method(() =>
+            {
+                var counter = new CountByDistinct(data, Allocator.Persistent);
+                idCounts = counter.GetCounts();
+                counter.Schedule().Complete();
+
+            })
+                .CleanUp(() =>
+                {
+                    idCounts.Dispose();
+                })
+                .WarmupCount(10)
+                .MeasurementCount(10)
+                .IterationsPerMeasurement(3)
+                .GC()
+                .Run();
+        }
+    }
+    [Test, Performance]
+    public void PerformanceTestCountingBits()
     {
         var data = new NativeArray<uint>(1024 * 1024, Allocator.Persistent);
 
         var uniqueEntries = new Dictionary<uint, uint>();
         var idGenerator = RunSequenceGenerator(0.1, 0, 200).GetEnumerator();
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            idGenerator.MoveNext();
+            var idHere = idGenerator.Current;
+            if (!uniqueEntries.TryGetValue(idHere, out var cnt))
+            {
+                cnt = 0;
+            }
+            uniqueEntries[idHere] = cnt + 1;
+            data[i] = idHere;
+        }
+        using (data)
+        {
+            NativeHashMap<uint, uint> idCounts = default;
+            Measure.Method(() =>
+            {
+                var counter = new CountByDistinct(data, Allocator.Persistent);
+                idCounts = counter.GetCounts();
+                counter.Schedule().Complete();
+
+            })
+                .CleanUp(() =>
+                {
+                    idCounts.Dispose();
+                })
+                .WarmupCount(10)
+                .MeasurementCount(10)
+                .IterationsPerMeasurement(3)
+                .GC()
+                .Run();
+        }
+    }
+    [Test, Performance]
+    public void PerformanceTestCountingBitsLongerRuns()
+    {
+        var data = new NativeArray<uint>(1024 * 1024, Allocator.Persistent);
+
+        var uniqueEntries = new Dictionary<uint, uint>();
+        var idGenerator = RunSequenceGenerator(0.01, 0, 200).GetEnumerator();
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            idGenerator.MoveNext();
+            var idHere = idGenerator.Current;
+            if (!uniqueEntries.TryGetValue(idHere, out var cnt))
+            {
+                cnt = 0;
+            }
+            uniqueEntries[idHere] = cnt + 1;
+            data[i] = idHere;
+        }
+        using (data)
+        {
+            NativeHashMap<uint, uint> idCounts = default;
+            Measure.Method(() =>
+            {
+                var counter = new CountByDistinct(data, Allocator.Persistent);
+                idCounts = counter.GetCounts();
+                counter.Schedule().Complete();
+
+            })
+                .CleanUp(() =>
+                {
+                    idCounts.Dispose();
+                })
+                .WarmupCount(10)
+                .MeasurementCount(10)
+                .IterationsPerMeasurement(3)
+                .GC()
+                .Run();
+        }
+    }
+    [Test, Performance]
+    public void PerformanceTestCountingBitsLongestRuns()
+    {
+        var data = new NativeArray<uint>(1024 * 1024, Allocator.Persistent);
+
+        var uniqueEntries = new Dictionary<uint, uint>();
+        var idGenerator = RunSequenceGenerator(0.0001, 0, 200).GetEnumerator();
 
         for (int i = 0; i < data.Length; i++)
         {
