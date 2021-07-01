@@ -1,12 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
-using Dman.LSystem.SystemRuntime.Turtle;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -26,7 +20,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             DependencyTracker<SymbolString<float>> symbolsTracker,
             CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
         {
-            if(!(customSymbols.hasSunlight && customSymbols.hasIdentifiers))
+            if (!(customSymbols.hasSunlight && customSymbols.hasIdentifiers))
             {
                 return default;
             }
@@ -45,30 +39,15 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight Texture Summation");
             var textureData = targetTexture.GetRawTextureData<uint>();
-            var organCountsPerThread = new NativeHashMap<ThreadTypeId, uint>(100, Allocator.TempJob);
-
             if (textureData.Length != targetTexture.width * targetTexture.height)
             {
                 Debug.LogError("texture data size does not match pixel size");
             }
 
-            var sunlightExposureJob = new SunlightPixelSummation()
-            {
-                allOrganIds = textureData,
-                organIdCountsPerThread = organCountsPerThread
-            };
-            var dependency = sunlightExposureJob.Schedule(textureData.Length, 10000);
-
-            var organCounts = new NativeHashMap<uint, uint>(100, Allocator.TempJob);
-            var organCountsPerThreadEnumerator = organCountsPerThread.GetEnumerator();
-            var sunlightCompilationJob = new SunlightPixelJobsCombination
-            {
-                organIdCountsPerThreadEnumerator = organCountsPerThreadEnumerator,
-                organIdCounts = organCounts
-            };
-            dependency = sunlightCompilationJob.Schedule(dependency);
-            // todo: better parallelization
-            dependency = organCountsPerThread.Dispose(dependency);
+            var counter = new CountByDistinct(textureData);
+            var organCounts = counter.GetCounts();
+            var dependency = counter.Schedule();
+            dependency.Complete();
 
             UnityEngine.Profiling.Profiler.EndSample();
 

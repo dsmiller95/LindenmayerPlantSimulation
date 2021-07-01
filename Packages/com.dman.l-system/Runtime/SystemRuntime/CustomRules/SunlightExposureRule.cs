@@ -1,85 +1,13 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.Turtle;
-using System;
-using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.CustomRules
 {
     [BurstCompile]
-    struct SunlightPixelSummation : IJobParallelFor
-    {
-        public NativeArray<uint> allOrganIds;
-        public NativeHashMap<ThreadTypeId, uint> organIdCountsPerThread;
-
-        [NativeSetThreadIndex]
-        int threadIndex;
-
-        public void Execute(int i)
-        {
-            var organId = BitMixer.UnMix(allOrganIds[i]);
-
-            if(organId == 0)
-            {
-                return;
-            }
-            var idOnThread = new ThreadTypeId
-            {
-                organId = organId,
-                threadId = threadIndex
-            };
-            if(!organIdCountsPerThread.TryGetValue(idOnThread, out var count))
-            {
-                count = 0;
-            }
-            organIdCountsPerThread[idOnThread] = count + 1;
-        }
-    }
-    [BurstCompile]
-    struct SunlightPixelJobsCombination : IJob
-    {
-        public NativeHashMap<ThreadTypeId, uint>.Enumerator organIdCountsPerThreadEnumerator;
-        public NativeHashMap<uint, uint> organIdCounts;
-
-        public void Execute()
-        {
-            while (organIdCountsPerThreadEnumerator.MoveNext())
-            {
-                var entry = organIdCountsPerThreadEnumerator.Current;
-
-                var organId = entry.Key.organId;
-                var organCount = entry.Value;
-
-                if (!organIdCounts.TryGetValue(organId, out var count))
-                {
-                    count = 0;
-                }
-                organIdCounts[organId] = count + organCount;
-            }
-            organIdCountsPerThreadEnumerator.Dispose();
-        }
-    }
-    public struct ThreadTypeId : IEquatable<ThreadTypeId>
-    {
-        public uint organId;
-        public int threadId;
-
-        public bool Equals(ThreadTypeId other)
-        {
-            return other.organId == organId && other.threadId == threadId;
-        }
-
-        public override int GetHashCode()
-        {
-            return (int)organId << 32 ^ threadId;
-        }
-    }
-
-    [BurstCompile]
-    struct SunlightExposureApplyJob: IJob
+    struct SunlightExposureApplyJob : IJob
     {
         public SymbolString<float> symbols;
         [ReadOnly]
@@ -120,7 +48,8 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                     {
                         continue;
                     }
-                    if (!organIdCounts.TryGetValue(branchIdentity.identity, out var pixelCount))
+                    var mixedIdentity = BitMixer.Mix(branchIdentity.identity);
+                    if (!organIdCounts.TryGetValue(mixedIdentity, out var pixelCount))
                     {
                         pixelCount = 0;
                     }
