@@ -47,7 +47,6 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             var counter = new CountByDistinct(textureData);
             var organCounts = counter.GetCounts();
             var dependency = counter.Schedule();
-            dependency.Complete();
 
             UnityEngine.Profiling.Profiler.EndSample();
 

@@ -28,14 +28,14 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             return finalCounts;
         }
 
-        public JobHandle Schedule(JobHandle dependency = default)
+        public JobHandle Schedule(int batchSize = 10000, JobHandle dependency = default)
         {
             var sumJob = new IdSummation()
             {
                 allIds = sourceData,
                 runFlags = runFlags
             };
-            dependency = sumJob.ScheduleBatch(sourceData.Length, 100000000, dependency);
+            dependency = sumJob.ScheduleBatch(sourceData.Length, batchSize, dependency);
 
             var sumCollectorJob = new SummationCollector
             {
@@ -58,7 +58,6 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         [BurstCompile]
         struct IdSummation : IJobParallelForBatch
         {
-            
             public NativeArray<uint> allIds;
             public NativeArray<bool> runFlags;
 
