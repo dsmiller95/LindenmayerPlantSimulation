@@ -8,8 +8,11 @@ using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.CustomRules
 {
+    /// <summary>
+    /// Runs after all replacment has taken place on the target symbols
+    /// </summary>
     [BurstCompile]
-    struct IdentityAssignmentRule : IJob
+    struct IdentityAssignmentPostProcessRule : IJob
     {
         [NativeDisableParallelForRestriction]
         [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes

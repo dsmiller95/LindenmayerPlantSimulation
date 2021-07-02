@@ -6,6 +6,10 @@ using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.CustomRules
 {
+    /// <summary>
+    /// this job can run in parallel with the rule replacement job. It will write to target data
+    ///     in a way that the rule replacement job is designed to avoid conflict with
+    /// </summary>
     [BurstCompile]
     struct DiffusionReplacementJob : IJob
     {

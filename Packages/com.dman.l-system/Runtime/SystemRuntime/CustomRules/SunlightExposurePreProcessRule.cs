@@ -7,7 +7,7 @@ using Unity.Jobs;
 namespace Dman.LSystem.SystemRuntime.CustomRules
 {
     [BurstCompile]
-    struct SunlightExposureApplyJob : IJob
+    struct SunlightExposurePreProcessRule : IJob
     {
         public SymbolString<float> symbols;
         [ReadOnly]

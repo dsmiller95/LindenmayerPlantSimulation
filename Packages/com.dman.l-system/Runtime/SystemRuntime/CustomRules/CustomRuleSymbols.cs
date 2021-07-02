@@ -12,5 +12,9 @@
 
         public bool hasSunlight;
         public int sunlightSymbol;
+
+        public bool hasAutophagy;
+        public int autophagicSymbol;
+        public int deadSymbol;
     }
 }

@@ -52,8 +52,8 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight result apply");
 
-            var tmpIdentityStack = new TmpNativeStack<SunlightExposureApplyJob.BranchIdentity>(10, Allocator.TempJob);
-            var applyJob = new SunlightExposureApplyJob
+            var tmpIdentityStack = new TmpNativeStack<SunlightExposurePreProcessRule.BranchIdentity>(10, Allocator.TempJob);
+            var applyJob = new SunlightExposurePreProcessRule
             {
                 symbols = symbolsTracker.Data,
                 organIdCounts = organCounts,

@@ -81,7 +81,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 working = diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob)
             };
 
-            var identityAssignmentJob = new IdentityAssignmentRule
+            var identityAssignmentJob = new IdentityAssignmentPostProcessRule
             {
                 targetData = target,
                 customSymbols = customSymbols

@@ -14,7 +14,8 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
             {
                 new DiffusionLibrary(),
                 new OrganIdentifyingLibrary(),
-                new SunlightApplicationLibrary()
+                new SunlightApplicationLibrary(),
+                new AutophagyLibrary()
             };
         }
 
