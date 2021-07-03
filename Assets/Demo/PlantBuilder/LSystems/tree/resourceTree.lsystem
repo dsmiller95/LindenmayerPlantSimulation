@@ -1,4 +1,4 @@
-#axiom /(-50)@(1)r(0.3, 0, 1000, 10, 20)R(0)S(10)F[&(90)i(0)s(0)L(3)]T(5)
+#axiom /(-50)@(1)r(0.3, 0, 1000, 20, 20)R(0)S(10)F[p&(90)i(0)s(0)L(5)]T(5)
 #iterations 3000
 
 #symbols +-/\&^F$@!`
@@ -10,6 +10,7 @@
 #define defaultMaxGlucose 20
 #define leafSunlightMultiplier 1
 #define maxGlucoseFromLeaf 2.5
+
 
 
 #symbols SWQB
@@ -37,15 +38,15 @@ S(x) -> a(x)S(x)
 
 #symbols TFK
 #matches TK
-P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)FT(x - 1)
-P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)^(10)FT(x - 1)
-P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)&(10)FT(x - 1)
-P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)+(10)FT(x - 1)
-P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> a(-1, -1)-(10)FT(x - 1)
-P(0.5) | r(a, water, c, glucose, d) < T(x) : water >= 1 && glucose >= 1 && x >  0 -> T(x)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> f(0)T(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> ^(10)f(0)T(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> &(10)f(0)T(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> +(10)f(0)T(x - 1)
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> -(10)f(0)T(x - 1)
+P(0.5) | r(a, water, c, glucose, d) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> T(x)
 
-P(0.9) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2, -2)/(137)[\(180)&(90)l][&(90)l][+(35)Fr(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)][-(35)Fr(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)]
-P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 0 -> a(-2)FK
+P(0.9) | r(a, water, c, glucose, d) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)][-(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose)R(0)T(5)]
+P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> a(-1)f(0)k(0)
 
 
 
@@ -53,11 +54,14 @@ P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 
 ## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight
 #define leafMinSunlight 0.05
 #define leafMaxHealth 5
+#define leafCost 1
 ## l is a precursor to a leaf
 #symbols lL
 #matches L
-P(leafProbability)     | r(a, water, c, glucose, d) < l : water >= 1 && glucose >= 1 -> pi(0)s(0)L(leafMaxHealth)
-P(1 - leafProbability) | r(a, water, c, glucose, d) < l : water >= 1 && glucose >= 1 ->
+P(leafProbability)     |     l -> l(0)
+P(1 - leafProbability) |     l -> 
+r(a, water, c, glucose, d) < l(amt) : amt < leafCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)l(amt + 0.05)
+                             l(amt) : amt >= leafCost -> pi(0)s(0)L(leafMaxHealth)
 
 r(a, water, c, glucose, d)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
 r(a, water, c, glucose, d)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
@@ -66,10 +70,23 @@ r(a, water, c, glucose, d)s(sunlight) < L(health) : !(water >= sunlight * leafSu
 
 ## r(a, water, c, glucose, d)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
 
+## f is a precursor to a stem
+#define stemCost 1
+#symbols f
+#matches f
+
+r(a, water, c, glucose, d) < f(amt) : amt < stemCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)f(amt + 0.05)
+                             f(amt) : amt >= stemCost -> F
+## k is a precursor to a flower
+#define flowerCost 1
+#symbols k
+r(a, water, c, glucose, d) < k(amt) : amt < flowerCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)k(amt + 0.05)
+                             k(amt) : amt >= flowerCost -> K
+
+
 ## p is a autophagic switch which waits for a leaf to become unhealthy, and then aborts it
 #symbols p
 p > s(a)L(health) : health <= 0 -> n
-
 
 
 ## R is the resource visualizer

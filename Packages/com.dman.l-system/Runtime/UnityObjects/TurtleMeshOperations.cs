@@ -18,6 +18,7 @@ namespace Dman.LSystem.UnityObjects
 
         [Tooltip("Whether or not to scale the mesh based on an input parameter. Will accept the first parameter, unless mesh variants are used. In which case it will use the second parameter.")]
         public bool ParameterScale;
+        public bool ScaleIsAdditional;
         [Tooltip("If set to true, will scale based on the parameter as if it were a definition of additional volume. It does this by taking a cube root")]
         public bool VolumetricScale = false;
         public Vector3 ScalePerParameter;
@@ -88,6 +89,7 @@ namespace Dman.LSystem.UnityObjects
                         meshOperation = new TurtleMeshOperation
                         {
                             extraNonUniformScaleForOrgan = meshKey.ScalePerParameter,
+                            scaleIsAdditional = meshKey.ScaleIsAdditional,
                             isVolumetricScale = meshKey.VolumetricScale,
                             doScaleMesh = meshKey.ParameterScale,
                             doApplyThiccness = meshKey.UseThickness,

@@ -19,6 +19,7 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: 2c82f0931f461c54184b79cdbba8edf8, type: 2}
     IndividualScale: {x: 2, y: 2, z: 2}
     ParameterScale: 0
+    ScaleIsAdditional: 0
     VolumetricScale: 0
     ScalePerParameter: {x: 0.1, y: 0.1, z: 0.1}
     AlsoMove: 0
@@ -29,6 +30,7 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
     IndividualScale: {x: 3, y: 3, z: 3}
     ParameterScale: 1
+    ScaleIsAdditional: 1
     VolumetricScale: 0
     ScalePerParameter: {x: 0.1, y: 0.1, z: 0.1}
     AlsoMove: 0
