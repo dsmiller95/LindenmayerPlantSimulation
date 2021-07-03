@@ -107,6 +107,23 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     diffusionHandle
                  ));
 
+            // autophagy is only dependent on the source string. don't need to register as dependent on native data/source symbols
+            if (customSymbols.hasAutophagy)
+            {
+                var helperStack = new TmpNativeStack<AutophagyPostProcess.BranchIdentity>(10, Allocator.TempJob);
+                var autophagicJob = new AutophagyPostProcess
+                {
+                    symbols = target,
+                    lastIdentityStack = helperStack,
+                    branchOpen = branchingCache.branchOpenSymbol,
+                    branchClose = branchingCache.branchCloseSymbol,
+                    customSymbols = customSymbols
+                };
+
+                currentJobHandle = autophagicJob.Schedule(currentJobHandle);
+                currentJobHandle = helperStack.Dispose(currentJobHandle);
+            }
+
             UnityEngine.Profiling.Profiler.EndSample();
         }
 

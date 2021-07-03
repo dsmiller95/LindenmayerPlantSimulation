@@ -25,6 +25,13 @@
 #matches s
 #include sunlight (LightAmount->s)
 
+#symbols n
+#include autophagy (Necrose->n)
+
+## P(0.0001) | F -> n
+## P(0.9999) | F -> F
+
+
 
 S(x) -> a(x)S(x)
 
@@ -49,15 +56,21 @@ P(0.1) | r(a, water, c, glucose, d) < T(x) : water >= 2 && glucose >= 2 && x <= 
 ## l is a precursor to a leaf
 #symbols lL
 #matches L
-P(leafProbability)     | r(a, water, c, glucose, d) < l : water >= 1 && glucose >= 1 -> i(0)s(0)L(leafMaxHealth)
+P(leafProbability)     | r(a, water, c, glucose, d) < l : water >= 1 && glucose >= 1 -> pi(0)s(0)L(leafMaxHealth)
 P(1 - leafProbability) | r(a, water, c, glucose, d) < l : water >= 1 && glucose >= 1 ->
+
 r(a, water, c, glucose, d)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
 r(a, water, c, glucose, d)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
 
-
 r(a, water, c, glucose, d)s(sunlight) < L(health) : !(water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> L(health + sunlight - leafMinSunlight)
 
-r(a, water, c, glucose, d)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
+## r(a, water, c, glucose, d)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
+
+## p is a autophagic switch which waits for a leaf to become unhealthy, and then aborts it
+#symbols p
+p > s(a)L(health) : health <= 0 -> n
+
+
 
 ## R is the resource visualizer
 #symbols R

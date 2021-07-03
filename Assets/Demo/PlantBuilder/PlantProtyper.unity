@@ -2407,7 +2407,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1772d52094d8f7409d5fe343cce576b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 60
+  rotationSpeed: 10
   rotate: 1
   axis: {x: 1, y: 0, z: 0}
 --- !u!1 &1905895030
@@ -2854,7 +2854,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   secondsPerUpdate: 0.01
   timeBeforeRestart: 1
-  systemObject: {fileID: 378491273550888993, guid: 42bbb8b9ba230704b86c74238cafacca, type: 3}
+  systemObject: {fileID: 378491273550888993, guid: 1afe353f5c6adfa4e98bc900a68dc75b, type: 3}
 --- !u!4 &2023392570
 Transform:
   m_ObjectHideFlags: 0
