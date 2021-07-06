@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.CustomRules;
+﻿using Dman.LSystem.SystemRuntime;
+using Dman.LSystem.SystemRuntime.CustomRules;
 using System;
 using System.Collections.Generic;
 
@@ -48,7 +49,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             var match = file.allSymbolAssignments.Find(x => x.sourceCharacter == symbol);
             if (match == null)
             {
-                throw new Exception($"{file.fileSource} does not contain requested symbol '{symbol}'. Did you forget to declare it in a <color=blue>#symbols</color> directive?");
+                throw new LSystemRuntimeException($"{file.fileSource} does not contain requested symbol '{symbol}'. Did you forget to declare it in a <color=blue>#symbols</color> directive?");
             }
             return match.remappedSymbol;
         }

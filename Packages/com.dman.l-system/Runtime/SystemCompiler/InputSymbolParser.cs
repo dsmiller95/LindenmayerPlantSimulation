@@ -19,7 +19,16 @@ namespace Dman.LSystem.SystemRuntime
             for (int i = 0; i < individualSymbolTargets.Count; i++)
             {
                 var match = individualSymbolTargets[i];
-                var symbol = symbolRemapper(match.Groups["symbol"].Value[0]);
+                int symbol;
+                try
+                {
+                    symbol = symbolRemapper(match.Groups["symbol"].Value[0]);
+                }
+                catch (LSystemRuntimeException runtimeException)
+                {
+                    throw runtimeException.AddContext(symbolSeries);
+                    //throw runtimeException;
+                }
                 var namedParameters = match.Groups["params"];
                 var namedParamList = new List<string>();
                 if (namedParameters.Success)
