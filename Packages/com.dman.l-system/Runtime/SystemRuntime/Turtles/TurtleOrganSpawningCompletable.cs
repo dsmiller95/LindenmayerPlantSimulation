@@ -166,7 +166,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             private Color32 ColorFromIdentity(UIntFloatColor32 identity, uint index)
             {
-                identity.UIntValue = BitMixer.Mix(identity.UIntValue);
+                //identity.UIntValue = BitMixer.Mix(identity.UIntValue);
 
                 return identity.color;
             }

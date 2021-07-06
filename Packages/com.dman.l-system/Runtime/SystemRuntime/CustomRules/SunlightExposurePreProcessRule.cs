@@ -48,8 +48,8 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                     {
                         continue;
                     }
-                    var mixedIdentity = BitMixer.Mix(branchIdentity.identity);
-                    if (!organIdCounts.TryGetValue(mixedIdentity, out var pixelCount))
+                    //var mixedIdentity = BitMixer.Mix(branchIdentity.identity);
+                    if (!organIdCounts.TryGetValue(branchIdentity.identity, out var pixelCount))
                     {
                         pixelCount = 0;
                     }

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1905895031}
-  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731713, g: 0.13414736, b: 0.12107852, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3134,7 +3134,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4336313098753995651, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: operationSets.Array.size
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4336313098753995651, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: operationSets.Array.data[4]
@@ -3143,7 +3143,7 @@ PrefabInstance:
     - target: {fileID: 4336313098753995651, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: operationSets.Array.data[5]
       value: 
-      objectReference: {fileID: 11400000, guid: 0f286bd0126eb154fa56423e5f4020e0, type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 9089396036891669031, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: sunlightTexture
       value: 

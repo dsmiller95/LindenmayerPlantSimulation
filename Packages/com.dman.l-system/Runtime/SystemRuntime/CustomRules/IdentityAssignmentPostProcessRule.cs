@@ -18,27 +18,33 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
         [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public SymbolString<float> targetData;
 
+        public NativeArray<uint> maxIdentityId;
+
         public CustomRuleSymbols customSymbols;
 
         public void Execute()
         {
-            if (customSymbols.hasIdentifiers)
+            if (!customSymbols.hasIdentifiers)
             {
-                var persistentOrganIdentityIndex = new UIntFloatColor32
-                {
-                    UIntValue = 1
-                };
+                maxIdentityId[0] = 0;
+                return;
+            }
+            
+            var persistentOrganIdentityIndex = new UIntFloatColor32
+            {
+                UIntValue = 1
+            };
 
-                for (int symbolIndex = 0; symbolIndex < targetData.Length; symbolIndex++)
+            for (int symbolIndex = 0; symbolIndex < targetData.Length; symbolIndex++)
+            {
+                var symbol = targetData[symbolIndex];
+                if (symbol == customSymbols.identifier)
                 {
-                    var symbol = targetData[symbolIndex];
-                    if (symbol == customSymbols.identifier)
-                    {
-                        targetData.parameters[symbolIndex, 0] = persistentOrganIdentityIndex.FloatValue;
-                        persistentOrganIdentityIndex.UIntValue++;
-                    }
+                    targetData.parameters[symbolIndex, 0] = persistentOrganIdentityIndex.FloatValue;
+                    persistentOrganIdentityIndex.UIntValue++;
                 }
             }
+            maxIdentityId[0] = persistentOrganIdentityIndex.UIntValue;
         }
     }
 

@@ -20,6 +20,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         private NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
         private DiffusionReplacementJob.DiffusionWorkingDataPack diffusionHelper;
+        private NativeArray<uint> maxIdReached;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -81,11 +82,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 working = diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob)
             };
 
-            var identityAssignmentJob = new IdentityAssignmentPostProcessRule
-            {
-                targetData = target,
-                customSymbols = customSymbols
-            };
 
             // agressively register dependencies, to ensure that if there is a problem
             //  when scheduling any one job, they are still tracked.
@@ -101,6 +97,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             nativeData.RegisterDependencyOnData(diffusionHandle);
 
             // identity assignment job is not dependent on the source string or any other native data. can skip assigning it as a dependent
+            maxIdReached = new NativeArray<uint>(1, Allocator.TempJob);
+            var identityAssignmentJob = new IdentityAssignmentPostProcessRule
+            {
+                targetData = target,
+                maxIdentityId = maxIdReached,
+                customSymbols = customSymbols,
+            };
             currentJobHandle = identityAssignmentJob.Schedule(
                 JobHandle.CombineDependencies(
                     replacementHandle,
@@ -133,11 +136,15 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             branchingCache.Dispose();
             matchSingletonData.Dispose();
             diffusionHelper.Dispose();
+
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
-                currentSymbols = new DependencyTracker<SymbolString<float>>(target)
+                currentSymbols = new DependencyTracker<SymbolString<float>>(target),
+                maxUniqueOrganIds = maxIdReached[0]
             };
+
+            maxIdReached.Dispose();
             return new CompleteCompletable<LSystemState<float>>(newResult);
         }
 

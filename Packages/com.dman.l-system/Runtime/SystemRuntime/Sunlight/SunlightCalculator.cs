@@ -1,6 +1,8 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using System;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -8,17 +10,75 @@ using UnityEngine.Experimental.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.Sunlight
 {
-    public class SunlightCalculator
+    public class SunlightCalculator : IDisposable
     {
         private SunlightCamera sunlightCamera;
-        public SunlightCalculator(SunlightCamera sunlightCamera)
+        private bool useJob;
+        private ComputeShader uniqueSummationShader;
+
+        private uint[] sunlightSumData;
+        private ComputeBuffer sunlightSumBuffer;
+
+        public SunlightCalculator(
+            SunlightCamera sunlightCamera,
+            ComputeShader uniqueSummationShader,
+            bool useJob = true,
+            int uniqueOrgansInitialAllocation = 4096)
         {
             this.sunlightCamera = sunlightCamera;
+            this.useJob = useJob;
+            this.uniqueSummationShader = uniqueSummationShader;
+
+
+            //var handleInitialize = uniqueSummationShader.FindKernel("HistogramInitialize");
+            //var handleMain = uniqueSummationShader.FindKernel("HistogramMain");
+            //sunlightSumBuffer = new ComputeBuffer(uniqueOrgansInitialAllocation, sizeof(uint));
+            //sunlightSumData = new uint[uniqueOrgansInitialAllocation];
+
+            //if (handleInitialize < 0 || handleMain < 0 ||
+            //   null == sunlightSumBuffer || null == sunlightSumData)
+            //{
+            //    Debug.Log("Initialization failed.");
+            //    throw new System.Exception("Could not initialize sunlight camera");
+            //}
+
+            //uniqueSummationShader.SetTexture(handleMain, "InputTexture", sunlightCamera.sunlightTexture);
+            //uniqueSummationShader.SetBuffer(handleMain, "HistogramBuffer", sunlightSumBuffer);
+            //uniqueSummationShader.SetBuffer(handleInitialize, "HistogramBuffer", sunlightSumBuffer);
         }
 
         public JobHandle ApplySunlightToSymbols(
-            DependencyTracker<SymbolString<float>> symbolsTracker,
+            LSystemState<float> systemState,
             CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
+        {
+            if (useJob)
+            {
+                return ApplySunlightWithJob(systemState, customSymbols, openBranchSymbol, closeBranchSymbol);
+            }
+            else
+            {
+                return ApplySunlightWithComputeShader(systemState, customSymbols, openBranchSymbol, closeBranchSymbol);
+            }
+        }
+
+
+        public void Dispose()
+        {
+            sunlightSumBuffer?.Dispose();
+            sunlightSumBuffer = null;
+        }
+
+        private JobHandle ApplySunlightWithComputeShader(
+            LSystemState<float> systemState,
+            CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
+        {
+
+            return default;
+        }
+
+        private JobHandle ApplySunlightWithJob(
+        LSystemState<float> systemState,
+        CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
         {
             if (!(customSymbols.hasSunlight && customSymbols.hasIdentifiers))
             {
@@ -55,7 +115,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             var tmpIdentityStack = new TmpNativeStack<SunlightExposurePreProcessRule.BranchIdentity>(10, Allocator.TempJob);
             var applyJob = new SunlightExposurePreProcessRule
             {
-                symbols = symbolsTracker.Data,
+                symbols = systemState.currentSymbols.Data,
                 organIdCounts = organCounts,
                 lastIdentityStack = tmpIdentityStack,
 
@@ -66,7 +126,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             };
 
             dependency = applyJob.Schedule(dependency);
-            symbolsTracker.RegisterDependencyOnData(dependency);
+            systemState.currentSymbols.RegisterDependencyOnData(dependency);
 
             dependency = JobHandle.CombineDependencies(
                 organCounts.Dispose(dependency),

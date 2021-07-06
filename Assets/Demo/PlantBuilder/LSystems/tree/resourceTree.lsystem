@@ -32,6 +32,7 @@
 #include autophagy (Necrose->n)
 
 
+
 S(x) -> a(x)S(x)
 
 #symbols TFK
@@ -39,7 +40,7 @@ S(x) -> a(x)S(x)
 P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> ~f(0)T(x - 1)
 P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> T(x)
 
-P(0.9) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)oR(0)T(5)][-(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)oR(0)T(5)]
+P(0.9) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)o(0)R(0)T(5)][-(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)o(0)R(0)T(5)]
 P(0.1) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> f(0)k(0)
 
 
@@ -113,7 +114,8 @@ d(x) -> a(0, 0, -x)
 ## o looks for a decreasing virility gradient from the root towards the leaves
 #symbols o
 
-r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb -> n
+r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o(deathAmt) > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb && deathAmt < 10 -> o(deathAmt + 1)
+r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o(deathAmt) > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb && deathAmt >= 10 -> n
 ## r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] -> o
 ## r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o -> o
 ## o ->

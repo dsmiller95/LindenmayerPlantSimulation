@@ -23,6 +23,7 @@ namespace Dman.LSystem.UnityObjects
         public event Action OnSystemStateUpdated;
         public event Action OnSystemObjectUpdated;
         public SunlightCamera sunlightTexture;
+        public ComputeShader uniqueSummationShader;
         private SunlightCalculator sunlight;
         public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
@@ -35,7 +36,7 @@ namespace Dman.LSystem.UnityObjects
         {
             if (sunlightTexture != null)
             {
-                sunlight = new SunlightCalculator(sunlightTexture);
+                sunlight = new SunlightCalculator(sunlightTexture, uniqueSummationShader);
             }
             lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
             if (systemObject != null)
@@ -107,7 +108,7 @@ namespace Dman.LSystem.UnityObjects
             if(sunlight != null)
             {
                 var system = steppingHandle.Stepper();
-                dep = sunlight.ApplySunlightToSymbols(steppingHandle.currentState.currentSymbols, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
+                dep = sunlight.ApplySunlightToSymbols(steppingHandle.currentState, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
             }
             steppingHandle.StepSystem(dep);
         }
