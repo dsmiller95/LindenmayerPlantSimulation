@@ -133,6 +133,7 @@ namespace Dman.LSystem.UnityObjects
 
         private void OnDestroy()
         {
+            sunlight?.Dispose();
             steppingHandle?.Dispose();
         }
     }

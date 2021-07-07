@@ -1,4 +1,4 @@
-#axiom /(-50)@(1)r(0.3, 0, 1000, 20, 20, 0, 100000)R(0)bS(10)F[p&(90)i(0)s(0)L(5)]T(5)
+#axiom /(-50)@(1)r(0.3, 0, 1000, 100, 20, 0, 100000)R(0)bS(10)F[p&(90)i(0)s(0)L(5)]T(5)
 #iterations 3000
 
 #symbols +-/\&^F$@!`
@@ -114,11 +114,8 @@ d(x) -> a(0, 0, -x)
 ## o looks for a decreasing virility gradient from the root towards the leaves
 #symbols o
 
-r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o(deathAmt) > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb && deathAmt < 10 -> o(deathAmt + 1)
-r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o(deathAmt) > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb && deathAmt >= 10 -> n
-## r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] -> o
-## r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o -> o
-## o ->
+## r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o(deathAmt) > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb && deathAmt < 10 -> o(deathAmt + 1)
+## r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o(deathAmt) > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb && deathAmt >= 10 -> n
 
 
 

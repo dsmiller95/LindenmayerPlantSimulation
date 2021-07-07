@@ -1,12 +1,13 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
+using System.Text;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.Sunlight
 {
@@ -16,13 +17,16 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
         private bool useJob;
         private ComputeShader uniqueSummationShader;
 
-        private uint[] sunlightSumData;
+        //private uint[] sunlightSumData;
         private ComputeBuffer sunlightSumBuffer;
+
+        private int handleInitialize;
+        private int handleMain;
 
         public SunlightCalculator(
             SunlightCamera sunlightCamera,
             ComputeShader uniqueSummationShader,
-            bool useJob = true,
+            bool useJob = false,
             int uniqueOrgansInitialAllocation = 4096)
         {
             this.sunlightCamera = sunlightCamera;
@@ -30,21 +34,21 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             this.uniqueSummationShader = uniqueSummationShader;
 
 
-            //var handleInitialize = uniqueSummationShader.FindKernel("HistogramInitialize");
-            //var handleMain = uniqueSummationShader.FindKernel("HistogramMain");
-            //sunlightSumBuffer = new ComputeBuffer(uniqueOrgansInitialAllocation, sizeof(uint));
+            handleInitialize = uniqueSummationShader.FindKernel("SunlightInitialize");
+            handleMain = uniqueSummationShader.FindKernel("SunlightMain");
+            sunlightSumBuffer = new ComputeBuffer(uniqueOrgansInitialAllocation, sizeof(uint));
             //sunlightSumData = new uint[uniqueOrgansInitialAllocation];
 
-            //if (handleInitialize < 0 || handleMain < 0 ||
-            //   null == sunlightSumBuffer || null == sunlightSumData)
-            //{
-            //    Debug.Log("Initialization failed.");
-            //    throw new System.Exception("Could not initialize sunlight camera");
-            //}
+            if (handleInitialize < 0 || handleMain < 0 ||
+               null == sunlightSumBuffer)
+            {
+                Debug.Log("Initialization failed.");
+                throw new System.Exception("Could not initialize sunlight camera");
+            }
 
-            //uniqueSummationShader.SetTexture(handleMain, "InputTexture", sunlightCamera.sunlightTexture);
-            //uniqueSummationShader.SetBuffer(handleMain, "HistogramBuffer", sunlightSumBuffer);
-            //uniqueSummationShader.SetBuffer(handleInitialize, "HistogramBuffer", sunlightSumBuffer);
+            uniqueSummationShader.SetTexture(handleMain, "InputTexture", sunlightCamera.sunlightTexture, 0, UnityEngine.Rendering.RenderTextureSubElement.Color);
+            uniqueSummationShader.SetBuffer(handleMain, "IdResultBuffer", sunlightSumBuffer);
+            uniqueSummationShader.SetBuffer(handleInitialize, "IdResultBuffer", sunlightSumBuffer);
         }
 
         public JobHandle ApplySunlightToSymbols(
@@ -57,7 +61,10 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             }
             else
             {
+                //var dep = ApplySunlightWithJob(systemState, customSymbols, openBranchSymbol, closeBranchSymbol);
                 return ApplySunlightWithComputeShader(systemState, customSymbols, openBranchSymbol, closeBranchSymbol);
+
+                //return dep;
             }
         }
 
@@ -72,8 +79,77 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             LSystemState<float> systemState,
             CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("Sunlight compute shader");
+            // divided by 64 in x because of [numthreads(64,1,1)] in the compute shader code
+            uniqueSummationShader.Dispatch(handleInitialize, sunlightSumBuffer.count / 64, 1, 1);
 
-            return default;
+            // divided by 8 in x and y because of [numthreads(8,8,1)] in the compute shader code
+            uniqueSummationShader.Dispatch(handleMain, (sunlightCamera.sunlightTexture.width + 7) / 8, (sunlightCamera.sunlightTexture.height + 7) / 8, 1);
+
+            var idsNativeArray = GetComputeDataDirectly();
+
+            UnityEngine.Profiling.Profiler.EndSample();
+
+
+            //var result = new StringBuilder();
+            //for (int i = 0; i < idsNativeArray.Length; i++)
+            //{
+            //    var sun = idsNativeArray[i];
+            //    if (sun != 0)
+            //    {
+            //        result.Append($"{i}: {sun}\n");
+            //    }
+            //}
+            //Debug.Log(result.ToString());
+
+            UnityEngine.Profiling.Profiler.BeginSample("Sunlight result apply");
+
+            var tmpIdentityStack = new TmpNativeStack<SunlightExposurePreProcessRuleAsArray.BranchIdentity>(10, Allocator.TempJob);
+            var applyJob = new SunlightExposurePreProcessRuleAsArray
+            {
+                symbols = systemState.currentSymbols.Data,
+                organCountsByIndex = idsNativeArray,
+                lastIdentityStack = tmpIdentityStack,
+
+                sunlightPerPixel = sunlightCamera.sunlightPerPixel,
+                branchOpen = openBranchSymbol,
+                branchClose = closeBranchSymbol,
+                customSymbols = customSymbols,
+            };
+
+            var dependency = applyJob.Schedule();
+            systemState.currentSymbols.RegisterDependencyOnData(dependency);
+
+            dependency = JobHandle.CombineDependencies(
+                idsNativeArray.Dispose(dependency),
+                tmpIdentityStack.Dispose(dependency)
+                );
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            return dependency;
+
+            //return default;
+        }
+
+        private NativeArray<uint> GetComputeDataDirectly()
+        {
+            var arr = new uint[sunlightSumBuffer.count];
+            sunlightSumBuffer.GetData(arr);
+
+            return new NativeArray<uint>(arr, Allocator.TempJob);
+        }
+
+        private NativeArray<uint> GetComputeDataAsync()
+        {
+            var request = AsyncGPUReadback.Request(sunlightSumBuffer);
+
+            request.WaitForCompletion();
+            if (!request.done)
+            {
+                Debug.LogError("gpu request not completed");
+            }
+
+            return request.GetData<uint>();
         }
 
         private JobHandle ApplySunlightWithJob(
@@ -107,13 +183,14 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             var counter = new CountByDistinct(textureData);
             var organCounts = counter.GetCounts();
             var dependency = counter.Schedule();
+            dependency.Complete();
 
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight result apply");
 
-            var tmpIdentityStack = new TmpNativeStack<SunlightExposurePreProcessRule.BranchIdentity>(10, Allocator.TempJob);
-            var applyJob = new SunlightExposurePreProcessRule
+            var tmpIdentityStack = new TmpNativeStack<SunlightExposurePreProcessRuleAsHashMap.BranchIdentity>(10, Allocator.TempJob);
+            var applyJob = new SunlightExposurePreProcessRuleAsHashMap
             {
                 symbols = systemState.currentSymbols.Data,
                 organIdCounts = organCounts,
@@ -122,7 +199,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 sunlightPerPixel = sunlightCamera.sunlightPerPixel,
                 branchOpen = openBranchSymbol,
                 branchClose = closeBranchSymbol,
-                customSymbols = customSymbols
+                customSymbols = customSymbols,
             };
 
             dependency = applyJob.Schedule(dependency);

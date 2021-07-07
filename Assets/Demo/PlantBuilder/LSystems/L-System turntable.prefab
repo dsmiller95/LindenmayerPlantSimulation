@@ -97,6 +97,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   logStates: 1
   systemObject: {fileID: 0}
+  sunlightTexture: {fileID: 0}
+  uniqueSummationShader: {fileID: 7200000, guid: 1549cd601b32dbd43bce4432c0ed2bfd, type: 3}
 --- !u!114 &4336313098753995651
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,3 +165,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationSpeed: 20
   rotate: 0
+  axis: {x: 0, y: 1, z: 0}

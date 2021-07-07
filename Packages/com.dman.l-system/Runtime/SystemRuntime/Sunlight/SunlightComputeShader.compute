@@ -1,0 +1,77 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel SunlightInitialize
+#pragma kernel SunlightMain
+
+
+Texture2D<float4> InputTexture; // input texture
+RWStructuredBuffer<uint> IdResultBuffer;
+
+
+[numthreads(64, 1, 1)]
+void SunlightInitialize(uint3 id : SV_DispatchThreadID)
+{
+    IdResultBuffer[id.x] = uint(0);
+}
+
+
+[numthreads(8, 8, 1)]
+void SunlightMain(uint3 id : SV_DispatchThreadID)
+{
+    float4 col = InputTexture[id.xy];
+    //for (int i = 0; i < 8 * 4; i++)
+    //{
+    //    uint bit = col & (1 << i);
+    //    if (bit)
+    //    {
+    //        InterlockedAdd(IdResultBuffer[i], 1);
+    //    }
+
+    //}
+    
+    uint4 uints = uint4(255.0 * col);
+    
+    uint objectId =
+        uints.r & 0xFF |
+        (uints.g & 0xFF) << 8 |
+        (uints.b & 0xFF) << 16 |
+        (uints.a & 0xFF) << 24;
+    
+    //(col & 0x000000FF) >> 0;
+    
+    //    uint nextCol = col;
+    //if ((col & 0x000000FF) != 0)
+    //{
+    //    InterlockedAdd(IdResultBuffer[0], 1);
+    //}
+    //if ((col & 0x0000FF00) != 0)
+    //{
+    //    InterlockedAdd(IdResultBuffer[1], 1);
+    //}
+    //if ((col & 0x00FF0000) != 0)
+    //{
+    //    InterlockedAdd(IdResultBuffer[2], 1);
+    //}
+    //if ((col & 0xFF000000) != 0)
+    //{
+    //    InterlockedAdd(IdResultBuffer[3], 1);
+    //}
+    //if ((col & 0x44444444) != 0)
+    //{
+    //    InterlockedAdd(IdResultBuffer[4], 1);
+    //}
+    //if ((col & 0x88888888) != 0)
+    //{
+    //    InterlockedAdd(IdResultBuffer[5], 1);
+    //}
+        //((col & 0x0000FF00) >> 8) |
+        //((col & 0x000000FF) << 8);
+
+    // try flipping the endianess
+    //uint nextCol =
+    //    ((col & 0xFF000000) >> 8 * 3) |
+    //    ((col & 0x00FF0000) >> 8 * 1) |
+    //    ((col & 0x0000FF00) << 8 * 3) |
+    //    ((col & 0x000000FF) << 8 * 3);
+    
+    InterlockedAdd(IdResultBuffer[objectId], 1);
+}
