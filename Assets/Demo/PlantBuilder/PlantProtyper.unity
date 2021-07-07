@@ -1235,7 +1235,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sunlightPerSquareUnit: 1
   uniqueSummationShader: {fileID: 7200000, guid: 1549cd601b32dbd43bce4432c0ed2bfd, type: 3}
-  uniqueOrgansInitialAllocation: 4096
+  uniqueOrgansInitialAllocation: 16
+  computeBufferResizeMultiplier: 2
+  computeBufferResizeThreshold: 0.9
 --- !u!20 &732488163
 Camera:
   m_ObjectHideFlags: 0

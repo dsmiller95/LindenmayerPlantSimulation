@@ -1,5 +1,9 @@
-﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
+﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -21,6 +25,14 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         public ComputeShader uniqueSummationShader;
         public int uniqueOrgansInitialAllocation = 4096;
+
+        [Tooltip("The multiplier used to increase the size of the compute buffer on each resize event")]
+        public float computeBufferResizeMultiplier = 2;
+        [Tooltip("The usage percentage of the current compute buffer which will trigger a buffer resize")]
+        [Range(0, 1)]
+        public float computeBufferResizeThreshold = 0.9f;
+
+        private int currentUniqueOrgansMaxAllocation;
         private AsyncGPUReadbackRequest? readbackRequest;
         private ComputeBuffer sunlightSumBuffer;
         private int handleInitialize;
@@ -28,12 +40,15 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         private void Start()
         {
+            currentUniqueOrgansMaxAllocation = uniqueOrgansInitialAllocation;
+
             handleInitialize = uniqueSummationShader.FindKernel("SunlightInitialize");
             handleMain = uniqueSummationShader.FindKernel("SunlightMain");
-            sunlightSumBuffer = new ComputeBuffer(uniqueOrgansInitialAllocation, sizeof(uint));
+
+            sunlightSumBuffer = new ComputeBuffer(currentUniqueOrgansMaxAllocation, sizeof(uint));
 
             if (handleInitialize < 0 || handleMain < 0 ||
-               null == sunlightSumBuffer)
+               sunlightSumBuffer == null)
             {
                 Debug.Log("Initialization failed.");
                 throw new System.Exception("Could not initialize sunlight camera");
@@ -58,6 +73,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         private void OnDestroy()
         {
+            Debug.Log("sun destroy");
             readbackRequest.Value.WaitForCompletion();
             sunlightSumBuffer.Dispose();
             uniqueSunlightAssignments.Dispose();
@@ -70,6 +86,10 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 CompleteGPUReadback();
                 readbackRequest = null;
             }
+            if (readbackRequest == null)
+            {
+                ReallocateIdResultBufferIfNecessary();
+            }
             if (frameOfLastUpdate < Time.frameCount && readbackRequest == null)
             {
                 TriggerGPUReadback();
@@ -81,7 +101,9 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
         {
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight compute shader");
             // divided by 64 in x because of [numthreads(64,1,1)] in the compute shader code
-            uniqueSummationShader.Dispatch(handleInitialize, sunlightSumBuffer.count / 64, 1, 1);
+            //  add 63 to ensure rounding up
+            //uniqueSummationShader.Dispatch(handleInitialize, sunlightSumBuffer.count / 64, 1, 1);
+            uniqueSummationShader.Dispatch(handleInitialize, (sunlightSumBuffer.count + 63) / 64, 1, 1);
 
             // divided by 8 in x and y because of [numthreads(8,8,1)] in the compute shader code
             uniqueSummationShader.Dispatch(handleMain, (sunlightTexture.width + 7) / 8, (sunlightTexture.height + 7) / 8, 1);
@@ -111,5 +133,75 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
+
+        /// <summary>
+        /// assumes that the compute shader is complete and there are no pending readback requests
+        /// </summary>
+        private void ReallocateIdResultBufferIfNecessary()
+        {
+            if (currentUniqueOrgansMaxAllocation == sunlightSumBuffer.count)
+            {
+                return;
+            }
+
+            UnityEngine.Profiling.Profiler.BeginSample("Sunlight buffer resize");
+            Debug.Log($"Resizing sunlight buffer from {sunlightSumBuffer.count} to {currentUniqueOrgansMaxAllocation}");
+
+            sunlightSumBuffer = new ComputeBuffer(currentUniqueOrgansMaxAllocation, sizeof(uint));
+            uniqueSummationShader.SetBuffer(handleMain, "IdResultBuffer", sunlightSumBuffer);
+            uniqueSummationShader.SetBuffer(handleInitialize, "IdResultBuffer", sunlightSumBuffer);
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+
+        public JobHandle ApplySunlightToSymbols(
+            LSystemState<float> systemState,
+            CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
+        {
+            // inspect the data needs from the l-system. if it will need above the compute resize threshold,
+            //  indicate a need to resize the buffer after this update completes
+            if (systemState.maxUniqueOrganIds > sunlightSumBuffer.count * computeBufferResizeThreshold)
+            {
+                currentUniqueOrgansMaxAllocation = (int)(sunlightSumBuffer.count * computeBufferResizeMultiplier);
+            }
+
+            var idsNativeArray = uniqueSunlightAssignments.ActiveData;
+            if (idsNativeArray == null)
+            {
+                Debug.LogError("no sunlight data available");
+                return default;
+            }
+            if (idsNativeArray.IsDisposed)
+            {
+                Debug.LogError("sunlight data has been disposed already");
+                return default;
+            }
+
+            UnityEngine.Profiling.Profiler.BeginSample("Sunlight result apply");
+
+            var tmpIdentityStack = new TmpNativeStack<SunlightExposurePreProcessRule.BranchIdentity>(10, Allocator.TempJob);
+            var applyJob = new SunlightExposurePreProcessRule
+            {
+                symbols = systemState.currentSymbols.Data,
+                organCountsByIndex = idsNativeArray.Data,
+                lastIdentityStack = tmpIdentityStack,
+
+                sunlightPerPixel = sunlightPerPixel,
+                branchOpen = openBranchSymbol,
+                branchClose = closeBranchSymbol,
+                customSymbols = customSymbols,
+            };
+
+            var dependency = applyJob.Schedule();
+            systemState.currentSymbols.RegisterDependencyOnData(dependency);
+            idsNativeArray.RegisterDependencyOnData(dependency);
+
+            dependency = JobHandle.CombineDependencies(
+                idsNativeArray.Dispose(dependency),
+                tmpIdentityStack.Dispose(dependency)
+                );
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            return dependency;
+        }
     }
 }

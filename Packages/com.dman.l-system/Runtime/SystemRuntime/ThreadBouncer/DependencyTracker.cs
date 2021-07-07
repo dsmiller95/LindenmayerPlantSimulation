@@ -38,11 +38,6 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         public void Dispose()
         {
             if (IsDisposed) return;
-            if (dependencies.Equals(default(JobHandle)))
-            {
-                DisposeImmediate();
-                return;
-            }
             // TODO: can we not force complete here?
             dependencies.Complete();
             Data.Dispose(dependencies);

@@ -19,7 +19,7 @@
 
 #symbols ra
 #matches r
-#define diffusionStepsPerStep 10
+#define diffusionStepsPerStep 1
 #include diffusion (Node->r) (Amount->a)
 
 #symbols i
@@ -30,7 +30,6 @@
 
 #symbols n
 #include autophagy (Necrose->n)
-
 
 
 S(x) -> a(x)S(x)

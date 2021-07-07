@@ -23,7 +23,6 @@ namespace Dman.LSystem.UnityObjects
         public event Action OnSystemStateUpdated;
         public event Action OnSystemObjectUpdated;
         public SunlightCamera sunlightCamera;
-        private SunlightCalculator sunlight;
         public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
         /// the value of Time.time when this system was last updated
@@ -33,10 +32,6 @@ namespace Dman.LSystem.UnityObjects
 
         private void Awake()
         {
-            if (sunlightCamera != null)
-            {
-                sunlight = new SunlightCalculator(sunlightCamera);
-            }
             lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
             if (systemObject != null)
             {
@@ -104,10 +99,10 @@ namespace Dman.LSystem.UnityObjects
         public void StepSystem()
         {
             var dep = default(JobHandle);
-            if(sunlight != null)
+            if(sunlightCamera != null)
             {
                 var system = steppingHandle.Stepper();
-                dep = sunlight.ApplySunlightToSymbols(steppingHandle.currentState, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
+                dep = sunlightCamera.ApplySunlightToSymbols(steppingHandle.currentState, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
             }
             steppingHandle.StepSystem(dep);
         }
@@ -132,7 +127,6 @@ namespace Dman.LSystem.UnityObjects
 
         private void OnDestroy()
         {
-            sunlight?.Dispose();
             steppingHandle?.Dispose();
         }
     }
