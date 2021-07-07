@@ -22,8 +22,7 @@ namespace Dman.LSystem.UnityObjects
 
         public event Action OnSystemStateUpdated;
         public event Action OnSystemObjectUpdated;
-        public SunlightCamera sunlightTexture;
-        public ComputeShader uniqueSummationShader;
+        public SunlightCamera sunlightCamera;
         private SunlightCalculator sunlight;
         public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
@@ -34,9 +33,9 @@ namespace Dman.LSystem.UnityObjects
 
         private void Awake()
         {
-            if (sunlightTexture != null)
+            if (sunlightCamera != null)
             {
-                sunlight = new SunlightCalculator(sunlightTexture, uniqueSummationShader);
+                sunlight = new SunlightCalculator(sunlightCamera);
             }
             lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
             if (systemObject != null)
