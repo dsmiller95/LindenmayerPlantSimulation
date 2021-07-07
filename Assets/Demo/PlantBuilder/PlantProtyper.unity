@@ -3147,6 +3147,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 9089396036891669031, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
+      propertyPath: sunlightCamera
+      value: 
+      objectReference: {fileID: 732488162}
+    - target: {fileID: 9089396036891669031, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: sunlightTexture
       value: 
       objectReference: {fileID: 732488162}
