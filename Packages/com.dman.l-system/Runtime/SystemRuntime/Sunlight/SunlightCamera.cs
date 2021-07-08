@@ -71,7 +71,6 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         private void OnDestroy()
         {
-            Debug.Log("sun destroy");
             readbackRequest.Value.WaitForCompletion();
             sunlightSumBuffer.Dispose();
             uniqueSunlightAssignments.Dispose();
