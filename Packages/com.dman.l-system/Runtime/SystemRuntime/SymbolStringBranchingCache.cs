@@ -11,7 +11,6 @@ namespace Dman.LSystem.SystemRuntime
         public int branchOpenSymbol;
         public int branchCloseSymbol;
 
-        // TODO: extract from class, compile seperately?
         [ReadOnly]
         public NativeMultipleHashSets includeSymbols;
         /// <summary>
