@@ -1,7 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.Turtle;
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.CustomRules
@@ -39,7 +37,8 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                 else if (symbol == branchClose)
                 {
                     branchIdentity = lastIdentityStack.Pop();
-                } else if(symbol == customSymbols.autophagicSymbol)
+                }
+                else if (symbol == customSymbols.autophagicSymbol)
                 {
                     branchIdentity.isDead = true;
                 }
@@ -60,7 +59,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
             public bool isDead;
             public BranchIdentity(bool isDead)
             {
-                this.isDead = isDead;   
+                this.isDead = isDead;
             }
         }
     }

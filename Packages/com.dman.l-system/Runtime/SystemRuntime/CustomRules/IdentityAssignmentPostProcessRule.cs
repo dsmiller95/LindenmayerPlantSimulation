@@ -1,6 +1,4 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.Turtle;
-using System.Runtime.InteropServices;
+﻿using Dman.LSystem.SystemRuntime.Turtle;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -30,7 +28,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                 maxIdentityId[0] = 0;
                 return;
             }
-            
+
             var persistentOrganIdentityIndex = new UIntFloatColor32
             {
                 UIntValue = originOfUniqueIndexes

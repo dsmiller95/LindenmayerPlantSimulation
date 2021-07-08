@@ -62,7 +62,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             JobHandle parameterModificationJobDependency)
         {
             this.customSymbols = customSymbols;
-            this.uniqueIDOriginIndex = systemState.firstUniqueOrganId;
+            uniqueIDOriginIndex = systemState.firstUniqueOrganId;
             randResult = systemState.randomProvider;
             sourceSymbolString = systemState.currentSymbols;
             nativeData = lSystemNativeData;
@@ -175,7 +175,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 nativeData,
                 branchingCache,
                 customSymbols,
-                this.uniqueIDOriginIndex)
+                uniqueIDOriginIndex)
             {
                 randResult = randResult,
             };

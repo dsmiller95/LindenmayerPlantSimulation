@@ -139,8 +139,8 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             // inspect the data needs from all l-systems. if it will need above the compute resize threshold,
             //  indicate a need to resize the buffer after this update completes
             var newSize = GlobalLSystemCoordinator.instance.ResizeLSystemReservations();
-            var nextAllocationSize = this.sunlightSumBuffer.count;
-            while(newSize > nextAllocationSize * computeBufferResizeThreshold)
+            var nextAllocationSize = sunlightSumBuffer.count;
+            while (newSize > nextAllocationSize * computeBufferResizeThreshold)
             {
                 nextAllocationSize = (int)(nextAllocationSize * computeBufferResizeMultiplier);
             }

@@ -1,5 +1,3 @@
-using Dman.LSystem;
-using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using System;
@@ -61,7 +59,7 @@ public class UniqueSummationJobTest
 
         while (true)
         {
-            if(rand.NextDouble() < runEndProbability)
+            if (rand.NextDouble() < runEndProbability)
             {
                 runId = (uint)rand.Next((int)minInt, (int)maxInt);
             }
@@ -72,19 +70,19 @@ public class UniqueSummationJobTest
     [Test]
     public void CountsAllUniqueBitsAccuratelyWhenManyShortRuns()
     {
-        this.TestCountByDistinct(this.RunSequenceGenerator(0.99, 0, 200), 100);
+        TestCountByDistinct(RunSequenceGenerator(0.99, 0, 200), 100);
     }
 
     [Test]
     public void CountsAllUniqueBitsAccuratelyWhenHugeDataManyRuns()
     {
-        this.TestCountByDistinct(this.RunSequenceGenerator(0.1, 0, 200), 10000);
+        TestCountByDistinct(RunSequenceGenerator(0.1, 0, 200), 10000);
     }
 
     [Test]
     public void CountsAllUniqueBitsAccuratelyWhenFewUniqueIds()
     {
-        this.TestCountByDistinct(this.RunSequenceGenerator(0.6, 0, 5), 100);
+        TestCountByDistinct(RunSequenceGenerator(0.6, 0, 5), 100);
     }
 
     [Test, Performance]

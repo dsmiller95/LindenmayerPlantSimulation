@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Burst;
+﻿using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
@@ -79,19 +73,21 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
                     //    return;
                     //}
 
-                    if(id == currentRunId)
+                    if (id == currentRunId)
                     {
-                        if(currentRunIndex == idIndex - 1)
+                        if (currentRunIndex == idIndex - 1)
                         {
                             // this is the beginning of a run and there are 2 identical elements so far
                             allIds[currentRunIndex + 1] = 2;
                             runFlags[currentRunIndex] = true;
-                        }else
+                        }
+                        else
                         {
                             // this is a continuation of a run of some length greater than 2
                             allIds[currentRunIndex + 1]++;
                         }
-                    }else
+                    }
+                    else
                     {
                         // a run has been broken (or never formed at all)
                         currentRunId = id;
@@ -123,12 +119,13 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
                     {
                         // run-flags indicate this index is marked with a run
                         var runLength = allIds[idIndex + 1];
-                        this.IncrementIdCount(id, runLength);
+                        IncrementIdCount(id, runLength);
                         idIndex += (int)runLength;
-                    }else
+                    }
+                    else
                     {
                         // if we are here, and there is no flag, it must be a single element
-                        this.IncrementIdCount(id, 1);
+                        IncrementIdCount(id, 1);
                         idIndex += 1;
                     }
                 }

@@ -51,7 +51,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
         public void Dispose()
         {
-            this.requestedNextReservationSize = 0;
+            requestedNextReservationSize = 0;
         }
     }
 }

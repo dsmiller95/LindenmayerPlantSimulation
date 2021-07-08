@@ -146,7 +146,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                         currentState.submeshIndex++;
                         continue;
                     }
-                    if(customRules.hasIdentifiers && customRules.identifier == symbol)
+                    if (customRules.hasIdentifiers && customRules.identifier == symbol)
                     {
                         currentState.organIdentity = new UIntFloatColor32(symbols.parameters[symbolIndex, 0]);
                         continue;

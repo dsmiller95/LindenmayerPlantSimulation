@@ -1,7 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.Sunlight;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
@@ -73,7 +72,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             for (int i = 0; i < allResourceReservations.Count; i++)
             {
                 var currentReservation = allResourceReservations[i];
-                if(currentReservation.requestedNextReservationSize == 0)
+                if (currentReservation.requestedNextReservationSize == 0)
                 {
                     // skip this resource, and remove it from the list
                     allResourceReservations.RemoveAt(i);

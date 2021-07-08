@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
@@ -71,7 +70,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 
         public virtual JobHandle Dispose(JobHandle inputDeps)
         {
-            if(dataA != null && dataB != null)
+            if (dataA != null && dataB != null)
             {
                 return JobHandle.CombineDependencies(
                     dataA.Dispose(inputDeps),

@@ -1,11 +1,9 @@
-﻿using System;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
-    public struct NativeArrayNativeDisposableAdapter<T>: INativeDisposable where T : unmanaged
+    public struct NativeArrayNativeDisposableAdapter<T> : INativeDisposable where T : unmanaged
     {
         public NativeArray<T> data;
 
@@ -24,7 +22,14 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             return data.Dispose(inputDeps);
         }
 
-        public static implicit operator NativeArray<T>(NativeArrayNativeDisposableAdapter<T> wrapper) => wrapper.data;
-        public static implicit operator NativeArrayNativeDisposableAdapter<T>(NativeArray<T> data) => new NativeArrayNativeDisposableAdapter<T>(data);
+        public static implicit operator NativeArray<T>(NativeArrayNativeDisposableAdapter<T> wrapper)
+        {
+            return wrapper.data;
+        }
+
+        public static implicit operator NativeArrayNativeDisposableAdapter<T>(NativeArray<T> data)
+        {
+            return new NativeArrayNativeDisposableAdapter<T>(data);
+        }
     }
 }

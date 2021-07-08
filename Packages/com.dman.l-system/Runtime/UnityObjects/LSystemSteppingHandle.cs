@@ -3,7 +3,6 @@ using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
 using System.Collections.Generic;
-using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -46,7 +45,7 @@ namespace Dman.LSystem.UnityObjects
                 this.mySystemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
             }
 
-            this.globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle();
+            globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle();
         }
 
 
@@ -188,19 +187,19 @@ namespace Dman.LSystem.UnityObjects
                 if (repeatLast)
                 {
                     pendingStateHandle = compiledSystem.StepSystemJob(
-                        lastState, 
+                        lastState,
                         runtimeParameters.GetCurrentParameters());
                 }
                 else
                 {
                     var sunlightJob = globalResourceHandle.ApplySunlightToSymbols(
-                        currentState, 
-                        compiledSystem.customSymbols, 
-                        compiledSystem.branchOpenSymbol, 
+                        currentState,
+                        compiledSystem.customSymbols,
+                        compiledSystem.branchOpenSymbol,
                         compiledSystem.branchCloseSymbol);
 
                     pendingStateHandle = compiledSystem.StepSystemJob(
-                        currentState, 
+                        currentState,
                         runtimeParameters.GetCurrentParameters(),
                         parameterWriteDependency: sunlightJob);
                 }

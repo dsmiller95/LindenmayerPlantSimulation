@@ -12,7 +12,7 @@
 
         public LSystemRuntimeException AddContext(string stackLine)
         {
-            return new LSystemRuntimeException(this.Message + $"\n{stackLine}");
+            return new LSystemRuntimeException(Message + $"\n{stackLine}");
         }
     }
 }

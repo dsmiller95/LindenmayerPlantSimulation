@@ -60,9 +60,9 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
             if (systemObject == null)
             {
-                return; 
+                return;
             }
-            if(systemObject.compiledSystem == null)
+            if (systemObject.compiledSystem == null)
             {
                 // compiles so that the custom symbols can be pulled out
                 // TODO: extract custom symbols w/o a full system compilation
