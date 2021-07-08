@@ -18,6 +18,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public Unity.Mathematics.Random randResult;
         public CustomRuleSymbols customSymbols;
+        public uint uniqueIDOriginIndex;
 
         /////////////// things owned by this step /////////
         public NativeArray<int> totalSymbolCount;
@@ -61,6 +62,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             JobHandle parameterModificationJobDependency)
         {
             this.customSymbols = customSymbols;
+            this.uniqueIDOriginIndex = systemState.firstUniqueOrganId;
             randResult = systemState.randomProvider;
             sourceSymbolString = systemState.currentSymbols;
             nativeData = lSystemNativeData;
@@ -172,7 +174,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData,
                 nativeData,
                 branchingCache,
-                customSymbols)
+                customSymbols,
+                this.uniqueIDOriginIndex)
             {
                 randResult = randResult,
             };

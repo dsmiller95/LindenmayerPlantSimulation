@@ -48,6 +48,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     {
         public DependencyTracker<SymbolString<T>> currentSymbols;
         public Unity.Mathematics.Random randomProvider;
+        public uint firstUniqueOrganId;
         public uint maxUniqueOrganIds;
     }
 

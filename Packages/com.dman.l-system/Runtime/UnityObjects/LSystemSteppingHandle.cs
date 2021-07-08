@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+﻿using Dman.LSystem.SystemRuntime.GlobalCoordinator;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,8 @@ namespace Dman.LSystem.UnityObjects
         private LSystemObject mySystemObject;
         private bool useSharedSystem;
 
+        private LSystemGlobalResourceHandle myResourceHandle;
+
         public LSystemSteppingHandle(
             LSystemObject mySystemObject,
             bool useSharedSystem)
@@ -42,6 +45,9 @@ namespace Dman.LSystem.UnityObjects
             {
                 this.mySystemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
             }
+
+            // TODO: free this when unused
+            this.myResourceHandle = GlobalLSystemCoordinator.instance.GetResourceHandle();
         }
 
 
@@ -137,14 +143,14 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         /// <param name="CompleteInLateUpdate">When set to true, the behavior will queue up the jobs and wait until the next frame to complete them</param>
         /// <returns>true if the state changed. false otherwise</returns>
-        public void StepSystem(JobHandle jobDependency)
+        public void StepSystem()
         {
             if (!CanStep())
             {
                 Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }
-            StepSystemAsync(runtimeParameters, jobDependency: jobDependency);
+            StepSystemAsync(runtimeParameters);
         }
         public void StepSystemImmediate()
         {
@@ -171,7 +177,6 @@ namespace Dman.LSystem.UnityObjects
 
         private void StepSystemAsync(
             ArrayParameterRepresenation<float> runtimeParameters,
-            JobHandle jobDependency = default,
             bool repeatLast = false)
         {
             ICompletable<LSystemState<float>> pendingStateHandle;
@@ -183,11 +188,22 @@ namespace Dman.LSystem.UnityObjects
                 }
                 if (repeatLast)
                 {
-                    pendingStateHandle = compiledSystem.StepSystemJob(lastState, runtimeParameters.GetCurrentParameters(), parameterWriteDependency: jobDependency);
+                    pendingStateHandle = compiledSystem.StepSystemJob(
+                        lastState, 
+                        runtimeParameters.GetCurrentParameters());
                 }
                 else
                 {
-                    pendingStateHandle = compiledSystem.StepSystemJob(currentState, runtimeParameters.GetCurrentParameters(), parameterWriteDependency: jobDependency);
+                    var sunlightJob = myResourceHandle.ApplySunlightToSymbols(
+                        currentState, 
+                        compiledSystem.customSymbols, 
+                        compiledSystem.branchOpenSymbol, 
+                        compiledSystem.branchCloseSymbol);
+
+                    pendingStateHandle = compiledSystem.StepSystemJob(
+                        currentState, 
+                        runtimeParameters.GetCurrentParameters(),
+                        parameterWriteDependency: sunlightJob);
                 }
                 if (pendingStateHandle == null)
                 {

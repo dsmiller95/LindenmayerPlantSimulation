@@ -37,7 +37,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
             DependencyTracker<SystemLevelRuleNativeData> nativeData,
             SymbolStringBranchingCache branchingCache,
-            CustomRuleSymbols customSymbols)
+            CustomRuleSymbols customSymbols,
+            uint uniqueIDOriginIndex)
         {
             this.matchSingletonData = matchSingletonData;
             this.branchingCache = branchingCache;
@@ -103,6 +104,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 targetData = target,
                 maxIdentityId = maxIdReached,
                 customSymbols = customSymbols,
+                originOfUniqueIndexes = uniqueIDOriginIndex
             };
             currentJobHandle = identityAssignmentJob.Schedule(
                 JobHandle.CombineDependencies(

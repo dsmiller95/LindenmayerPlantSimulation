@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.GlobalCoordinator;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
@@ -32,7 +33,6 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
         [Range(0, 1)]
         public float computeBufferResizeThreshold = 0.9f;
 
-        private int currentUniqueOrgansMaxAllocation;
         private AsyncGPUReadbackRequest? readbackRequest;
         private ComputeBuffer sunlightSumBuffer;
         private int handleInitialize;
@@ -40,12 +40,10 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         private void Start()
         {
-            currentUniqueOrgansMaxAllocation = uniqueOrgansInitialAllocation;
-
             handleInitialize = uniqueSummationShader.FindKernel("SunlightInitialize");
             handleMain = uniqueSummationShader.FindKernel("SunlightMain");
 
-            sunlightSumBuffer = new ComputeBuffer(currentUniqueOrgansMaxAllocation, sizeof(uint));
+            sunlightSumBuffer = new ComputeBuffer(uniqueOrgansInitialAllocation, sizeof(uint));
 
             if (handleInitialize < 0 || handleMain < 0 ||
                sunlightSumBuffer == null)
@@ -139,15 +137,23 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
         /// </summary>
         private void ReallocateIdResultBufferIfNecessary()
         {
-            if (currentUniqueOrgansMaxAllocation == sunlightSumBuffer.count)
+            // inspect the data needs from all l-systems. if it will need above the compute resize threshold,
+            //  indicate a need to resize the buffer after this update completes
+            var newSize = GlobalLSystemCoordinator.instance.ResizeLSystemReservations();
+            var nextAllocationSize = this.sunlightSumBuffer.count;
+            while(newSize > nextAllocationSize * computeBufferResizeThreshold)
+            {
+                nextAllocationSize = (int)(nextAllocationSize * computeBufferResizeMultiplier);
+            }
+            if (nextAllocationSize == sunlightSumBuffer.count)
             {
                 return;
             }
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight buffer resize");
-            Debug.Log($"Resizing sunlight buffer from {sunlightSumBuffer.count} to {currentUniqueOrgansMaxAllocation}");
+            Debug.Log($"Resizing sunlight buffer from {sunlightSumBuffer.count} to {nextAllocationSize}");
 
-            sunlightSumBuffer = new ComputeBuffer(currentUniqueOrgansMaxAllocation, sizeof(uint));
+            sunlightSumBuffer = new ComputeBuffer(nextAllocationSize, sizeof(uint));
             uniqueSummationShader.SetBuffer(handleMain, "IdResultBuffer", sunlightSumBuffer);
             uniqueSummationShader.SetBuffer(handleInitialize, "IdResultBuffer", sunlightSumBuffer);
             UnityEngine.Profiling.Profiler.EndSample();
@@ -155,14 +161,10 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         public JobHandle ApplySunlightToSymbols(
             LSystemState<float> systemState,
-            CustomRuleSymbols customSymbols, int openBranchSymbol, int closeBranchSymbol)
+            CustomRuleSymbols customSymbols,
+            int openBranchSymbol,
+            int closeBranchSymbol)
         {
-            // inspect the data needs from the l-system. if it will need above the compute resize threshold,
-            //  indicate a need to resize the buffer after this update completes
-            if (systemState.maxUniqueOrganIds > sunlightSumBuffer.count * computeBufferResizeThreshold)
-            {
-                currentUniqueOrgansMaxAllocation = (int)(sunlightSumBuffer.count * computeBufferResizeMultiplier);
-            }
 
             var idsNativeArray = uniqueSunlightAssignments.ActiveData;
             if (idsNativeArray == null)
@@ -195,10 +197,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             systemState.currentSymbols.RegisterDependencyOnData(dependency);
             idsNativeArray.RegisterDependencyOnData(dependency);
 
-            dependency = JobHandle.CombineDependencies(
-                idsNativeArray.Dispose(dependency),
-                tmpIdentityStack.Dispose(dependency)
-                );
+            dependency = tmpIdentityStack.Dispose(dependency);
 
             UnityEngine.Profiling.Profiler.EndSample();
             return dependency;

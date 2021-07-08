@@ -21,6 +21,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
         public NativeArray<uint> maxIdentityId;
 
         public CustomRuleSymbols customSymbols;
+        public uint originOfUniqueIndexes;
 
         public void Execute()
         {
@@ -32,7 +33,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
             
             var persistentOrganIdentityIndex = new UIntFloatColor32
             {
-                UIntValue = 1
+                UIntValue = originOfUniqueIndexes
             };
 
             for (int symbolIndex = 0; symbolIndex < targetData.Length; symbolIndex++)
@@ -44,7 +45,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                     persistentOrganIdentityIndex.UIntValue++;
                 }
             }
-            maxIdentityId[0] = persistentOrganIdentityIndex.UIntValue;
+            maxIdentityId[0] = persistentOrganIdentityIndex.UIntValue - originOfUniqueIndexes;
         }
     }
 

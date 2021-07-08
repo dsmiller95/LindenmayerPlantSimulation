@@ -2247,7 +2247,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9089396037661369505, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -18.7
+      value: -10.67
       objectReference: {fileID: 0}
     - target: {fileID: 9089396037661369505, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2255,7 +2255,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9089396037661369505, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 41.44
+      value: 48.58
       objectReference: {fileID: 0}
     - target: {fileID: 9089396037661369505, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2288,10 +2288,6 @@ PrefabInstance:
     - target: {fileID: 9089396037661369507, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_Name
       value: GameObject (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 9089396037661369507, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
@@ -2376,6 +2372,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1842047422}
   - component: {fileID: 1842047423}
+  - component: {fileID: 1842047424}
   m_Layer: 0
   m_Name: Sunlight Cameras
   m_TagString: Untagged
@@ -2414,6 +2411,22 @@ MonoBehaviour:
   rotationSpeed: 60
   rotate: 1
   axis: {x: 1, y: 0, z: 0}
+--- !u!114 &1842047424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1842047421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b761115b038c3714682a0b501e94fc2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sunlightCamera: {fileID: 732488162}
+  uniqueIdMinSpaceRequired: 16
+  idSpaceResizeMultiplier: 2
+  idSpaceResizeThreshold: 0.75
 --- !u!1 &1905895030
 GameObject:
   m_ObjectHideFlags: 0
@@ -3136,30 +3149,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2023392570}
     m_Modifications:
-    - target: {fileID: 4336313098753995651, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: operationSets.Array.size
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4336313098753995651, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: operationSets.Array.data[4]
-      value: 
-      objectReference: {fileID: 11400000, guid: 9e78d0822b89e7741988e75f98478313, type: 2}
-    - target: {fileID: 4336313098753995651, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: operationSets.Array.data[5]
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 9089396036891669031, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: sunlightCamera
-      value: 
-      objectReference: {fileID: 732488162}
-    - target: {fileID: 9089396036891669031, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: sunlightTexture
-      value: 
-      objectReference: {fileID: 732488162}
-    - target: {fileID: 9089396036891669036, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
-      propertyPath: m_TagString
-      value: Plant
-      objectReference: {fileID: 0}
     - target: {fileID: 9089396037661369505, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_RootOrder
       value: 0

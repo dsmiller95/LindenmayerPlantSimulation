@@ -22,7 +22,6 @@ namespace Dman.LSystem.UnityObjects
 
         public event Action OnSystemStateUpdated;
         public event Action OnSystemObjectUpdated;
-        public SunlightCamera sunlightCamera;
         public LSystemSteppingHandle steppingHandle { get; private set; }
         /// <summary>
         /// the value of Time.time when this system was last updated
@@ -98,13 +97,7 @@ namespace Dman.LSystem.UnityObjects
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
-            var dep = default(JobHandle);
-            if(sunlightCamera != null)
-            {
-                var system = steppingHandle.Stepper();
-                dep = sunlightCamera.ApplySunlightToSymbols(steppingHandle.currentState, system.customSymbols, system.branchOpenSymbol, system.branchCloseSymbol);
-            }
-            steppingHandle.StepSystem(dep);
+            steppingHandle.StepSystem();
         }
 
         private void LSystemStateWasUpdated()
