@@ -29,7 +29,7 @@ namespace Dman.LSystem.UnityObjects
         private LSystemObject mySystemObject;
         private bool useSharedSystem;
 
-        private LSystemGlobalResourceHandle myResourceHandle;
+        private LSystemGlobalResourceHandle globalResourceHandle;
 
         public LSystemSteppingHandle(
             LSystemObject mySystemObject,
@@ -46,8 +46,7 @@ namespace Dman.LSystem.UnityObjects
                 this.mySystemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
             }
 
-            // TODO: free this when unused
-            this.myResourceHandle = GlobalLSystemCoordinator.instance.GetResourceHandle();
+            this.globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle();
         }
 
 
@@ -194,7 +193,7 @@ namespace Dman.LSystem.UnityObjects
                 }
                 else
                 {
-                    var sunlightJob = myResourceHandle.ApplySunlightToSymbols(
+                    var sunlightJob = globalResourceHandle.ApplySunlightToSymbols(
                         currentState, 
                         compiledSystem.customSymbols, 
                         compiledSystem.branchOpenSymbol, 
@@ -269,6 +268,8 @@ namespace Dman.LSystem.UnityObjects
 
             currentState?.currentSymbols.Dispose();
             currentState = null;
+
+            globalResourceHandle.Dispose();
         }
 
     }

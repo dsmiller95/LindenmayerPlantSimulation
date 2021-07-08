@@ -34,7 +34,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             allResourceReservations = new List<LSystemGlobalResourceHandle>();
         }
 
-        public LSystemGlobalResourceHandle GetResourceHandle()
+        public LSystemGlobalResourceHandle AllocateResourceHandle()
         {
             var lastReservation = allResourceReservations.LastOrDefault();
             uint originPoint = 0;
@@ -73,6 +73,13 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             for (int i = 0; i < allResourceReservations.Count; i++)
             {
                 var currentReservation = allResourceReservations[i];
+                if(currentReservation.requestedNextReservationSize == 0)
+                {
+                    // skip this resource, and remove it from the list
+                    allResourceReservations.RemoveAt(i);
+                    i--;
+                    continue;
+                }
                 currentReservation.uniqueIdOriginPoint = currentOrigin;
 
                 currentReservation.uniqueIdReservationSize = currentReservation.requestedNextReservationSize;

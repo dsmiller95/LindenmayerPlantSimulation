@@ -1,10 +1,11 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+using System;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 {
-    public class LSystemGlobalResourceHandle
+    public class LSystemGlobalResourceHandle : IDisposable
     {
         public uint uniqueIdOriginPoint;
 
@@ -46,6 +47,11 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
                 customSymbols,
                 openBranchSymbol,
                 closeBranchSymbol);
+        }
+
+        public void Dispose()
+        {
+            this.requestedNextReservationSize = 0;
         }
     }
 }
