@@ -69,7 +69,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         public uint ResizeLSystemReservations()
         {
             uint currentOrigin = 1;
-            var layoutDescriptor = new StringBuilder();
+            //var layoutDescriptor = new StringBuilder();
             for (int i = 0; i < allResourceReservations.Count; i++)
             {
                 var currentReservation = allResourceReservations[i];
@@ -83,11 +83,11 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
                 currentReservation.uniqueIdOriginPoint = currentOrigin;
 
                 currentReservation.uniqueIdReservationSize = currentReservation.requestedNextReservationSize;
-                layoutDescriptor.Append($"{currentOrigin}-{currentReservation.uniqueIdReservationSize}->");
+                //layoutDescriptor.Append($"{currentOrigin}-{currentReservation.uniqueIdReservationSize}->");
 
                 currentOrigin += currentReservation.uniqueIdReservationSize;
             }
-            Debug.Log(layoutDescriptor.ToString());
+            //Debug.Log(layoutDescriptor.ToString());
 
             return currentOrigin;
         }
