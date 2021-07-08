@@ -269,13 +269,35 @@ The Node symbol will mark a diffusion node, and all diffusion will occur in the 
 
 The Amount symbol will mark an amount to add to the nearest diffusion node. As a signal, it will automatically disappear in a single step. The amount in the node will be added to the closest resource node found by traversing downwards through the tree. This symbol is the only way to make a modification to the total amount of resources across all Nodes, and each resource can be positive or negative. The amount node can have any number of parameters, each parameter corresponds to a unique resource amount at that index.
 
+### Organ Identity
+
+Import with `#include organIdentity (Identifier->i)`. This library is used to uniquely identify a region of the plant: all organ meshes which follow this symbol will be given a unique vertex color, which can be read back as a unique uint ID in a vertex shader output texture. This is used by other builtin libraries which need to identify physical parts of the plant, such as the Sunlight library. The imported symbol must be given exactly one parameter: this parameter will be used to store the unique ID of this node. It's not in a form which can be easily used as part of the l-system, though, since the id is stored as a uint inside a float field. using the parameter inside the l-system will lead to undefined results.
+
+see the [Simulated Bush](../../Assets/Demo/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the sunlight library.
+
+### Sunlight
+
+Import with `#include sunlight (LightAmount->s)`. This library will apply the amount of sunlight received by the organ group which contains the `LightAmount` symbol into the `LightAmount` symbol as the first and only parameter. `LightAmount` -must- be preceded by a unique `Identifier` from the Organ Identity library, otherwise it will always receive 0 sunlight.
+
+This library will be used automatically as long as there is a Global L System Coordinator singleton component in the scene, and it is configured with a sunlight camera pointed at the l-system's generated mesh
+
+see the [Simulated Bush](../../Assets/Demo/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the organ identity and autophagy library.
+
+### Autophagy
+
+Import with `#include autophagy (Necrose->n)`. Autophagy is a convenient way to abort a whole branch efficiently. Wherever the `Necrose` symbol appears, every symbol following and including that symbol in the current branching structure will be deleted. This can be useful to remove organ arrangements with many different symbols, or structures which are deeply branching, triggered from the base of the structure.
+
 # [Example Showcase](#example-showcase)
 
 [Simulated Bush](../../Assets/Demo/PlantBuilder/LSystems/tree/resourceTree.lsystem)
 
-This example uses the diffusion systems to simulate the flow of water up from the base, and glucose production flowing out from the leaves. The nodes at the base of each branch segment represent the amount of glucose in that node. The growth of the plant accelerates as more leaves grow, since each leaf will convert water into glucose, which is required for growth.
+This example uses the diffusion systems to simulate the flow of water up from the base, and glucose production flowing out from the leaves. The nodes at the base of each branch segment in the first gif represent the amount of glucose in that node. The growth of the plant accelerates as more leaves grow, since each leaf will convert water into glucose, which is required for growth.
 
 ![resource branching gif](../../DemoPhotos/branching_resources.gif)
+
+The current version shown below uses the sunlight simulation to give energy only to leaves which sun hits, allowing those regions of the plant to grow more rapidly. Leaves which receive less sun will die eventually, leaving the center of the bush clear of leaves. Each leaf will shrink slightly as it is dying off.
+
+![bush with sunlight gif](../../DemoPhotos/BUSH.mp4)
 
 [Field Flower](../../Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
 
