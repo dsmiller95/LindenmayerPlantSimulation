@@ -297,7 +297,8 @@ This example uses the diffusion systems to simulate the flow of water up from th
 
 The current version shown below uses the sunlight simulation to give energy only to leaves which sun hits, allowing those regions of the plant to grow more rapidly. Leaves which receive less sun will die eventually, leaving the center of the bush clear of leaves. Each leaf will shrink slightly as it is dying off.
 
-![bush with sunlight gif](../../DemoPhotos/BUSH.mp4)
+//TODO: better gif showcase
+![bush with sunlight video](../../DemoPhotos/BUSH.mp4)
 
 [Field Flower](../../Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
 

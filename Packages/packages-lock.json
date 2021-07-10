@@ -16,7 +16,7 @@
         "com.unity.collections": "0.15.0-preview.21",
         "com.unity.mathematics": "1.2.1",
         "com.syomus.proceduraltoolkit": "0.2.3",
-        "com.dman.utilities": "0.3.3"
+        "com.dman.utilities": "0.3.12"
       }
     },
     "com.dman.mesh-draft-extensions": {
