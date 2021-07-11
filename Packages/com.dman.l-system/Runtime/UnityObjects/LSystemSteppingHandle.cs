@@ -32,7 +32,8 @@ namespace Dman.LSystem.UnityObjects
 
         public LSystemSteppingHandle(
             LSystemObject mySystemObject,
-            bool useSharedSystem)
+            bool useSharedSystem,
+            LSystemBehavior associatedBehavior)
         {
             totalSteps = 0;
             lastUpdateChanged = true;
@@ -45,7 +46,11 @@ namespace Dman.LSystem.UnityObjects
                 this.mySystemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
             }
 
-            globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle();
+            if(GlobalLSystemCoordinator.instance == null)
+            {
+                throw new Exception("No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
+            }
+            globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle(associatedBehavior);
         }
 
 
@@ -192,7 +197,7 @@ namespace Dman.LSystem.UnityObjects
                 }
                 else
                 {
-                    var sunlightJob = globalResourceHandle.ApplySunlightToSymbols(
+                    var sunlightJob = globalResourceHandle.GlobalPostStep(
                         currentState,
                         compiledSystem.customSymbols,
                         compiledSystem.branchOpenSymbol,

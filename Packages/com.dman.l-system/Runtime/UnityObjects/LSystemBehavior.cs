@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {
-    public abstract class LSystemCompileTimeParameterGenerator : MonoBehaviour
+    public interface ILSystemCompileTimeParameterGenerator
     {
         public abstract Dictionary<string, string> GenerateCompileTimeParameters();
     }
@@ -46,14 +46,14 @@ namespace Dman.LSystem.UnityObjects
             if (systemObject != null)
             {
                 steppingHandle?.Dispose();
-                var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
+                var globalParams = GetComponent<ILSystemCompileTimeParameterGenerator>();
                 if (globalParams == null)
                 {
-                    steppingHandle = new LSystemSteppingHandle(systemObject, true);
+                    steppingHandle = new LSystemSteppingHandle(systemObject, true, this);
                 }
                 else
                 {
-                    steppingHandle = new LSystemSteppingHandle(systemObject, false);
+                    steppingHandle = new LSystemSteppingHandle(systemObject, false, this);
                 }
                 steppingHandle.OnSystemStateUpdated += LSystemStateWasUpdated;
             }
@@ -71,7 +71,7 @@ namespace Dman.LSystem.UnityObjects
             {
                 Debug.Log(steppingHandle?.currentState?.currentSymbols?.Data);
             }
-            var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
+            var globalParams = GetComponent<ILSystemCompileTimeParameterGenerator>();
             if (globalParams != null)
             {
                 Debug.Log("compiling new system");

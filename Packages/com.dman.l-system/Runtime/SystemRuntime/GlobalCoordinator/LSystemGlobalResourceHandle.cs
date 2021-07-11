@@ -1,5 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+using Dman.LSystem.UnityObjects;
 using System;
 using Unity.Jobs;
 
@@ -14,12 +15,14 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
         private int indexInGlobalResources;
         private GlobalLSystemCoordinator parent;
+        public LSystemBehavior associatedBehavior { get; private set; }
 
         public LSystemGlobalResourceHandle(
             uint originPoint,
             uint initialSpace,
             int indexInGlobalResources,
-            GlobalLSystemCoordinator parent)
+            GlobalLSystemCoordinator parent,
+            LSystemBehavior associatedBehavior)
         {
             uniqueIdReservationSize = initialSpace;
             requestedNextReservationSize = uniqueIdReservationSize;
@@ -27,9 +30,10 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
             this.indexInGlobalResources = indexInGlobalResources;
             this.parent = parent;
+            this.associatedBehavior = associatedBehavior;
         }
 
-        public JobHandle ApplySunlightToSymbols(
+        public JobHandle GlobalPostStep(
             LSystemState<float> systemState,
             CustomRuleSymbols customSymbols,
             int openBranchSymbol,
@@ -42,11 +46,17 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
             systemState.firstUniqueOrganId = uniqueIdOriginPoint;
 
-            return parent.sunlightCamera.ApplySunlightToSymbols(
+            return parent.sunlightCamera?.ApplySunlightToSymbols(
                 systemState,
                 customSymbols,
                 openBranchSymbol,
-                closeBranchSymbol);
+                closeBranchSymbol) ?? default(JobHandle);
+        }
+
+        public bool ContainsId(uint organId)
+        {
+            return organId >= uniqueIdOriginPoint &&
+                organId - uniqueIdOriginPoint < uniqueIdReservationSize;
         }
 
         public void Dispose()

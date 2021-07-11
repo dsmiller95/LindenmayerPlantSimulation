@@ -65,6 +65,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             DependencyTracker<SymbolString<float>> symbols,
             Mesh targetMesh)
         {
+            if (IsDisposed)
+            {
+                throw new InvalidOperationException("Turtle has been disposed and cannot be used");
+            }
             return new TurtleStringReadingCompletable(
                 targetMesh,
                 submeshMaterials.Length,
@@ -78,8 +82,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 );
         }
 
+        private bool IsDisposed = false;
+
         public void Dispose()
         {
+            if (IsDisposed)
+            {
+                throw new InvalidOperationException("Cannot dispose turtle, has already been disposed");
+            }
+            IsDisposed = true;
             nativeDataTracker.Dispose();
         }
 

@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -33,6 +34,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             DependencyTracker<NativeTurtleData> nativeData,
             NativeList<TurtleOrganInstance> organInstances)
         {
+            if (nativeData.IsDisposed)
+            {
+                throw new InvalidOperationException("turtle data has been disposed before completable could finish.");
+            }
+
             this.targetMesh = targetMesh;
             this.resultMeshSizeBySubmesh = resultMeshSizeBySubmesh;
             UnityEngine.Profiling.Profiler.BeginSample("allocating mesh data");

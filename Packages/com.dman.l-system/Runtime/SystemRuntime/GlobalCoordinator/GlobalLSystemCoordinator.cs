@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.Sunlight;
+using Dman.LSystem.UnityObjects;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -33,10 +34,10 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             allResourceReservations = new List<LSystemGlobalResourceHandle>();
         }
 
-        public LSystemGlobalResourceHandle AllocateResourceHandle()
+        public LSystemGlobalResourceHandle AllocateResourceHandle(LSystemBehavior associatedBehavior)
         {
             var lastReservation = allResourceReservations.LastOrDefault();
-            uint originPoint = 0;
+            uint originPoint = 1;
             if (lastReservation != null)
             {
                 originPoint = lastReservation.uniqueIdOriginPoint + lastReservation.requestedNextReservationSize;
@@ -45,19 +46,11 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
                 originPoint,
                 uniqueIdMinSpaceRequired,
                 allResourceReservations.Count,
-                this);
+                this,
+                associatedBehavior);
             allResourceReservations.Add(newHandle);
 
             return newHandle;
-        }
-
-        private void Update()
-        {
-
-        }
-        private void LateUpdate()
-        {
-
         }
 
         /// <summary>
@@ -89,6 +82,22 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             //Debug.Log(layoutDescriptor.ToString());
 
             return currentOrigin;
+        }
+
+        public LSystemBehavior GetBehaviorContainingOrganId(uint organId)
+        {
+            if (organId == 0)
+            {
+                return null;
+            }
+
+            foreach (var resourceAllocation in allResourceReservations)
+            {
+                if (resourceAllocation.ContainsId(organId)){
+                    return resourceAllocation.associatedBehavior;
+                }
+            }
+            return null;
         }
 
     }
