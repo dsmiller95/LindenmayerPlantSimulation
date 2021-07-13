@@ -97,7 +97,6 @@ namespace Dman.LSystem.UnityObjects
         ///     it is not perfectly protected against threading race conditions, so be sure not to make any mutations to 
         ///     the L-system while the behaviors are executing.
         /// </summary>
-        /// <param name="CompleteInLateUpdate">When set to true, the behavior will queue up the jobs and wait until the next frame to complete them</param>
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
@@ -142,7 +141,7 @@ namespace Dman.LSystem.UnityObjects
             {
                 target.lastUpdateTime = 0;
                 var systemRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
-                target.SetSystem(systemRegistry.GetUniqueObjectFromID(lSystemId));
+                target.systemObject = systemRegistry.GetUniqueObjectFromID(lSystemId);
 
                 target.steppingHandle?.Dispose();
 
@@ -151,6 +150,7 @@ namespace Dman.LSystem.UnityObjects
                 target.steppingHandle.OnSystemStateUpdated += target.LSystemStateWasUpdated;
 
                 target.OnSystemObjectUpdated?.Invoke();
+                target.OnSystemStateUpdated?.Invoke();
             }
         }
 

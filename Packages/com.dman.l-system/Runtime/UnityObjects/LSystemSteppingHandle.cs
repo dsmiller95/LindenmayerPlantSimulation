@@ -103,7 +103,7 @@ namespace Dman.LSystem.UnityObjects
         /// Optionally Set to a different L-system, and reset the state and the current runtime parameters
         /// </summary>
         private void ResetState(
-           DefaultLSystemState newState,
+           LSystemState<float> newState,
            LSystemStepper newSystem)
         {
             if (lSystemPendingCompletable != null)
@@ -267,7 +267,6 @@ namespace Dman.LSystem.UnityObjects
         }
         public void Dispose()
         {
-            Debug.Log("disposing stepping handle");
             if (useSharedSystem)
             {
                 systemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
@@ -341,7 +340,6 @@ namespace Dman.LSystem.UnityObjects
 
                 target.runtimeParameters = this.runtimeParameters;
                 target.compiledGlobalCompiletimeReplacements = this.compiledGlobalCompiletimeReplacements;
-                // TODO: recompile l-system?
 
                 return target;
             }
@@ -360,6 +358,19 @@ namespace Dman.LSystem.UnityObjects
             }
 
             globalResourceHandle = GlobalLSystemCoordinator.instance.GetManagedResourceHandleFromSavedData(globalResourceHandle, handleOwner);
+
+            // TODO: recompile l-system?
+
+            if (!useSharedSystem)
+            {
+                var newSystem = systemObject.CompileWithParameters(compiledGlobalCompiletimeReplacements);
+                if (lSystemPendingCompletable != null)
+                {
+                    lSystemPendingCompletable.Cancel();
+                }
+                compiledSystem?.Dispose();
+                compiledSystem = newSystem;
+            }
         }
 
         #endregion

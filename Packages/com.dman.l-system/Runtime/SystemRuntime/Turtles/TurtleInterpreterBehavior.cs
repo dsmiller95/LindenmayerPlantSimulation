@@ -1,6 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.UnityObjects;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.DOTSRenderer
@@ -28,13 +29,13 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 
         private void Awake()
         {
+            GetComponent<MeshFilter>().mesh = new Mesh();
             if (System != null)
             {
                 InitializeWithSpecificSystem(System.systemObject);
                 System.OnSystemStateUpdated += OnSystemStateUpdated;
                 System.OnSystemObjectUpdated += OnSystemObjectUpdated;
             }
-            GetComponent<MeshFilter>().mesh = new Mesh();
         }
 
         private void Update()
@@ -114,12 +115,15 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
         }
 
+        private CompletableHandle previousTurtle;
+
         private void OnSystemStateUpdated()
         {
             if (System != null)
             {
+                if (!previousTurtle?.IsComplete() ?? false) previousTurtle.Cancel();
                 var completable = InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
-                CompletableExecutor.Instance.RegisterCompletable(completable);
+                previousTurtle = CompletableExecutor.Instance.RegisterCompletable(completable);
 
                 //var mesh = GetComponent<MeshFilter>().mesh;
             }
