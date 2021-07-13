@@ -714,20 +714,26 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
-      <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
+    <Reference Include="ObjectSetsEditor">
+      <HintPath>Library\ScriptAssemblies\ObjectSetsEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="SceneSaveSystem">
+      <HintPath>Library\ScriptAssemblies\SceneSaveSystem.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics">
       <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.ShaderGraph.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
+    <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
+      <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="ProceduralToolkit.Editor">
       <HintPath>Library\ScriptAssemblies\ProceduralToolkit.Editor.dll</HintPath>
     </Reference>
     <Reference Include="com.alelievr.NodeGraphProcessor.Editor">
       <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="ObjectSets">
+      <HintPath>Library\ScriptAssemblies\ObjectSets.dll</HintPath>
     </Reference>
     <Reference Include="Utilities">
       <HintPath>Library\ScriptAssemblies\Utilities.dll</HintPath>
@@ -747,11 +753,14 @@
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+    <Reference Include="Unity.ShaderGraph.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Collections">
       <HintPath>Library\ScriptAssemblies\Unity.Collections.dll</HintPath>

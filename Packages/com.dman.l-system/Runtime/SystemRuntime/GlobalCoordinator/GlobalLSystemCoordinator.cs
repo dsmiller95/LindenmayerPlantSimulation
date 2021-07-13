@@ -1,5 +1,8 @@
 ﻿using Dman.LSystem.SystemRuntime.Sunlight;
 using Dman.LSystem.UnityObjects;
+using Dman.ObjectSets;
+using Dman.SceneSaveSystem;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,7 +15,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
     ///     providing sunlight information
     ///     ensuring all organs are unique between all l-systems, as well as inside the parent l-system
     /// </summary>
-    public class GlobalLSystemCoordinator : MonoBehaviour
+    public class GlobalLSystemCoordinator : MonoBehaviour, ISaveableData
     {
         public SunlightCamera sunlightCamera;
 
@@ -30,6 +33,8 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
         private void Awake()
         {
+            var systemRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
+            systemRegistry.AssignAllIDs();
             instance = this;
             allResourceReservations = new List<LSystemGlobalResourceHandle>();
         }
@@ -45,12 +50,29 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             var newHandle = new LSystemGlobalResourceHandle(
                 originPoint,
                 uniqueIdMinSpaceRequired,
-                allResourceReservations.Count,
                 this,
                 associatedBehavior);
             allResourceReservations.Add(newHandle);
 
             return newHandle;
+        }
+
+        /// <summary>
+        /// Get a managed resource handle, from a handle which was saved off independently
+        /// </summary>
+        /// <param name="savedHandle"></param>
+        /// <returns></returns>
+        public LSystemGlobalResourceHandle GetManagedResourceHandleFromSavedData(LSystemGlobalResourceHandle savedHandle, LSystemBehavior assocatedBehavior)
+        {
+            var matchingHandle = allResourceReservations
+                .Where(x => x.uniqueIdOriginPoint == savedHandle.uniqueIdOriginPoint && x.uniqueIdReservationSize == savedHandle.uniqueIdReservationSize)
+                .FirstOrDefault();
+            if(matchingHandle == null)
+            {
+                throw new Exception($"Could not find global resource handle matching a saved handle from [{savedHandle.uniqueIdOriginPoint},{savedHandle.uniqueIdReservationSize + savedHandle.uniqueIdOriginPoint})");
+            }
+            matchingHandle.InitializePostDeserialize(assocatedBehavior, this);
+            return matchingHandle;
         }
 
         /// <summary>
@@ -99,6 +121,45 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             }
             return null;
         }
+
+
+        #region Saving
+        public string UniqueSaveIdentifier => "Global L System Coordinator";
+
+
+        [System.Serializable]
+        class GlobalLSystemState
+        {
+            private List<LSystemGlobalResourceHandle> resourceReservations;
+            public GlobalLSystemState(GlobalLSystemCoordinator source)
+            {
+                this.resourceReservations = source.allResourceReservations;
+            }
+
+            public void Apply(GlobalLSystemCoordinator target)
+            {
+                target.allResourceReservations = this.resourceReservations;
+            }
+        }
+
+        public object GetSaveObject()
+        {
+            return new GlobalLSystemState(this);
+        }
+
+        public void SetupFromSaveObject(object save)
+        {
+            if (save is GlobalLSystemState state)
+            {
+                state.Apply(this);
+            }
+        }
+
+        public ISaveableData[] GetDependencies()
+        {
+            return new ISaveableData[0];
+        }
+        #endregion
 
     }
 }

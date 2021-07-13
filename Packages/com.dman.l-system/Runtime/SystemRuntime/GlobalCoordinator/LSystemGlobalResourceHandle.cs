@@ -6,6 +6,7 @@ using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 {
+    [Serializable]
     public class LSystemGlobalResourceHandle : IDisposable
     {
         public uint uniqueIdOriginPoint;
@@ -13,14 +14,15 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         public uint uniqueIdReservationSize;
         public uint requestedNextReservationSize;
 
-        private int indexInGlobalResources;
+        [NonSerialized]
         private GlobalLSystemCoordinator parent;
-        public LSystemBehavior associatedBehavior { get; private set; }
+        [NonSerialized]
+        private LSystemBehavior _associatedBehavior;
+        public LSystemBehavior associatedBehavior { get => _associatedBehavior; private set => _associatedBehavior = value; }
 
         public LSystemGlobalResourceHandle(
             uint originPoint,
             uint initialSpace,
-            int indexInGlobalResources,
             GlobalLSystemCoordinator parent,
             LSystemBehavior associatedBehavior)
         {
@@ -28,9 +30,14 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             requestedNextReservationSize = uniqueIdReservationSize;
             uniqueIdOriginPoint = originPoint;
 
-            this.indexInGlobalResources = indexInGlobalResources;
             this.parent = parent;
             this.associatedBehavior = associatedBehavior;
+        }
+
+        public void InitializePostDeserialize(LSystemBehavior associatedBehavior, GlobalLSystemCoordinator parent)
+        {
+            this.associatedBehavior = associatedBehavior;
+            this.parent = parent;
         }
 
         public JobHandle GlobalPostStep(

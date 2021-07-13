@@ -24,14 +24,36 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 
         private void Update()
         {
-            PendingCompletables = PendingCompletables
-                .Where(x => x.TryStep())
-                .ToList();
+            DoSteps();
         }
         private void LateUpdate()
         {
+            DoSteps();
+        }
+
+        private void DoSteps()
+        {
             PendingCompletables = PendingCompletables
-                .Where(x => x.TryStep())
+                .Where(x =>
+                {
+                    try
+                    {
+                        return x.TryStep();
+                    }
+                    catch (System.Exception e1)
+                    {
+                        Debug.LogException(e1);
+                        try
+                        {
+                            x.Cancel();
+                        }
+                        catch (System.Exception e2)
+                        {
+                            Debug.LogException(e2);
+                        }
+                        return false;
+                    }
+                })
                 .ToList();
         }
 

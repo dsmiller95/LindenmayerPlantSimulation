@@ -44,7 +44,9 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.dman.scene-save-system": "0.1.2",
+    "com.dman.object-sets": "0.1.1"
   },
   "scopedRegistries": [
     {
@@ -52,6 +54,8 @@
       "url": "https://package.openupm.com",
       "scopes": [
         "com.alelievr.node-graph-processor",
+        "com.dman.object-sets",
+        "com.dman.scene-save-system",
         "com.dman.utilities",
         "com.openupm",
         "com.syomus.proceduraltoolkit"

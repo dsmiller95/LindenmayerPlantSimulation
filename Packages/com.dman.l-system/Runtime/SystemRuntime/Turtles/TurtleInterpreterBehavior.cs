@@ -26,8 +26,32 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         private LSystemBehavior System => GetComponent<LSystemBehavior>();
 
 
+        private void Awake()
+        {
+            if (System != null)
+            {
+                InitializeWithSpecificSystem(System.systemObject);
+                System.OnSystemStateUpdated += OnSystemStateUpdated;
+                System.OnSystemObjectUpdated += OnSystemObjectUpdated;
+            }
+            GetComponent<MeshFilter>().mesh = new Mesh();
+        }
+
         private void Update()
         {
+        }
+
+        private void OnDestroy()
+        {
+            if (System != null)
+            {
+                System.OnSystemStateUpdated -= OnSystemStateUpdated;
+                System.OnSystemObjectUpdated -= OnSystemObjectUpdated;
+            }
+            if (turtle != null)
+            {
+                turtle.Dispose();
+            }
         }
 
         /// <summary>
@@ -80,30 +104,6 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 systemObject.linkedFiles,
                 systemObject.compiledSystem.customSymbols);
             turtle.submeshIndexIncrementChar = submeshIndexIncrementor;
-        }
-
-        private void Awake()
-        {
-            if (System != null)
-            {
-                InitializeWithSpecificSystem(System.systemObject);
-                System.OnSystemStateUpdated += OnSystemStateUpdated;
-                System.OnSystemObjectUpdated += OnSystemObjectUpdated;
-            }
-            GetComponent<MeshFilter>().mesh = new Mesh();
-        }
-
-        private void OnDestroy()
-        {
-            if (System != null)
-            {
-                System.OnSystemStateUpdated -= OnSystemStateUpdated;
-                System.OnSystemObjectUpdated -= OnSystemObjectUpdated;
-            }
-            if (turtle != null)
-            {
-                turtle.Dispose();
-            }
         }
 
         private void OnSystemObjectUpdated()

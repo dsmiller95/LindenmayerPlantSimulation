@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -10,11 +11,12 @@ using Unity.Jobs;
 
 namespace Dman.LSystem
 {
-
+    [Serializable]
     public struct SymbolString<ParamType> :
         System.IEquatable<SymbolString<ParamType>>,
         ISymbolString,
-        INativeDisposable
+        INativeDisposable,
+        ISerializable
         where ParamType : unmanaged
     {
         [NativeDisableParallelForRestriction]
@@ -30,6 +32,7 @@ namespace Dman.LSystem
             set => symbols[index] = value;
         }
 
+        private Allocator allocatorUsed;
 
         public static SymbolString<float> FromString(string symbolString, Allocator allocator = Allocator.Persistent, Func<char, int> symbolMapping = null)
         {
@@ -61,16 +64,19 @@ namespace Dman.LSystem
         }
         public SymbolString(int[] symbols, ParamType[][] paramArray, Allocator allocator = Allocator.Persistent)
         {
+            this.allocatorUsed = allocator;
             this.symbols = new NativeArray<int>(symbols, allocator);
             parameters = new JaggedNativeArray<ParamType>(paramArray, allocator);
         }
         public SymbolString(int symbolsTotal, int parametersTotal, Allocator allocator)
         {
+            this.allocatorUsed = allocator;
             symbols = new NativeArray<int>(symbolsTotal, allocator, NativeArrayOptions.UninitializedMemory);
             parameters = new JaggedNativeArray<ParamType>(symbolsTotal, parametersTotal, allocator);
         }
         public SymbolString(SymbolString<ParamType> other, Allocator newAllocator)
         {
+            this.allocatorUsed = newAllocator;
             symbols = new NativeArray<int>(other.symbols, newAllocator);
             parameters = new JaggedNativeArray<ParamType>(other.parameters, newAllocator);
         }
@@ -192,5 +198,27 @@ namespace Dman.LSystem
                 parameters.Dispose(inputDeps),
                 symbols.Dispose(inputDeps));
         }
+
+
+        #region Serialization
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("allocator", allocatorUsed);
+            info.AddValue("symbols", symbols.ToArray());
+            info.AddValue("parameters", parameters);
+        }
+
+        // The special constructor is used to deserialize values.
+        private SymbolString(SerializationInfo info, StreamingContext context)
+        {
+            this.allocatorUsed = info.GetValue<Allocator>("allocator");
+
+            var symbolsArray = info.GetValue<int[]>("symbols");
+            this.symbols = new NativeArray<int>(symbolsArray, this.allocatorUsed);
+
+            this.parameters = info.GetValue<JaggedNativeArray<ParamType>>("parameters");
+        }
+        #endregion
     }
 }

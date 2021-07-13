@@ -1,9 +1,11 @@
-﻿using Unity.Collections;
+﻿using System.Runtime.Serialization;
+using Unity.Collections;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
-    public class DependencyTracker<T> : INativeDisposable where T : INativeDisposable
+    [System.Serializable]
+    public class DependencyTracker<T> : ISerializable, INativeDisposable where T : INativeDisposable
     {
         public T Data { get; private set; }
         public bool IsDisposed { get; private set; }
@@ -49,5 +51,30 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             Data.Dispose();
             IsDisposed = true;
         }
+
+        #region Serialization
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            if (!IsDisposed)
+            {
+                dependencies.Complete();
+                info.AddValue("Data", Data);
+            }
+            info.AddValue("IsDisposed", IsDisposed);
+        }
+
+
+        // The special constructor is used to deserialize values.
+        private DependencyTracker(SerializationInfo info, StreamingContext context)
+        {
+            IsDisposed = info.GetBoolean("IsDisposed");
+            dependencies = default;
+            if (!IsDisposed)
+            {
+                Data = info.GetValue<T>("Data");
+            }
+        }
+        #endregion
     }
 }

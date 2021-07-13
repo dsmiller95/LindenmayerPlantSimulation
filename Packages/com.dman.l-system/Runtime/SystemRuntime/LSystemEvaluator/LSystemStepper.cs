@@ -4,6 +4,7 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -44,12 +45,39 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         }
     }
 
-    public class LSystemState<T> where T : unmanaged
+    [System.Serializable]
+    public class LSystemState<T> : ISerializable where T : unmanaged
     {
         public DependencyTracker<SymbolString<T>> currentSymbols;
         public Unity.Mathematics.Random randomProvider;
         public uint firstUniqueOrganId;
         public uint maxUniqueOrganIds;
+
+        public LSystemState()
+        {
+        }
+
+        #region Serialization
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("currentSymbols", currentSymbols);
+
+            info.AddValue("randomSeed", randomProvider.state);
+
+            info.AddValue("firstUniqueOrganId", firstUniqueOrganId);
+            info.AddValue("maxUniqueOrganIds", maxUniqueOrganIds);
+        }
+
+        // The special constructor is used to deserialize values.
+        private LSystemState(SerializationInfo info, StreamingContext context)
+        {
+            currentSymbols = info.GetValue<DependencyTracker<SymbolString<T>>>("currentSymbols");
+            randomProvider = new Unity.Mathematics.Random(info.GetUInt32("randomSeed"));
+
+            firstUniqueOrganId = info.GetUInt32("firstUniqueOrganId");
+            maxUniqueOrganIds = info.GetUInt32("maxUniqueOrganIds");
+        }
+        #endregion
     }
 
     public class DefaultLSystemState : LSystemState<float>
