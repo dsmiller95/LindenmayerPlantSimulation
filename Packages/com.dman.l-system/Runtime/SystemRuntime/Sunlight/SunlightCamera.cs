@@ -85,6 +85,8 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             }
             if (readbackRequest == null)
             {
+                // TODO: decouple this from the sunlight camera.
+                //  also needed for the ID selection buffer
                 ReallocateIdResultBufferIfNecessary();
             }
             if (frameOfLastUpdate < Time.frameCount && readbackRequest == null)

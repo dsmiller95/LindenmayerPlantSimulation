@@ -152,7 +152,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
             UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         public ICompletable StepNext()

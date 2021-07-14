@@ -266,7 +266,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 throw new LSystemRuntimeException($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
 
-            return new LSystemRuleMatchCompletable(
+            var result = new LSystemRuleMatchCompletable(
                 systemState,
                 nativeRuleData,
                 globalParameters,
@@ -276,6 +276,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 includedCharacters,
                 customSymbols,
                 parameterWriteDependency);
+            UnityEngine.Profiling.Profiler.EndSample();
+            return result;
         }
 
         public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)
