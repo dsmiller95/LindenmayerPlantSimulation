@@ -43,6 +43,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             handleInitialize = uniqueSummationShader.FindKernel("SunlightInitialize");
             handleMain = uniqueSummationShader.FindKernel("SunlightMain");
 
+            sunlightSumBuffer?.Dispose();
             sunlightSumBuffer = new ComputeBuffer(uniqueOrgansInitialAllocation, sizeof(uint));
 
             if (handleInitialize < 0 || handleMain < 0 ||
@@ -154,6 +155,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight buffer resize");
             Debug.Log($"Resizing sunlight buffer from {sunlightSumBuffer.count} to {nextAllocationSize}");
 
+            sunlightSumBuffer?.Dispose();
             sunlightSumBuffer = new ComputeBuffer(nextAllocationSize, sizeof(uint));
             uniqueSummationShader.SetBuffer(handleMain, "IdResultBuffer", sunlightSumBuffer);
             uniqueSummationShader.SetBuffer(handleInitialize, "IdResultBuffer", sunlightSumBuffer);

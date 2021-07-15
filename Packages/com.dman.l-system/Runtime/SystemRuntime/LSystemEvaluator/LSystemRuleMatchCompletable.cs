@@ -71,7 +71,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
             matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(sourceSymbolString.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var parameterTotalSum = 0;
-            var possibleMatchesTotalSum = 0;
             for (int i = 0; i < sourceSymbolString.Data.Length; i++)
             {
                 var symbol = sourceSymbolString.Data[i];
@@ -82,7 +81,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 if (maxMemoryRequirementsPerSymbol.TryGetValue(symbol, out var memoryRequirements))
                 {
                     parameterTotalSum += memoryRequirements.maxParameters;
-                    possibleMatchesTotalSum += memoryRequirements.maxPossibleMatches;
                     matchData.isTrivial = false;
                 }
                 else

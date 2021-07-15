@@ -99,7 +99,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     public struct MaxMatchMemoryRequirements
     {
         public int maxParameters;
-        public int maxPossibleMatches;
     }
 
     public class LSystemStepper : System.IDisposable
@@ -170,28 +169,20 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                         (x.ContextPrefix.IsValid ? x.ContextPrefix.graphNodeMemSpace.length : 0) +
                         (x.ContextSuffix.IsCreated ? x.ContextSuffix.graphNodeMemSpace.length : 0))
                     .ToList();
-                var conditionalRules = rulesByTargetSymbol[symbol].Where(x => x.HasConditional).ToArray();
-                // can potentially match all conditionals, plus one extra non-conditional
-                // TODO: greedy allocation. the count may not be this high.
-                var maxPossibleMatches = conditionalRules.Length + 1;
 
-                var maxParamsCapturedByAllConditionals = conditionalRules.Sum(x => x.CapturedLocalParameterCount);
-                var maxParamsForNonConditionalIndividual = rulesByTargetSymbol[symbol]
-                    .Where(x => !x.HasConditional)
+                var maxParamCapturedByAnyRule = rulesByTargetSymbol[symbol]
                     .Select(x => x.CapturedLocalParameterCount)
                     .DefaultIfEmpty().Max();
                 // Greedy estimate for maximum possible parameter match.
-                // TODO: can optimize this, since if the max non-conditional parameters come first, it will never match at the same time as all
-                //      the following conditionals
-                var maximumPossibleParameterMatch = maxParamsCapturedByAllConditionals + maxParamsForNonConditionalIndividual;
+                //  there need to be enough space for any rule's parameters to fit, since we don't know which ones will match.
+                var maximumPossibleParameterMatch = maxParamCapturedByAnyRule;
                 if (maximumPossibleParameterMatch > ushort.MaxValue)
                 {
                     throw new LSystemRuntimeException($"Rules with more than {ushort.MaxValue} captured local parameters over all conditional options");
                 }
                 maxMemoryRequirementsPerSymbol[symbol] = new MaxMatchMemoryRequirements
                 {
-                    maxParameters = maximumPossibleParameterMatch,
-                    maxPossibleMatches = maxPossibleMatches
+                    maxParameters = maximumPossibleParameterMatch
                 };
             }
 

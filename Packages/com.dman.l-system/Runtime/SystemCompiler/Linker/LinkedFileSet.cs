@@ -56,7 +56,6 @@ namespace Dman.LSystem.SystemCompiler.Linker
                         compileTimes[compileTime.name] = compileTime;
                     }
                 }
-                allGlobalCompileTimeParams = compileTimes.Values.ToList();
 
                 foreach (var runTime in kvp.Value.declaredInFileRuntimeParameters)
                 {
@@ -69,8 +68,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
                         runTimes[runTime.name] = runTime;
                     }
                 }
-                allGlobalRuntimeParams = runTimes.Values.ToList();
             }
+            allGlobalCompileTimeParams = compileTimes.Values.ToList();
+            allGlobalRuntimeParams = runTimes.Values.ToList();
 
 
             defaultSymbolDefinitionIndexBySymbol = new SerializableDictionary<int, int>();

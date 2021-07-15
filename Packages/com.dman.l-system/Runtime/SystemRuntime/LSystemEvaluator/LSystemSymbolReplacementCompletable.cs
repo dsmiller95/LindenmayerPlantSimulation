@@ -172,6 +172,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             //TODO
             currentJobHandle.Complete();
+
+            maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
             diffusionHelper.Dispose();
@@ -182,6 +184,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public void Dispose()
         {
             currentJobHandle.Complete();
+
+            maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
             diffusionHelper.Dispose();

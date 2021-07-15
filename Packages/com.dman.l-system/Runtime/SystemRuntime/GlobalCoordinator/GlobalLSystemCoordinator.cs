@@ -26,6 +26,8 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         [Range(0, 1)]
         public float idSpaceResizeThreshold = 0.9f;
 
+        [Tooltip("when set to true, no existing l system reservations will be moved or re allocated over")]
+        public bool reservationsLocked;
 
         public static GlobalLSystemCoordinator instance;
 
@@ -37,6 +39,11 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             systemRegistry.AssignAllIDs();
             instance = this;
             allResourceReservations = new List<LSystemGlobalResourceHandle>();
+        }
+
+        public void SetLocked(bool locked)
+        {
+            this.reservationsLocked = locked;
         }
 
         public LSystemGlobalResourceHandle AllocateResourceHandle(LSystemBehavior associatedBehavior)
@@ -82,6 +89,15 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         /// <returns></returns>
         public uint ResizeLSystemReservations()
         {
+            if (reservationsLocked)
+            {
+                var lastReservation = allResourceReservations.LastOrDefault();
+                if(lastReservation == null)
+                {
+                    return 1;
+                }
+                return lastReservation.uniqueIdOriginPoint + lastReservation.uniqueIdReservationSize;
+            }
             uint currentOrigin = 1;
             //var layoutDescriptor = new StringBuilder();
             for (int i = 0; i < allResourceReservations.Count; i++)
