@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.DynamicExpressions;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +38,8 @@ namespace Dman.LSystem.SystemRuntime
         [NativeDisableParallelForRestriction]
         public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
+        public NativeHashMap<int, MaxMatchMemoryRequirements> maxParameterMemoryRequirementsPerSymbol;
+
         public SystemLevelRuleNativeData(IEnumerable<BasicRule> rulesToWrite)
         {
             var allData = rulesToWrite.ToArray();
@@ -51,6 +54,7 @@ namespace Dman.LSystem.SystemRuntime
             dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             blittableRulesByTargetSymbol = default;
+            maxParameterMemoryRequirementsPerSymbol = default;
         }
         public SystemLevelRuleNativeData(RuleDataRequirements memReqs)
         {
@@ -64,6 +68,7 @@ namespace Dman.LSystem.SystemRuntime
             dynamicOperatorMemory = new NativeArray<OperatorDefinition>(memReqs.operatorMemory, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             blittableRulesByTargetSymbol = default;
+            maxParameterMemoryRequirementsPerSymbol = default;
         }
 
         public void Dispose()
@@ -76,6 +81,7 @@ namespace Dman.LSystem.SystemRuntime
             structExpressionMemorySpace.Dispose();
             replacementsSymbolMemorySpace.Dispose();
             if (blittableRulesByTargetSymbol.IsCreated) blittableRulesByTargetSymbol.Dispose();
+            if (maxParameterMemoryRequirementsPerSymbol.IsCreated) maxParameterMemoryRequirementsPerSymbol.Dispose();
         }
         public JobHandle Dispose(JobHandle dependency)
         {
@@ -88,6 +94,7 @@ namespace Dman.LSystem.SystemRuntime
             structExpressionMemorySpace.Dispose();
             replacementsSymbolMemorySpace.Dispose();
             if (blittableRulesByTargetSymbol.IsCreated) blittableRulesByTargetSymbol.Dispose();
+            if (maxParameterMemoryRequirementsPerSymbol.IsCreated) maxParameterMemoryRequirementsPerSymbol.Dispose();
             return dependency;
         }
     }

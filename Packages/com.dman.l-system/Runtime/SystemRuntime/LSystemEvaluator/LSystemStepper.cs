@@ -112,11 +112,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         private DependencyTracker<SystemLevelRuleNativeData> nativeRuleData;
 
         /// <summary>
-        /// Stores the maximum number of parameters that could be captured by each symbol's maximum number of possible alternative matches
-        /// </summary>
-        private IDictionary<int, MaxMatchMemoryRequirements> maxMemoryRequirementsPerSymbol;
-
-        /// <summary>
         /// The number of global runtime parameters
         /// </summary>
         public int GlobalParameters { get; private set; }
@@ -161,7 +156,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 ruleList.Add(rule);
             }
 
-            maxMemoryRequirementsPerSymbol = new Dictionary<int, MaxMatchMemoryRequirements>();
+            var maxMemoryRequirementsPerSymbol = new NativeHashMap<int, MaxMatchMemoryRequirements>(rulesByTargetSymbol.Keys.Count(), Allocator.Persistent);
             foreach (var symbol in rulesByTargetSymbol.Keys.ToList())
             {
                 rulesByTargetSymbol[symbol] = rulesByTargetSymbol[symbol]
@@ -190,6 +185,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 rulesByTargetSymbol,
                 rule => rule.AsBlittable(),
                 Allocator.Persistent);
+            nativeRuleData.maxParameterMemoryRequirementsPerSymbol = maxMemoryRequirementsPerSymbol;
             this.nativeRuleData = new DependencyTracker<SystemLevelRuleNativeData>(nativeRuleData);
         }
         public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null, bool disposeOldSystem = true)
@@ -261,7 +257,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 systemState,
                 nativeRuleData,
                 globalParameters,
-                maxMemoryRequirementsPerSymbol,
                 branchOpenSymbol,
                 branchCloseSymbol,
                 includedCharacters,

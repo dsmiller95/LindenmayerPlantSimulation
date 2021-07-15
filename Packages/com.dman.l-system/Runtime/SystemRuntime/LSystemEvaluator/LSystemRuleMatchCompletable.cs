@@ -54,7 +54,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             LSystemState<float> systemState,
             DependencyTracker<SystemLevelRuleNativeData> lSystemNativeData,
             float[] globalParameters,
-            IDictionary<int, MaxMatchMemoryRequirements> maxMemoryRequirementsPerSymbol,
             int branchOpenSymbol,
             int branchCloseSymbol,
             ISet<int>[] includedCharactersByRuleIndex,
@@ -71,6 +70,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
             matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(sourceSymbolString.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             var parameterTotalSum = 0;
+            var maxMemoryRequirementsPerSymbol = nativeData.Data.maxParameterMemoryRequirementsPerSymbol;
             for (int i = 0; i < sourceSymbolString.Data.Length; i++)
             {
                 var symbol = sourceSymbolString.Data[i];
