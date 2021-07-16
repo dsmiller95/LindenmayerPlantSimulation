@@ -69,7 +69,6 @@ namespace Dman.LSystem.UnityObjects
 
         private LSystemStepper CompileSystem(Dictionary<string, string> globalCompileTimeOverrides)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
             try
             {
                 return linkedFiles.CompileSystem(globalCompileTimeOverrides);
@@ -77,10 +76,6 @@ namespace Dman.LSystem.UnityObjects
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-            }
-            finally
-            {
-                UnityEngine.Profiling.Profiler.EndSample();
             }
             return null;
         }

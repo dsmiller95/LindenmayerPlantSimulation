@@ -15,6 +15,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     /// </summary>
     public class LSystemRuleMatchCompletable : ICompletable<LSystemState<float>>
     {
+#if UNITY_EDITOR
+        public string TaskDescription => "L System rule matching";
+#endif
         public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public Unity.Mathematics.Random randResult;
         public CustomRuleSymbols customSymbols;

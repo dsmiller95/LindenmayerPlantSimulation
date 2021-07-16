@@ -236,6 +236,7 @@ namespace Dman.LSystem.UnityObjects
 
             lSystemPendingCompletable.OnCompleted += (nextState) =>
             {
+                UnityEngine.Profiling.Profiler.BeginSample("updating stepping handle state");
                 if (repeatLast)
                 {
                     // dispose the current state, since it is about to be replaced
@@ -252,6 +253,7 @@ namespace Dman.LSystem.UnityObjects
                 lastUpdateChanged = !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
 
                 lSystemPendingCompletable = null;
+                UnityEngine.Profiling.Profiler.EndSample();
                 OnSystemStateUpdated?.Invoke();
             };
         }

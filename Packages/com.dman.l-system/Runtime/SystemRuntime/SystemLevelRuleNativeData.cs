@@ -39,6 +39,7 @@ namespace Dman.LSystem.SystemRuntime
         public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
 
         public NativeHashMap<int, MaxMatchMemoryRequirements> maxParameterMemoryRequirementsPerSymbol;
+        public NativeHashSet<int> immaturityMarkerSymbols;
 
         public SystemLevelRuleNativeData(IEnumerable<BasicRule> rulesToWrite)
         {
@@ -55,6 +56,7 @@ namespace Dman.LSystem.SystemRuntime
 
             blittableRulesByTargetSymbol = default;
             maxParameterMemoryRequirementsPerSymbol = default;
+            immaturityMarkerSymbols = default;
         }
         public SystemLevelRuleNativeData(RuleDataRequirements memReqs)
         {
@@ -69,6 +71,7 @@ namespace Dman.LSystem.SystemRuntime
 
             blittableRulesByTargetSymbol = default;
             maxParameterMemoryRequirementsPerSymbol = default;
+            immaturityMarkerSymbols = default;
         }
 
         public void Dispose()
@@ -82,6 +85,7 @@ namespace Dman.LSystem.SystemRuntime
             replacementsSymbolMemorySpace.Dispose();
             if (blittableRulesByTargetSymbol.IsCreated) blittableRulesByTargetSymbol.Dispose();
             if (maxParameterMemoryRequirementsPerSymbol.IsCreated) maxParameterMemoryRequirementsPerSymbol.Dispose();
+            if (immaturityMarkerSymbols.IsCreated) immaturityMarkerSymbols.Dispose();
         }
         public JobHandle Dispose(JobHandle dependency)
         {
@@ -95,6 +99,7 @@ namespace Dman.LSystem.SystemRuntime
             replacementsSymbolMemorySpace.Dispose();
             if (blittableRulesByTargetSymbol.IsCreated) blittableRulesByTargetSymbol.Dispose();
             if (maxParameterMemoryRequirementsPerSymbol.IsCreated) maxParameterMemoryRequirementsPerSymbol.Dispose();
+            if (immaturityMarkerSymbols.IsCreated) immaturityMarkerSymbols.Dispose();
             return dependency;
         }
     }

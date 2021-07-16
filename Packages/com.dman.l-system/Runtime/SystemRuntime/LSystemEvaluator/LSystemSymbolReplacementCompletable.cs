@@ -11,6 +11,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 {
     public class LSystemSymbolReplacementCompletable : ICompletable<LSystemState<float>>
     {
+#if UNITY_EDITOR
+        public string TaskDescription => "L System symbol replacements";
+#endif
+
         public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public Unity.Mathematics.Random randResult;
 
@@ -21,6 +25,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         private DiffusionReplacementJob.DiffusionWorkingDataPack diffusionHelper;
         private NativeArray<uint> maxIdReached;
+        private NativeArray<bool> isImmature;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -97,6 +102,21 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             sourceSymbolString.RegisterDependencyOnData(diffusionHandle);
             nativeData.RegisterDependencyOnData(diffusionHandle);
 
+            // only parameter modifications beyond this point
+            currentJobHandle = JobHandle.CombineDependencies(
+                    replacementHandle,
+                    diffusionHandle
+                 );
+            currentJobHandle = JobHandle.CombineDependencies(
+                ScheduleIdAssignmentJob(currentJobHandle, customSymbols, uniqueIDOriginIndex),
+                ScheduleAutophagyJob(currentJobHandle, customSymbols),
+                ScheduleImmaturityJob(currentJobHandle));
+
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+
+        private JobHandle ScheduleIdAssignmentJob(JobHandle dependency, CustomRuleSymbols customSymbols, uint uniqueIDOriginIndex)
+        {
             // identity assignment job is not dependent on the source string or any other native data. can skip assigning it as a dependent
             maxIdReached = new NativeArray<uint>(1, Allocator.TempJob);
             var identityAssignmentJob = new IdentityAssignmentPostProcessRule
@@ -106,12 +126,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 customSymbols = customSymbols,
                 originOfUniqueIndexes = uniqueIDOriginIndex
             };
-            currentJobHandle = identityAssignmentJob.Schedule(
-                JobHandle.CombineDependencies(
-                    replacementHandle,
-                    diffusionHandle
-                 ));
-
+            return identityAssignmentJob.Schedule(dependency);
+        }
+        private JobHandle ScheduleAutophagyJob(JobHandle dependency, CustomRuleSymbols customSymbols)
+        {
             // autophagy is only dependent on the source string. don't need to register as dependent on native data/source symbols
             if (customSymbols.hasAutophagy)
             {
@@ -125,11 +143,26 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     customSymbols = customSymbols
                 };
 
-                currentJobHandle = autophagicJob.Schedule(currentJobHandle);
-                currentJobHandle = helperStack.Dispose(currentJobHandle);
+                dependency = autophagicJob.Schedule(dependency);
+                dependency = helperStack.Dispose(dependency);
             }
-
-            UnityEngine.Profiling.Profiler.EndSample();
+            return dependency;
+        }
+        private JobHandle ScheduleImmaturityJob(JobHandle dependency)
+        {
+            if (nativeData.Data.immaturityMarkerSymbols.IsCreated)
+            {
+                isImmature = new NativeArray<bool>(1, Allocator.TempJob);
+                var immaturityJob = new NativeArrayMultiContainsJob
+                {
+                    symbols = target.symbols,
+                    symbolsToCheckFor = nativeData.Data.immaturityMarkerSymbols,
+                    doesContainSymbols = isImmature
+                };
+                dependency = immaturityJob.Schedule(dependency);
+                nativeData.RegisterDependencyOnData(dependency);
+            }
+            return dependency;
         }
 
         public ICompletable StepNext()
@@ -139,11 +172,20 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             matchSingletonData.Dispose();
             diffusionHelper.Dispose();
 
+            var hasImmatureSymbols = false;
+
+            if (isImmature.IsCreated)
+            {
+                hasImmatureSymbols = isImmature[0];
+                isImmature.Dispose();
+            }
+
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
                 currentSymbols = new DependencyTracker<SymbolString<float>>(target),
-                maxUniqueOrganIds = maxIdReached[0]
+                maxUniqueOrganIds = maxIdReached[0],
+                hasImmatureSymbols = hasImmatureSymbols
             };
 
             maxIdReached.Dispose();
@@ -178,6 +220,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             matchSingletonData.Dispose();
             diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
+            if (isImmature.IsCreated) isImmature.Dispose();
             return inputDeps;
         }
 
@@ -190,6 +233,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             matchSingletonData.Dispose();
             diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
+            if (isImmature.IsCreated) isImmature.Dispose();
         }
     }
 

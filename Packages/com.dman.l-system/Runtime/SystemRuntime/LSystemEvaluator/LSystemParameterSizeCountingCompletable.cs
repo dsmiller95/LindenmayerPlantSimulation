@@ -15,6 +15,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     /// </summary>
     public class LSystemParameterSizeCountingCompletable : ICompletable<LSystemState<float>>
     {
+#if UNITY_EDITOR
+        public string TaskDescription => "L System parameter sizing";
+#endif
         private LSystemState<float> systemState;
 
         public DependencyTracker<SymbolString<float>> sourceSymbolString;

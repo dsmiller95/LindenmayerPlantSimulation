@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Unity.Collections;
 
 namespace Dman.LSystem.SystemCompiler
 {
@@ -145,7 +146,9 @@ namespace Dman.LSystem.SystemCompiler
                 .Select(x => ParseToRule(x, x => x, globalParameters: globalParameters))
                 .Where(x => x != null)
                 .ToArray();
-            return CompileAndCheckParsedRules(parsedRules, out ruleNativeData, branchOpenSymbol, branchCloseSymbol);
+            var rules = CompileAndCheckParsedRules(parsedRules, out ruleNativeData, branchOpenSymbol, branchCloseSymbol);
+            ruleNativeData.immaturityMarkerSymbols = new NativeHashSet<int>(0, Allocator.Persistent);
+            return rules;
         }
 
         public static IEnumerable<BasicRule> CompileAndCheckParsedRules(

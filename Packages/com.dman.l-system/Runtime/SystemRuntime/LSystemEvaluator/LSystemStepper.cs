@@ -52,6 +52,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public Unity.Mathematics.Random randomProvider;
         public uint firstUniqueOrganId;
         public uint maxUniqueOrganIds;
+        public bool hasImmatureSymbols = true; // default to being immature, if not set otherwise
 
         public LSystemState()
         {
@@ -66,6 +67,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             info.AddValue("firstUniqueOrganId", firstUniqueOrganId);
             info.AddValue("maxUniqueOrganIds", maxUniqueOrganIds);
+            info.AddValue("hasImmatureSymbols", hasImmatureSymbols);
         }
 
         // The special constructor is used to deserialize values.
@@ -76,6 +78,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             firstUniqueOrganId = info.GetUInt32("firstUniqueOrganId");
             maxUniqueOrganIds = info.GetUInt32("maxUniqueOrganIds");
+            hasImmatureSymbols = info.GetBoolean("hasImmatureSymbols");
         }
         #endregion
     }

@@ -382,4 +382,59 @@ S -> a(3)S
 
         currentState.currentSymbols.DisposeImmediate();
     }
+    [Test]
+    public void CompilesWithImmaturityMarkers()
+    {
+        var fileSystem = new InMemoryFileProvider();
+
+        fileSystem.RegisterFileWithIdentifier("root.lsystem", @"
+#axiom Y(2)
+#iterations 20
+#symbols XY
+
+#immature Y
+Y(x) : x > 0 -> Y(x - 1)
+Y(x) : x <= 0 -> X
+");
+        var linker = new FileLinker(fileSystem);
+        var linkedFiles = linker.LinkFiles("root.lsystem");
+
+        using var system = linkedFiles.CompileSystem();
+        LSystemState<float> currentState = new DefaultLSystemState(
+            linkedFiles.GetAxiom(),
+            (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+
+        var X = linkedFiles.GetSymbol("root.lsystem", 'X');
+        var Y = linkedFiles.GetSymbol("root.lsystem", 'Y');
+
+        var symbolStringMapping = new Dictionary<int, char>()
+        {
+            {X, 'X' },
+            {Y, 'Y' }
+        };
+        /**
+         * system equivalent with remapped symbol names:
+         * Y -> YX
+         * X -> AX
+         */
+
+        Assert.AreEqual("Y(2)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("Y(1)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.IsTrue(currentState.hasImmatureSymbols);
+
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("Y(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.IsTrue(currentState.hasImmatureSymbols);
+
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("X", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.IsFalse(currentState.hasImmatureSymbols);
+
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("X", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.IsFalse(currentState.hasImmatureSymbols);
+
+        currentState.currentSymbols.DisposeImmediate();
+    }
 }

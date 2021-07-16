@@ -103,6 +103,11 @@ namespace Dman.LSystem.SystemCompiler.Linker
             return contextualMatchingCharacters
                 .Select(x => this.GetSymbolInFile(x));
         }
+        public override IEnumerable<int> GetAllImmaturityMarkerSymbols()
+        {
+            return immaturityMarkerCharacters
+                .Select(x => this.GetSymbolInFile(x));
+        }
 
         public override int GetExportedSymbol(string exportedName)
         {
@@ -206,6 +211,15 @@ namespace Dman.LSystem.SystemCompiler.Linker
                         if (!globalCharacters.Contains(symbol))
                         {
                             globalCharacters += symbol;
+                        }
+                    }
+                    return;
+                case "immature":
+                    foreach (var symbol in directiveMatch.Groups["parameter"].Value)
+                    {
+                        if (!immaturityMarkerCharacters.Contains(symbol))
+                        {
+                            immaturityMarkerCharacters += symbol;
                         }
                     }
                     return;

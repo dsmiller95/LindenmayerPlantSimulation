@@ -36,6 +36,9 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             PendingCompletables = PendingCompletables
                 .Where(x =>
                 {
+#if UNITY_EDITOR
+                    UnityEngine.Profiling.Profiler.BeginSample("stepping " + x.TaskDescription);
+#endif
                     try
                     {
                         return x.TryStep();
@@ -53,6 +56,12 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
                         }
                         return false;
                     }
+#if UNITY_EDITOR
+                    finally
+                    {
+                        UnityEngine.Profiling.Profiler.EndSample();
+                    }
+#endif
                 })
                 .ToList();
         }

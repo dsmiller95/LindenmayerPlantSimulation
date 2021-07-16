@@ -14,6 +14,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
     {
         public string originFile;
 
+        public int[] immaturitySymbolMarkers;
+
         public SerializableDictionary<string, int> fileIndexesByFullIdentifier = new SerializableDictionary<string, int>();
         public BinarySerialized<List<LinkedFile>> allFiles;
         public List<SymbolDefinition> allSymbolDefinitionsLeafFirst;
@@ -40,6 +42,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             allFiles = new BinarySerialized<List<LinkedFile>>();
             var compileTimes = new Dictionary<string, DefineDirective>();
             var runTimes = new Dictionary<string, RuntimeParameterAndDefault>();
+            var immaturitySymbols = new HashSet<int>();
             foreach (var kvp in allFilesByFullIdentifier)
             {
                 allFiles.data.Add(kvp.Value);
@@ -68,9 +71,15 @@ namespace Dman.LSystem.SystemCompiler.Linker
                         runTimes[runTime.name] = runTime;
                     }
                 }
+
+                foreach (var immature in kvp.Value.GetAllImmaturityMarkerSymbols())
+                {
+                    immaturitySymbols.Add(immature);
+                }
             }
             allGlobalCompileTimeParams = compileTimes.Values.ToList();
             allGlobalRuntimeParams = runTimes.Values.ToList();
+            this.immaturitySymbolMarkers = immaturitySymbols.ToArray();
 
 
             defaultSymbolDefinitionIndexBySymbol = new SerializableDictionary<int, int>();
@@ -145,12 +154,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 out var nativeRuleData,
                 openSymbol, closeSymbol);
 
-
-            var everySymbol = new HashSet<int>(allFiles.data.SelectMany(x => x.allSymbolAssignments).Select(x => x.remappedSymbol));
-
             var includedByFile = allFiles.data
-                .Select(x => x.GetAllIncludedContextualSymbols())
-                .Select(x => new HashSet<int>(x))
+                .Select(x => new HashSet<int>(x.GetAllIncludedContextualSymbols()))
                 .ToArray();
 
             var customSymbols = new CustomRuleSymbols();
@@ -196,7 +201,14 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 })
                 .Where(x => x != null)
                 .ToArray();
-            return RuleParser.CompileAndCheckParsedRules(parsedRules, out ruleNativeData, openSymbol, closeSymbol);
+            var allRules = RuleParser.CompileAndCheckParsedRules(parsedRules, out ruleNativeData, openSymbol, closeSymbol);
+
+            ruleNativeData.immaturityMarkerSymbols = new NativeHashSet<int>(immaturitySymbolMarkers.Length, Allocator.Persistent);
+            foreach (var immature in immaturitySymbolMarkers)
+            {
+                ruleNativeData.immaturityMarkerSymbols.Add(immature);
+            }
+            return allRules;
         }
 
         private Dictionary<string, string> GetCompileTimeReplacementsWithOverrides(Dictionary<string, string> overrides)

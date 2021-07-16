@@ -36,6 +36,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
     public class TurtleStringReadingCompletable : ICompletable<TurtleCompletionResult>
     {
+#if UNITY_EDITOR
+        public string TaskDescription => "Turtle string reading completable";
+#endif
         public JobHandle currentJobHandle { get; private set; }
 
         private NativeList<TurtleOrganInstance> organInstances;
@@ -56,6 +59,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             this.targetMesh = targetMesh;
             this.nativeData = nativeData;
+
+            UnityEngine.Profiling.Profiler.BeginSample("turtling job");
 
             var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
             organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
@@ -86,6 +91,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             symbols.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = tmpHelperStack.Dispose(currentJobHandle);
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         public ICompletable StepNext()

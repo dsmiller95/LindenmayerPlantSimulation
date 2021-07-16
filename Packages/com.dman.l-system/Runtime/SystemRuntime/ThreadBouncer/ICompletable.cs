@@ -28,6 +28,10 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         /// <returns></returns>
         public bool HasErrored();
         public string GetError();
+
+#if UNITY_EDITOR
+        public string TaskDescription { get; }
+#endif
     }
     public interface ICompletable<T> : ICompletable
     {

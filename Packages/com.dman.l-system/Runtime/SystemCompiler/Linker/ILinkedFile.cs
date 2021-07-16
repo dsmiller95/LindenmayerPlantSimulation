@@ -18,6 +18,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
         public string allSymbols = "";
         public string globalCharacters = "";
+        public string immaturityMarkerCharacters = "";
 
         /// <summary>
         /// These are used to build a list of truly global parameters, when the files are grouped into a <see cref="LinkedFileSet"/>
@@ -34,6 +35,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
         /// </summary>
         /// <returns></returns>
         public abstract IEnumerable<int> GetAllIncludedContextualSymbols();
+        public virtual IEnumerable<int> GetAllImmaturityMarkerSymbols()
+        {
+            yield break;
+        }
 
         public abstract int GetExportedSymbol(string exportedName);
         public virtual void SetCustomRuleSymbols(ref CustomRuleSymbols customSymbols)

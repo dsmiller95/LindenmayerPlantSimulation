@@ -11,6 +11,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 {
     public class TurtleOrganSpawningCompletable : ICompletable<TurtleCompletionResult>
     {
+#if UNITY_EDITOR
+        public string TaskDescription => "Turtle mesh building";
+#endif
         public JobHandle currentJobHandle { get; private set; }
 
         private Mesh.MeshDataArray meshDataArray;
@@ -41,7 +44,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             this.targetMesh = targetMesh;
             this.resultMeshSizeBySubmesh = resultMeshSizeBySubmesh;
-            UnityEngine.Profiling.Profiler.BeginSample("allocating mesh data");
+            UnityEngine.Profiling.Profiler.BeginSample("mesh data building job");
 
             meshDataArray = Mesh.AllocateWritableMeshData(1);
             var meshData = meshDataArray[0];
@@ -55,9 +58,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             meshData.SetIndexBufferParams(lastMeshSize.indexInTriangles + lastMeshSize.totalTriangleIndexes, IndexFormat.UInt32);
 
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("configuring job");
             var turtleEntitySpawnJob = new TurtleMeshBuildingJob
             {
                 templateVertexData = nativeData.Data.vertexData,
@@ -69,9 +69,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 targetMesh = meshData
             };
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            UnityEngine.Profiling.Profiler.BeginSample("scheduling job");
             currentJobHandle = turtleEntitySpawnJob.Schedule();
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
