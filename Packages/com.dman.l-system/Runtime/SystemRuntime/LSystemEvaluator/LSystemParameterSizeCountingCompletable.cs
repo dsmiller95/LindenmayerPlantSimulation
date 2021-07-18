@@ -63,9 +63,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
-            matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(sourceSymbolString.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
+            matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(sourceSymbolString.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             parameterTotalSum = new NativeArray<int>(1, Allocator.TempJob);
+            UnityEngine.Profiling.Profiler.EndSample();
+
             var memorySizeJob = new SymbolStringMemoryRequirementsJob
             {
                 matchSingletonData = matchSingletonData,

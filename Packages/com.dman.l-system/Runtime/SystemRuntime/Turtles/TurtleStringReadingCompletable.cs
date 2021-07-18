@@ -62,9 +62,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             UnityEngine.Profiling.Profiler.BeginSample("turtling job");
 
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
             organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
             newMeshSizeBySubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob);
+            UnityEngine.Profiling.Profiler.EndSample();
             var turtleCompileJob = new TurtleCompilationJob
             {
                 symbols = symbols.Data,

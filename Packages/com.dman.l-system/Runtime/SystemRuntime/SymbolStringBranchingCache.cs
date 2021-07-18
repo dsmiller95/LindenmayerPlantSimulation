@@ -43,7 +43,10 @@ namespace Dman.LSystem.SystemRuntime
             var tmpBranchingJumpIndexes = new Dictionary<int, int>();
             CacheAllBranchJumpIndexes(symbols.Data.symbols, tmpBranchingJumpIndexes);
 
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             branchingJumpIndexes = new NativeHashMap<int, int>(tmpBranchingJumpIndexes.Count, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
+
             foreach (var kvp in tmpBranchingJumpIndexes)
             {
                 branchingJumpIndexes[kvp.Key] = kvp.Value;

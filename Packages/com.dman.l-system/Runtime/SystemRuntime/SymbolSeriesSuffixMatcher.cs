@@ -39,8 +39,7 @@ namespace Dman.LSystem.SystemRuntime
         }
         public SymbolSeriesPrefixMatcher BuildIntoManagedMemory(
             SystemLevelRuleNativeData nativeData,
-            SymbolSeriesMatcherNativeDataWriter dataWriter,
-            Allocator allocator = Allocator.Persistent)
+            SymbolSeriesMatcherNativeDataWriter dataWriter)
         {
             var matcher = new SymbolSeriesPrefixMatcher();
 

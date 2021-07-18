@@ -42,9 +42,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var lastSubmeshSize = resultMeshSizeBySubmesh[resultMeshSizeBySubmesh.Length - 1];
             meshData = new MyMeshData
             {
-                indices = new NativeArray<uint>(lastSubmeshSize.indexInTriangles + lastSubmeshSize.totalTriangleIndexes, Allocator.Persistent), // TODO: does this have to be persistent? or can it be tempjob since it'll be handed to the mesh?
-                vertexData = new NativeArray<MeshVertexLayout>(lastSubmeshSize.indexInVertexes + lastSubmeshSize.totalVertexes, Allocator.Persistent),
-                meshBounds = new NativeArray<Bounds>(1, Allocator.Persistent)
+                indices = new NativeArray<uint>(lastSubmeshSize.indexInTriangles + lastSubmeshSize.totalTriangleIndexes, Allocator.TempJob), // TODO: does this have to be persistent? or can it be tempjob since it'll be handed to the mesh?
+                vertexData = new NativeArray<MeshVertexLayout>(lastSubmeshSize.indexInVertexes + lastSubmeshSize.totalVertexes, Allocator.TempJob),
+                meshBounds = new NativeArray<Bounds>(1, Allocator.TempJob)
             };
 
             var turtleEntitySpawnJob = new TurtleMeshBuildingJob

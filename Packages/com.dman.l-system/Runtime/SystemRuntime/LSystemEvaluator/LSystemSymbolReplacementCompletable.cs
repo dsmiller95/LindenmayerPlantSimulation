@@ -47,7 +47,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             this.matchSingletonData = matchSingletonData;
             this.branchingCache = branchingCache;
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
+            diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             this.randResult = randResult;
             this.sourceSymbolString = sourceSymbolString;
@@ -85,7 +88,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 targetData = target,
                 branchingCache = branchingCache,
                 customSymbols = customSymbols,
-                working = diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob)
+                working = diffusionHelper
             };
 
 
@@ -95,18 +98,17 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     matchSingletonData.Length,
                     100
                 );
-            sourceSymbolString.RegisterDependencyOnData(replacementHandle);
-            nativeData.RegisterDependencyOnData(replacementHandle);
 
             var diffusionHandle = diffusionJob.Schedule();
-            sourceSymbolString.RegisterDependencyOnData(diffusionHandle);
-            nativeData.RegisterDependencyOnData(diffusionHandle);
 
             // only parameter modifications beyond this point
             currentJobHandle = JobHandle.CombineDependencies(
                     replacementHandle,
                     diffusionHandle
                  );
+            sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
+            nativeData.RegisterDependencyOnData(currentJobHandle);
+
             currentJobHandle = JobHandle.CombineDependencies(
                 ScheduleIdAssignmentJob(currentJobHandle, customSymbols, uniqueIDOriginIndex),
                 ScheduleAutophagyJob(currentJobHandle, customSymbols),

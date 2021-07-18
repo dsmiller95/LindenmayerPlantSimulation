@@ -128,7 +128,9 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             }
             using var nativeIdData = readbackRequest.Value.GetData<uint>();
 
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             var reAllocatedNativeData = new NativeArray<uint>(nativeIdData, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             var dependencyTracker = uniqueSunlightAssignments.AssignPending(reAllocatedNativeData);
 #if UNITY_EDITOR

@@ -73,12 +73,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             this.branchingCache = branchingCache;
 
             // 1.
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             tmpParameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             // 2.
             UnityEngine.Profiling.Profiler.BeginSample("matching");
 
-            globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
 
             var prematchJob = new RuleCompleteMatchJob
             {
@@ -107,8 +109,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             // 4.
             UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
 
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             totalSymbolCount = new NativeArray<int>(1, Allocator.Persistent);
             totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             var totalSymbolLengthJob = new RuleReplacementSizeJob
             {

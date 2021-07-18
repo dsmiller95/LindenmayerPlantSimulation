@@ -243,8 +243,10 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
 
             public DiffusionWorkingDataPack(int estimatedEdges, int estimatedNodes, int estimatedUniqueResources, Allocator allocator = Allocator.TempJob)
             {
+                UnityEngine.Profiling.Profiler.BeginSample("allocating");
                 allEdges = new NativeList<DiffusionEdge>(estimatedEdges, allocator);
                 nodes = new NativeList<DiffusionNode>(estimatedNodes, allocator);
+                UnityEngine.Profiling.Profiler.EndSample();
 
                 nodeMaxCapacities = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
                 nodeAmountsListA = new NativeList<float>(estimatedNodes * estimatedUniqueResources, allocator);
