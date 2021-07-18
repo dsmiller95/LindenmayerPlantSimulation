@@ -9,29 +9,20 @@ using UnityEngine.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public class TurtleOrganSpawningCompletable : ICompletable<TurtleCompletionResult>
+    public class TurtleMeshBuildingCompletable : ICompletable<TurtleCompletionResult>
     {
 #if UNITY_EDITOR
         public string TaskDescription => "Turtle mesh building";
 #endif
         public JobHandle currentJobHandle { get; private set; }
 
-        private Mesh.MeshDataArray meshDataArray;
-
         private Mesh targetMesh;
         private NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh;
 
+        private MyMeshData meshData;
 
-        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-        struct MeshVertexLayout
-        {
-            public float3 pos;
-            public float3 normal;
-            public Color32 color;
-            public float2 uv;
-        }
 
-        public TurtleOrganSpawningCompletable(
+        public TurtleMeshBuildingCompletable(
             Mesh targetMesh,
             NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh,
             DependencyTracker<NativeTurtleData> nativeData,
@@ -43,20 +34,18 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
 
             this.targetMesh = targetMesh;
+            targetMesh.MarkDynamic();
             this.resultMeshSizeBySubmesh = resultMeshSizeBySubmesh;
             UnityEngine.Profiling.Profiler.BeginSample("mesh data building job");
 
-            meshDataArray = Mesh.AllocateWritableMeshData(1);
-            var meshData = meshDataArray[0];
-            var lastMeshSize = resultMeshSizeBySubmesh[resultMeshSizeBySubmesh.Length - 1];
-            meshData.SetVertexBufferParams(lastMeshSize.indexInVertexes + lastMeshSize.totalVertexes,
-                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32),
-                new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32),
-                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, 4),
-                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
-            );
-
-            meshData.SetIndexBufferParams(lastMeshSize.indexInTriangles + lastMeshSize.totalTriangleIndexes, IndexFormat.UInt32);
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
+            var lastSubmeshSize = resultMeshSizeBySubmesh[resultMeshSizeBySubmesh.Length - 1];
+            meshData = new MyMeshData
+            {
+                indices = new NativeArray<uint>(lastSubmeshSize.indexInTriangles + lastSubmeshSize.totalTriangleIndexes, Allocator.Persistent), // TODO: does this have to be persistent? or can it be tempjob since it'll be handed to the mesh?
+                vertexData = new NativeArray<MeshVertexLayout>(lastSubmeshSize.indexInVertexes + lastSubmeshSize.totalVertexes, Allocator.Persistent),
+                meshBounds = new NativeArray<Bounds>(1, Allocator.Persistent)
+            };
 
             var turtleEntitySpawnJob = new TurtleMeshBuildingJob
             {
@@ -69,11 +58,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 targetMesh = meshData
             };
+            UnityEngine.Profiling.Profiler.EndSample();
 
+            UnityEngine.Profiling.Profiler.BeginSample("scheduling");
             currentJobHandle = turtleEntitySpawnJob.Schedule();
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = organInstances.Dispose(currentJobHandle);
+            UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
@@ -81,13 +73,37 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             currentJobHandle.Complete();
 
-            UnityEngine.Profiling.Profiler.BeginSample("applying mesh data");
-            var meshData = meshDataArray[0];
 
-            meshData.subMeshCount = resultMeshSizeBySubmesh.Length;
-            for (int i = 0; i < resultMeshSizeBySubmesh.Length; i++)
+            SetDataToMesh(targetMesh, meshData, resultMeshSizeBySubmesh);
+
+            //Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, targetMesh, MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontResetBoneBounds);
+
+            UnityEngine.Profiling.Profiler.BeginSample("cleanup");
+            resultMeshSizeBySubmesh.Dispose();
+            meshData.Dispose();
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            return new CompleteCompletable<TurtleCompletionResult>(new TurtleCompletionResult());
+        }
+
+        private static void SetDataToMesh(UnityEngine.Mesh mesh, MyMeshData meshData, NativeArray<TurtleMeshAllocationCounter> submeshSizes)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("applying mesh data");
+            int vertexCount = meshData.vertexData.Length;
+            int indexCount = meshData.indices.Length;
+
+            mesh.Clear();
+
+            mesh.SetVertexBufferParams(vertexCount, GetVertexLayout());
+            mesh.SetVertexBufferData(meshData.vertexData, 0, 0, vertexCount, 0, MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontResetBoneBounds | MeshUpdateFlags.DontValidateIndices);
+
+            mesh.SetIndexBufferParams(indexCount, IndexFormat.UInt32);
+            mesh.SetIndexBufferData(meshData.indices, 0, 0, indexCount, MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontResetBoneBounds | MeshUpdateFlags.DontValidateIndices);
+
+            mesh.subMeshCount = submeshSizes.Length;
+            for (int i = 0; i < submeshSizes.Length; i++)
             {
-                var submeshSize = resultMeshSizeBySubmesh[i];
+                var submeshSize = submeshSizes[i];
                 var descriptor = new SubMeshDescriptor()
                 {
                     baseVertex = 0,
@@ -95,18 +111,52 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     indexCount = submeshSize.totalTriangleIndexes,
                     indexStart = submeshSize.indexInTriangles,
                 };
-                meshData.SetSubMesh(i, descriptor);
+                mesh.SetSubMesh(i, descriptor, MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontResetBoneBounds | MeshUpdateFlags.DontValidateIndices);
             }
 
-            Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, targetMesh, MeshUpdateFlags.Default);
+            mesh.bounds = meshData.meshBounds[0];
             UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("recalculating bounds");
-            targetMesh.RecalculateBounds();
-            UnityEngine.Profiling.Profiler.EndSample();
+        }
 
-            resultMeshSizeBySubmesh.Dispose();
+        private static VertexAttributeDescriptor[] GetVertexLayout()
+        {
+            return new[]{
+                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32),
+                new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32),
+                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, 4),
+                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
+                };
+        }
 
-            return new CompleteCompletable<TurtleCompletionResult>(new TurtleCompletionResult());
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        struct MeshVertexLayout
+        {
+            public float3 pos;
+            public float3 normal;
+            public Color32 color;
+            public float2 uv;
+        }
+
+        struct MyMeshData : INativeDisposable
+        {
+            public NativeArray<MeshVertexLayout> vertexData;
+            public NativeArray<uint> indices;
+            public NativeArray<Bounds> meshBounds;
+
+            public JobHandle Dispose(JobHandle inputDeps)
+            {
+                return JobHandle.CombineDependencies(
+                    vertexData.Dispose(inputDeps),
+                    indices.Dispose(inputDeps),
+                    meshBounds.Dispose(inputDeps));
+            }
+
+            public void Dispose()
+            {
+                vertexData.Dispose();
+                indices.Dispose();
+                meshBounds.Dispose();
+            }
         }
 
 
@@ -131,12 +181,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             public NativeList<TurtleOrganInstance> organInstances;
 
             [NativeDisableParallelForRestriction]
-            public Mesh.MeshData targetMesh;
+            public MyMeshData targetMesh;
 
             public void Execute()
             {
-                var vertexTargetData = targetMesh.GetVertexData<MeshVertexLayout>();
-                var triangleIndexes = targetMesh.GetIndexData<uint>();
+                var vertexTargetData = targetMesh.vertexData;// targetMesh.GetVertexData<MeshVertexLayout>();
+                var triangleIndexes = targetMesh.indices;// targetMesh.GetIndexData<uint>();
+                var bounds = targetMesh.meshBounds[0];
                 for (int index = 0; index < organInstances.Length; index++)
                 {
                     var organInstance = organInstances[index];
@@ -150,13 +201,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     for (int i = 0; i < organTemplate.vertexes.length; i++)
                     {
                         var sourceVertexData = templateVertexData[organTemplate.vertexes.index + i];
-                        vertexTargetData[i + organVertexOffset] = new MeshVertexLayout
+                        var newVertexData = new MeshVertexLayout
                         {
                             pos = matrixTransform.MultiplyPoint(sourceVertexData.vertex),
                             normal = matrixTransform.MultiplyVector(sourceVertexData.normal),
                             uv = sourceVertexData.uv,
                             color = ColorFromIdentity(organInstance.organIdentity, (uint)index),
                         };
+                        vertexTargetData[i + organVertexOffset] = newVertexData;
+                        bounds.Encapsulate(newVertexData.pos);
                     }
 
                     for (int i = 0; i < organTemplate.trianges.length; i++)
@@ -166,6 +219,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             + organVertexOffset); // offset the triangle indexes by the current index in vertex mem space
                     }
                 }
+                targetMesh.meshBounds[0] = bounds;
             }
 
             private Color32 ColorFromIdentity(UIntFloatColor32 identity, uint index)
@@ -179,17 +233,17 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public JobHandle Dispose(JobHandle inputDeps)
         {
             currentJobHandle.Complete();
-            meshDataArray.Dispose();
             return JobHandle.CombineDependencies(
                 inputDeps,
-                resultMeshSizeBySubmesh.Dispose(inputDeps)
+                resultMeshSizeBySubmesh.Dispose(inputDeps),
+                meshData.Dispose(inputDeps)
                 );
         }
 
         public void Dispose()
         {
             currentJobHandle.Complete();
-            meshDataArray.Dispose();
+            meshData.Dispose();
             resultMeshSizeBySubmesh.Dispose();
         }
 
