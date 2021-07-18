@@ -37,7 +37,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         ///     if it exists
         /// </summary>
         /// <param name="pendingData"></param>
-        public void AssignPending(T pendingData)
+        public DependencyTracker<T> AssignPending(T pendingData)
         {
             if (HasPending)
             {
@@ -51,6 +51,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
                     dataB.Dispose();
                 }
                 dataB = new DependencyTracker<T>(pendingData);
+                return dataB;
             }
             else
             {
@@ -59,6 +60,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
                     dataA.Dispose();
                 }
                 dataA = new DependencyTracker<T>(pendingData);
+                return dataA;
             }
         }
 

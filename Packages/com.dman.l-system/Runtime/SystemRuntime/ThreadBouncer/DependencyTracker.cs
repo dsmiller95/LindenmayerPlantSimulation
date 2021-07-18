@@ -11,6 +11,11 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         public bool IsDisposed { get; private set; }
         private JobHandle dependencies;
 
+#if UNITY_EDITOR
+        public int allocatedFrame = UnityEngine.Time.frameCount;
+        public Allocator underlyingAllocator = Allocator.Persistent;
+#endif
+
         public DependencyTracker(T data, JobHandle deps = default)
         {
             dependencies = deps;
@@ -27,6 +32,12 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         public JobHandle Dispose(JobHandle inputDeps)
         {
             if (IsDisposed) return inputDeps;
+#if UNITY_EDITOR
+            if (underlyingAllocator == Allocator.TempJob && UnityEngine.Time.frameCount > allocatedFrame + 4)
+            {
+                UnityEngine.Debug.LogWarning("Warning: job temp alloc is being disposed after 4 frames.");
+            }
+#endif
             var dep = Data.Dispose(
                 JobHandle.CombineDependencies(
                     inputDeps,
@@ -39,6 +50,12 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         public void Dispose()
         {
             if (IsDisposed) return;
+#if UNITY_EDITOR
+            if (underlyingAllocator == Allocator.TempJob && UnityEngine.Time.frameCount > allocatedFrame + 4)
+            {
+                UnityEngine.Debug.LogWarning("Warning: job temp alloc is being disposed after 4 frames.");
+            }
+#endif
             // TODO: can we not force complete here?
             dependencies.Complete();
             Data.Dispose(dependencies);

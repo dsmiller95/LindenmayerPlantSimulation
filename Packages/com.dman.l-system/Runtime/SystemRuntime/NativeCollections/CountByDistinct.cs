@@ -8,6 +8,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
     /// used to count up distinct values
     /// depricated by a compute shader which can do the same work, but in the GPU
     /// </summary>
+    [System.Obsolete("use compute shaders instead")]
     public class CountByDistinct
     {
         private NativeArray<uint> sourceData;
