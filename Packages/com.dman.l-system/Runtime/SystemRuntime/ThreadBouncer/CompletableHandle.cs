@@ -31,6 +31,11 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         public string TaskDescription => currentState?.TaskDescription ?? "";
 #endif
 
+        public bool AreAllJobsCompleted()
+        {
+            return currentState.currentJobHandle.IsCompleted;
+        }
+
         public void Cancel()
         {
             Dispose();
