@@ -172,6 +172,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 customSymbols.diffusionStepsPerStep = stepsPerStep;
             }
             customSymbols.independentDiffusionUpdate = false;
+            customSymbols.diffusionConstantRuntimeGlobalMultiplier = 1f;
             if (allReplacementDirectives.TryGetValue("independentDiffusionStep", out defineValue))
             {
                 if (!bool.TryParse(defineValue, out var stepsIndependent))

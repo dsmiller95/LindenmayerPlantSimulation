@@ -148,7 +148,6 @@ namespace Dman.LSystem.UnityObjects
         {
             return lSystemPendingCompletable == null;
         }
-
         /// <summary>
         /// step the Lsystem forward one tick. when CompleteInLateUpdate is true, be very careful with changes to the L-system
         ///     it is not perfectly protected against threading race conditions, so be sure not to make any mutations to 
@@ -250,7 +249,9 @@ namespace Dman.LSystem.UnityObjects
                     totalSteps++;
                 }
                 currentState = nextState;
-                lastUpdateChanged = !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
+                // if there are immature markers, use those instead. avoiding an equality check saves time.
+                var hasImmatureMarkers = systemObject.linkedFiles.immaturitySymbolMarkers.Length > 0;
+                lastUpdateChanged = hasImmatureMarkers || !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
 
                 lSystemPendingCompletable = null;
                 UnityEngine.Profiling.Profiler.EndSample();

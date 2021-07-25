@@ -266,6 +266,57 @@ public class LSystemCustomDiffusionTests
                 "n(0.5, 0.72, 10)Fn(0.1, 2.64, 10)Fn(0.5, 4.64, 10)",
             });
     }
+
+    [Test]
+    public void DiffusionRateCanChangeAtRuntime()
+    {
+        var testFile = @"
+#axiom n(0.5, 0, 10)Fn(0.5, 0, 10)Fn(0.5, 8, 10)
+#iterations 10
+#symbols Fna
+#define diffusionStepsPerStep 1
+#include diffusion (Node->n) (Amount->a)
+";
+
+
+        var fileSystem = new InMemoryFileProvider();
+        fileSystem.RegisterFileWithIdentifier("root.lsystem", testFile);
+        var linker = new FileLinker(fileSystem);
+        var linkedFiles = linker.LinkFiles("root.lsystem");
+        using var system = linkedFiles.CompileSystem();
+
+        LSystemState<float> state = new DefaultLSystemState(
+            linkedFiles.GetAxiom(),
+            (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+
+        var symbolStringMapping = linkedFiles.allSymbolDefinitionsLeafFirst
+            .Where(x => x.sourceFileDefinition == "root.lsystem")
+            .ToDictionary(x => x.actualSymbol, x => x.characterInSourceFile);
+
+        using var axiom = linkedFiles.GetAxiom();
+        Assert.AreEqual(axiom.ToString(symbolStringMapping), state.currentSymbols.Data.ToString(symbolStringMapping));
+        try
+        {
+            state = system.StepSystem(state);
+            Assert.AreEqual("n(0.5, 0, 10)Fn(0.5, 4, 10)Fn(0.5, 4, 10)", state.currentSymbols.Data.ToString(symbolStringMapping));
+
+            system.customSymbols.diffusionConstantRuntimeGlobalMultiplier = 0.5f;
+            state = system.StepSystem(state);
+            Assert.AreEqual("n(0.5, 1, 10)Fn(0.5, 3, 10)Fn(0.5, 4, 10)", state.currentSymbols.Data.ToString(symbolStringMapping));
+
+            state = system.StepSystem(state);
+            Assert.AreEqual("n(0.5, 1.5, 10)Fn(0.5, 2.75, 10)Fn(0.5, 3.75, 10)", state.currentSymbols.Data.ToString(symbolStringMapping));
+
+            system.customSymbols.diffusionConstantRuntimeGlobalMultiplier = 1f;
+            state = system.StepSystem(state);
+            Assert.AreEqual("n(0.5, 2.125, 10)Fn(0.5, 2.625, 10)Fn(0.5, 3.25, 10)", state.currentSymbols.Data.ToString(symbolStringMapping));
+        }
+        finally
+        {
+            state.currentSymbols.DisposeImmediate();
+        }
+
+    }
     [Test]
     public void LSystemOnlyCountsAmountsOnce()
     {

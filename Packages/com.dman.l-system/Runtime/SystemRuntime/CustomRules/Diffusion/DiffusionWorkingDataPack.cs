@@ -86,7 +86,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
             var nodeA = nodes[edge.nodeAIndex];
             var nodeB = nodes[edge.nodeBIndex];
 
-            var diffusionConstant = (nodeA.diffusionConstant + nodeB.diffusionConstant) / 2f;
+            var diffusionConstant = customSymbols.diffusionConstantRuntimeGlobalMultiplier * (nodeA.diffusionConstant + nodeB.diffusionConstant) / 2f;
             for (
                 int resource = 0;
                 resource < nodeA.totalResourceTypes && resource < nodeA.totalResourceTypes;
