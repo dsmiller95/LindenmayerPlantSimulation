@@ -171,6 +171,15 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 }
                 customSymbols.diffusionStepsPerStep = stepsPerStep;
             }
+            customSymbols.independentDiffusionUpdate = false;
+            if (allReplacementDirectives.TryGetValue("independentDiffusionStep", out defineValue))
+            {
+                if (!bool.TryParse(defineValue, out var stepsIndependent))
+                {
+                    throw new LinkException(LinkExceptionType.BAD_GLOBAL_PARAMETER, $"global parameter 'independentDiffusionStep' is defined, but is not a boolean. this parameter must be either 'true' or 'false': '{defineValue}'");
+                }
+                customSymbols.independentDiffusionUpdate = stepsIndependent;
+            }
 
             var result = new LSystemStepper(
                 compiledRules,

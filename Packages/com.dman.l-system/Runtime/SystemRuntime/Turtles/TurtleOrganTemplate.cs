@@ -9,16 +9,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     {
         public MeshDraft draft;
         public Material material;
-        public Matrix4x4 transform;
+        public Vector3 translation;
+        public bool alsoMove;
 
         public TurtleOrganTemplate(
             MeshDraft draft,
             Material material,
-            Matrix4x4 transform)
+            Vector3 translation,
+            bool shouldMove)
         {
             this.draft = draft;
             this.material = material;
-            this.transform = transform;
+            this.translation = translation;
+            this.alsoMove = shouldMove;
         }
 
         public TurtleDataRequirements DataReqs => new TurtleDataRequirements
@@ -30,7 +33,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
-
             var vertexSlice = new JaggedIndexing
             {
                 index = writer.indexInVertexes,
@@ -68,7 +70,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
             var blittable = new Blittable
             {
-                organMatrixTransform = transform,
+                translation = translation,
+                alsoMove = alsoMove,
                 vertexes = vertexSlice,
                 trianges = triangleCount,
                 materialIndex = (byte)existingMaterialIndex
@@ -82,7 +85,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             /// <summary>
             /// the transformation to apply to the turtle after placing this organ
             /// </summary>
-            public float4x4 organMatrixTransform;
+            public Vector3 translation;
+            public bool alsoMove;
             public byte materialIndex;
 
             public JaggedIndexing vertexes;

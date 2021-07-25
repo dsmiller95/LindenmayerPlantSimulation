@@ -324,10 +324,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     continue;
                 }
                 // custom rules
-                if (customSymbols.hasDiffusion && customSymbols.diffusionAmount == sourceData[i])
+                if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate && customSymbols.diffusionAmount == sourceData[i])
                 {
-                    //... do nothing if it matches the custom diffusion symbol.
-                    // will copy 0 data over, the symbol dissapears.
+                    // if matching the diffusion's amount symbol, and the update is happening in parallel, remove all the parameters.
+                    //  leaving just the symbol.
+                    //  this is to ensure closest possible consistency with the independent diffusion update code
+                    // will copy 0 parameters over, the symbol remains.
+                    // only do this if the diffusion update is happening in parallel to the regular system step
+                    totalResultSymbolSize += 1;
                     continue;
                 }
                 // default behavior

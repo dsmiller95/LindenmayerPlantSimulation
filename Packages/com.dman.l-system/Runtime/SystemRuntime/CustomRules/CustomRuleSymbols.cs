@@ -3,6 +3,7 @@
     public struct CustomRuleSymbols
     {
         public bool hasDiffusion;
+        public bool independentDiffusionUpdate;
         public int diffusionNode;
         public int diffusionAmount;
         public int diffusionStepsPerStep;

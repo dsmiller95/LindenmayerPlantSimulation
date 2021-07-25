@@ -20,6 +20,7 @@
 #symbols ra
 #matches r
 #define diffusionStepsPerStep 1
+#define independentDiffusionStep true
 #include diffusion (Node->r) (Amount->a)
 
 #symbols i

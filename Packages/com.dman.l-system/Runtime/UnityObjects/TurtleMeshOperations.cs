@@ -39,13 +39,12 @@ namespace Dman.LSystem.UnityObjects
                 newDraft.Move(Vector3.right * (-bounds.center.x + bounds.size.x / 2));
                 newDraft.Scale(IndividualScale);
 
-                var transformPostMesh = AlsoMove ?
-                        Matrix4x4.Translate(new Vector3(bounds.size.x * IndividualScale.x, 0, 0))
-                    : Matrix4x4.identity;
+                var translatePostMesh = new Vector3(bounds.size.x * IndividualScale.x, 0, 0);
                 return new TurtleOrganTemplate(
                     newDraft,
                     material,
-                    transformPostMesh
+                    translatePostMesh,
+                    AlsoMove
                     );
             }).ToArray();
         }

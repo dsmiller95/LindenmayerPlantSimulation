@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.CustomRules.Diffusion;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
@@ -23,7 +24,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public SymbolStringBranchingCache branchingCache;
         private NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
-        private DiffusionReplacementJob.DiffusionWorkingDataPack diffusionHelper;
+        private DiffusionWorkingDataPack diffusionHelper;
         private NativeArray<uint> maxIdReached;
         private NativeArray<bool> isImmature;
 
@@ -49,7 +50,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             this.branchingCache = branchingCache;
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
             target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
-            diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob);
             UnityEngine.Profiling.Profiler.EndSample();
 
             this.randResult = randResult;
@@ -79,44 +79,65 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 customSymbols = customSymbols
             };
 
-
-            var diffusionJob = new DiffusionReplacementJob
-            {
-                matchSingletonData = matchSingletonData,
-
-                sourceData = sourceSymbolString.Data,
-                targetData = target,
-                branchingCache = branchingCache,
-                customSymbols = customSymbols,
-                working = diffusionHelper
-            };
-
-
-            // agressively register dependencies, to ensure that if there is a problem
-            //  when scheduling any one job, they are still tracked.
-            var replacementHandle = replacementJob.Schedule(
+            currentJobHandle = replacementJob.Schedule(
                     matchSingletonData.Length,
                     100
                 );
 
-            var diffusionHandle = diffusionJob.Schedule();
+            if(customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
+            {
+                diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
+                var diffusionJob = new ParallelDiffusionReplacementJob
+                {
+                    matchSingletonData = matchSingletonData,
 
+                    sourceData = sourceSymbolString.Data,
+                    targetData = target,
+                    branchOpenSymbol = branchingCache.branchOpenSymbol,
+                    branchCloseSymbol = branchingCache.branchCloseSymbol,
+                    customSymbols = customSymbols,
+                    working = diffusionHelper
+                };
+                currentJobHandle = JobHandle.CombineDependencies(
+                        currentJobHandle,
+                        diffusionJob.Schedule()
+                     );
+            }
             // only parameter modifications beyond this point
-            currentJobHandle = JobHandle.CombineDependencies(
-                    replacementHandle,
-                    diffusionHandle
-                 );
             sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = JobHandle.CombineDependencies(
-                ScheduleIdAssignmentJob(currentJobHandle, customSymbols, uniqueIDOriginIndex),
-                ScheduleAutophagyJob(currentJobHandle, customSymbols),
-                ScheduleImmaturityJob(currentJobHandle));
+                JobHandle.CombineDependencies(
+                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, uniqueIDOriginIndex),
+                    ScheduleIndependentDiffusion(currentJobHandle, customSymbols)
+                ),
+                JobHandle.CombineDependencies(
+                    ScheduleAutophagyJob(currentJobHandle, customSymbols),
+                    ScheduleImmaturityJob(currentJobHandle)
+                ));
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
+        private JobHandle ScheduleIndependentDiffusion(JobHandle dependency, CustomRuleSymbols customSymbols)
+        {
+            // diffusion is only dependent on the target symbol data. don't need to register as dependent on native data/source symbols
+            if (customSymbols.hasDiffusion && customSymbols.independentDiffusionUpdate)
+            {
+                diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
+                var diffusionJob = new IndependentDiffusionReplacementJob
+                {
+                    inPlaceSymbols = target,
+                    branchOpenSymbol = branchingCache.branchOpenSymbol,
+                    branchCloseSymbol = branchingCache.branchCloseSymbol,
+                    customSymbols = customSymbols,
+                    working = diffusionHelper
+                };
+                dependency = diffusionJob.Schedule(dependency);
+            }
+            return dependency;
+        }
         private JobHandle ScheduleIdAssignmentJob(JobHandle dependency, CustomRuleSymbols customSymbols, uint uniqueIDOriginIndex)
         {
             // identity assignment job is not dependent on the source string or any other native data. can skip assigning it as a dependent
@@ -172,7 +193,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             currentJobHandle.Complete();
             branchingCache.Dispose();
             matchSingletonData.Dispose();
-            diffusionHelper.Dispose();
+            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
 
             var hasImmatureSymbols = false;
 
@@ -220,7 +241,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
-            diffusionHelper.Dispose();
+            if(diffusionHelper.IsCreated) diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
             if (isImmature.IsCreated) isImmature.Dispose();
             return inputDeps;
@@ -233,7 +254,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
-            diffusionHelper.Dispose();
+            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
             if (isImmature.IsCreated) isImmature.Dispose();
         }
@@ -292,8 +313,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             {
                 var targetIndex = matchSingleton.replacementSymbolIndexing.index;
                 // check for custom rules
-                if (customSymbols.hasDiffusion)
+                if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
                 {
+                    // let the diffusion library handle these updates. only if diffusion is happening in parallel
                     if (symbol == customSymbols.diffusionNode || symbol == customSymbols.diffusionAmount)
                     {
                         return;
@@ -309,7 +331,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     length = sourceParamIndexer.length
                 };
                 targetData.parameters[targetIndex] = targetDataIndexer;
-                // when trivial, copy out of the source param array directly. As opposed to reading parameters out oof the parameterMatchMemory when evaluating
+                // when trivial, copy out of the source param array directly. As opposed to reading parameters out of the parameterMatchMemory when evaluating
                 //      a non-trivial match
                 for (int i = 0; i < sourceParamIndexer.length; i++)
                 {

@@ -314,15 +314,15 @@ S -> a(3)S
         currentState = system.StepSystem(currentState);
         Assert.AreEqual("n(0.5, 0, 10)a(3)Sn(0.5, 0, 10)FT(2)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 1.5, 10)a(3)Sn(0.5, 1.5, 10)Fn(0.5, 0, 10)FT(1)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 1.5, 10)aa(3)Sn(0.5, 1.5, 10)Fn(0.5, 0, 10)FT(1)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 3, 10)a(3)Sn(0.5, 2.25, 10)Fn(0.5, 0.75, 10)Fn(0.5, 0, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 3, 10)aa(3)Sn(0.5, 2.25, 10)Fn(0.5, 0.75, 10)Fn(0.5, 0, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 4.125, 10)a(3)Sn(0.5, 3.375, 10)Fn(0.5, 1.125, 10)Fn(0.5, 0.375, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 4.125, 10)aa(3)Sn(0.5, 3.375, 10)Fn(0.5, 1.125, 10)Fn(0.5, 0.375, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 5.25, 10)a(3)Sn(0.5, 4.125, 10)Fn(0.5, 1.875, 10)Fn(0.5, 0.75, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 5.25, 10)aa(3)Sn(0.5, 4.125, 10)Fn(0.5, 1.875, 10)Fn(0.5, 0.75, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 6.1875, 10)a(3)Sn(0.5, 5.0625, 10)Fn(0.5, 2.4375, 10)Fn(0.5, 1.3125, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 6.1875, 10)aa(3)Sn(0.5, 5.0625, 10)Fn(0.5, 2.4375, 10)Fn(0.5, 1.3125, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
 
         currentState.currentSymbols.DisposeImmediate();
     }
