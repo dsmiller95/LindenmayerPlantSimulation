@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -8,6 +9,7 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 {
+    [BurstCompile]
     public struct NativeArrayAddSubtractJob : IJobParallelFor
     {
         [ReadOnly]
@@ -22,6 +24,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
             writeArray[index] += addArray[index] - subtractArray[index];
         }
     }
+    [BurstCompile]
     public struct NativeArraySubtractJob : IJobParallelFor
     {
         [ReadOnly]
@@ -34,6 +37,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
             writeArray[index] += subtractArray[index];
         }
     }
+    [BurstCompile]
     public struct NativeArrayClearJob : IJobParallelFor
     {
         public float newValue;

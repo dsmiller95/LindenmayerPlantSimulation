@@ -19,6 +19,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public Vector3Int worldResolution;
 
+        public Gradient heatmapGradient;
+
         public VolumetricWorldVoxelLayout voxelLayout => new VolumetricWorldVoxelLayout
         {
             voxelOrigin = voxelOrigin,
@@ -38,18 +40,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public JobHandle DisposeWritableHandle(VolumetricWorldWritableHandle handle)
         {
+            if (handle.isDisposed)
+            {
+                return default;
+            }
             writableHandles.Remove(handle);
 
-            var deps = JobHandle.CombineDependencies(handle.writeDependency, nativeVolumeData.dataWriterDependencies);
-            var subtractCleanupJob = new NativeArraySubtractJob
-            {
-                writeArray = this.nativeVolumeData.data,
-                subtractArray = handle.oldData
-            };
-            deps = subtractCleanupJob.Schedule(this.nativeVolumeData.data.Length, 1000, deps);
-            nativeVolumeData.RegisterWritingDependency(deps);
-
-            return handle.Dispose(deps);
+            return DisposeWritableHandleNoRemove(handle);
         }
 
         private void Awake()
@@ -90,13 +87,36 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void OnDestroy()
         {
+            var dep = default(JobHandle);
+            foreach (var handle in writableHandles)
+            {
+                dep = JobHandle.CombineDependencies(DisposeWritableHandleNoRemove(handle), dep);
+            }
+            writableHandles.Clear();
+            dep.Complete();
             nativeVolumeData.Dispose();
             nativeVolumeData = null;
         }
 
+        private JobHandle DisposeWritableHandleNoRemove(VolumetricWorldWritableHandle handle)
+        {
+
+            var deps = JobHandle.CombineDependencies(handle.writeDependency, nativeVolumeData.dataWriterDependencies);
+            var subtractCleanupJob = new NativeArraySubtractJob
+            {
+                writeArray = this.nativeVolumeData.data,
+                subtractArray = handle.oldData
+            };
+            deps = subtractCleanupJob.Schedule(this.nativeVolumeData.data.Length, 1000, deps);
+            nativeVolumeData.RegisterWritingDependency(deps);
+
+            return handle.Dispose(deps);
+
+        }
 
 
-        private void OnDrawGizmosSelected()
+
+        private void OnDrawGizmos()
         {
             var maxAmount = 1f;
             if(nativeVolumeData != null)
@@ -109,7 +129,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 }
             }else
             {
-                maxAmount = 1;
+                maxAmount = (Vector3.one / 4f).sqrMagnitude;
             }
             var voxelLayout = this.voxelLayout;
             var voxelSize = new Vector3(worldSize.x / worldResolution.x, worldSize.y / worldResolution.y, worldSize.z / worldResolution.z);
@@ -123,21 +143,28 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                         var voxelCoordinate = new Vector3Int(x, y, z);
                         var cubeCenter = Vector3.Scale(voxelSize, voxelCoordinate) + offsetFrom0;
                         Gizmos.color = new Color(1f, 0f, 0f, 1f);
-                        Gizmos.DrawWireCube(cubeCenter, voxelSize);
+                        //Gizmos.DrawWireCube(cubeCenter, voxelSize);
 
                         float amount = 0f;
                         if(nativeVolumeData != null)
                         {
-                            amount = nativeVolumeData.openReadData[voxelLayout.GetDataIndexFromCoordinates(voxelCoordinate)] / (maxAmount * 3f);
+                            amount = nativeVolumeData.openReadData[voxelLayout.GetDataIndexFromCoordinates(voxelCoordinate)] / maxAmount;
                         }else
                         {
-                            amount = Mathf.Sin(8f * voxelCoordinate.x / worldResolution.x) / (maxAmount * 3f);
+                            var xScaled = (voxelCoordinate.x / (float)worldResolution.x) - 0.5f;
+                            var yScaled = (voxelCoordinate.y / (float)worldResolution.y) - 0.5f;
+                            var zScaled = (voxelCoordinate.z / (float)worldResolution.z) - 0.5f;
+
+                            amount = (maxAmount - new Vector3(xScaled, yScaled, zScaled).sqrMagnitude) / maxAmount;
+                            //amount = (Mathf.Sin(4f * voxelCoordinate.z / worldResolution.z) + 1f + Mathf.Sin(8f * voxelCoordinate.x / worldResolution.x) + 1f + (voxelCoordinate.y / (float)worldResolution.y)) / maxAmount;
                         }
 
-                        var amountCenter = new Vector3(cubeCenter.x, cubeCenter.y + voxelSize.y / 2 * (amount - 1), cubeCenter.z);
-                        var amountCubeSize = new Vector3(voxelSize.x - 0.5f, voxelSize.y * amount, voxelSize.z - 0.5f);
+                        var amountForCubes = 1;// amount / 3f;
+                        var amountCenter = new Vector3(cubeCenter.x, cubeCenter.y + voxelSize.y / 2 * (amountForCubes - 1), cubeCenter.z);
+                        var amountCubeSize = new Vector3(voxelSize.x * 0.7f, voxelSize.y * amountForCubes * 0.7f, voxelSize.z - 0.7f);
 
-                        Gizmos.color = new Color(0f, 1f, 0f);
+
+                        Gizmos.color = heatmapGradient.Evaluate(amount);
                         Gizmos.DrawCube(amountCenter, amountCubeSize);
                     }
                 }
