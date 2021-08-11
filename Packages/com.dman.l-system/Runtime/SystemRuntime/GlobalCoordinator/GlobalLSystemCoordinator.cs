@@ -17,7 +17,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
     /// </summary>
     public class GlobalLSystemCoordinator : MonoBehaviour, ISaveableData
     {
-        public SunlightCamera sunlightCamera;
+        public SunlightCameraSingletonData sunlightCameraSingleton;
 
         public uint uniqueIdMinSpaceRequired;
         [Tooltip("The multiplier used to increase the size of the compute buffer on each resize event")]
@@ -132,7 +132,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             foreach (var resourceAllocation in allResourceReservations)
             {
                 if (resourceAllocation.ContainsId(organId)){
-                    return resourceAllocation.associatedBehavior;
+                    return resourceAllocation.associatedBehavior == null ? null : resourceAllocation.associatedBehavior;
                 }
             }
             return null;

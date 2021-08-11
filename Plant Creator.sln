@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.LSystem.Tests", "c
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplineMeshEditor", "SplineMeshEditor.csproj", "{C885711F-5180-1D83-A830-02373F016E25}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{D95B649C-E40D-A2A2-7C1B-043BBD9BBCC8}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com.dman.plantbuilder.editor", "com.dman.plantbuilder.editor.csproj", "{1AAC77C1-84D8-E99F-149E-88B520EB052D}"
 EndProject
 Global
@@ -69,6 +71,10 @@ Global
 		{C885711F-5180-1D83-A830-02373F016E25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C885711F-5180-1D83-A830-02373F016E25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C885711F-5180-1D83-A830-02373F016E25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D95B649C-E40D-A2A2-7C1B-043BBD9BBCC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D95B649C-E40D-A2A2-7C1B-043BBD9BBCC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D95B649C-E40D-A2A2-7C1B-043BBD9BBCC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D95B649C-E40D-A2A2-7C1B-043BBD9BBCC8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1AAC77C1-84D8-E99F-149E-88B520EB052D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1AAC77C1-84D8-E99F-149E-88B520EB052D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AAC77C1-84D8-E99F-149E-88B520EB052D}.Release|Any CPU.ActiveCfg = Release|Any CPU

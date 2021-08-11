@@ -206,7 +206,7 @@ namespace Dman.LSystem.UnityObjects
                 }
                 else
                 {
-                    var sunlightJob = globalResourceHandle.GlobalPostStep(
+                    var sunlightJob = globalResourceHandle.GlobalPreStep(
                         currentState,
                         compiledSystem.customSymbols,
                         compiledSystem.branchOpenSymbol,

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshKeys:
   - Character: 82
-    MeshRef: {fileID: -1692108017345405815, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    MeshRef: {fileID: -632565698310742879, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants: []
     material: {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
     IndividualScale: {x: 0.5, y: 0.5, z: 0.5}

@@ -26,6 +26,13 @@ void SunlightMain(uint3 id : SV_DispatchThreadID)
         (uints.g & 0xFF) << 8 |
         (uints.b & 0xFF) << 16 |
         (uints.a & 0xFF) << 24;
+
+    uint numStructs, stride;
+    IdResultBuffer.GetDimensions(numStructs, stride);
+
+    if (objectId <= 0 || objectId >= numStructs) {
+        return;
+    }
     
     InterlockedAdd(IdResultBuffer[objectId], 1);
 }

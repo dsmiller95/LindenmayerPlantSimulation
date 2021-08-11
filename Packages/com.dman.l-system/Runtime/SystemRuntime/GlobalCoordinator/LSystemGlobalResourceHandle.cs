@@ -40,7 +40,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             this.parent = parent;
         }
 
-        public JobHandle GlobalPostStep(
+        public JobHandle GlobalPreStep(
             LSystemState<float> systemState,
             CustomRuleSymbols customSymbols,
             int openBranchSymbol,
@@ -53,7 +53,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
             systemState.firstUniqueOrganId = uniqueIdOriginPoint;
 
-            return parent.sunlightCamera?.ApplySunlightToSymbols(
+            return parent.sunlightCameraSingleton?.ApplySunlightToSymbols(
                 systemState,
                 customSymbols,
                 openBranchSymbol,

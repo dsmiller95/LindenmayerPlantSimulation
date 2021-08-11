@@ -27,6 +27,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         private DiffusionWorkingDataPack diffusionHelper;
         private NativeArray<uint> maxIdReached;
         private NativeArray<bool> isImmature;
+        private uint uniqueIdOriginIndex;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -44,8 +45,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             DependencyTracker<SystemLevelRuleNativeData> nativeData,
             SymbolStringBranchingCache branchingCache,
             CustomRuleSymbols customSymbols,
-            uint uniqueIDOriginIndex)
+            uint originIndex)
         {
+            this.uniqueIdOriginIndex = originIndex;
             this.matchSingletonData = matchSingletonData;
             this.branchingCache = branchingCache;
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
@@ -109,7 +111,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             currentJobHandle = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(
-                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, uniqueIDOriginIndex),
+                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, uniqueIdOriginIndex),
                     ScheduleIndependentDiffusion(currentJobHandle, customSymbols)
                 ),
                 JobHandle.CombineDependencies(
@@ -208,7 +210,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 randomProvider = randResult,
                 currentSymbols = new DependencyTracker<SymbolString<float>>(target),
                 maxUniqueOrganIds = maxIdReached[0],
-                hasImmatureSymbols = hasImmatureSymbols
+                hasImmatureSymbols = hasImmatureSymbols,
+                firstUniqueOrganId = uniqueIdOriginIndex
             };
 
             maxIdReached.Dispose();
