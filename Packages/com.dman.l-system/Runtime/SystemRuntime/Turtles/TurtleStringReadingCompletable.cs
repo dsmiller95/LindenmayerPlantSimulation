@@ -1,6 +1,8 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.LSystem.SystemRuntime.VolumetricData;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -39,13 +41,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 #if UNITY_EDITOR
         public string TaskDescription => "Turtle string reading completable";
 #endif
-        public JobHandle currentJobHandle { get; private set; }
+        public JobHandle currentJobHandle { get; private set; } = default;
 
         private NativeList<TurtleOrganInstance> organInstances;
         private DependencyTracker<NativeTurtleData> nativeData;
 
         private NativeArray<TurtleMeshAllocationCounter> newMeshSizeBySubmesh;
         private Mesh targetMesh;
+
+        private VolumetricWorldWritableHandle volumeWriter;
         public TurtleStringReadingCompletable(
             Mesh targetMesh,
             int totalSubmeshes,
@@ -55,18 +59,27 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int branchStartChar,
             int branchEndChar,
             TurtleState defaultState,
-            CustomRuleSymbols customSymbols)
+            CustomRuleSymbols customSymbols,
+            VolumetricWorldWritableHandle volumeWriter,
+            Matrix4x4 localToWorldTransform)
         {
             this.targetMesh = targetMesh;
             this.nativeData = nativeData;
+            this.volumeWriter = volumeWriter;
 
             UnityEngine.Profiling.Profiler.BeginSample("turtling job");
+
+            var volumetricJobHandle = currentJobHandle;
+            var nativeWritableHandle = volumeWriter.GenerateWritableHandleAndSwitchLatestData(localToWorldTransform, ref volumetricJobHandle);
+            currentJobHandle = volumetricJobHandle;
+
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
             var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
             organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
             newMeshSizeBySubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob);
             UnityEngine.Profiling.Profiler.EndSample();
+
             var turtleCompileJob = new TurtleCompilationJob
             {
                 symbols = symbols.Data,
@@ -84,11 +97,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 currentState = defaultState,
 
-                customRules = customSymbols
+                customRules = customSymbols,
+
+                volumetricNativeWriter = nativeWritableHandle
             };
 
-            currentJobHandle = turtleCompileJob.Schedule();
+            currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
 
+            volumeWriter.RegisterWriteDependency(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
             symbols.RegisterDependencyOnData(currentJobHandle);
 
@@ -122,6 +138,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             public NativeList<TurtleOrganInstance> organInstances;
             public NativeArray<TurtleMeshAllocationCounter> newMeshSizeBySubmesh;
 
+            // volumetric info
+            public VolumetricWorldNativeWritableHandle volumetricNativeWriter;
+
+
             // tmp Working memory
             public TmpNativeStack<TurtleState> nativeTurtleStack;
 
@@ -132,6 +152,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             public int branchEndChar;
 
             public TurtleState currentState;
+
 
 
             public void Execute()
@@ -167,7 +188,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             symbolIndex,
                             symbols,
                             organData,
-                            organInstances);
+                            organInstances,
+                            volumetricNativeWriter);
                     }
                 }
                 var totalVertexes = 0;

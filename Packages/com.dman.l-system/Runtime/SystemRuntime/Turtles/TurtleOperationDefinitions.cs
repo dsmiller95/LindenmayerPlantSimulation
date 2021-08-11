@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.SystemRuntime.VolumetricData;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -38,7 +39,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int indexInString,
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
-            NativeList<TurtleOrganInstance> targetOrganInstances)
+            NativeList<TurtleOrganInstance> targetOrganInstances,
+            VolumetricWorldNativeWritableHandle volumetricNativeWriter)
         {
             switch (operationType)
             {
@@ -46,7 +48,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     bendTowardsOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
                 case TurtleOperationType.ADD_ORGAN:
-                    meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances);
+                    meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricNativeWriter);
                     break;
                 case TurtleOperationType.ROTATE:
                     rotationOperation.Operate(ref currentState, indexInString, sourceString);
@@ -73,13 +75,16 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public bool doApplyThiccness;
         public JaggedIndexing organTemplateVariants;
 
+        public float volumetricValue;
+
         public void Operate(
             ref TurtleState state,
             NativeArray<TurtleMeshAllocationCounter> meshSizeCounterPerSubmesh,
             int indexInString,
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
-            NativeList<TurtleOrganInstance> targetOrganInstances)
+            NativeList<TurtleOrganInstance> targetOrganInstances,
+            VolumetricWorldNativeWritableHandle volumetricNativeWriter)
         {
             var pIndex = sourceString.parameters[indexInString];
 
@@ -118,6 +123,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 meshTransform *= Matrix4x4.Scale(new Vector3(1, state.thickness, state.thickness));
             }
 
+            if (volumetricValue != 0)
+            {
+                var organCenter = meshTransform.MultiplyPoint(Vector3.zero);
+                volumetricNativeWriter.WriteVolumetricAmountToTarget(volumetricValue, organCenter);
+            }
+
             var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];
 
             var newOrganEntry = new TurtleOrganInstance
@@ -146,7 +157,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 state.transformation *= Matrix4x4.Translate(turtleTranslate);
             }
-
         }
     }
     public struct TurtleBendTowardsOperationNEW

@@ -1,9 +1,12 @@
 ﻿using Dman.LSystem.SystemCompiler.Linker;
 using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.LSystem.SystemRuntime.VolumetricData;
 using System;
 using System.Linq;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
@@ -19,12 +22,16 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         private TurtleState defaultState;
         private CustomRuleSymbols customSymbols;
+        private OrganVolumetricWorld volumetricWorld;
+        private VolumetricWorldWritableHandle volumeWriterHandle;
+
 
         public TurtleInterpretor(
             TurtleOperationSet[] operationSets,
             TurtleState defaultState,
             LinkedFileSet linkedFiles,
             CustomRuleSymbols customSymbols,
+            OrganVolumetricWorld volumetricWorld,
             char submeshIndex = '`',
             char startChar = '[', char endChar = ']')
         {
@@ -59,11 +66,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             nativeDataTracker = new DependencyTracker<NativeTurtleData>(nativeData);
             this.defaultState = defaultState;
+
+            this.volumetricWorld = volumetricWorld;
+            this.volumeWriterHandle = volumetricWorld.GetNewWritableHandle();
         }
 
         public ICompletable<TurtleCompletionResult> CompileStringToTransformsWithMeshIds(
             DependencyTracker<SymbolString<float>> symbols,
-            Mesh targetMesh)
+            Mesh targetMesh,
+            Matrix4x4 localToWorldTransform)
         {
             if (IsDisposed)
             {
@@ -78,7 +89,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 branchStartChar,
                 branchEndChar,
                 defaultState,
-                customSymbols
+                customSymbols,
+                this.volumeWriterHandle,
+                localToWorldTransform
                 );
         }
 
@@ -92,6 +105,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
             IsDisposed = true;
             nativeDataTracker.Dispose();
+            volumetricWorld.DisposeWritableHandle(volumeWriterHandle).Complete();
         }
 
     }

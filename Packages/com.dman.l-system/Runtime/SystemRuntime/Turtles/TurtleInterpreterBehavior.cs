@@ -1,5 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.Turtle;
+using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.UnityObjects;
 using System.Collections.Generic;
 using UnityEngine;
@@ -69,7 +70,8 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             var meshRenderer = GetComponent<MeshRenderer>();
             var dep = turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
-                meshFilter.mesh);
+                meshFilter.mesh,
+                meshFilter.transform.localToWorldMatrix);
             // TOODO: do this oon startup?
             meshRenderer.materials = turtle.submeshMaterials;
 
@@ -93,6 +95,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 // TODO: extract custom symbols w/o a full system compilation
                 systemObject.CompileToCached(silent: true);
             }
+            var volumetricWorld = GameObject.FindObjectOfType<OrganVolumetricWorld>();
             turtle = new TurtleInterpretor(
                 operationSets,
                 new TurtleState
@@ -103,7 +106,9 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                     organIdentity = new UIntFloatColor32(0)
                 },
                 systemObject.linkedFiles,
-                systemObject.compiledSystem.customSymbols);
+                systemObject.compiledSystem.customSymbols,
+                volumetricWorld
+                );
             turtle.submeshIndexIncrementChar = submeshIndexIncrementor;
         }
 

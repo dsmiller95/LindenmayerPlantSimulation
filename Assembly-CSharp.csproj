@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -52,9 +52,6 @@
     <UnityBuildTarget>StandaloneLinux64:24</UnityBuildTarget>
     <UnityVersion>2020.3.15f1</UnityVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Demo\PlantBuilder\CameraOrbitMRI.cs" />
     <Compile Include="Assets\Demo\PlantBuilder\Turntable.cs" />
@@ -648,23 +645,11 @@
     <Reference Include="System.Xml.XPath.XDocument">
       <HintPath>C:\Users\Dan Miller\Documents\Unity Editor Installs\2020.3.15f1\Editor\Data\MonoBleedingEdge\lib\mono\4.7.1-api\Facades\System.Xml.XPath.XDocument.dll</HintPath>
     </Reference>
-    <Reference Include="UtilitiesEditor">
-      <HintPath>Library\ScriptAssemblies\UtilitiesEditor.dll</HintPath>
-    </Reference>
-    <Reference Include="ProceduralToolkit">
-      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.VSCode.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Shaders">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
-    </Reference>
-    <Reference Include="ProceduralToolkit.FastNoiseLib">
-      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.FastNoiseLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="ProceduralToolkit.LibTessDotNet">
       <HintPath>Library\ScriptAssemblies\ProceduralToolkit.LibTessDotNet.dll</HintPath>
@@ -672,29 +657,11 @@
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.VisualStudio.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Timeline">
-      <HintPath>Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Burst.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Burst.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Searcher.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Searcher.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.PlasticSCM.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.PlasticSCM.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rider.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Rider.Editor.dll</HintPath>
@@ -705,23 +672,14 @@
     <Reference Include="ProceduralToolkit.ClipperLib">
       <HintPath>Library\ScriptAssemblies\ProceduralToolkit.ClipperLib.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Jobs.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Jobs.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="ObjectSetsEditor">
       <HintPath>Library\ScriptAssemblies\ObjectSetsEditor.dll</HintPath>
     </Reference>
-    <Reference Include="SceneSaveSystem">
-      <HintPath>Library\ScriptAssemblies\SceneSaveSystem.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics">
-      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
-    </Reference>
-    <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
-      <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
+    <Reference Include="Unity.ShaderGraph.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
     </Reference>
     <Reference Include="ProceduralToolkit.Editor">
       <HintPath>Library\ScriptAssemblies\ProceduralToolkit.Editor.dll</HintPath>
@@ -729,11 +687,68 @@
     <Reference Include="com.alelievr.NodeGraphProcessor.Editor">
       <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="ObjectSets">
-      <HintPath>Library\ScriptAssemblies\ObjectSets.dll</HintPath>
-    </Reference>
     <Reference Include="Utilities">
       <HintPath>Library\ScriptAssemblies\Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Toolchain.Win-x86_64-Linux-x86_64">
+      <HintPath>Library\ScriptAssemblies\Unity.Toolchain.Win-x86_64-Linux-x86_64.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>Library\ScriptAssemblies\Unity.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="UtilitiesEditor">
+      <HintPath>Library\ScriptAssemblies\UtilitiesEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="ProceduralToolkit">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="ProceduralToolkit.FastNoiseLib">
+      <HintPath>Library\ScriptAssemblies\ProceduralToolkit.FastNoiseLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualStudio.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Sysroot.Linux_x86_64">
+      <HintPath>Library\ScriptAssemblies\Unity.Sysroot.Linux_x86_64.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Timeline">
+      <HintPath>Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Burst.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Burst.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.PlasticSCM.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.PlasticSCM.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Jobs.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Jobs.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="SceneSaveSystem">
+      <HintPath>Library\ScriptAssemblies\SceneSaveSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="com.alelievr.NodeGraphProcessor.Runtime">
+      <HintPath>Library\ScriptAssemblies\com.alelievr.NodeGraphProcessor.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="ObjectSets">
+      <HintPath>Library\ScriptAssemblies\ObjectSets.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Burst">
       <HintPath>Library\ScriptAssemblies\Unity.Burst.dll</HintPath>
@@ -744,44 +759,23 @@
     <Reference Include="Unity.Jobs">
       <HintPath>Library\ScriptAssemblies\Unity.Jobs.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.ShaderGraph.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Collections">
-      <HintPath>Library\ScriptAssemblies\Unity.Collections.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.SysrootPackage.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.SysrootPackage.Editor.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="com.dman.plantbuilder.csproj">
-      <Project>{CF9A44FD-C709-A2B6-30D5-0C4D4A524069}</Project>
-      <Name>com.dman.plantbuilder</Name>
-    </ProjectReference>
     <ProjectReference Include="com.dman.plantbuilder.nodegraph.csproj">
       <Project>{FF5C4E60-178B-5716-125C-C25F9F5CE299}</Project>
       <Name>com.dman.plantbuilder.nodegraph</Name>
-    </ProjectReference>
-    <ProjectReference Include="com.dman.l-system.editor.csproj">
-      <Project>{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}</Project>
-      <Name>com.dman.l-system.editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="com.dman.MeshDraftExtensions.csproj">
-      <Project>{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}</Project>
-      <Name>com.dman.MeshDraftExtensions</Name>
     </ProjectReference>
     <ProjectReference Include="SplineMeshEditor.csproj">
       <Project>{C885711F-5180-1D83-A830-02373F016E25}</Project>
@@ -790,6 +784,18 @@
     <ProjectReference Include="com.dman.plantbuilder.editor.csproj">
       <Project>{1AAC77C1-84D8-E99F-149E-88B520EB052D}</Project>
       <Name>com.dman.plantbuilder.editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.plantbuilder.csproj">
+      <Project>{CF9A44FD-C709-A2B6-30D5-0C4D4A524069}</Project>
+      <Name>com.dman.plantbuilder</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.l-system.editor.csproj">
+      <Project>{A39E0EE8-9E26-8564-4F88-37EC2336B4F8}</Project>
+      <Name>com.dman.l-system.editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="com.dman.MeshDraftExtensions.csproj">
+      <Project>{36E4E238-DAC7-D438-E7F2-49F75CD2C9AD}</Project>
+      <Name>com.dman.MeshDraftExtensions</Name>
     </ProjectReference>
     <ProjectReference Include="com.dman.LSystem.csproj">
       <Project>{2B0EE45B-E6C1-2002-89B4-72797EBD73AD}</Project>

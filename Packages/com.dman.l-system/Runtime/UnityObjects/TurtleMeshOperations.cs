@@ -27,6 +27,8 @@ namespace Dman.LSystem.UnityObjects
         [Tooltip("When checked, scale the mesh along the non-primary axises based on the thickness state")]
         public bool UseThickness;
 
+        public float volumetricDurabilityValue;
+
         public TurtleDataRequirements RequiredDataSpace => CachedOrganTemplates.Select(x => x.DataReqs).Sum();
 
         public TurtleOrganTemplate[] CachedOrganTemplates;
@@ -92,7 +94,8 @@ namespace Dman.LSystem.UnityObjects
                             isVolumetricScale = meshKey.VolumetricScale,
                             doScaleMesh = meshKey.ParameterScale,
                             doApplyThiccness = meshKey.UseThickness,
-                            organTemplateVariants = organIndexes
+                            organTemplateVariants = organIndexes,
+                            volumetricValue = meshKey.volumetricDurabilityValue
                         }
                     }
                 });

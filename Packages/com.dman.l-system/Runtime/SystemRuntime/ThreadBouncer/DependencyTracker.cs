@@ -9,7 +9,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
     {
         public T Data { get; private set; }
         public bool IsDisposed { get; private set; }
-        private JobHandle dependencies;
+        public JobHandle dependencies { get; private set; }
 
 #if UNITY_EDITOR
         public int allocatedFrame = UnityEngine.Time.frameCount;
