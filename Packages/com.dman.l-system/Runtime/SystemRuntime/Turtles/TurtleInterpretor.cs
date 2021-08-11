@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemCompiler.Linker;
+using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
 using System.Linq;
@@ -17,11 +18,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public int branchEndChar;
 
         private TurtleState defaultState;
+        private CustomRuleSymbols customSymbols;
 
         public TurtleInterpretor(
             TurtleOperationSet[] operationSets,
             TurtleState defaultState,
             LinkedFileSet linkedFiles,
+            CustomRuleSymbols customSymbols,
             char submeshIndex = '`',
             char startChar = '[', char endChar = ']')
         {
@@ -51,6 +54,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             submeshIndexIncrementChar = linkedFiles.GetSymbolFromRoot(submeshIndex);
             branchStartChar = linkedFiles.GetSymbolFromRoot(startChar);
             branchEndChar = linkedFiles.GetSymbolFromRoot(endChar);
+            this.customSymbols = customSymbols;
+
 
             nativeDataTracker = new DependencyTracker<NativeTurtleData>(nativeData);
             this.defaultState = defaultState;
@@ -60,6 +65,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             DependencyTracker<SymbolString<float>> symbols,
             Mesh targetMesh)
         {
+            if (IsDisposed)
+            {
+                throw new InvalidOperationException("Turtle has been disposed and cannot be used");
+            }
             return new TurtleStringReadingCompletable(
                 targetMesh,
                 submeshMaterials.Length,
@@ -68,12 +77,20 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 submeshIndexIncrementChar,
                 branchStartChar,
                 branchEndChar,
-                defaultState
+                defaultState,
+                customSymbols
                 );
         }
 
+        private bool IsDisposed = false;
+
         public void Dispose()
         {
+            if (IsDisposed)
+            {
+                throw new InvalidOperationException("Cannot dispose turtle, has already been disposed");
+            }
+            IsDisposed = true;
             nativeDataTracker.Dispose();
         }
 

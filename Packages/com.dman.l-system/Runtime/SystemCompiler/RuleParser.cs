@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Unity.Collections;
 
 namespace Dman.LSystem.SystemCompiler
 {
@@ -145,7 +146,9 @@ namespace Dman.LSystem.SystemCompiler
                 .Select(x => ParseToRule(x, x => x, globalParameters: globalParameters))
                 .Where(x => x != null)
                 .ToArray();
-            return CompileAndCheckParsedRules(parsedRules, out ruleNativeData, branchOpenSymbol, branchCloseSymbol);
+            var rules = CompileAndCheckParsedRules(parsedRules, out ruleNativeData, branchOpenSymbol, branchCloseSymbol);
+            ruleNativeData.immaturityMarkerSymbols = new NativeHashSet<int>(0, Allocator.Persistent);
+            return rules;
         }
 
         public static IEnumerable<BasicRule> CompileAndCheckParsedRules(
@@ -186,8 +189,7 @@ namespace Dman.LSystem.SystemCompiler
                     var probabilityDeviation = System.Math.Abs(group.Sum(x => x.probability) - 1);
                     if (probabilityDeviation > 1e-5)
                     {
-                        throw new LSystemRuntimeException($"Error: group for {group.Key.TargetSymbolString()}"
-                            + $" has probability {probabilityDeviation} away from 1");
+                        throw new LSystemRuntimeException($"Error: probability is {probabilityDeviation} away from 1 in rule group {group.Key.TargetSymbolString()}");
                     }
                     return new BasicRule(group, branchOpenSymbol, branchCloseSymbol);
                 }).ToList();

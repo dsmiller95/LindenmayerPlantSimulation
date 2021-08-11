@@ -1,7 +1,10 @@
-﻿using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+﻿using Dman.LSystem.SystemRuntime.GlobalCoordinator;
+using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.ObjectSets;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -11,6 +14,13 @@ namespace Dman.LSystem.UnityObjects
         // metadata
         public int totalSteps { get; private set; }
         public bool lastUpdateChanged { get; private set; }
+        public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
+        private Dictionary<string, string> compiledGlobalCompiletimeReplacements;
+        public LSystemState<float> currentState { get; private set; }
+        private LSystemState<float> lastState;
+
+        public LSystemObject systemObject { get; private set; }
+        private bool useSharedSystem;
 
         /// <summary>
         /// Emits whenever the system state changes
@@ -18,29 +28,38 @@ namespace Dman.LSystem.UnityObjects
         public event Action OnSystemStateUpdated;
 
         private LSystemStepper compiledSystem;
-        public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
 
-        public LSystemState<float> currentState { get; private set; }
-        private LSystemState<float> lastState;
 
         private CompletableHandle<LSystemState<float>> lSystemPendingCompletable;
-        private LSystemObject mySystemObject;
-        private bool useSharedSystem;
+
+        private LSystemGlobalResourceHandle globalResourceHandle;
 
         public LSystemSteppingHandle(
             LSystemObject mySystemObject,
-            bool useSharedSystem)
+            bool useSharedSystem,
+            LSystemBehavior associatedBehavior)
         {
             totalSteps = 0;
             lastUpdateChanged = true;
 
-            this.mySystemObject = mySystemObject;
+            this.systemObject = mySystemObject;
             this.useSharedSystem = useSharedSystem;
 
             if (useSharedSystem)
             {
-                this.mySystemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
+                this.systemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
             }
+
+            if(GlobalLSystemCoordinator.instance == null)
+            {
+                throw new Exception("No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
+            }
+            globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle(associatedBehavior);
+        }
+
+        private LSystemSteppingHandle()
+        {
+
         }
 
 
@@ -51,7 +70,7 @@ namespace Dman.LSystem.UnityObjects
         public void ResetState()
         {
             ResetState(
-                new DefaultLSystemState(mySystemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                new DefaultLSystemState(systemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
                 null);
         }
 
@@ -62,9 +81,10 @@ namespace Dman.LSystem.UnityObjects
                 Debug.LogError("Invalid operation, when using shared system must compile via the shared object handle");
                 return;
             }
-            var newSystem = mySystemObject.CompileWithParameters(globalCompileTimeOverrides);
+            compiledGlobalCompiletimeReplacements = globalCompileTimeOverrides;
+            var newSystem = systemObject.CompileWithParameters(globalCompileTimeOverrides);
             ResetState(
-                new DefaultLSystemState(mySystemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                new DefaultLSystemState(systemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
                 newSystem);
         }
         private void OnSharedSystemRecompiled()
@@ -75,15 +95,15 @@ namespace Dman.LSystem.UnityObjects
                 return;
             }
             ResetState(
-                new DefaultLSystemState(mySystemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
-                mySystemObject.compiledSystem);
+                new DefaultLSystemState(systemObject.axiom, (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+                systemObject.compiledSystem);
         }
 
         /// <summary>
         /// Optionally Set to a different L-system, and reset the state and the current runtime parameters
         /// </summary>
         private void ResetState(
-           DefaultLSystemState newState,
+           LSystemState<float> newState,
            LSystemStepper newSystem)
         {
             if (lSystemPendingCompletable != null)
@@ -99,7 +119,7 @@ namespace Dman.LSystem.UnityObjects
             lastUpdateChanged = true;
             currentState = newState;
 
-            runtimeParameters = mySystemObject.GetRuntimeParameters();
+            runtimeParameters = systemObject.GetRuntimeParameters();
 
             if (newSystem != null)
             {
@@ -128,7 +148,6 @@ namespace Dman.LSystem.UnityObjects
         {
             return lSystemPendingCompletable == null;
         }
-
         /// <summary>
         /// step the Lsystem forward one tick. when CompleteInLateUpdate is true, be very careful with changes to the L-system
         ///     it is not perfectly protected against threading race conditions, so be sure not to make any mutations to 
@@ -163,7 +182,7 @@ namespace Dman.LSystem.UnityObjects
                 Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }
-            StepSystemAsync(runtimeParameters, true);
+            StepSystemAsync(runtimeParameters, repeatLast: true);
             lSystemPendingCompletable.CompleteImmediate();
         }
 
@@ -181,11 +200,22 @@ namespace Dman.LSystem.UnityObjects
                 }
                 if (repeatLast)
                 {
-                    pendingStateHandle = compiledSystem.StepSystemJob(lastState, runtimeParameters.GetCurrentParameters());
+                    pendingStateHandle = compiledSystem.StepSystemJob(
+                        lastState,
+                        runtimeParameters.GetCurrentParameters());
                 }
                 else
                 {
-                    pendingStateHandle = compiledSystem.StepSystemJob(currentState, runtimeParameters.GetCurrentParameters());
+                    var sunlightJob = globalResourceHandle.GlobalPreStep(
+                        currentState,
+                        compiledSystem.customSymbols,
+                        compiledSystem.branchOpenSymbol,
+                        compiledSystem.branchCloseSymbol);
+
+                    pendingStateHandle = compiledSystem.StepSystemJob(
+                        currentState,
+                        runtimeParameters.GetCurrentParameters(),
+                        parameterWriteDependency: sunlightJob);
                 }
                 if (pendingStateHandle == null)
                 {
@@ -205,6 +235,7 @@ namespace Dman.LSystem.UnityObjects
 
             lSystemPendingCompletable.OnCompleted += (nextState) =>
             {
+                UnityEngine.Profiling.Profiler.BeginSample("updating stepping handle state");
                 if (repeatLast)
                 {
                     // dispose the current state, since it is about to be replaced
@@ -218,9 +249,12 @@ namespace Dman.LSystem.UnityObjects
                     totalSteps++;
                 }
                 currentState = nextState;
-                lastUpdateChanged = !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
+                // if there are immature markers, use those instead. avoiding an equality check saves time.
+                var hasImmatureMarkers = systemObject.linkedFiles.immaturitySymbolMarkers.Length > 0;
+                lastUpdateChanged = hasImmatureMarkers || !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
 
                 lSystemPendingCompletable = null;
+                UnityEngine.Profiling.Profiler.EndSample();
                 OnSystemStateUpdated?.Invoke();
             };
         }
@@ -238,7 +272,7 @@ namespace Dman.LSystem.UnityObjects
         {
             if (useSharedSystem)
             {
-                mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
+                systemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
             }
             else
             {
@@ -251,7 +285,97 @@ namespace Dman.LSystem.UnityObjects
 
             currentState?.currentSymbols.Dispose();
             currentState = null;
+
+            globalResourceHandle.Dispose();
         }
 
+
+        #region Serialization
+
+        [System.Serializable]
+        public class SavedData
+        {
+            private int totalSteps;
+            private bool lastUpdateChanged;
+            private bool useSharedSystem;
+
+            private LSystemState<float> currentState;
+            private LSystemState<float> lastState;
+            private LSystemGlobalResourceHandle oldHandle;
+
+            private int systemObjectId;
+
+            private ArrayParameterRepresenation<float> runtimeParameters;
+            private Dictionary<string, string> compiledGlobalCompiletimeReplacements;
+
+            public SavedData(LSystemSteppingHandle source)
+            {
+                this.totalSteps = source.totalSteps;
+                this.lastUpdateChanged = source.lastUpdateChanged;
+                this.useSharedSystem = source.useSharedSystem;
+
+                this.currentState = source.currentState;
+                this.lastState = source.lastState;
+                this.oldHandle = source.globalResourceHandle;
+
+                this.systemObjectId = source.systemObject.myId;
+
+                this.runtimeParameters = source.runtimeParameters;
+                this.compiledGlobalCompiletimeReplacements = source.compiledGlobalCompiletimeReplacements;
+            }
+
+            public LSystemSteppingHandle Deserialize()
+            {
+                var target = new LSystemSteppingHandle();
+                target.totalSteps = this.totalSteps;
+
+                target.lastUpdateChanged = this.lastUpdateChanged;
+                target.useSharedSystem = this.useSharedSystem;
+
+                target.currentState = this.currentState;
+                target.lastState = this.lastState;
+                target.globalResourceHandle = this.oldHandle;
+
+                var systemObjectId = this.systemObjectId;
+                var lSystemObjectRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
+                target.systemObject = lSystemObjectRegistry.GetUniqueObjectFromID(systemObjectId);
+
+
+                target.runtimeParameters = this.runtimeParameters;
+                target.compiledGlobalCompiletimeReplacements = this.compiledGlobalCompiletimeReplacements;
+
+                return target;
+            }
+        }
+
+
+        public void InitializePostDeserialize(LSystemBehavior handleOwner)
+        {
+            if (useSharedSystem)
+            {
+                this.systemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
+            }
+            if (GlobalLSystemCoordinator.instance == null)
+            {
+                throw new Exception("No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
+            }
+
+            globalResourceHandle = GlobalLSystemCoordinator.instance.GetManagedResourceHandleFromSavedData(globalResourceHandle, handleOwner);
+
+            // TODO: recompile l-system?
+
+            if (!useSharedSystem)
+            {
+                var newSystem = systemObject.CompileWithParameters(compiledGlobalCompiletimeReplacements);
+                if (lSystemPendingCompletable != null)
+                {
+                    lSystemPendingCompletable.Cancel();
+                }
+                compiledSystem?.Dispose();
+                compiledSystem = newSystem;
+            }
+        }
+
+        #endregion
     }
 }

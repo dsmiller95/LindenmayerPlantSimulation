@@ -314,15 +314,15 @@ S -> a(3)S
         currentState = system.StepSystem(currentState);
         Assert.AreEqual("n(0.5, 0, 10)a(3)Sn(0.5, 0, 10)FT(2)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 1.5, 10)a(3)Sn(0.5, 1.5, 10)Fn(0.5, 0, 10)FT(1)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 1.5, 10)aa(3)Sn(0.5, 1.5, 10)Fn(0.5, 0, 10)FT(1)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 3, 10)a(3)Sn(0.5, 2.25, 10)Fn(0.5, 0.75, 10)Fn(0.5, 0, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 3, 10)aa(3)Sn(0.5, 2.25, 10)Fn(0.5, 0.75, 10)Fn(0.5, 0, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 4.125, 10)a(3)Sn(0.5, 3.375, 10)Fn(0.5, 1.125, 10)Fn(0.5, 0.375, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 4.125, 10)aa(3)Sn(0.5, 3.375, 10)Fn(0.5, 1.125, 10)Fn(0.5, 0.375, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 5.25, 10)a(3)Sn(0.5, 4.125, 10)Fn(0.5, 1.875, 10)Fn(0.5, 0.75, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 5.25, 10)aa(3)Sn(0.5, 4.125, 10)Fn(0.5, 1.875, 10)Fn(0.5, 0.75, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
-        Assert.AreEqual("n(0.5, 6.1875, 10)a(3)Sn(0.5, 5.0625, 10)Fn(0.5, 2.4375, 10)Fn(0.5, 1.3125, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.AreEqual("n(0.5, 6.1875, 10)aa(3)Sn(0.5, 5.0625, 10)Fn(0.5, 2.4375, 10)Fn(0.5, 1.3125, 10)FT(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
 
         currentState.currentSymbols.DisposeImmediate();
     }
@@ -379,6 +379,61 @@ S -> a(3)S
         Assert.AreEqual("n(0.25, 6.160362, 20)Fn(0.25, 6, 20)Fn(0.25, 5.839638, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
         currentState = system.StepSystem(currentState);
         Assert.AreEqual("n(0.25, 6.090203, 20)Fn(0.25, 6, 20)Fn(0.25, 5.909797, 20)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+
+        currentState.currentSymbols.DisposeImmediate();
+    }
+    [Test]
+    public void CompilesWithImmaturityMarkers()
+    {
+        var fileSystem = new InMemoryFileProvider();
+
+        fileSystem.RegisterFileWithIdentifier("root.lsystem", @"
+#axiom Y(2)
+#iterations 20
+#symbols XY
+
+#immature Y
+Y(x) : x > 0 -> Y(x - 1)
+Y(x) : x <= 0 -> X
+");
+        var linker = new FileLinker(fileSystem);
+        var linkedFiles = linker.LinkFiles("root.lsystem");
+
+        using var system = linkedFiles.CompileSystem();
+        LSystemState<float> currentState = new DefaultLSystemState(
+            linkedFiles.GetAxiom(),
+            (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+
+        var X = linkedFiles.GetSymbol("root.lsystem", 'X');
+        var Y = linkedFiles.GetSymbol("root.lsystem", 'Y');
+
+        var symbolStringMapping = new Dictionary<int, char>()
+        {
+            {X, 'X' },
+            {Y, 'Y' }
+        };
+        /**
+         * system equivalent with remapped symbol names:
+         * Y -> YX
+         * X -> AX
+         */
+
+        Assert.AreEqual("Y(2)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("Y(1)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.IsTrue(currentState.hasImmatureSymbols);
+
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("Y(0)", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.IsTrue(currentState.hasImmatureSymbols);
+
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("X", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.IsFalse(currentState.hasImmatureSymbols);
+
+        currentState = system.StepSystem(currentState);
+        Assert.AreEqual("X", currentState.currentSymbols.Data.ToString(symbolStringMapping));
+        Assert.IsFalse(currentState.hasImmatureSymbols);
 
         currentState.currentSymbols.DisposeImmediate();
     }

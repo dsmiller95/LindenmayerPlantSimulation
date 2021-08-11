@@ -11,7 +11,6 @@ namespace Dman.LSystem.SystemRuntime
         public int branchOpenSymbol;
         public int branchCloseSymbol;
 
-        // TODO: extract from class, compile seperately?
         [ReadOnly]
         public NativeMultipleHashSets includeSymbols;
         /// <summary>
@@ -44,7 +43,10 @@ namespace Dman.LSystem.SystemRuntime
             var tmpBranchingJumpIndexes = new Dictionary<int, int>();
             CacheAllBranchJumpIndexes(symbols.Data.symbols, tmpBranchingJumpIndexes);
 
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             branchingJumpIndexes = new NativeHashMap<int, int>(tmpBranchingJumpIndexes.Count, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
+
             foreach (var kvp in tmpBranchingJumpIndexes)
             {
                 branchingJumpIndexes[kvp.Key] = kvp.Value;

@@ -1,12 +1,13 @@
 using Dman.LSystem.SystemCompiler.Linker;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
+using Dman.ObjectSets;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {
-    public class LSystemObject : ScriptableObject
+    public class LSystemObject : IDableObject
     {
         public int seed;
 
@@ -30,7 +31,7 @@ namespace Dman.LSystem.UnityObjects
         /// Compile this L-system into the <see cref="compiledSystem"/> property
         /// </summary>
         /// <param name="globalCompileTimeOverrides">overrides to the compile time directives. Will only be applied if the Key matches an already defined compile time parameter</param>
-        public void CompileToCached(Dictionary<string, string> globalCompileTimeOverrides = null)
+        public void CompileToCached(Dictionary<string, string> globalCompileTimeOverrides = null, bool silent = false)
         {
             var newSystem = CompileSystem(globalCompileTimeOverrides);
             if (newSystem != null)
@@ -38,7 +39,10 @@ namespace Dman.LSystem.UnityObjects
                 compiledSystem?.Dispose();
                 compiledSystem = newSystem;
 
-                OnCachedSystemUpdated?.Invoke();
+                if (!silent)
+                {
+                    OnCachedSystemUpdated?.Invoke();
+                }
             }
         }
 
@@ -65,7 +69,6 @@ namespace Dman.LSystem.UnityObjects
 
         private LSystemStepper CompileSystem(Dictionary<string, string> globalCompileTimeOverrides)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("L System compilation");
             try
             {
                 return linkedFiles.CompileSystem(globalCompileTimeOverrides);
@@ -73,10 +76,6 @@ namespace Dman.LSystem.UnityObjects
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-            }
-            finally
-            {
-                UnityEngine.Profiling.Profiler.EndSample();
             }
             return null;
         }

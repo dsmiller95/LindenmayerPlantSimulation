@@ -18,6 +18,7 @@ namespace Dman.LSystem.UnityObjects
 
         [Tooltip("Whether or not to scale the mesh based on an input parameter. Will accept the first parameter, unless mesh variants are used. In which case it will use the second parameter.")]
         public bool ParameterScale;
+        public bool ScaleIsAdditional;
         [Tooltip("If set to true, will scale based on the parameter as if it were a definition of additional volume. It does this by taking a cube root")]
         public bool VolumetricScale = false;
         public Vector3 ScalePerParameter;
@@ -38,13 +39,12 @@ namespace Dman.LSystem.UnityObjects
                 newDraft.Move(Vector3.right * (-bounds.center.x + bounds.size.x / 2));
                 newDraft.Scale(IndividualScale);
 
-                var transformPostMesh = AlsoMove ?
-                        Matrix4x4.Translate(new Vector3(bounds.size.x * IndividualScale.x, 0, 0))
-                    : Matrix4x4.identity;
+                var translatePostMesh = new Vector3(bounds.size.x * IndividualScale.x, 0, 0);
                 return new TurtleOrganTemplate(
                     newDraft,
                     material,
-                    transformPostMesh
+                    translatePostMesh,
+                    AlsoMove
                     );
             }).ToArray();
         }
@@ -88,6 +88,7 @@ namespace Dman.LSystem.UnityObjects
                         meshOperation = new TurtleMeshOperation
                         {
                             extraNonUniformScaleForOrgan = meshKey.ScalePerParameter,
+                            scaleIsAdditional = meshKey.ScaleIsAdditional,
                             isVolumetricScale = meshKey.VolumetricScale,
                             doScaleMesh = meshKey.ParameterScale,
                             doApplyThiccness = meshKey.UseThickness,

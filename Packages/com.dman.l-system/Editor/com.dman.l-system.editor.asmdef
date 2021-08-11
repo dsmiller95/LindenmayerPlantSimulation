@@ -2,7 +2,8 @@
     "name": "com.dman.l-system.editor",
     "rootNamespace": "",
     "references": [
-        "GUID:808c07051cb3a39498de49e96a1c8ec4"
+        "GUID:808c07051cb3a39498de49e96a1c8ec4",
+        "GUID:c89e1c2639f65d549a075aac1877b9a1"
     ],
     "includePlatforms": [
         "Editor"

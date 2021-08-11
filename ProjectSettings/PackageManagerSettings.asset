@@ -29,6 +29,8 @@ MonoBehaviour:
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.alelievr.node-graph-processor
+    - com.dman.object-sets
+    - com.dman.scene-save-system
     - com.dman.utilities
     - com.openupm
     - com.syomus.proceduraltoolkit
@@ -44,6 +46,8 @@ MonoBehaviour:
       m_Url: https://package.openupm.com
       m_Scopes:
       - com.alelievr.node-graph-processor
+      - com.dman.object-sets
+      - com.dman.scene-save-system
       - com.dman.utilities
       - com.openupm
       - com.syomus.proceduraltoolkit
@@ -54,6 +58,8 @@ MonoBehaviour:
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.alelievr.node-graph-processor
+    - com.dman.object-sets
+    - com.dman.scene-save-system
     - com.dman.utilities
     - com.openupm
     - com.syomus.proceduraltoolkit

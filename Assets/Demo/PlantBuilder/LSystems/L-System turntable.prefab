@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4336313098753995651}
   m_Layer: 0
   m_Name: turtle string reader A
-  m_TagString: Untagged
+  m_TagString: Plant
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -114,7 +114,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f0df8a941df89244e90f702c402ca60d, type: 2}
   - {fileID: 11400000, guid: 3a418bd9f015dd44896661013b5a06b8, type: 2}
   - {fileID: 11400000, guid: caa0d1550254aca44a1cd1f9b80ff461, type: 2}
-  - {fileID: 11400000, guid: 0f286bd0126eb154fa56423e5f4020e0, type: 2}
+  - {fileID: 11400000, guid: 9e78d0822b89e7741988e75f98478313, type: 2}
   initialScale: {x: 0.3, y: 0.3, z: 0.3}
   submeshIndexIncrementor: 96
 --- !u!1 &9089396037661369507
@@ -163,3 +163,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationSpeed: 20
   rotate: 0
+  axis: {x: 0, y: 1, z: 0}

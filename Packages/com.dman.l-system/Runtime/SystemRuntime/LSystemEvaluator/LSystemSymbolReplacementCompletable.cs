@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
+using Dman.LSystem.SystemRuntime.CustomRules.Diffusion;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
@@ -11,6 +12,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 {
     public class LSystemSymbolReplacementCompletable : ICompletable<LSystemState<float>>
     {
+#if UNITY_EDITOR
+        public string TaskDescription => "L System symbol replacements";
+#endif
+
         public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public Unity.Mathematics.Random randResult;
 
@@ -19,7 +24,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public SymbolStringBranchingCache branchingCache;
         private NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
-        private DiffusionReplacementJob.DiffusionWorkingDataPack diffusionHelper;
+        private DiffusionWorkingDataPack diffusionHelper;
+        private NativeArray<uint> maxIdReached;
+        private NativeArray<bool> isImmature;
+        private uint uniqueIdOriginIndex;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -36,11 +44,15 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
             DependencyTracker<SystemLevelRuleNativeData> nativeData,
             SymbolStringBranchingCache branchingCache,
-            CustomRuleSymbols customSymbols)
+            CustomRuleSymbols customSymbols,
+            uint originIndex)
         {
+            this.uniqueIdOriginIndex = originIndex;
             this.matchSingletonData = matchSingletonData;
             this.branchingCache = branchingCache;
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             this.randResult = randResult;
             this.sourceSymbolString = sourceSymbolString;
@@ -69,41 +81,113 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 customSymbols = customSymbols
             };
 
-
-            var diffusionJob = new DiffusionReplacementJob
-            {
-                matchSingletonData = matchSingletonData,
-
-                sourceData = sourceSymbolString.Data,
-                targetData = target,
-                branchingCache = branchingCache,
-                customSymbols = customSymbols,
-                working = diffusionHelper = new DiffusionReplacementJob.DiffusionWorkingDataPack(10, 5, 2, Allocator.TempJob)
-            };
-
-            // agressively register dependencies, to ensure that if there is a problem
-            //  when scheduling any one job, they are still tracked.
-            var replacementHandle = replacementJob.Schedule(
+            currentJobHandle = replacementJob.Schedule(
                     matchSingletonData.Length,
                     100
                 );
-            sourceSymbolString.RegisterDependencyOnData(replacementHandle);
-            nativeData.RegisterDependencyOnData(replacementHandle);
 
-            var diffusionHandle = diffusionJob.Schedule();
-            sourceSymbolString.RegisterDependencyOnData(diffusionHandle);
-            nativeData.RegisterDependencyOnData(diffusionHandle);
+            if(customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
+            {
+                diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
+                var diffusionJob = new ParallelDiffusionReplacementJob
+                {
+                    matchSingletonData = matchSingletonData,
 
-            currentJobHandle = JobHandle.CombineDependencies(
-                replacementHandle,
-                diffusionHandle
-             );
-
-
+                    sourceData = sourceSymbolString.Data,
+                    targetData = target,
+                    branchOpenSymbol = branchingCache.branchOpenSymbol,
+                    branchCloseSymbol = branchingCache.branchCloseSymbol,
+                    customSymbols = customSymbols,
+                    working = diffusionHelper
+                };
+                currentJobHandle = JobHandle.CombineDependencies(
+                        currentJobHandle,
+                        diffusionJob.Schedule()
+                     );
+            }
+            // only parameter modifications beyond this point
             sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
+            currentJobHandle = JobHandle.CombineDependencies(
+                JobHandle.CombineDependencies(
+                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, uniqueIdOriginIndex),
+                    ScheduleIndependentDiffusion(currentJobHandle, customSymbols)
+                ),
+                JobHandle.CombineDependencies(
+                    ScheduleAutophagyJob(currentJobHandle, customSymbols),
+                    ScheduleImmaturityJob(currentJobHandle)
+                ));
+
             UnityEngine.Profiling.Profiler.EndSample();
+        }
+
+        private JobHandle ScheduleIndependentDiffusion(JobHandle dependency, CustomRuleSymbols customSymbols)
+        {
+            // diffusion is only dependent on the target symbol data. don't need to register as dependent on native data/source symbols
+            if (customSymbols.hasDiffusion && customSymbols.independentDiffusionUpdate)
+            {
+                diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
+                var diffusionJob = new IndependentDiffusionReplacementJob
+                {
+                    inPlaceSymbols = target,
+                    branchOpenSymbol = branchingCache.branchOpenSymbol,
+                    branchCloseSymbol = branchingCache.branchCloseSymbol,
+                    customSymbols = customSymbols,
+                    working = diffusionHelper
+                };
+                dependency = diffusionJob.Schedule(dependency);
+            }
+            return dependency;
+        }
+        private JobHandle ScheduleIdAssignmentJob(JobHandle dependency, CustomRuleSymbols customSymbols, uint uniqueIDOriginIndex)
+        {
+            // identity assignment job is not dependent on the source string or any other native data. can skip assigning it as a dependent
+            maxIdReached = new NativeArray<uint>(1, Allocator.TempJob);
+            var identityAssignmentJob = new IdentityAssignmentPostProcessRule
+            {
+                targetData = target,
+                maxIdentityId = maxIdReached,
+                customSymbols = customSymbols,
+                originOfUniqueIndexes = uniqueIDOriginIndex
+            };
+            return identityAssignmentJob.Schedule(dependency);
+        }
+        private JobHandle ScheduleAutophagyJob(JobHandle dependency, CustomRuleSymbols customSymbols)
+        {
+            // autophagy is only dependent on the source string. don't need to register as dependent on native data/source symbols
+            if (customSymbols.hasAutophagy)
+            {
+                var helperStack = new TmpNativeStack<AutophagyPostProcess.BranchIdentity>(10, Allocator.TempJob);
+                var autophagicJob = new AutophagyPostProcess
+                {
+                    symbols = target,
+                    lastIdentityStack = helperStack,
+                    branchOpen = branchingCache.branchOpenSymbol,
+                    branchClose = branchingCache.branchCloseSymbol,
+                    customSymbols = customSymbols
+                };
+
+                dependency = autophagicJob.Schedule(dependency);
+                dependency = helperStack.Dispose(dependency);
+            }
+            return dependency;
+        }
+        private JobHandle ScheduleImmaturityJob(JobHandle dependency)
+        {
+            if (nativeData.Data.immaturityMarkerSymbols.IsCreated)
+            {
+                isImmature = new NativeArray<bool>(1, Allocator.TempJob);
+                var immaturityJob = new NativeArrayMultiContainsJob
+                {
+                    symbols = target.symbols,
+                    symbolsToCheckFor = nativeData.Data.immaturityMarkerSymbols,
+                    doesContainSymbols = isImmature
+                };
+                dependency = immaturityJob.Schedule(dependency);
+                nativeData.RegisterDependencyOnData(dependency);
+            }
+            return dependency;
         }
 
         public ICompletable StepNext()
@@ -111,12 +195,26 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             currentJobHandle.Complete();
             branchingCache.Dispose();
             matchSingletonData.Dispose();
-            diffusionHelper.Dispose();
+            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
+
+            var hasImmatureSymbols = false;
+
+            if (isImmature.IsCreated)
+            {
+                hasImmatureSymbols = isImmature[0];
+                isImmature.Dispose();
+            }
+
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
-                currentSymbols = new DependencyTracker<SymbolString<float>>(target)
+                currentSymbols = new DependencyTracker<SymbolString<float>>(target),
+                maxUniqueOrganIds = maxIdReached[0],
+                hasImmatureSymbols = hasImmatureSymbols,
+                firstUniqueOrganId = uniqueIdOriginIndex
             };
+
+            maxIdReached.Dispose();
             return new CompleteCompletable<LSystemState<float>>(newResult);
         }
 
@@ -142,20 +240,26 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             //TODO
             currentJobHandle.Complete();
+
+            maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
-            diffusionHelper.Dispose();
+            if(diffusionHelper.IsCreated) diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
+            if (isImmature.IsCreated) isImmature.Dispose();
             return inputDeps;
         }
 
         public void Dispose()
         {
             currentJobHandle.Complete();
+
+            maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
-            diffusionHelper.Dispose();
+            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
+            if (isImmature.IsCreated) isImmature.Dispose();
         }
     }
 
@@ -212,8 +316,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             {
                 var targetIndex = matchSingleton.replacementSymbolIndexing.index;
                 // check for custom rules
-                if (customSymbols.hasDiffusion)
+                if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
                 {
+                    // let the diffusion library handle these updates. only if diffusion is happening in parallel
                     if (symbol == customSymbols.diffusionNode || symbol == customSymbols.diffusionAmount)
                     {
                         return;
@@ -229,7 +334,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     length = sourceParamIndexer.length
                 };
                 targetData.parameters[targetIndex] = targetDataIndexer;
-                // when trivial, copy out of the source param array directly. As opposed to reading parameters out oof the parameterMatchMemory when evaluating
+                // when trivial, copy out of the source param array directly. As opposed to reading parameters out of the parameterMatchMemory when evaluating
                 //      a non-trivial match
                 for (int i = 0; i < sourceParamIndexer.length; i++)
                 {

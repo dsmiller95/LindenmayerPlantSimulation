@@ -27,6 +27,14 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             currentState = currentState.StepNext();
             return true;
         }
+#if UNITY_EDITOR
+        public string TaskDescription => currentState?.TaskDescription ?? "";
+#endif
+
+        public bool AreAllJobsCompleted()
+        {
+            return currentState.currentJobHandle.IsCompleted;
+        }
 
         public void Cancel()
         {

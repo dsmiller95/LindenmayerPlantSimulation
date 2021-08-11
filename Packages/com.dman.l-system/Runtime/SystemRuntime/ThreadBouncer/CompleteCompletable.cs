@@ -4,6 +4,9 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
     public class CompleteCompletable<T> : ICompletable<T>
     {
+#if UNITY_EDITOR
+        public string TaskDescription => "Complete";
+#endif
         public JobHandle currentJobHandle => default;
 
         private T data;

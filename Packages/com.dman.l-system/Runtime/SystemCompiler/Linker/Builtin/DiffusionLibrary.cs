@@ -36,6 +36,7 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
 
         public override IEnumerable<string> GetRulesWithReplacements(Dictionary<string, string> replacementDirectives)
         {
+            yield return "a ->";
             yield break;
         }
 

@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Dman.LSystem
 {
+    [Serializable]
     public class ArrayParameterRepresenation<T>
     {
         private T[] parameterArray;

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4cd4c3f69719064aabdf9241124746b, type: 3}
+  m_Name: LSystemRegistry
+  m_EditorClassIdentifier: 
+  allObjects:
+  - {fileID: 378491273550888993, guid: e5d2ac04a3c30804b840cd434655bdc8, type: 3}
+  - {fileID: 378491273550888993, guid: c2972a41960e7b949bb5352dcd35f73b, type: 3}
+  - {fileID: 378491273550888993, guid: 9dc0b800f0ad0ff41a282427360dea02, type: 3}
+  - {fileID: 378491273550888993, guid: 27ae6e1b62f30414ba06e6aa3c2d400f, type: 3}
+  - {fileID: 378491273550888993, guid: bc61066174425fa4aa2856c9e1f0e252, type: 3}
+  - {fileID: 378491273550888993, guid: 8f4195aee96ba0c46aa03c56c5065f59, type: 3}
+  - {fileID: 378491273550888993, guid: 1afe353f5c6adfa4e98bc900a68dc75b, type: 3}
+  - {fileID: 378491273550888993, guid: 42bbb8b9ba230704b86c74238cafacca, type: 3}

@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
+    [Serializable]
     public struct JaggedNativeArray<TData> :
         System.IEquatable<JaggedNativeArray<TData>>,
         IDisposable,
-        INativeDisposable
+        INativeDisposable,
+        ISerializable
         where TData : unmanaged
     {
         [NativeDisableParallelForRestriction]
@@ -56,20 +59,25 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             }
         }
 
+        private Allocator allocatorUsed;
+
         public JaggedNativeArray(JaggedNativeArray<TData> jaggedData, Allocator allocator)
         {
+            allocatorUsed = allocator;
             indexing = new NativeArray<JaggedIndexing>(jaggedData.indexing, allocator);
             data = new NativeArray<TData>(jaggedData.data, allocator);
         }
 
         public JaggedNativeArray(int firstDimensionSize, int totalDataSize, Allocator allocator, NativeArrayOptions initializationOptions = NativeArrayOptions.UninitializedMemory)
         {
+            allocatorUsed = allocator;
             indexing = new NativeArray<JaggedIndexing>(firstDimensionSize, allocator, initializationOptions);
             data = new NativeArray<TData>(totalDataSize, allocator, initializationOptions);
         }
 
         public JaggedNativeArray(TData[][] jaggedData, Allocator allocator)
         {
+            allocatorUsed = allocator;
             indexing = new NativeArray<JaggedIndexing>(jaggedData.Length, allocator, NativeArrayOptions.UninitializedMemory);
 
             var paramSum = jaggedData.Select(x => x.Length).Sum();
@@ -177,8 +185,31 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
                 data.Dispose(inputDeps),
                 indexing.Dispose(inputDeps));
         }
+
+        #region Serialization
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("allocator", allocatorUsed);
+            info.AddValue("data", data.ToArray()); // TODO: can these serialize directly?
+            info.AddValue("indexing", indexing.ToArray());
+        }
+
+        // The special constructor is used to deserialize values.
+        private JaggedNativeArray(SerializationInfo info, StreamingContext context)
+        {
+            allocatorUsed = info.GetValue<Allocator>("allocator");
+
+            var dataArray = info.GetValue<TData[]>("data");
+            data = new NativeArray<TData>(dataArray, allocatorUsed);
+
+            var indexingArray = info.GetValue<JaggedIndexing[]>("indexing");
+            indexing = new NativeArray<JaggedIndexing>(indexingArray, allocatorUsed);
+        }
+        #endregion
     }
 
+    [Serializable]
     public struct JaggedIndexing : IEquatable<JaggedIndexing>
     {
         /// <summary>

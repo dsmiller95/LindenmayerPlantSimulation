@@ -1,15 +1,18 @@
+using Dman.LSystem.SystemRuntime.GlobalCoordinator;
+using Dman.ObjectSets;
+using Dman.SceneSaveSystem;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {
-    public abstract class LSystemCompileTimeParameterGenerator : MonoBehaviour
+    public interface ILSystemCompileTimeParameterGenerator
     {
         public abstract Dictionary<string, string> GenerateCompileTimeParameters();
     }
 
-    public class LSystemBehavior : MonoBehaviour
+    public class LSystemBehavior : MonoBehaviour, ISaveableData
     {
         public bool logStates = false;
 
@@ -35,6 +38,10 @@ namespace Dman.LSystem.UnityObjects
                 SetSystem(systemObject);
             }
         }
+        private void OnDestroy()
+        {
+            steppingHandle?.Dispose();
+        }
 
         /// <summary>
         /// Assign a new system definition to this behavior.
@@ -46,14 +53,14 @@ namespace Dman.LSystem.UnityObjects
             if (systemObject != null)
             {
                 steppingHandle?.Dispose();
-                var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
+                var globalParams = GetComponent<ILSystemCompileTimeParameterGenerator>();
                 if (globalParams == null)
                 {
-                    steppingHandle = new LSystemSteppingHandle(systemObject, true);
+                    steppingHandle = new LSystemSteppingHandle(systemObject, true, this);
                 }
                 else
                 {
-                    steppingHandle = new LSystemSteppingHandle(systemObject, false);
+                    steppingHandle = new LSystemSteppingHandle(systemObject, false, this);
                 }
                 steppingHandle.OnSystemStateUpdated += LSystemStateWasUpdated;
             }
@@ -71,10 +78,9 @@ namespace Dman.LSystem.UnityObjects
             {
                 Debug.Log(steppingHandle?.currentState?.currentSymbols?.Data);
             }
-            var globalParams = GetComponent<LSystemCompileTimeParameterGenerator>();
+            var globalParams = GetComponent<ILSystemCompileTimeParameterGenerator>();
             if (globalParams != null)
             {
-                Debug.Log("compiling new system");
                 var extraGlobalParams = globalParams.GenerateCompileTimeParameters();
                 steppingHandle.RecompileLSystem(extraGlobalParams);
             }
@@ -91,7 +97,6 @@ namespace Dman.LSystem.UnityObjects
         ///     it is not perfectly protected against threading race conditions, so be sure not to make any mutations to 
         ///     the L-system while the behaviors are executing.
         /// </summary>
-        /// <param name="CompleteInLateUpdate">When set to true, the behavior will queue up the jobs and wait until the next frame to complete them</param>
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
@@ -116,9 +121,56 @@ namespace Dman.LSystem.UnityObjects
         }
 
 
-        private void OnDestroy()
+
+        #region Saving
+        public string UniqueSaveIdentifier => "L System Behavior";
+
+
+        [System.Serializable]
+        class LSystemBehaviorSaveState
         {
-            steppingHandle?.Dispose();
+            private int lSystemId;
+            private LSystemSteppingHandle.SavedData steppingHandle;
+            public LSystemBehaviorSaveState(LSystemBehavior source)
+            {
+                this.lSystemId = source.systemObject.myId;
+                this.steppingHandle = new LSystemSteppingHandle.SavedData(source.steppingHandle);
+            }
+
+            public void Apply(LSystemBehavior target)
+            {
+                target.lastUpdateTime = 0;
+                var systemRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
+                target.systemObject = systemRegistry.GetUniqueObjectFromID(lSystemId);
+
+                target.steppingHandle?.Dispose();
+
+                target.steppingHandle = steppingHandle.Deserialize();
+                target.steppingHandle.InitializePostDeserialize(target);
+                target.steppingHandle.OnSystemStateUpdated += target.LSystemStateWasUpdated;
+
+                target.OnSystemObjectUpdated?.Invoke();
+                target.OnSystemStateUpdated?.Invoke();
+            }
         }
+
+        public object GetSaveObject()
+        {
+            return new LSystemBehaviorSaveState(this);
+        }
+
+        public void SetupFromSaveObject(object save)
+        {
+            if (save is LSystemBehaviorSaveState savedState)
+            {
+                savedState.Apply(this);
+            }
+        }
+
+        public ISaveableData[] GetDependencies()
+        {
+            return new ISaveableData[] { GlobalLSystemCoordinator.instance };
+        }
+        #endregion
     }
 }

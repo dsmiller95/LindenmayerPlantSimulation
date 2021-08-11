@@ -7,7 +7,9 @@
         "Unity.Burst",
         "Unity.Collections",
         "Unity.Jobs",
-        "ProceduralToolkit"
+        "ProceduralToolkit",
+        "SceneSaveSystem",
+        "ObjectSets"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -23,7 +23,9 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         }
         public NativeMultipleHashSets(ISet<int>[] initialValues, Allocator allocator)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             data = new NativeHashSet<HashSetKey>(initialValues.Sum(x => x.Count), allocator);
+            UnityEngine.Profiling.Profiler.EndSample();
             if (initialValues.Length >= short.MaxValue)
             {
                 throw new Exception("Too many individual sets to be stored in a short");

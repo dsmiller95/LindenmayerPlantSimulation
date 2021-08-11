@@ -15,9 +15,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     /// </summary>
     public class LSystemRuleMatchCompletable : ICompletable<LSystemState<float>>
     {
+#if UNITY_EDITOR
+        public string TaskDescription => "L System rule matching";
+#endif
         public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public Unity.Mathematics.Random randResult;
         public CustomRuleSymbols customSymbols;
+        public uint uniqueIDOriginIndex;
 
         /////////////// things owned by this step /////////
         public NativeArray<int> totalSymbolCount;
@@ -36,69 +40,53 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         public JobHandle currentJobHandle { get; private set; }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="systemState"></param>
+        /// <param name="lSystemNativeData"></param>
+        /// <param name="globalParameters"></param>
+        /// <param name="maxMemoryRequirementsPerSymbol"></param>
+        /// <param name="branchOpenSymbol"></param>
+        /// <param name="branchCloseSymbol"></param>
+        /// <param name="includedCharactersByRuleIndex"></param>
+        /// <param name="customSymbols"></param>
+        /// <param name="parameterModificationJobDependency">A dependency on a job which only makes changes to the parameters of the source symbol string.
+        ///     the symbols themselves must be constant</param>
         public LSystemRuleMatchCompletable(
+            NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
+            int parameterTotalSum,
+            SymbolStringBranchingCache branchingCache,
             LSystemState<float> systemState,
             DependencyTracker<SystemLevelRuleNativeData> lSystemNativeData,
             float[] globalParameters,
-            IDictionary<int, MaxMatchMemoryRequirements> maxMemoryRequirementsPerSymbol,
-            int branchOpenSymbol,
-            int branchCloseSymbol,
-            ISet<int>[] includedCharactersByRuleIndex,
-            CustomRuleSymbols customSymbols)
+            CustomRuleSymbols customSymbols,
+            JobHandle parameterModificationJobDependency)
         {
             this.customSymbols = customSymbols;
+            uniqueIDOriginIndex = systemState.firstUniqueOrganId;
             randResult = systemState.randomProvider;
             sourceSymbolString = systemState.currentSymbols;
             nativeData = lSystemNativeData;
 
-            // 1.
-            UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
-            matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            var parameterTotalSum = 0;
-            var possibleMatchesTotalSum = 0;
-            for (int i = 0; i < systemState.currentSymbols.Data.Length; i++)
-            {
-                var symbol = systemState.currentSymbols.Data[i];
-                var matchData = new LSystemSingleSymbolMatchData()
-                {
-                    tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(parameterTotalSum)
-                };
-                if (maxMemoryRequirementsPerSymbol.TryGetValue(symbol, out var memoryRequirements))
-                {
-                    parameterTotalSum += memoryRequirements.maxParameters;
-                    possibleMatchesTotalSum += memoryRequirements.maxPossibleMatches;
-                    matchData.isTrivial = false;
-                }
-                else
-                {
-                    matchData.isTrivial = true;
-                    matchData.tmpParameterMemorySpace.length = 0;
-                }
-                matchSingletonData[i] = matchData;
-            }
+            this.matchSingletonData = matchSingletonData;
+            this.branchingCache = branchingCache;
 
+            // 1.
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             tmpParameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // 2.
             UnityEngine.Profiling.Profiler.BeginSample("matching");
-            UnityEngine.Profiling.Profiler.BeginSample("branch cache");
-            branchingCache = new SymbolStringBranchingCache(
-                branchOpenSymbol,
-                branchCloseSymbol,
-                includedCharactersByRuleIndex,
-                nativeData.Data);
-            branchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
 
             var prematchJob = new RuleCompleteMatchJob
             {
                 matchSingletonData = matchSingletonData,
 
-                sourceData = systemState.currentSymbols.Data,
+                sourceData = sourceSymbolString.Data,
                 tmpParameterMemory = tmpParameterMemory,
 
                 globalOperatorData = nativeData.Data.dynamicOperatorMemory,
@@ -112,7 +100,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             var matchingJobHandle = prematchJob.ScheduleBatch(
                 matchSingletonData.Length,
-                100);
+                100,
+                parameterModificationJobDependency);
 
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -120,22 +109,23 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             // 4.
             UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
 
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             totalSymbolCount = new NativeArray<int>(1, Allocator.Persistent);
             totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             var totalSymbolLengthJob = new RuleReplacementSizeJob
             {
                 matchSingletonData = matchSingletonData,
                 totalResultSymbolCount = totalSymbolCount,
                 totalResultParameterCount = totalSymbolParameterCount,
-                sourceData = systemState.currentSymbols.Data,
+                sourceData = sourceSymbolString.Data,
                 customSymbols = customSymbols
             };
             currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
-            systemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
+            sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
-            UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
@@ -158,7 +148,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData,
                 nativeData,
                 branchingCache,
-                customSymbols)
+                customSymbols,
+                uniqueIDOriginIndex)
             {
                 randResult = randResult,
             };
@@ -333,10 +324,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     continue;
                 }
                 // custom rules
-                if (customSymbols.hasDiffusion && customSymbols.diffusionAmount == sourceData[i])
+                if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate && customSymbols.diffusionAmount == sourceData[i])
                 {
-                    //... do nothing if it matches the custom diffusion symbol.
-                    // will copy 0 data over, the symbol dissapears.
+                    // if matching the diffusion's amount symbol, and the update is happening in parallel, remove all the parameters.
+                    //  leaving just the symbol.
+                    //  this is to ensure closest possible consistency with the independent diffusion update code
+                    // will copy 0 parameters over, the symbol remains.
+                    // only do this if the diffusion update is happening in parallel to the regular system step
+                    totalResultSymbolSize += 1;
                     continue;
                 }
                 // default behavior

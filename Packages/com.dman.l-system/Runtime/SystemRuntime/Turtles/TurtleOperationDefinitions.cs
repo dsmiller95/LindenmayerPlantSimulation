@@ -68,6 +68,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     {
         public float3 extraNonUniformScaleForOrgan;
         public bool doScaleMesh;
+        public bool scaleIsAdditional;
         public bool isVolumetricScale;
         public bool doApplyThiccness;
         public JaggedIndexing organTemplateVariants;
@@ -93,6 +94,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var selectedOrganIndex = organTemplateVariants.index + selectedMeshIndex;
             var selectedOrgan = allOrgans[selectedOrganIndex];
 
+
+            var turtleTranslate = selectedOrgan.translation;
             var scaleIndex = organTemplateVariants.length <= 1 ? 0 : 1;
             if (doScaleMesh && pIndex.length > scaleIndex)
             {
@@ -101,7 +104,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 {
                     scale = Mathf.Pow(scale, 1f / 3f);
                 }
-                meshTransform *= Matrix4x4.Scale(new float3(1, 1, 1) + (extraNonUniformScaleForOrgan * scale));
+                var scaleVector = (scaleIsAdditional ? new float3(1, 1, 1) : new float3(0, 0, 0)) + (extraNonUniformScaleForOrgan * scale);
+
+                if (selectedOrgan.alsoMove)
+                {
+                    turtleTranslate.Scale(scaleVector);
+                }
+                
+                meshTransform *= Matrix4x4.Scale(scaleVector);
             }
             if (doApplyThiccness)
             {
@@ -123,7 +133,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 {
                     index = meshSizeForSubmesh.totalTriangleIndexes,
                     length = selectedOrgan.trianges.length
-                }
+                },
+                organIdentity = state.organIdentity
             };
             targetOrganInstances.Add(newOrganEntry);
 
@@ -131,7 +142,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             meshSizeForSubmesh.totalTriangleIndexes += newOrganEntry.trianglesMemorySpace.length;
             meshSizeCounterPerSubmesh[selectedOrgan.materialIndex] = meshSizeForSubmesh;
 
-            state.transformation *= ((Matrix4x4)selectedOrgan.organMatrixTransform);
+            if (selectedOrgan.alsoMove)
+            {
+                state.transformation *= Matrix4x4.Translate(turtleTranslate);
+            }
+
         }
     }
     public struct TurtleBendTowardsOperationNEW

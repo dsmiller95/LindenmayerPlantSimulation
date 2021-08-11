@@ -1,0 +1,38 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel SunlightInitialize
+#pragma kernel SunlightMain
+
+
+Texture2D<float4> InputTexture; // input texture
+RWStructuredBuffer<uint> IdResultBuffer;
+
+
+[numthreads(64, 1, 1)]
+void SunlightInitialize(uint3 id : SV_DispatchThreadID)
+{
+    IdResultBuffer[id.x] = uint(0);
+}
+
+
+[numthreads(8, 8, 1)]
+void SunlightMain(uint3 id : SV_DispatchThreadID)
+{
+    float4 col = InputTexture[id.xy];
+    uint4 uints = uint4(255.0 * col);
+    
+    // reassemble the original uint. each byte of the uint is one color channel
+    uint objectId =
+        uints.r & 0xFF |
+        (uints.g & 0xFF) << 8 |
+        (uints.b & 0xFF) << 16 |
+        (uints.a & 0xFF) << 24;
+
+    uint numStructs, stride;
+    IdResultBuffer.GetDimensions(numStructs, stride);
+
+    if (objectId <= 0 || objectId >= numStructs) {
+        return;
+    }
+    
+    InterlockedAdd(IdResultBuffer[objectId], 1);
+}
