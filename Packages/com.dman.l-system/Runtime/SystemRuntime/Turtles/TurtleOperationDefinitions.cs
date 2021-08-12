@@ -102,9 +102,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             var turtleTranslate = selectedOrgan.translation;
             var scaleIndex = organTemplateVariants.length <= 1 ? 0 : 1;
+            float scale = 1f;
             if (doScaleMesh && pIndex.length > scaleIndex)
             {
-                var scale = sourceString.parameters[pIndex, scaleIndex];
+                scale = sourceString.parameters[pIndex, scaleIndex];
                 if (isVolumetricScale)
                 {
                     scale = Mathf.Pow(scale, 1f / 3f);
@@ -126,7 +127,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             if (volumetricValue != 0)
             {
                 var organCenter = meshTransform.MultiplyPoint(Vector3.zero);
-                volumetricNativeWriter.WriteVolumetricAmountToTarget(volumetricValue, organCenter);
+                volumetricNativeWriter.WriteVolumetricAmountToTarget(volumetricValue * scale, organCenter);
             }
 
             var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];

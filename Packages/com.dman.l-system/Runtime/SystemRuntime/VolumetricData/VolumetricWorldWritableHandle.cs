@@ -65,7 +65,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             this.writeDependency = JobHandle.CombineDependencies(newReadDependency, this.writeDependency);
         }
 
-
         public JobHandle Dispose(JobHandle inputDeps)
         {
             if (isDisposed)

@@ -34,7 +34,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 
         public void Execute(int index)
         {
-            writeArray[index] += subtractArray[index];
+            writeArray[index] -= subtractArray[index];
         }
     }
     [BurstCompile]

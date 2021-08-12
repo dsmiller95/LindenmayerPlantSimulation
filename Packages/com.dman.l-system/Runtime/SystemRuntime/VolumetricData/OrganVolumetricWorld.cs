@@ -105,7 +105,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             var subtractCleanupJob = new NativeArraySubtractJob
             {
                 writeArray = this.nativeVolumeData.data,
-                subtractArray = handle.oldData
+                subtractArray = handle.newData
             };
             deps = subtractCleanupJob.Schedule(this.nativeVolumeData.data.Length, 1000, deps);
             nativeVolumeData.RegisterWritingDependency(deps);
@@ -149,9 +149,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                             amount = nativeVolumeData.openReadData[voxelLayout.GetDataIndexFromCoordinates(voxelCoordinate)] / maxAmount;
                         }else
                         {
-                            var xScaled = (voxelCoordinate.x / (float)worldResolution.x) - 0.5f;
-                            var yScaled = (voxelCoordinate.y / (float)worldResolution.y) - 0.5f;
-                            var zScaled = (voxelCoordinate.z / (float)worldResolution.z) - 0.5f;
+                            var xScaled = ((voxelCoordinate.x + 0.5f) / (float)worldResolution.x) - 0.5f;
+                            var yScaled = ((voxelCoordinate.y + 0.5f) / (float)worldResolution.y) - 0.5f;
+                            var zScaled = ((voxelCoordinate.z + 0.5f) / (float)worldResolution.z) - 0.5f;
 
                             amount = (maxAmount - new Vector3(xScaled, yScaled, zScaled).sqrMagnitude) / maxAmount;
                         }
