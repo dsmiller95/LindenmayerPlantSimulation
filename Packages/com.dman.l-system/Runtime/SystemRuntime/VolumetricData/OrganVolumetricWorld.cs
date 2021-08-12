@@ -142,10 +142,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     {
                         var voxelCoordinate = new Vector3Int(x, y, z);
                         var cubeCenter = Vector3.Scale(voxelSize, voxelCoordinate) + offsetFrom0;
-                        Gizmos.color = new Color(1f, 0f, 0f, 1f);
-                        //Gizmos.DrawWireCube(cubeCenter, voxelSize);
 
-                        float amount = 0f;
+                        float amount;
                         if(nativeVolumeData != null)
                         {
                             amount = nativeVolumeData.openReadData[voxelLayout.GetDataIndexFromCoordinates(voxelCoordinate)] / maxAmount;
@@ -156,16 +154,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                             var zScaled = (voxelCoordinate.z / (float)worldResolution.z) - 0.5f;
 
                             amount = (maxAmount - new Vector3(xScaled, yScaled, zScaled).sqrMagnitude) / maxAmount;
-                            //amount = (Mathf.Sin(4f * voxelCoordinate.z / worldResolution.z) + 1f + Mathf.Sin(8f * voxelCoordinate.x / worldResolution.x) + 1f + (voxelCoordinate.y / (float)worldResolution.y)) / maxAmount;
                         }
 
-                        var amountForCubes = 1;// amount / 3f;
-                        var amountCenter = new Vector3(cubeCenter.x, cubeCenter.y + voxelSize.y / 2 * (amountForCubes - 1), cubeCenter.z);
-                        var amountCubeSize = new Vector3(voxelSize.x * 0.7f, voxelSize.y * amountForCubes * 0.7f, voxelSize.z - 0.7f);
-
-
                         Gizmos.color = heatmapGradient.Evaluate(amount);
-                        Gizmos.DrawCube(amountCenter, amountCubeSize);
+                        Gizmos.DrawCube(cubeCenter, voxelSize * 0.7f);
                     }
                 }
             }
