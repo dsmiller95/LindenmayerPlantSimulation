@@ -135,7 +135,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public void Execute(int index)
         {
-            volumetricDestructionFlags[index] = false;
+            //volumetricDestructionFlags[index] = false;
 
             var durability = plantDurabilityValues[index];
             var damage = volumetricDamageValues[index];

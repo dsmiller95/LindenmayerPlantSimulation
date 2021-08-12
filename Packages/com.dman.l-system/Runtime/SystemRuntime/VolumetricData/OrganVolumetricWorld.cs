@@ -114,7 +114,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         private JobHandle DisposeWritableHandleNoRemove(VolumetricWorldWritableHandle handle)
         {
             var deps = JobHandle.CombineDependencies(handle.writeDependency, nativeVolumeData.dataWriterDependencies);
-            var subtractCleanupJob = new NativeArraySubtractJob
+            var subtractCleanupJob = new NativeArraySubtractNegativeProtectionJob
             {
                 writeArray = this.nativeVolumeData.data,
                 subtractArray = handle.newData

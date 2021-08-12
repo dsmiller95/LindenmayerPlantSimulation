@@ -22,8 +22,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public NativeArray<float> newData => mostRecentDataInA ? dataA : dataB;
         public NativeArray<float> oldData => mostRecentDataInA ? dataB : dataA;
-
-
         public VolumetricWorldVoxelLayout voxelLayout;
 
         public VolumetricWorldWritableHandle(VolumetricWorldVoxelLayout voxels)
@@ -38,8 +36,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public VolumetricWorldNativeWritableHandle GenerateWritableHandleAndSwitchLatestData(Matrix4x4 localToWorldTransform, ref JobHandle dependency)
         {
             UnityEngine.Profiling.Profiler.BeginSample("volume clearing");
-            mostRecentDataInA = !mostRecentDataInA;
-            newDataIsAvailable = true;
+            if (!newDataIsAvailable)
+            {
+                // Only swap data if the old data hasn't been picked up yet.
+                //  just update the new data where it is
+                mostRecentDataInA = !mostRecentDataInA;
+                newDataIsAvailable = true;
+            }
             var mostRecentVolumeData = mostRecentDataInA ? dataA : dataB;
             var volumeClearJob = new NativeArrayClearJob
             {

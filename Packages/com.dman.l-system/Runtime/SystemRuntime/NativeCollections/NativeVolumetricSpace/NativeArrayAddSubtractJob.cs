@@ -21,11 +21,10 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 
         public void Execute(int index)
         {
-            writeArray[index] += addArray[index] - subtractArray[index];
+            writeArray[index] = Mathf.Max(writeArray[index] + addArray[index] - subtractArray[index], 0);
         }
     }
-    [BurstCompile]
-    public struct NativeArraySubtractJob : IJobParallelFor
+    public struct NativeArraySubtractNegativeProtectionJob : IJobParallelFor
     {
         [ReadOnly]
         public NativeArray<float> subtractArray;
@@ -34,7 +33,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 
         public void Execute(int index)
         {
-            writeArray[index] -= subtractArray[index];
+            writeArray[index] = Mathf.Max(writeArray[index] - subtractArray[index], 0);
         }
     }
     [BurstCompile]
