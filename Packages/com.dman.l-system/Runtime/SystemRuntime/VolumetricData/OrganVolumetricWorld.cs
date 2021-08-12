@@ -4,6 +4,7 @@ using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Jobs;
@@ -21,6 +22,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public Gradient heatmapGradient;
 
+        public bool gizmos = true;
+
         public VolumetricWorldVoxelLayout voxelLayout => new VolumetricWorldVoxelLayout
         {
             voxelOrigin = voxelOrigin,
@@ -28,7 +31,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             worldResolution = worldResolution
         };
 
-        private NativeDelayedReadable nativeVolumeData;
+        public event Action volumeWorldChanged;
+
+        public NativeDelayedReadable nativeVolumeData { get; private set; }
         private List<VolumetricWorldWritableHandle> writableHandles;
 
         public VolumetricWorldWritableHandle GetNewWritableHandle()
@@ -59,10 +64,17 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         {
         }
 
+        private bool anyChangeLastFrame = false;
         private void Update()
         {
-            nativeVolumeData.CompleteAndForceCopy();
+            if (anyChangeLastFrame)
+            {
+                nativeVolumeData.CompleteAndForceCopy();
+                volumeWorldChanged?.Invoke();
+            }
             var dependency = this.nativeVolumeData.dataWriterDependencies;
+
+            anyChangeLastFrame = false;
             foreach (var writeHandle in writableHandles)
             {
                 if (writeHandle.newDataIsAvailable && writeHandle.writeDependency.IsCompleted)
@@ -76,6 +88,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     dependency = addSubJob.Schedule(nativeVolumeData.data.Length, 1000, dependency);
                     writeHandle.RegisterReadDependency(dependency);
                     writeHandle.newDataIsAvailable = false;
+                    anyChangeLastFrame = true;
                 }
             }
             this.nativeVolumeData.RegisterWritingDependency(dependency);
@@ -100,7 +113,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private JobHandle DisposeWritableHandleNoRemove(VolumetricWorldWritableHandle handle)
         {
-
             var deps = JobHandle.CombineDependencies(handle.writeDependency, nativeVolumeData.dataWriterDependencies);
             var subtractCleanupJob = new NativeArraySubtractJob
             {
@@ -111,13 +123,17 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             nativeVolumeData.RegisterWritingDependency(deps);
 
             return handle.Dispose(deps);
-
         }
 
 
 
-        private void OnDrawGizmos()
+        private void OnDrawGizmosSelected()
         {
+            if (!gizmos)
+            {
+                return;
+            }
+
             var maxAmount = 1f;
             if(nativeVolumeData != null)
             {
@@ -132,8 +148,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 maxAmount = (Vector3.one / 4f).sqrMagnitude;
             }
             var voxelLayout = this.voxelLayout;
-            var voxelSize = new Vector3(worldSize.x / worldResolution.x, worldSize.y / worldResolution.y, worldSize.z / worldResolution.z);
-            var offsetFrom0 = voxelOrigin + (voxelSize / 2f);
+            var voxelSize = voxelLayout.voxelSize;
             for (int x = 0; x < worldResolution.x; x++)
             {
                 for (int y = 0; y < worldResolution.y; y++)
@@ -141,7 +156,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     for (int z = 0; z < worldResolution.z; z++)
                     {
                         var voxelCoordinate = new Vector3Int(x, y, z);
-                        var cubeCenter = Vector3.Scale(voxelSize, voxelCoordinate) + offsetFrom0;
+                        var cubeCenter = voxelLayout.CoordinateToCenterOfVoxel(voxelCoordinate);
 
                         float amount;
                         if(nativeVolumeData != null)

@@ -24,12 +24,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             this.localToWorldTransformation = localToWorld;
         }
 
+        public int GetVoxelIndexFromLocalSpace(Vector3 localPosition)
+        {
+            var worldPosition = localToWorldTransformation.MultiplyPoint(localPosition);
+            return voxelLayout.GetDataIndexFromWorldPosition(worldPosition);
+        }
 
         public void WriteVolumetricAmountToTarget(float amount, Vector3 localPosition)
         {
-            var worldPosition = localToWorldTransformation.MultiplyPoint(localPosition);
-            var voxelPoint = voxelLayout.GetVoxelCoordinates(worldPosition);
-            var indexInTarget = voxelLayout.GetDataIndexFromCoordinates(voxelPoint);
+            var indexInTarget = GetVoxelIndexFromLocalSpace(localPosition);
             if(indexInTarget < 0)
             {
                 return;

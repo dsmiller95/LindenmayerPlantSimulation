@@ -96,6 +96,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 systemObject.CompileToCached(silent: true);
             }
             var volumetricWorld = GameObject.FindObjectOfType<OrganVolumetricWorld>();
+            var damageWorld = GameObject.FindObjectOfType<OrganDamageWorld>();
             turtle = new TurtleInterpretor(
                 operationSets,
                 new TurtleState
@@ -107,7 +108,8 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 },
                 systemObject.linkedFiles,
                 systemObject.compiledSystem.customSymbols,
-                volumetricWorld
+                volumetricWorld,
+                damageWorld
                 );
             turtle.submeshIndexIncrementChar = submeshIndexIncrementor;
         }

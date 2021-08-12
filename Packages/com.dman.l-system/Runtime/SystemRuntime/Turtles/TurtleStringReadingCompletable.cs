@@ -61,6 +61,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             TurtleState defaultState,
             CustomRuleSymbols customSymbols,
             VolumetricWorldWritableHandle volumeWriter,
+            OrganDamageWorld damageWorld,
             Matrix4x4 localToWorldTransform)
         {
             this.targetMesh = targetMesh;
@@ -79,6 +80,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
             newMeshSizeBySubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob);
             UnityEngine.Profiling.Profiler.EndSample();
+
+            NativeArray<bool> destructionFlags;
+            if(damageWorld != null)
+            {
+                destructionFlags = damageWorld.GetDestructionFlagsReadOnly();
+            }else
+            {
+                destructionFlags = new NativeArray<bool>(0, Allocator.TempJob);
+            }
 
             var turtleCompileJob = new TurtleCompilationJob
             {
@@ -99,16 +109,23 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 customRules = customSymbols,
 
-                volumetricNativeWriter = nativeWritableHandle
+                volumetricNativeWriter = nativeWritableHandle,
+                hasVolumetricDestruction = damageWorld != null,
+                volumetricDestructionFlags = destructionFlags
             };
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
 
+            damageWorld?.RegisterReaderOfDestructionFlags(currentJobHandle);
             volumeWriter.RegisterWriteDependency(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
             symbols.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = tmpHelperStack.Dispose(currentJobHandle);
+            if(damageWorld == null)
+            {
+                currentJobHandle = destructionFlags.Dispose(currentJobHandle);
+            }
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
@@ -127,7 +144,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public struct TurtleCompilationJob : IJob
         {
             // Inputs
-            [ReadOnly]
             public SymbolString<float> symbols;
             [ReadOnly]
             public NativeHashMap<int, TurtleOperation> operationsByKey;
@@ -140,6 +156,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             // volumetric info
             public VolumetricWorldNativeWritableHandle volumetricNativeWriter;
+            public bool hasVolumetricDestruction;
+            [ReadOnly]
+            public NativeArray<bool> volumetricDestructionFlags;
 
 
             // tmp Working memory
@@ -159,7 +178,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 for (int symbolIndex = 0; symbolIndex < symbols.Length; symbolIndex++)
                 {
-                    var symbol = symbols.symbols[symbolIndex];
+                    var symbol = symbols[symbolIndex];
                     if (symbol == branchStartChar)
                     {
                         nativeTurtleStack.Push(currentState);
@@ -190,6 +209,32 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             organData,
                             organInstances,
                             volumetricNativeWriter);
+                        if(hasVolumetricDestruction && customRules.hasAutophagy && operation.operationType == TurtleOperationType.ADD_ORGAN)
+                        {
+                            // check for an operation which may have changed the position of the turtle
+                            var turtlePosition = currentState.transformation.MultiplyPoint(Vector3.zero); // extract transformation
+                            var voxelId = volumetricNativeWriter.GetVoxelIndexFromLocalSpace(turtlePosition);
+                            var shouldDestroy = volumetricDestructionFlags[voxelId];
+                            if (shouldDestroy)
+                            {
+                                symbols[symbolIndex] = customRules.autophagicSymbol;
+                                // skip over this whole branching structure
+                                var branchingDepth = 0;
+                                symbolIndex++;
+                                while (branchingDepth >= 0 && symbolIndex < symbols.Length)
+                                {
+                                    var innerLoopSymbol = symbols[symbolIndex];
+                                    if(innerLoopSymbol == branchStartChar)
+                                    {
+                                        branchingDepth++;
+                                    }else if(innerLoopSymbol == branchEndChar)
+                                    {
+                                        branchingDepth--;
+                                    }
+                                    symbolIndex++;
+                                }
+                            }
+                        }
                     }
                 }
                 var totalVertexes = 0;

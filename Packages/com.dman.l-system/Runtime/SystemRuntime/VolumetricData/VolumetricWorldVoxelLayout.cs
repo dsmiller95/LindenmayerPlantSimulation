@@ -1,14 +1,4 @@
-﻿using Dman.LSystem.SystemRuntime.CustomRules;
-using Dman.LSystem.SystemRuntime.GlobalCoordinator;
-using Dman.LSystem.SystemRuntime.LSystemEvaluator;
-using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
-using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine;
-using UnityEngine.Rendering;
+﻿using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
@@ -18,7 +8,19 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public Vector3 worldSize;
         public Vector3Int worldResolution;
 
+        public Vector3 voxelSize => new Vector3(worldSize.x / worldResolution.x, worldSize.y / worldResolution.y, worldSize.z / worldResolution.z);
+
         public int totalVolumeDataSize => worldResolution.x * worldResolution.y * worldResolution.z;
+
+        public int GetDataIndexFromWorldPosition(Vector3 worldPosition)
+        {
+            return GetDataIndexFromCoordinates(GetVoxelCoordinates(worldPosition));
+        }
+
+        public Vector3 GetWorldPositionFromDataIndex(int dataIndex)
+        {
+            return CoordinateToCenterOfVoxel(GetCoordinatesFromDataIndex(dataIndex));
+        }
 
         public Vector3Int GetVoxelCoordinates(Vector3 worldPosition)
         {
@@ -42,6 +44,20 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 return -1;
             }
             return coordiantes.x * worldResolution.y * worldResolution.z + coordiantes.y * worldResolution.z + coordiantes.z;
+        }
+
+        public Vector3 CoordinateToCenterOfVoxel(Vector3Int coordinate)
+        {
+            return Vector3.Scale(voxelSize, coordinate) + (voxelOrigin + (voxelSize / 2f));
+        }
+
+        public Vector3Int GetCoordinatesFromDataIndex(int index)
+        {
+            var x = index / (worldResolution.y * worldResolution.z);
+            var y = (index / worldResolution.z) % worldResolution.y;
+            var z = index % worldResolution.z;
+
+            return new Vector3Int(x, y, z);
         }
     }
 }

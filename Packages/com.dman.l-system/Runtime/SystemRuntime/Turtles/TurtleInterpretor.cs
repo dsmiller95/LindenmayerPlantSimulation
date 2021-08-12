@@ -22,8 +22,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         private TurtleState defaultState;
         private CustomRuleSymbols customSymbols;
+
+        
         private OrganVolumetricWorld volumetricWorld;
         private VolumetricWorldWritableHandle volumeWriterHandle;
+
+        private OrganDamageWorld damageWorld;
 
 
         public TurtleInterpretor(
@@ -32,6 +36,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             LinkedFileSet linkedFiles,
             CustomRuleSymbols customSymbols,
             OrganVolumetricWorld volumetricWorld,
+            OrganDamageWorld damageWorld,
             char submeshIndex = '`',
             char startChar = '[', char endChar = ']')
         {
@@ -69,6 +74,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             this.volumetricWorld = volumetricWorld;
             this.volumeWriterHandle = volumetricWorld.GetNewWritableHandle();
+            this.damageWorld = damageWorld;
         }
 
         public ICompletable<TurtleCompletionResult> CompileStringToTransformsWithMeshIds(
@@ -91,6 +97,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 defaultState,
                 customSymbols,
                 this.volumeWriterHandle,
+                this.damageWorld,
                 localToWorldTransform
                 );
         }
