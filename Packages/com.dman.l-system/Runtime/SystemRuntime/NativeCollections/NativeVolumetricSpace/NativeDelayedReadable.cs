@@ -48,6 +48,8 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 
         public void Dispose()
         {
+            dataReaderDependencies.Complete();
+            dataWriterDependencies.Complete();
             data.Dispose();
             openReadData.Dispose();
         }

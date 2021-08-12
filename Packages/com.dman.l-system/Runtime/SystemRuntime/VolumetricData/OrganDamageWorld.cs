@@ -18,8 +18,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
     {
         public bool drawGizmos = true;
 
+        /// <summary>
+        /// how many seconds a voxel's "destroy" command should remain active for systems to pick up on
+        ///     this should scale with the l-system's update frequency. The plants' time between
+        ///     updates should never be able to be more than this value
+        /// </summary>
+        public float timeDestructionCommandsStayActive = 2f;
+
         private NativeArray<float> volumetricDamageValues;
-        private NativeArray<bool> volumetricDestructionFlags;
+        private NativeArray<float> volumetricDestructionTimestamps;
         private JobHandle? destructionFlagUpdateDependency;
         private JobHandle destructionFlagReadDependencies = default;
         private bool hasDamageChange;
@@ -38,13 +45,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             volumetricDamageValues[voxelIndex] += damageAmount;
         }
 
-        public NativeArray<bool> GetDestructionFlagsReadOnly()
+        public NativeArray<float> GetDestructionCommandTimestampsReadOnly()
         {
             if (destructionFlagUpdateDependency.HasValue)
             {
                 destructionFlagUpdateDependency?.Complete();
             }
-            return volumetricDestructionFlags;
+            return volumetricDestructionTimestamps;
         }
 
         public void RegisterReaderOfDestructionFlags(JobHandle readDependency)
@@ -64,7 +71,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 plantDurabilityValues = durability,
 
                 volumetricDamageValues = volumetricDamageValues,
-                volumetricDestructionFlags = volumetricDestructionFlags
+                volumetricDestructionTimestamps = volumetricDestructionTimestamps,
+                currentTime = Time.time
             };
 
             destructionFlagUpdateDependency = updateJob.Schedule(durability.Length, 1000, destructionFlagReadDependencies);
@@ -75,7 +83,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         {
             var voxelLayout = volumeWorld.voxelLayout;
             volumetricDamageValues = new NativeArray<float>(voxelLayout.totalVolumeDataSize, Allocator.Persistent);
-            volumetricDestructionFlags = new NativeArray<bool>(voxelLayout.totalVolumeDataSize, Allocator.Persistent);
+            volumetricDestructionTimestamps = new NativeArray<float>(voxelLayout.totalVolumeDataSize, Allocator.Persistent);
         }
 
         private void Update()
@@ -90,12 +98,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         {
             destructionFlagUpdateDependency?.Complete();
             volumetricDamageValues.Dispose();
-            volumetricDestructionFlags.Dispose();
+            volumetricDestructionTimestamps.Dispose();
         }
 
         public void OnDrawGizmos()
         {
-            if (!drawGizmos || !volumetricDamageValues.IsCreated || !volumetricDestructionFlags.IsCreated)
+            if (!drawGizmos || !volumetricDamageValues.IsCreated || !volumetricDestructionTimestamps.IsCreated)
             {
                 return;
             }
@@ -130,7 +138,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public NativeArray<float> plantDurabilityValues;
 
         public NativeArray<float> volumetricDamageValues;
-        public NativeArray<bool> volumetricDestructionFlags;
+        public NativeArray<float> volumetricDestructionTimestamps;
+        public float currentTime;
 
 
         public void Execute(int index)
@@ -140,9 +149,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             var durability = plantDurabilityValues[index];
             var damage = volumetricDamageValues[index];
 
-            if (damage > 0 && damage > durability) //Unity.Burst.CompilerServices.Hint.Unlikely(damage > 0 && damage > durability))
+            if (Unity.Burst.CompilerServices.Hint.Unlikely(damage > 0 && damage > durability))
             {
-                volumetricDestructionFlags[index] = true;
+                volumetricDestructionTimestamps[index] = currentTime;
                 volumetricDamageValues[index] = 0f;
             }
         }

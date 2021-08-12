@@ -49,7 +49,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         private NativeArray<TurtleMeshAllocationCounter> newMeshSizeBySubmesh;
         private Mesh targetMesh;
 
-        private VolumetricWorldWritableHandle volumeWriter;
         public TurtleStringReadingCompletable(
             Mesh targetMesh,
             int totalSubmeshes,
@@ -66,7 +65,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             this.targetMesh = targetMesh;
             this.nativeData = nativeData;
-            this.volumeWriter = volumeWriter;
 
             UnityEngine.Profiling.Profiler.BeginSample("turtling job");
 
@@ -81,13 +79,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             newMeshSizeBySubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob);
             UnityEngine.Profiling.Profiler.EndSample();
 
-            NativeArray<bool> destructionFlags;
+            NativeArray<float> destructionCommandTimestamps;
             if(damageWorld != null)
             {
-                destructionFlags = damageWorld.GetDestructionFlagsReadOnly();
+                destructionCommandTimestamps = damageWorld.GetDestructionCommandTimestampsReadOnly();
             }else
             {
-                destructionFlags = new NativeArray<bool>(0, Allocator.TempJob);
+                destructionCommandTimestamps = new NativeArray<float>(0, Allocator.TempJob);
             }
 
             var turtleCompileJob = new TurtleCompilationJob
@@ -111,7 +109,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 volumetricNativeWriter = nativeWritableHandle,
                 hasVolumetricDestruction = damageWorld != null,
-                volumetricDestructionFlags = destructionFlags
+                volumetricDestructionTimestamps = destructionCommandTimestamps,
+                earliestValidDestructionCommand = Time.time - damageWorld.timeDestructionCommandsStayActive
             };
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
@@ -124,7 +123,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             currentJobHandle = tmpHelperStack.Dispose(currentJobHandle);
             if(damageWorld == null)
             {
-                currentJobHandle = destructionFlags.Dispose(currentJobHandle);
+                currentJobHandle = destructionCommandTimestamps.Dispose(currentJobHandle);
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -158,7 +157,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             public VolumetricWorldNativeWritableHandle volumetricNativeWriter;
             public bool hasVolumetricDestruction;
             [ReadOnly]
-            public NativeArray<bool> volumetricDestructionFlags;
+            public NativeArray<float> volumetricDestructionTimestamps;
+            public float earliestValidDestructionCommand;
 
 
             // tmp Working memory
@@ -214,8 +214,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             // check for an operation which may have changed the position of the turtle
                             var turtlePosition = currentState.transformation.MultiplyPoint(Vector3.zero); // extract transformation
                             var voxelId = volumetricNativeWriter.GetVoxelIndexFromLocalSpace(turtlePosition);
-                            var shouldDestroy = volumetricDestructionFlags[voxelId];
-                            if (shouldDestroy)
+                            var lastDestroyCommandTime = volumetricDestructionTimestamps[voxelId];
+                            if (lastDestroyCommandTime >= earliestValidDestructionCommand)
                             {
                                 symbols[symbolIndex] = customRules.autophagicSymbol;
                                 // skip over this whole branching structure
