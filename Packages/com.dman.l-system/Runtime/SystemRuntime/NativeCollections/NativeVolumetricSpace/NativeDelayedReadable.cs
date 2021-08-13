@@ -41,6 +41,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
         {
             this.dataWriterDependencies = JobHandle.CombineDependencies(writer, dataWriterDependencies);
         }
+
         public void RegisterReadingDependency(JobHandle reader)
         {
             this.dataReaderDependencies = JobHandle.CombineDependencies(reader, dataReaderDependencies);

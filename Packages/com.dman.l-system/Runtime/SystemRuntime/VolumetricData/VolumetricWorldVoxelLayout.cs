@@ -11,6 +11,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public Vector3 voxelSize => new Vector3(worldSize.x / worldResolution.x, worldSize.y / worldResolution.y, worldSize.z / worldResolution.z);
 
         public int totalVolumeDataSize => worldResolution.x * worldResolution.y * worldResolution.z;
+        public int totalSurfaceDataSize => worldResolution.x * worldResolution.z;
 
         public int GetDataIndexFromWorldPosition(Vector3 worldPosition)
         {
@@ -58,6 +59,53 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             var z = index % worldResolution.z;
 
             return new Vector3Int(x, y, z);
+        }
+
+
+
+        public int SurfaceGetDataIndexFromWorldPosition(Vector3 worldPosition)
+        {
+            return SurfaceGetDataIndexFromCoordinates(SurfaceGetSurfaceCoordinates(worldPosition));
+        }
+        public Vector2 SurfaceGetTilePositionFromDataIndex(int dataIndex)
+        {
+            return SurfaceToCenterOfTile(SurfaceGetCoordinatesFromDataIndex(dataIndex));
+        }
+
+        public Vector2Int SurfaceGetSurfaceCoordinates(Vector3 worldPosition)
+        {
+            var relativePos = (worldPosition - voxelOrigin);
+
+            var coord = new Vector2Int(
+                Mathf.FloorToInt(relativePos.x * worldResolution.x / worldSize.x),
+                Mathf.FloorToInt(relativePos.z * worldResolution.z / worldSize.z)
+                );
+
+            return coord;
+        }
+
+        public int SurfaceGetDataIndexFromCoordinates(Vector2Int coordiantes)
+        {
+            if (coordiantes.x < 0 || coordiantes.x >= worldResolution.x ||
+                coordiantes.y < 0 || coordiantes.y >= worldResolution.z)
+            {
+                return -1;
+            }
+            return coordiantes.x * worldResolution.z + coordiantes.y;
+        }
+
+        public Vector2 SurfaceToCenterOfTile(Vector2Int coordinate)
+        {
+            var voxelPoint = CoordinateToCenterOfVoxel(new Vector3Int(coordinate.x, 0, coordinate.y));
+            return new Vector2(voxelPoint.x, voxelPoint.z);
+        }
+
+        public Vector2Int SurfaceGetCoordinatesFromDataIndex(int index)
+        {
+            var x = index / worldResolution.z;
+            var y = index % worldResolution.z;
+
+            return new Vector2Int(x, y);
         }
     }
 }

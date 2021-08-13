@@ -25,33 +25,44 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         /// </summary>
         public float timeDestructionCommandsStayActive = 2f;
 
+        public event Action onDamageDataUpdated;
+
         private NativeArray<float> volumetricDamageValues;
         private NativeArray<float> volumetricDestructionTimestamps;
-        private JobHandle? destructionFlagUpdateDependency;
+        public JobHandle? damageDataUpdateDependency { get; private set; }
         private JobHandle destructionFlagReadDependencies = default;
         private bool hasDamageChange;
         public OrganVolumetricWorld volumeWorld => GetComponent<OrganVolumetricWorld>();
 
         public float DamageAtVoxel(int voxelIndex)
         {
-            destructionFlagUpdateDependency?.Complete();
+            damageDataUpdateDependency?.Complete();
             return volumetricDamageValues[voxelIndex];
         }
 
         public void ApplyDamage(int voxelIndex, float damageAmount)
         {
-            destructionFlagUpdateDependency?.Complete();
-            hasDamageChange = true;
+            damageDataUpdateDependency?.Complete();
             volumetricDamageValues[voxelIndex] += damageAmount;
+            onDamageDataUpdated?.Invoke();
         }
 
         public NativeArray<float> GetDestructionCommandTimestampsReadOnly()
         {
-            if (destructionFlagUpdateDependency.HasValue)
+            if (damageDataUpdateDependency.HasValue)
             {
-                destructionFlagUpdateDependency?.Complete();
+                damageDataUpdateDependency?.Complete();
             }
             return volumetricDestructionTimestamps;
+        }
+
+        public NativeArray<float> GetDamageValuesReadonly()
+        {
+            if (damageDataUpdateDependency.HasValue)
+            {
+                damageDataUpdateDependency?.Complete();
+            }
+            return volumetricDamageValues;
         }
 
         public void RegisterReaderOfDestructionFlags(JobHandle readDependency)
@@ -62,7 +73,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         private void UpdateDestructionFlags()
         {
             hasDamageChange = false;
-            destructionFlagUpdateDependency?.Complete();
+            damageDataUpdateDependency?.Complete();
 
             var durability = volumeWorld.nativeVolumeData.openReadData;
 
@@ -75,8 +86,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 currentTime = Time.time
             };
 
-            destructionFlagUpdateDependency = updateJob.Schedule(durability.Length, 1000, destructionFlagReadDependencies);
-            volumeWorld.nativeVolumeData.RegisterReadingDependency(destructionFlagUpdateDependency.Value);
+            damageDataUpdateDependency = updateJob.Schedule(durability.Length, 1000, destructionFlagReadDependencies);
+            volumeWorld.nativeVolumeData.RegisterReadingDependency(damageDataUpdateDependency.Value);
+        }
+
+        private void DamageChanged()
+        {
+            hasDamageChange = true;
         }
 
         private void Awake()
@@ -84,8 +100,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             var voxelLayout = volumeWorld.voxelLayout;
             volumetricDamageValues = new NativeArray<float>(voxelLayout.totalVolumeDataSize, Allocator.Persistent);
             volumetricDestructionTimestamps = new NativeArray<float>(voxelLayout.totalVolumeDataSize, Allocator.Persistent);
-        }
 
+            onDamageDataUpdated += DamageChanged;
+        }
         private void Update()
         {
             if (hasDamageChange)
@@ -96,9 +113,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void OnDestroy()
         {
-            destructionFlagUpdateDependency?.Complete();
+            damageDataUpdateDependency?.Complete();
             volumetricDamageValues.Dispose();
             volumetricDestructionTimestamps.Dispose();
+
+            onDamageDataUpdated -= DamageChanged;
         }
 
         public void OnDrawGizmos()
@@ -108,7 +127,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 return;
             }
 
-            destructionFlagUpdateDependency?.Complete();
+            damageDataUpdateDependency?.Complete();
             var volumeWorld = GetComponent<OrganVolumetricWorld>();
             var voxelLayout = volumeWorld.voxelLayout;
             var voxelSize = voxelLayout.voxelSize;
