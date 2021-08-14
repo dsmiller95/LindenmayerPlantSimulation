@@ -30,8 +30,10 @@ MonoBehaviour:
     m_Scopes:
     - com.alelievr.node-graph-processor
     - com.dman.object-sets
+    - com.dman.reactive-variables
     - com.dman.scene-save-system
     - com.dman.utilities
+    - com.neuecc.unirx
     - com.openupm
     - com.syomus.proceduraltoolkit
     m_IsDefault: 0
@@ -47,8 +49,10 @@ MonoBehaviour:
       m_Scopes:
       - com.alelievr.node-graph-processor
       - com.dman.object-sets
+      - com.dman.reactive-variables
       - com.dman.scene-save-system
       - com.dman.utilities
+      - com.neuecc.unirx
       - com.openupm
       - com.syomus.proceduraltoolkit
       m_IsDefault: 0
@@ -59,8 +63,10 @@ MonoBehaviour:
     m_Scopes:
     - com.alelievr.node-graph-processor
     - com.dman.object-sets
+    - com.dman.reactive-variables
     - com.dman.scene-save-system
     - com.dman.utilities
+    - com.neuecc.unirx
     - com.openupm
     - com.syomus.proceduraltoolkit
     m_SelectedScopeIndex: 0

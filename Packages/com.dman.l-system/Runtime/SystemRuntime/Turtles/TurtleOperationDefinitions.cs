@@ -127,7 +127,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             if (volumetricValue != 0)
             {
                 var organCenter = meshTransform.MultiplyPoint(Vector3.zero);
-                volumetricNativeWriter.WriteVolumetricAmountToTarget(volumetricValue * scale, organCenter);
+                volumetricNativeWriter.WriteVolumetricAmountToTarget(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
             }
 
             var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];

@@ -172,8 +172,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             public TurtleState currentState;
 
-
-
             public void Execute()
             {
                 for (int symbolIndex = 0; symbolIndex < symbols.Length; symbolIndex++)
@@ -214,24 +212,27 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             // check for an operation which may have changed the position of the turtle
                             var turtlePosition = currentState.transformation.MultiplyPoint(Vector3.zero); // extract transformation
                             var voxelId = volumetricNativeWriter.GetVoxelIndexFromLocalSpace(turtlePosition);
-                            var lastDestroyCommandTime = volumetricDestructionTimestamps[voxelId];
-                            if (lastDestroyCommandTime >= earliestValidDestructionCommand)
+                            if(voxelId >= 0)
                             {
-                                symbols[symbolIndex] = customRules.autophagicSymbol;
-                                // skip over this whole branching structure
-                                var branchingDepth = 0;
-                                symbolIndex++;
-                                while (branchingDepth >= 0 && symbolIndex < symbols.Length)
+                                var lastDestroyCommandTime = volumetricDestructionTimestamps[voxelId];
+                                if (lastDestroyCommandTime >= earliestValidDestructionCommand)
                                 {
-                                    var innerLoopSymbol = symbols[symbolIndex];
-                                    if(innerLoopSymbol == branchStartChar)
-                                    {
-                                        branchingDepth++;
-                                    }else if(innerLoopSymbol == branchEndChar)
-                                    {
-                                        branchingDepth--;
-                                    }
-                                    symbolIndex++;
+                                    symbols[symbolIndex] = customRules.autophagicSymbol;
+                                    // skip over this whole branching structure
+                                    //var branchingDepth = 0;
+                                    //symbolIndex++;
+                                    //while (branchingDepth >= 0 && symbolIndex < symbols.Length)
+                                    //{
+                                    //    var innerLoopSymbol = symbols[symbolIndex];
+                                    //    if(innerLoopSymbol == branchStartChar)
+                                    //    {
+                                    //        branchingDepth++;
+                                    //    }else if(innerLoopSymbol == branchEndChar)
+                                    //    {
+                                    //        branchingDepth--;
+                                    //    }
+                                    //    symbolIndex++;
+                                    //}
                                 }
                             }
                         }

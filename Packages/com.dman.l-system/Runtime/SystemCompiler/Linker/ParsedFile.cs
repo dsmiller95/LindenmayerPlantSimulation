@@ -87,7 +87,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public override IEnumerable<string> GetRulesWithReplacements(Dictionary<string, string> replacementDirectives)
         {
             IEnumerable<string> rulesPostReplacement = ruleLines;
-            foreach (var replacement in replacementDirectives)
+            foreach (var replacement in replacementDirectives.Reverse())
             {
                 rulesPostReplacement = rulesPostReplacement.Select(x => x.Replace(replacement.Key, replacement.Value));
             }

@@ -4,6 +4,7 @@ using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
@@ -31,7 +32,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
 
         public TurtleInterpretor(
-            TurtleOperationSet[] operationSets,
+            List<TurtleOperationSet> operationSets,
             TurtleState defaultState,
             LinkedFileSet linkedFiles,
             CustomRuleSymbols customSymbols,

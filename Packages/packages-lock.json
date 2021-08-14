@@ -57,6 +57,15 @@
         "com.alelievr.node-graph-processor": "1.0.1"
       }
     },
+    "com.dman.reactive-variables": {
+      "version": "0.1.4",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.neuecc.unirx": "7.1.0"
+      },
+      "url": "https://package.openupm.com"
+    },
     "com.dman.scene-save-system": {
       "version": "0.1.2",
       "depth": 0,
@@ -70,6 +79,13 @@
     "com.dman.utilities": {
       "version": "0.3.12",
       "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://package.openupm.com"
+    },
+    "com.neuecc.unirx": {
+      "version": "7.1.0",
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"

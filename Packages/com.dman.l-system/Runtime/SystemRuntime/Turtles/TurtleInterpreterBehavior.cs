@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.UnityObjects;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.DOTSRenderer
@@ -14,7 +15,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// <summary>
         /// a set of valid operations, only one operation defintion can be generated per symbol
         /// </summary>
-        public TurtleOperationSet[] operationSets;
+        public List<TurtleOperationSet> operationSets;
         /// <summary>
         /// the begining scale of the turtle's transformation matrix
         /// </summary>
@@ -87,6 +88,11 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
             if (systemObject == null)
             {
+                return;
+            }
+            if(!operationSets.Any(x => x is TurtleMeshOperations))
+            {
+                // don't create an interpretor if there are no meshes. no point.
                 return;
             }
             if (systemObject.compiledSystem == null)

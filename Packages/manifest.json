@@ -48,7 +48,8 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.dman.reactive-variables": "0.1.4"
   },
   "scopedRegistries": [
     {
@@ -57,8 +58,10 @@
       "scopes": [
         "com.alelievr.node-graph-processor",
         "com.dman.object-sets",
+        "com.dman.reactive-variables",
         "com.dman.scene-save-system",
         "com.dman.utilities",
+        "com.neuecc.unirx",
         "com.openupm",
         "com.syomus.proceduraltoolkit"
       ]

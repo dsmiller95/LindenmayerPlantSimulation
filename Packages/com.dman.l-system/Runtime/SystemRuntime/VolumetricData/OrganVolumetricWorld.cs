@@ -1,18 +1,19 @@
-﻿using Dman.LSystem.SystemRuntime.CustomRules;
-using Dman.LSystem.SystemRuntime.GlobalCoordinator;
-using Dman.LSystem.SystemRuntime.LSystemEvaluator;
-using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
+    public enum GizmoOptions
+    {
+        NONE,
+        SELECTED,
+        ALWAYS
+    }
+
     public class OrganVolumetricWorld : MonoBehaviour
     {
         public Vector3 voxelOrigin => transform.position;
@@ -22,7 +23,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public Gradient heatmapGradient;
 
-        public bool gizmos = true;
+        public GizmoOptions gizmos = GizmoOptions.SELECTED;
+        public bool wireCellGizmos = false;
+        public bool amountVisualizedGizmos = true;
 
         public VolumetricWorldVoxelLayout voxelLayout => new VolumetricWorldVoxelLayout
         {
@@ -129,13 +132,28 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void OnDrawGizmosSelected()
         {
-            if (!gizmos)
+            if (gizmos == GizmoOptions.SELECTED)
+            {
+                DrawGizmos();
+            }
+        }
+        private void OnDrawGizmos()
+        {
+            if (gizmos == GizmoOptions.ALWAYS)
+            {
+                DrawGizmos();
+            }
+        }
+
+        private void DrawGizmos()
+        {
+            if(!wireCellGizmos && !amountVisualizedGizmos)
             {
                 return;
             }
 
             var maxAmount = 1f;
-            if(nativeVolumeData != null)
+            if (nativeVolumeData != null)
             {
                 nativeVolumeData.dataReaderDependencies.Complete();
                 for (int i = 0; i < nativeVolumeData.openReadData.Length; i++)
@@ -143,7 +161,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     var val = nativeVolumeData.openReadData[i];
                     maxAmount = Mathf.Max(val, maxAmount);
                 }
-            }else
+            }
+            else
             {
                 maxAmount = (Vector3.one / 4f).sqrMagnitude;
             }
@@ -158,21 +177,31 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                         var voxelCoordinate = new Vector3Int(x, y, z);
                         var cubeCenter = voxelLayout.CoordinateToCenterOfVoxel(voxelCoordinate);
 
-                        float amount;
-                        if(nativeVolumeData != null)
+                        if (amountVisualizedGizmos)
                         {
-                            amount = nativeVolumeData.openReadData[voxelLayout.GetDataIndexFromCoordinates(voxelCoordinate)] / maxAmount;
-                        }else
-                        {
-                            var xScaled = ((voxelCoordinate.x + 0.5f) / (float)worldResolution.x) - 0.5f;
-                            var yScaled = ((voxelCoordinate.y + 0.5f) / (float)worldResolution.y) - 0.5f;
-                            var zScaled = ((voxelCoordinate.z + 0.5f) / (float)worldResolution.z) - 0.5f;
+                            float amount;
+                            if (nativeVolumeData != null)
+                            {
+                                amount = nativeVolumeData.openReadData[voxelLayout.GetDataIndexFromCoordinates(voxelCoordinate)] / maxAmount;
+                            }
+                            else
+                            {
+                                var xScaled = ((voxelCoordinate.x + 0.5f) / (float)worldResolution.x) - 0.5f;
+                                var yScaled = ((voxelCoordinate.y + 0.5f) / (float)worldResolution.y) - 0.5f;
+                                var zScaled = ((voxelCoordinate.z + 0.5f) / (float)worldResolution.z) - 0.5f;
 
-                            amount = (maxAmount - new Vector3(xScaled, yScaled, zScaled).sqrMagnitude) / maxAmount;
+                                amount = (maxAmount - new Vector3(xScaled, yScaled, zScaled).sqrMagnitude) / maxAmount;
+                            }
+
+                            Gizmos.color = heatmapGradient.Evaluate(amount);
+                            Gizmos.DrawCube(cubeCenter, voxelSize * 0.7f);
                         }
 
-                        Gizmos.color = heatmapGradient.Evaluate(amount);
-                        Gizmos.DrawCube(cubeCenter, voxelSize * 0.7f);
+                        if (wireCellGizmos)
+                        {
+                            Gizmos.color = new Color(1, 0, 0, 1);
+                            Gizmos.DrawWireCube(cubeCenter, voxelSize);
+                        }
                     }
                 }
             }

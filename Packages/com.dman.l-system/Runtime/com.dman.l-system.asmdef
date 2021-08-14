@@ -9,7 +9,8 @@
         "Unity.Jobs",
         "ProceduralToolkit",
         "SceneSaveSystem",
-        "ObjectSets"
+        "ObjectSets",
+        "ReactiveVariables"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
