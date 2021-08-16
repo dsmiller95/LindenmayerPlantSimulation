@@ -12,7 +12,8 @@
         "ObjectSets",
         "ReactiveVariables",
         "Unity.Entities",
-        "Unity.Entities.Hybrid"
+        "Unity.Entities.Hybrid",
+        "Unity.Transforms"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

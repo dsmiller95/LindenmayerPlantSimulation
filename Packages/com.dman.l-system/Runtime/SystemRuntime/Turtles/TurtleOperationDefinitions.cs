@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.UnityObjects;
 using System.Runtime.InteropServices;
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -16,6 +17,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         /// organ addition operation
         /// </summary>
         [FieldOffset(1)] public TurtleMeshOperation meshOperation;
+        /// <summary>
+        /// ECS entity spawning operation
+        /// </summary>
+        [FieldOffset(1)] public TurtleInstantiateEntityOperator instantiateOperator;
         /// <summary>
         /// bend towards operations
         /// </summary>
@@ -41,7 +46,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
             NativeList<TurtleOrganInstance> targetOrganInstances,
-            VolumetricWorldNativeWritableHandle volumetricNativeWriter)
+            VolumetricWorldNativeWritableHandle volumetricNativeWriter,
+            EntityCommandBuffer spawningEntityBuffer)
         {
             switch (operationType)
             {
@@ -50,6 +56,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     break;
                 case TurtleOperationType.ADD_ORGAN:
                     meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricNativeWriter);
+                    break;
+                case TurtleOperationType.INSTANTIATE_ENTITY:
+                    instantiateOperator.Operate(ref currentState, indexInString, sourceString, spawningEntityBuffer, volumetricNativeWriter.localToWorldTransformation);
                     break;
                 case TurtleOperationType.ROTATE:
                     rotationOperation.Operate(ref currentState, indexInString, sourceString);
@@ -71,6 +80,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     {
         BEND_TOWARDS,
         ADD_ORGAN,
+        INSTANTIATE_ENTITY,
         ROTATE,
         SCALE_TRANSFORM,
         SCALE_THICCNESS

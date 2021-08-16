@@ -10,13 +10,14 @@ namespace Dman.LSystem.UnityObjects
     /// <summary>
     /// used to instantiate all game objects which could be used by the turtle entity spawning system
     /// </summary>
-    public class TurtleSpawnEntitiesInstantiator : MonoBehaviour, IConvertGameObjectToEntity
+    public class TurtleSpawnEntitiesInstantiator : MonoBehaviour
     {
         public static TurtleSpawnEntitiesInstantiator instance;
 
         public TurtleSpawnData[] spawnableEntityPrefabs;
 
         private Dictionary<int, Entity> entitiesByGoInstanceId;
+
 
         public Entity GetEntityPrefab(TurtleSpawnData spawnablePrefab)
         {
@@ -27,19 +28,36 @@ namespace Dman.LSystem.UnityObjects
             throw new System.Exception($"spawnable prefab {spawnablePrefab} not registered with the turtle spawn entities instantiator");
         }
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        private void Awake()
         {
+            instance = this;
             entitiesByGoInstanceId = new Dictionary<int, Entity>();
             using (BlobAssetStore assetStore = new BlobAssetStore())
             {
                 foreach (var spawnableEntity in spawnableEntityPrefabs)
                 {
                     var prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(spawnableEntity.gameObject,
-                        GameObjectConversionSettings.FromWorld(dstManager.World, assetStore));
+                        GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, assetStore));
 
                     entitiesByGoInstanceId[spawnableEntity.gameObject.GetInstanceID()] = prefabEntity;
                 }
             }
         }
+
+        //public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        //{
+        //    instance = this;
+        //    entitiesByGoInstanceId = new Dictionary<int, Entity>();
+        //    using (BlobAssetStore assetStore = new BlobAssetStore())
+        //    {
+        //        foreach (var spawnableEntity in spawnableEntityPrefabs)
+        //        {
+        //            var prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(spawnableEntity.gameObject,
+        //                GameObjectConversionSettings.FromWorld(dstManager.World, assetStore));
+
+        //            entitiesByGoInstanceId[spawnableEntity.gameObject.GetInstanceID()] = prefabEntity;
+        //        }
+        //    }
+        //}
     }
 }

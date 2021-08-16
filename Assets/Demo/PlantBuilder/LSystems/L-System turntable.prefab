@@ -115,6 +115,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3a418bd9f015dd44896661013b5a06b8, type: 2}
   - {fileID: 11400000, guid: caa0d1550254aca44a1cd1f9b80ff461, type: 2}
   - {fileID: 11400000, guid: 9e78d0822b89e7741988e75f98478313, type: 2}
+  - {fileID: 11400000, guid: 276eecea73d8f0f428582c367f60e828, type: 2}
   initialScale: {x: 0.3, y: 0.3, z: 0.3}
   submeshIndexIncrementor: 96
 --- !u!1 &9089396037661369507

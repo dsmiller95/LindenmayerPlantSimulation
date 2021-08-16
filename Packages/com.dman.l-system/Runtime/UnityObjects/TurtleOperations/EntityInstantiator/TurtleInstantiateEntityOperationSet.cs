@@ -1,5 +1,8 @@
 using Dman.LSystem.SystemRuntime.Turtle;
+using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -7,63 +10,81 @@ namespace Dman.LSystem.UnityObjects
     [System.Serializable]
     public class InstantiatableEntity
     {
+        public char characterToSpawnFrom;
         public TurtleSpawnData prefab;
     }
 
-    [CreateAssetMenu(fileName = "TurtleInstantiateObjectOperation", menuName = "LSystem/TurtleBendOperation")]
+    [CreateAssetMenu(fileName = "TurtleInstantiateEntity", menuName = "LSystem/TurtleInstantiateEntity")]
     public class TurtleInstantiateEntityOperationSet : TurtleOperationSet
     {
-        [Header("$(t, x, y, z): Bend towards the vector <x, y, z> by theta T")]
-        [Header("$(x, y, z): Bend towards the vector <x, y, z> by the default theta")]
-        [Header("$(t): Bend towards the default direction by t theta")]
-        [Header("$: Bend towards the default direction by the default theta")]
-        public char bendTowardsOperator = '$';
-        public Vector3 defaultBendDirection = Vector3.down;
-        [Range(0, 1)]
-        public float defaultBendFactor = 0.1f;
+
+        public InstantiatableEntity[] instantiatableEntities;
         public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
-            writer.operators.Add(new TurtleOperationWithCharacter
+            foreach (var instantiable in instantiatableEntities)
             {
-                characterInRootFile = bendTowardsOperator,
-                operation = new TurtleOperation
+                var entity = TurtleSpawnEntitiesInstantiator.instance.GetEntityPrefab(instantiable.prefab);
+
+                writer.operators.Add(new TurtleOperationWithCharacter
                 {
-                    operationType = TurtleOperationType.BEND_TOWARDS,
-                    bendTowardsOperation = new TurtleBendTowardsOperation
+                    characterInRootFile = instantiable.characterToSpawnFrom,
+                    operation = new TurtleOperation
                     {
-                        defaultBendDirection = defaultBendDirection.normalized,
-                        defaultBendFactor = defaultBendFactor
+                        operationType = TurtleOperationType.INSTANTIATE_ENTITY,
+                        instantiateOperator = new TurtleInstantiateEntityOperator
+                        {
+                            instantiableEntity = entity
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     }
-    public struct TurtleInstantiateOperator
+    public struct TurtleInstantiateEntityOperator
     {
-        public float3 defaultBendDirection;
-        public float defaultBendFactor;
+        public Entity instantiableEntity;
+
         public void Operate(
             ref TurtleState state,
             int indexInString,
-            SymbolString<float> sourceString)
+            SymbolString<float> sourceString,
+            EntityCommandBuffer spawningCommandBuffer,
+            Matrix4x4 localToWorldTransform)
         {
             var paramIndex = sourceString.parameters[indexInString];
-            float bendFactor = defaultBendFactor;
-            if (paramIndex.length == 1)
-            {
-                bendFactor = sourceString.parameters[paramIndex, 0];
-            }
-            var localBendDirection = state.transformation.inverse.MultiplyVector(defaultBendDirection);
-            var adjustment = (bendFactor) * (Vector3.Cross(localBendDirection, Vector3.right));
-            state.transformation *= Matrix4x4.Rotate(
-                Quaternion.Slerp(
-                    Quaternion.identity,
-                    Quaternion.FromToRotation(
-                        Vector3.right,
-                        localBendDirection),
-                    adjustment.magnitude
-                )
+
+            var spawned = spawningCommandBuffer.Instantiate(instantiableEntity);
+            var newbuffer = spawningCommandBuffer.SetBuffer<TurtleSpawnedParameters>(spawned);
+            var parameterSlice = sourceString.parameters.data.Slice(paramIndex.index, paramIndex.length);
+            newbuffer.CopyFrom(parameterSlice.SliceConvert<TurtleSpawnedParameters>());
+
+            var totalLocalToWorld = localToWorldTransform * state.transformation;
+            var rot = totalLocalToWorld.rotation;
+            Vector3 pos = totalLocalToWorld.GetColumn(3);
+
+            // Extract new local scale
+            Vector3 scale = new Vector3(
+                totalLocalToWorld.GetColumn(0).magnitude,
+                totalLocalToWorld.GetColumn(1).magnitude,
+                totalLocalToWorld.GetColumn(2).magnitude
             );
+            spawningCommandBuffer.SetComponent(instantiableEntity, new Rotation
+            {
+                Value = rot
+            });
+            spawningCommandBuffer.SetComponent(instantiableEntity, new Translation
+            {
+                Value = pos
+            });
+            spawningCommandBuffer.SetComponent(instantiableEntity, new NonUniformScale
+            {
+                Value = scale
+            });
+
+            //spawningCommandBuffer.SetComponent(instantiableEntity, new LocalToWorld
+            //{
+            //    Value = localToWorldTransform * state.transformation
+            //});
         }
     }
 

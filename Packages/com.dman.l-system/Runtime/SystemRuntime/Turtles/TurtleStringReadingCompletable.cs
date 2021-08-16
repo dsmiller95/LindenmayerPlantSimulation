@@ -5,6 +5,7 @@ using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -88,6 +89,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 destructionCommandTimestamps = new NativeArray<float>(0, Allocator.TempJob);
             }
 
+            var entitySpawningSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
+            var entitySpawnBuffer = entitySpawningSystem.CreateCommandBuffer();
+
             var turtleCompileJob = new TurtleCompilationJob
             {
                 symbols = symbols.Data,
@@ -96,6 +100,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 organInstances = organInstances,
                 newMeshSizeBySubmesh = newMeshSizeBySubmesh,
+                spawnEntityBuffer = entitySpawnBuffer,
 
                 nativeTurtleStack = tmpHelperStack,
 
@@ -110,11 +115,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 volumetricNativeWriter = nativeWritableHandle,
                 hasVolumetricDestruction = damageWorld != null,
                 volumetricDestructionTimestamps = destructionCommandTimestamps,
-                earliestValidDestructionCommand = Time.time - damageWorld.timeDestructionCommandsStayActive
+                earliestValidDestructionCommand = damageWorld != null ? Time.time - damageWorld.timeDestructionCommandsStayActive : -1
             };
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
-
+            entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
             damageWorld?.RegisterReaderOfDestructionFlags(currentJobHandle);
             volumeWriter.RegisterWriteDependency(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
@@ -152,6 +157,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             // Outputs
             public NativeList<TurtleOrganInstance> organInstances;
             public NativeArray<TurtleMeshAllocationCounter> newMeshSizeBySubmesh;
+            public EntityCommandBuffer spawnEntityBuffer;
 
             // volumetric info
             public VolumetricWorldNativeWritableHandle volumetricNativeWriter;
@@ -206,7 +212,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             symbols,
                             organData,
                             organInstances,
-                            volumetricNativeWriter);
+                            volumetricNativeWriter,
+                            spawnEntityBuffer);
                         if(hasVolumetricDestruction && customRules.hasAutophagy && operation.operationType == TurtleOperationType.ADD_ORGAN)
                         {
                             // check for an operation which may have changed the position of the turtle

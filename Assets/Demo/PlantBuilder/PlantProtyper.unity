@@ -137,7 +137,7 @@ GameObject:
   - component: {fileID: 81936043}
   m_Layer: 0
   m_Name: Main Camera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -282,7 +282,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &175833465
 PrefabInstance:
@@ -362,7 +362,7 @@ GameObject:
   - component: {fileID: 188415251}
   m_Layer: 0
   m_Name: Main camera pivot
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -631,7 +631,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &361579406
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1623,7 +1623,7 @@ Transform:
   - {fileID: 199973300}
   - {fileID: 824380650}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1120870161
 PrefabInstance:
@@ -2058,7 +2058,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1621242208}
   - component: {fileID: 1621242207}
-  - component: {fileID: 1621242209}
   m_Layer: 0
   m_Name: Volumetric world
   m_TagString: Untagged
@@ -2124,29 +2123,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1621242209
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1621242206}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5752330e6370aa44bbb10b8183f16ed2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  drawGizmos: 1
-  timeDestructionCommandsStayActive: 2
-  regenerationPerSecondAsPercentOfDurability: 0.05
-  simulationSpeed:
-    DataSource: 0
-    ConstantValue: 0
-    Variable: {fileID: 0}
-    Instancer: {fileID: 0}
-    NamePath: 
 --- !u!1001 &1636506222
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2251,7 +2229,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1730022507
 PrefabInstance:
@@ -2711,11 +2689,11 @@ GameObject:
   - component: {fileID: 2022580464}
   m_Layer: 0
   m_Name: observe camera
-  m_TagString: MainCamera
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2022580463
 Transform:
   m_ObjectHideFlags: 0
@@ -2872,7 +2850,7 @@ Transform:
   - {fileID: 841256306}
   - {fileID: 1403260553}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2041754106
 GameObject:

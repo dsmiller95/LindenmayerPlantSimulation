@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using UnityEngine;
 
 using Unity.Entities;
+using Unity.Transforms;
 
 namespace Dman.LSystem.UnityObjects
 {

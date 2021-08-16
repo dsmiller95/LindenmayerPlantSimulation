@@ -5,6 +5,7 @@
 #matches @!`
 
 #define leafProbability 1
+#define flowerProbability .25
 
 #define defaultMaxWater 1000
 #define defaultMaxGlucose 20
@@ -40,8 +41,8 @@ S(x) -> a(x)S(x)
 P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> ~f(0)T(x - 1)
 P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> T(x)
 
-P(0.9) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)o(0)R(0)T(5)][-(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)o(0)R(0)T(5)]
-P(0.1) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> f(0)k(0)
+P(1 - flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)o(0)R(0)T(5)][-(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)o(0)R(0)T(5)]
+P(flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> f(0)k(0)
 
 
 
@@ -76,9 +77,13 @@ r(a, water, c, glucose, d, virility, e) < f(amt) : amt < stemCost && water >= 0.
 #define flowerCost 1
 #symbols k
 r(a, water, c, glucose, d, virility, e) < k(amt) : amt < flowerCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)k(amt + 0.05)
-										  k(amt) : amt >= flowerCost -> K
+										  k(amt) : amt >= flowerCost -> K(0)
 
-
+## P is a pollen entity spawned from flowers
+#symbols P
+K(x) : x < 10 -> K(x + 1)
+K(x) : x >= 10 -> K(0)P
+P -> 
 
 ## R is the resource visualizer
 #symbols R
