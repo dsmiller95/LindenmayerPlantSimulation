@@ -1,7 +1,10 @@
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.Turtle;
+using Dman.LSystem.SystemRuntime.VolumetricData;
 using ProceduralToolkit;
 using System.Linq;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -99,6 +102,101 @@ namespace Dman.LSystem.UnityObjects
                         }
                     }
                 });
+            }
+        }
+    }
+
+    public struct TurtleMeshOperation
+    {
+        public float3 extraNonUniformScaleForOrgan;
+        public bool doScaleMesh;
+        public bool scaleIsAdditional;
+        public bool isVolumetricScale;
+        public bool doApplyThiccness;
+        public JaggedIndexing organTemplateVariants;
+
+        public float volumetricValue;
+
+        public void Operate(
+            ref TurtleState state,
+            NativeArray<TurtleMeshAllocationCounter> meshSizeCounterPerSubmesh,
+            int indexInString,
+            SymbolString<float> sourceString,
+            NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
+            NativeList<TurtleOrganInstance> targetOrganInstances,
+            VolumetricWorldNativeWritableHandle volumetricNativeWriter)
+        {
+            var pIndex = sourceString.parameters[indexInString];
+
+            var meshTransform = state.transformation;
+
+            var selectedMeshIndex = 0;
+            if (organTemplateVariants.length > 1 && pIndex.length > 0)
+            {
+                var index = ((int)sourceString.parameters[pIndex, 0]) % organTemplateVariants.length;
+                selectedMeshIndex = index;
+            }
+            var selectedOrganIndex = organTemplateVariants.index + selectedMeshIndex;
+            var selectedOrgan = allOrgans[selectedOrganIndex];
+
+
+            var turtleTranslate = selectedOrgan.translation;
+            var scaleIndex = organTemplateVariants.length <= 1 ? 0 : 1;
+            float scale = 1f;
+            if (doScaleMesh && pIndex.length > scaleIndex)
+            {
+                scale = sourceString.parameters[pIndex, scaleIndex];
+                if (isVolumetricScale)
+                {
+                    scale = Mathf.Pow(scale, 1f / 3f);
+                }
+                var scaleVector = (scaleIsAdditional ? new float3(1, 1, 1) : new float3(0, 0, 0)) + (extraNonUniformScaleForOrgan * scale);
+
+                if (selectedOrgan.alsoMove)
+                {
+                    turtleTranslate.Scale(scaleVector);
+                }
+
+                meshTransform *= Matrix4x4.Scale(scaleVector);
+            }
+            if (doApplyThiccness)
+            {
+                meshTransform *= Matrix4x4.Scale(new Vector3(1, state.thickness, state.thickness));
+            }
+
+            if (volumetricValue != 0)
+            {
+                var organCenter = meshTransform.MultiplyPoint(Vector3.zero);
+                volumetricNativeWriter.WriteVolumetricAmountToTarget(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
+            }
+
+            var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];
+
+            var newOrganEntry = new TurtleOrganInstance
+            {
+                organIndexInAllOrgans = (ushort)selectedOrganIndex,
+                organTransform = meshTransform,
+                vertexMemorySpace = new JaggedIndexing
+                {
+                    index = meshSizeForSubmesh.totalVertexes,
+                    length = selectedOrgan.vertexes.length
+                },
+                trianglesMemorySpace = new JaggedIndexing
+                {
+                    index = meshSizeForSubmesh.totalTriangleIndexes,
+                    length = selectedOrgan.trianges.length
+                },
+                organIdentity = state.organIdentity
+            };
+            targetOrganInstances.Add(newOrganEntry);
+
+            meshSizeForSubmesh.totalVertexes += newOrganEntry.vertexMemorySpace.length;
+            meshSizeForSubmesh.totalTriangleIndexes += newOrganEntry.trianglesMemorySpace.length;
+            meshSizeCounterPerSubmesh[selectedOrgan.materialIndex] = meshSizeForSubmesh;
+
+            if (selectedOrgan.alsoMove)
+            {
+                state.transformation *= Matrix4x4.Translate(turtleTranslate);
             }
         }
     }

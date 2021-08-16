@@ -1,10 +1,11 @@
 using Dman.LSystem.SystemRuntime.Turtle;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {
     [CreateAssetMenu(fileName = "TurtleBendTowardsOperation", menuName = "LSystem/TurtleBendOperation")]
-    public class TurtleBendTowardsOperation : TurtleOperationSet
+    public class TurtleBendTowardsOperationSet : TurtleOperationSet
     {
         [Header("$(t, x, y, z): Bend towards the vector <x, y, z> by theta T")]
         [Header("$(x, y, z): Bend towards the vector <x, y, z> by the default theta")]
@@ -22,13 +23,41 @@ namespace Dman.LSystem.UnityObjects
                 operation = new TurtleOperation
                 {
                     operationType = TurtleOperationType.BEND_TOWARDS,
-                    bendTowardsOperation = new TurtleBendTowardsOperationNEW
+                    bendTowardsOperation = new TurtleBendTowardsOperation
                     {
                         defaultBendDirection = defaultBendDirection.normalized,
                         defaultBendFactor = defaultBendFactor
                     }
                 }
             });
+        }
+    }
+    public struct TurtleBendTowardsOperation
+    {
+        public float3 defaultBendDirection;
+        public float defaultBendFactor;
+        public void Operate(
+            ref TurtleState state,
+            int indexInString,
+            SymbolString<float> sourceString)
+        {
+            var paramIndex = sourceString.parameters[indexInString];
+            float bendFactor = defaultBendFactor;
+            if (paramIndex.length == 1)
+            {
+                bendFactor = sourceString.parameters[paramIndex, 0];
+            }
+            var localBendDirection = state.transformation.inverse.MultiplyVector(defaultBendDirection);
+            var adjustment = (bendFactor) * (Vector3.Cross(localBendDirection, Vector3.right));
+            state.transformation *= Matrix4x4.Rotate(
+                Quaternion.Slerp(
+                    Quaternion.identity,
+                    Quaternion.FromToRotation(
+                        Vector3.right,
+                        localBendDirection),
+                    adjustment.magnitude
+                )
+            );
         }
     }
 

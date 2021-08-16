@@ -1,4 +1,5 @@
 using Dman.LSystem.SystemRuntime.Turtle;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -102,6 +103,24 @@ namespace Dman.LSystem.UnityObjects
                     }
                 }
             });
+        }
+    }
+    public struct TurtleRotationOperation
+    {
+        public float3 unitEulerRotation;
+        public float defaultTheta;
+        public void Operate(
+            ref TurtleState state,
+            int indexInString,
+            SymbolString<float> sourceString)
+        {
+            var paramIndex = sourceString.parameters[indexInString];
+            float theta = defaultTheta;
+            if (paramIndex.length == 1)
+            {
+                theta = sourceString.parameters[paramIndex, 0];
+            }
+            state.transformation *= Matrix4x4.Rotate(Quaternion.Euler(theta * unitEulerRotation));
         }
     }
 }
