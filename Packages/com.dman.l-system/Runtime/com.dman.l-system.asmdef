@@ -10,7 +10,9 @@
         "ProceduralToolkit",
         "SceneSaveSystem",
         "ObjectSets",
-        "ReactiveVariables"
+        "ReactiveVariables",
+        "Unity.Entities",
+        "Unity.Entities.Hybrid"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
