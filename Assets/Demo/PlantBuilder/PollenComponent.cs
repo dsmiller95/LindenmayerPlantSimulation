@@ -8,5 +8,6 @@ namespace Assets.Demo.PlantBuilder
     public struct PollenComponent : IComponentData
     {
         public float lifespan;
+        public float totalLifespan;
     }
 }

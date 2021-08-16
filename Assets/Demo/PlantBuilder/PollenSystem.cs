@@ -25,13 +25,13 @@ namespace Assets.Demo.PlantBuilder
             random.NextFloat();
             var rand = random;
             Entities
-                .ForEach((Entity entity, int entityInQueryIndex, ref Translation position, ref Rotation rot, ref PollenComponent poll) =>
+                .ForEach((Entity entity, int entityInQueryIndex, ref Translation position, ref Rotation rot, ref NonUniformScale scale, ref PollenComponent poll) =>
             {
                 Quaternion rotation = rot.Value;
                 rotation *= Quaternion.Euler(
-                    rand.NextFloat(-1, 1) * time * 100,
-                    rand.NextFloat(-1, 1) * time * 100,
-                    rand.NextFloat(-1, 1) * time * 100);
+                    rand.NextFloat(-1, 1) * time * 360,
+                    rand.NextFloat(-1, 1) * time * 360,
+                    rand.NextFloat(-1, 1) * time * 360);
                 position.Value += (float3)(rotation * new float3(time, 0, 0));
                 rot.Value = rotation;
                 poll.lifespan -= time;
@@ -39,6 +39,9 @@ namespace Assets.Demo.PlantBuilder
                 {
                     ecb.DestroyEntity(entityInQueryIndex, entity);
                 }
+
+                var newScale = poll.lifespan / poll.totalLifespan;
+                scale.Value = new float3(newScale, newScale, newScale);
             }).ScheduleParallel();
 
             commandBufferSystem.AddJobHandleForProducer(this.Dependency);
