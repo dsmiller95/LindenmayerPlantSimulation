@@ -18,6 +18,7 @@ namespace Dman.LSystem.UnityObjects
     public class TurtleInstantiateEntityOperationSet : TurtleOperationSet
     {
 
+
         public InstantiatableEntity[] instantiatableEntities;
         public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
@@ -33,7 +34,8 @@ namespace Dman.LSystem.UnityObjects
                         operationType = TurtleOperationType.INSTANTIATE_ENTITY,
                         instantiateOperator = new TurtleInstantiateEntityOperator
                         {
-                            instantiableEntity = entity
+                            instantiableEntity = entity,
+                            prefabTransform = instantiable.prefab.transform.localToWorldMatrix
                         }
                     }
                 });
@@ -43,6 +45,7 @@ namespace Dman.LSystem.UnityObjects
     public struct TurtleInstantiateEntityOperator
     {
         public Entity instantiableEntity;
+        public Matrix4x4 prefabTransform;
 
         public void Operate(
             ref TurtleState state,
@@ -58,7 +61,8 @@ namespace Dman.LSystem.UnityObjects
             var parameterSlice = sourceString.parameters.data.Slice(paramIndex.index, paramIndex.length);
             newbuffer.CopyFrom(parameterSlice.SliceConvert<TurtleSpawnedParameters>());
 
-            var totalLocalToWorld = localToWorldTransform * state.transformation;
+            var totalLocalToWorld = localToWorldTransform * state.transformation * prefabTransform;
+
             var rot = totalLocalToWorld.rotation;
             Vector3 pos = totalLocalToWorld.GetColumn(3);
 

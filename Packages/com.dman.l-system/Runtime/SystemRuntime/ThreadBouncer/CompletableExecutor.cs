@@ -8,6 +8,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
     public class CompletableExecutor : MonoBehaviour
     {
         public static CompletableExecutor Instance { get; private set; }
+        public bool forceUpdates = true;
         private IList<CompletableHandle> PendingCompletables = new List<CompletableHandle>();
 
         public CompletableHandle<T> RegisterCompletable<T>(ICompletable<T> completable)
@@ -49,18 +50,21 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
                     i--;
                 }
             }
-            UnityEngine.Profiling.Profiler.BeginSample("Completable force step");
-            completablesToStep.Reverse();
-            foreach (var completableIndex in completablesToStep)
+            if (forceUpdates)
             {
-                var completable = PendingCompletables[completableIndex];
-                var shouldKeep = this.DoSafeStep(completable);
-                if (!shouldKeep)
+                UnityEngine.Profiling.Profiler.BeginSample("Completable force step");
+                completablesToStep.Reverse();
+                foreach (var completableIndex in completablesToStep)
                 {
-                    PendingCompletables.RemoveAt(completableIndex);
+                    var completable = PendingCompletables[completableIndex];
+                    var shouldKeep = this.DoSafeStep(completable);
+                    if (!shouldKeep)
+                    {
+                        PendingCompletables.RemoveAt(completableIndex);
+                    }
                 }
+                UnityEngine.Profiling.Profiler.EndSample();
             }
-            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         private bool DoSafeStep(CompletableHandle x)
