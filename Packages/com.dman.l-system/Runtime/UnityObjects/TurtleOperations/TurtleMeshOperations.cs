@@ -18,6 +18,8 @@ namespace Dman.LSystem.UnityObjects
         public Mesh[] MeshVariants;
         public Material material;
         public Vector3 IndividualScale;
+        [Tooltip("Force using the mesh's intrinsic origin as the root of this organ, instead of automatically shifting the origin based on the bounding box")]
+        public bool UseMeshOrigin = false;
 
         [Tooltip("Whether or not to scale the mesh based on an input parameter. Will accept the first parameter, unless mesh variants are used. In which case it will use the second parameter.")]
         public bool ParameterScale;
@@ -41,10 +43,18 @@ namespace Dman.LSystem.UnityObjects
             {
                 var newDraft = new MeshDraft(mesh);
                 var bounds = mesh.bounds;
-                newDraft.Move(Vector3.right * (-bounds.center.x + bounds.size.x / 2));
+                Vector3 translatePostMesh;
+                if (UseMeshOrigin)
+                {
+                    translatePostMesh = new Vector3((bounds.center.x + bounds.size.x / 2f) * IndividualScale.x, 0, 0);
+                }
+                else
+                {
+                    newDraft.Move(Vector3.right * (-bounds.center.x + bounds.size.x / 2));
+                    translatePostMesh = new Vector3(bounds.size.x * IndividualScale.x, 0, 0);
+                }
                 newDraft.Scale(IndividualScale);
 
-                var translatePostMesh = new Vector3(bounds.size.x * IndividualScale.x, 0, 0);
                 return new TurtleOrganTemplate(
                     newDraft,
                     material,

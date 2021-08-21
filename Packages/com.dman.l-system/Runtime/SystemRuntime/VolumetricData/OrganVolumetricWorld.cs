@@ -82,6 +82,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             {
                 if (writeHandle.newDataIsAvailable && writeHandle.writeDependency.IsCompleted)
                 {
+                    writeHandle.writeDependency.Complete();
                     var addSubJob = new NativeArrayAddSubtractJob
                     {
                         writeArray = this.nativeVolumeData.data,

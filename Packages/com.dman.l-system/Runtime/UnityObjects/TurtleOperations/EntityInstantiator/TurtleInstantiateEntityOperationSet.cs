@@ -80,10 +80,12 @@ namespace Dman.LSystem.UnityObjects
             {
                 Value = pos
             });
-            spawningCommandBuffer.SetComponent(instantiableEntity, new NonUniformScale
-            {
-                Value = scale
-            });
+
+            // scale is done a bit differently for everything. if scale changes are needed, read from the TurtleSpawnedParameters
+            //spawningCommandBuffer.SetComponent(instantiableEntity, new NonUniformScale
+            //{
+            //    Value = scale
+            //});
 
             //spawningCommandBuffer.SetComponent(instantiableEntity, new LocalToWorld
             //{

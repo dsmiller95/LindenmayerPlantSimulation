@@ -62,7 +62,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             return volumetricDestructionTimestamps;
         }
 
-        public NativeArray<float> GetDamageValuesReadonly()
+        public NativeArray<float> GetDamageValuesReadSafe()
         {
             if (damageDataUpdateDependency.HasValue)
             {
@@ -70,6 +70,19 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             }
             return volumetricDamageValues;
         }
+
+
+        public void RegisterDamageValuesWriter(JobHandle writer)
+        {
+            if (damageDataUpdateDependency.HasValue)
+            {
+                damageDataUpdateDependency?.Complete();
+            }
+            hasDamageChange = true;
+            damageDataUpdateDependency = writer;
+        }
+
+
 
         public void RegisterReaderOfDestructionFlags(JobHandle readDependency)
         {

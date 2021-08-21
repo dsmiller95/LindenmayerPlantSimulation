@@ -109,6 +109,11 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                 }
                 else if (symbol == branchCloseSymbol)
                 {
+                    if(branchSymbolParentStack.Count <= 0)
+                    {
+                        // uh oh. idk how this is happening but it is. probably related to the volumetric destruction and autophagy.
+                        break;
+                    }
                     var lastBranchState = branchSymbolParentStack.Pop();
                     currentNodeParent = lastBranchState.currentNodeParent;
                 }

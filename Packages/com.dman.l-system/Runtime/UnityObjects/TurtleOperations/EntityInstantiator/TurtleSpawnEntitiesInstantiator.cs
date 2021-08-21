@@ -17,7 +17,7 @@ namespace Dman.LSystem.UnityObjects
         public TurtleSpawnData[] spawnableEntityPrefabs;
 
         private Dictionary<int, Entity> entitiesByGoInstanceId;
-
+        private BlobAssetStore prefabAssetStore;
 
         public Entity GetEntityPrefab(TurtleSpawnData spawnablePrefab)
         {
@@ -32,16 +32,21 @@ namespace Dman.LSystem.UnityObjects
         {
             instance = this;
             entitiesByGoInstanceId = new Dictionary<int, Entity>();
-            using (BlobAssetStore assetStore = new BlobAssetStore())
+            prefabAssetStore?.Dispose();
+            prefabAssetStore = new BlobAssetStore();
+            foreach (var spawnableEntity in spawnableEntityPrefabs)
             {
-                foreach (var spawnableEntity in spawnableEntityPrefabs)
-                {
-                    var prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(spawnableEntity.gameObject,
-                        GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, assetStore));
+                var prefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(spawnableEntity.gameObject,
+                    GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, prefabAssetStore));
 
-                    entitiesByGoInstanceId[spawnableEntity.gameObject.GetInstanceID()] = prefabEntity;
-                }
+                entitiesByGoInstanceId[spawnableEntity.gameObject.GetInstanceID()] = prefabEntity;
             }
+        }
+
+        private void OnDestroy()
+        {
+            prefabAssetStore.Dispose();
+            prefabAssetStore = null;
         }
 
         //public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

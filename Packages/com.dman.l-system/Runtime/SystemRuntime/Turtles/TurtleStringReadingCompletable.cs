@@ -89,7 +89,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 destructionCommandTimestamps = new NativeArray<float>(0, Allocator.TempJob);
             }
 
-            var entitySpawningSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
+            var entitySpawningSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
             var entitySpawnBuffer = entitySpawningSystem.CreateCommandBuffer();
 
             var turtleCompileJob = new TurtleCompilationJob
