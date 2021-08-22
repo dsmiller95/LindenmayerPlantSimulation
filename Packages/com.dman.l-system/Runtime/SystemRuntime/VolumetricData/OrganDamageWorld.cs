@@ -94,10 +94,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             hasDamageChange = false;
             damageDataUpdateDependency?.Complete();
 
-            var durability = volumeWorld.nativeVolumeData.openReadData;
+            var voxelLayers = volumeWorld.nativeVolumeData.openReadData;
             var updateJob = new UpdatePlantDestructionFlags
             {
-                plantDurabilityValues = durability,
+                voxelLayerData = voxelLayers,
+                voxelLayout = volumeWorld.VoxelLayout,
 
                 volumetricDamageValues = volumetricDamageValues,
                 volumetricDestructionTimestamps = volumetricDestructionTimestamps,
@@ -105,17 +106,18 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 durabilityRegenerationFactor = Mathf.Exp(regenerationPerSecondAsPercentOfDurability * Time.deltaTime * simulationSpeed.CurrentValue) - 1
             };
 
-            damageDataUpdateDependency = updateJob.Schedule(durability.Length, 1000, destructionFlagReadDependencies);
+            damageDataUpdateDependency = updateJob.Schedule(voxelLayers.Length, 1000, destructionFlagReadDependencies);
             volumeWorld.nativeVolumeData.RegisterReadingDependency(damageDataUpdateDependency.Value);
         }
 
         private void RepairDamage()
         {
             damageDataUpdateDependency?.Complete();
-            var durability = volumeWorld.nativeVolumeData.openReadData;
+            var voxelLayers = volumeWorld.nativeVolumeData.openReadData;
             var dampenDamage = new DampenDamageJob
             {
-                plantDurabilityValues = durability,
+                voxelLayerData = voxelLayers,
+                voxelLayout = volumeWorld.VoxelLayout,
                 volumetricDamageValues = volumetricDamageValues,
                 durabilityRegenerationFactor = Mathf.Exp(regenerationPerSecondAsPercentOfDurability * Time.deltaTime * simulationSpeed.CurrentValue) - 1
             };
@@ -131,9 +133,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void Awake()
         {
-            var voxelLayout = volumeWorld.voxelLayout;
-            volumetricDamageValues = new NativeArray<float>(voxelLayout.totalVolumeDataSize, Allocator.Persistent);
-            volumetricDestructionTimestamps = new NativeArray<float>(voxelLayout.totalVolumeDataSize, Allocator.Persistent);
+            var voxelLayout = volumeWorld.VoxelLayout;
+            volumetricDamageValues = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.Persistent);
+            volumetricDestructionTimestamps = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.Persistent);
 
             onDamageDataUpdated += DamageChanged;
         }
@@ -167,17 +169,18 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
             damageDataUpdateDependency?.Complete();
             var volumeWorld = GetComponent<OrganVolumetricWorld>();
-            var voxelLayout = volumeWorld.voxelLayout;
+            var voxelLayout = volumeWorld.VoxelLayout;
             var voxelSize = voxelLayout.voxelSize;
-            var durabilityValues = volumeWorld.nativeVolumeData.openReadData;
+            var voxelLayerData = volumeWorld.nativeVolumeData.openReadData;
 
             Gizmos.color = new Color(1, 0, 0, 0.5f);
-            for (int i = 0; i < voxelLayout.totalVolumeDataSize; i++)
+            for (int voxelIndex = 0; voxelIndex < voxelLayout.totalVoxels; voxelIndex++)
             {
-                var cubeCenter = voxelLayout.GetWorldPositionFromDataIndex(i);
+                var cubeCenter = voxelLayout.GetWorldPositionFromVoxelIndex(voxelIndex);
 
-                var damage = volumetricDamageValues[i];
-                var durability = durabilityValues[i];
+                var damage = volumetricDamageValues[voxelIndex];
+                var layerDataIndex = voxelLayout.dataLayerCount * voxelIndex;
+                var durability = voxelLayerData[layerDataIndex];
 
                 var ratio = damage / durability;
 
@@ -193,14 +196,16 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
     public struct DampenDamageJob : IJobParallelFor
     {
         [ReadOnly]
-        public NativeArray<float> plantDurabilityValues;
+        public NativeArray<float> voxelLayerData;
+        public VolumetricWorldVoxelLayout voxelLayout;
         public NativeArray<float> volumetricDamageValues;
         public float durabilityRegenerationFactor;
 
-        public void Execute(int index)
+        public void Execute(int voxelIndex)
         {
-            var reductionAmount = plantDurabilityValues[index] * durabilityRegenerationFactor;
-            volumetricDamageValues[index] = math.max(volumetricDamageValues[index] - reductionAmount, 0);
+            var durabilityIndex = voxelIndex * voxelLayout.dataLayerCount;
+            var reductionAmount = voxelLayerData[durabilityIndex] * durabilityRegenerationFactor;
+            volumetricDamageValues[durabilityIndex] = math.max(volumetricDamageValues[durabilityIndex] - reductionAmount, 0);
         }
     }
 
@@ -211,7 +216,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
     public struct UpdatePlantDestructionFlags : IJobParallelFor
     {
         [ReadOnly]
-        public NativeArray<float> plantDurabilityValues;
+        public NativeArray<float> voxelLayerData;
+        public VolumetricWorldVoxelLayout voxelLayout;
 
         public NativeArray<float> volumetricDamageValues;
         public NativeArray<float> volumetricDestructionTimestamps;
@@ -219,21 +225,21 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public float durabilityRegenerationFactor;
 
 
-        public void Execute(int index)
+        public void Execute(int voxelIndex)
         {
             //volumetricDestructionFlags[index] = false;
-
-            var durability = plantDurabilityValues[index];
-            var damage = volumetricDamageValues[index];
+            var durabilityIndex = voxelIndex * voxelLayout.dataLayerCount;
+            var durability = voxelLayerData[durabilityIndex];
+            var damage = volumetricDamageValues[durabilityIndex];
 
             if (Unity.Burst.CompilerServices.Hint.Unlikely(damage > 0 && damage > durability))
             {
-                volumetricDestructionTimestamps[index] = currentTime;
-                volumetricDamageValues[index] = 0f;
+                volumetricDestructionTimestamps[durabilityIndex] = currentTime;
+                volumetricDamageValues[durabilityIndex] = 0f;
             }else
             {
-                var reductionAmount = plantDurabilityValues[index] * durabilityRegenerationFactor;
-                volumetricDamageValues[index] = math.max(volumetricDamageValues[index] - reductionAmount, 0);
+                var reductionAmount = voxelLayerData[durabilityIndex] * durabilityRegenerationFactor;
+                volumetricDamageValues[durabilityIndex] = math.max(volumetricDamageValues[durabilityIndex] - reductionAmount, 0);
             }
         }
     }

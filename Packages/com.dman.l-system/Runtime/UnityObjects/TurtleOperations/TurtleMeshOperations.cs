@@ -177,7 +177,7 @@ namespace Dman.LSystem.UnityObjects
             if (volumetricValue != 0)
             {
                 var organCenter = meshTransform.MultiplyPoint(Vector3.zero);
-                volumetricNativeWriter.WriteVolumetricAmountToTarget(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
+                volumetricNativeWriter.WriteVolumetricDurabilityToTarget(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
             }
 
             var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];

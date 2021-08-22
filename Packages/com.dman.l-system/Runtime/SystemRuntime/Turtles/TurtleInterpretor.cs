@@ -26,7 +26,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         
         private OrganVolumetricWorld volumetricWorld;
-        private VolumetricWorldWritableHandle volumeWriterHandle;
+        private VolumetricWorldModifierHandle volumeWriterHandle;
 
         private OrganDamageWorld damageWorld;
 

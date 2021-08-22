@@ -1105,6 +1105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13f22b6bead9693448dd3211023321b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  forceUpdates: 1
 --- !u!4 &717238350
 Transform:
   m_ObjectHideFlags: 0
@@ -2108,9 +2109,12 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 7
     m_NumAlphaKeys: 4
-  gizmos: 1
+  gizmos: 2
+  layerToRender: 1
   wireCellGizmos: 0
   amountVisualizedGizmos: 1
+  extraLayers:
+  - {fileID: 11400000, guid: 2d1689397daf99c4e9821e7d05b45178, type: 2}
 --- !u!4 &1621242208
 Transform:
   m_ObjectHideFlags: 0

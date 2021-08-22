@@ -1,6 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.UnityObjects;
+using Dman.LSystem.UnityObjects.VolumetricResource;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Entities;
@@ -33,11 +34,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         /// scale operation
         /// </summary>
         [FieldOffset(1)] public TurtleScaleOperation scaleOperation;
-
         /// <summary>
         /// rotate operation
         /// </summary>
         [FieldOffset(1)] public TurtleRotationOperation rotationOperation;
+
+        /// <summary>
+        /// rotate operation
+        /// </summary>
+        [FieldOffset(1)] public TurtleDiffuseVolumetricResource volumetricDiffusionOperation;
 
         public void Operate(
             ref TurtleState currentState,
@@ -47,6 +52,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
             NativeList<TurtleOrganInstance> targetOrganInstances,
             VolumetricWorldNativeWritableHandle volumetricNativeWriter,
+            NativeArray<float> volumetricDataArray,
             EntityCommandBuffer spawningEntityBuffer)
         {
             switch (operationType)
@@ -69,6 +75,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 case TurtleOperationType.SCALE_THICCNESS:
                     thiccnessOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
+                case TurtleOperationType.VOLUMETRIC_RESOURCE:
+                    volumetricDiffusionOperation.Operate(ref currentState, indexInString, sourceString, volumetricNativeWriter, volumetricDataArray);
+                    break;
                 default:
                     break;
             }
@@ -83,6 +92,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         INSTANTIATE_ENTITY,
         ROTATE,
         SCALE_TRANSFORM,
-        SCALE_THICCNESS
+        SCALE_THICCNESS,
+        VOLUMETRIC_RESOURCE
     }
 }

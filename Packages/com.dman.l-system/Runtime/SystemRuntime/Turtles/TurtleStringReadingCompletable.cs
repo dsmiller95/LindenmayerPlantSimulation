@@ -60,7 +60,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int branchEndChar,
             TurtleState defaultState,
             CustomRuleSymbols customSymbols,
-            VolumetricWorldWritableHandle volumeWriter,
+            VolumetricWorldModifierHandle volumeWriter,
             OrganDamageWorld damageWorld,
             Matrix4x4 localToWorldTransform)
         {
@@ -92,6 +92,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var entitySpawningSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
             var entitySpawnBuffer = entitySpawningSystem.CreateCommandBuffer();
 
+            var readableVolumetrics = volumeWriter.volumetricWorld.nativeVolumeData.openReadData;
+
             var turtleCompileJob = new TurtleCompilationJob
             {
                 symbols = symbols.Data,
@@ -112,6 +114,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 customRules = customSymbols,
 
+                volumetricLayerData = readableVolumetrics,
                 volumetricNativeWriter = nativeWritableHandle,
                 hasVolumetricDestruction = damageWorld != null,
                 volumetricDestructionTimestamps = destructionCommandTimestamps,
@@ -119,6 +122,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             };
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
+            volumeWriter.volumetricWorld.nativeVolumeData.RegisterReadingDependency(currentJobHandle);
             entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
             damageWorld?.RegisterReaderOfDestructionFlags(currentJobHandle);
             volumeWriter.RegisterWriteDependency(currentJobHandle);
@@ -161,6 +165,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             // volumetric info
             public VolumetricWorldNativeWritableHandle volumetricNativeWriter;
+            [ReadOnly]
+            public NativeArray<float> volumetricLayerData;
             public bool hasVolumetricDestruction;
             [ReadOnly]
             public NativeArray<float> volumetricDestructionTimestamps;
@@ -213,6 +219,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             organData,
                             organInstances,
                             volumetricNativeWriter,
+                            volumetricLayerData,
                             spawnEntityBuffer);
                         if(hasVolumetricDestruction && customRules.hasAutophagy && operation.operationType == TurtleOperationType.ADD_ORGAN)
                         {
@@ -225,21 +232,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                                 if (lastDestroyCommandTime >= earliestValidDestructionCommand)
                                 {
                                     symbols[symbolIndex] = customRules.autophagicSymbol;
-                                    // skip over this whole branching structure
-                                    //var branchingDepth = 0;
-                                    //symbolIndex++;
-                                    //while (branchingDepth >= 0 && symbolIndex < symbols.Length)
-                                    //{
-                                    //    var innerLoopSymbol = symbols[symbolIndex];
-                                    //    if(innerLoopSymbol == branchStartChar)
-                                    //    {
-                                    //        branchingDepth++;
-                                    //    }else if(innerLoopSymbol == branchEndChar)
-                                    //    {
-                                    //        branchingDepth--;
-                                    //    }
-                                    //    symbolIndex++;
-                                    //}
+                                    // TODO: can skipping over this whole branching structure work here? could save some time
                                 }
                             }
                         }

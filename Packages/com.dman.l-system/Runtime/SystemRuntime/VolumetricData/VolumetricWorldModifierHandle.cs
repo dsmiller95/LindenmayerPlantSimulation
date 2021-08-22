@@ -11,29 +11,40 @@ using UnityEngine.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
-    public class VolumetricWorldWritableHandle
+    public class VolumetricWorldModifierHandle
     {
-        public NativeArray<float> dataA;
-        public NativeArray<float> dataB;
+        public NativeArray<float> durabilityA;
+        public NativeArray<float> durabilityB;
+        public NativeList<LayerModificationCommand> modificationCommands;
+
         public JobHandle writeDependency;
         public bool newDataIsAvailable;
         public bool mostRecentDataInA;
         public bool isDisposed;
 
-        public NativeArray<float> newData => mostRecentDataInA ? dataA : dataB;
-        public NativeArray<float> oldData => mostRecentDataInA ? dataB : dataA;
+
+        public NativeArray<float> newDurability => mostRecentDataInA ? durabilityA : durabilityB;
+        public NativeArray<float> oldDurability => mostRecentDataInA ? durabilityB : durabilityA;
+
+
         public VolumetricWorldVoxelLayout voxelLayout;
 
-        public VolumetricWorldWritableHandle(VolumetricWorldVoxelLayout voxels)
+        public OrganVolumetricWorld volumetricWorld;
+
+        public VolumetricWorldModifierHandle(VolumetricWorldVoxelLayout voxels, OrganVolumetricWorld volumetricWorld)
         {
-            dataA = new NativeArray<float>(voxels.totalVolumeDataSize, Allocator.Persistent);
-            dataB = new NativeArray<float>(voxels.totalVolumeDataSize, Allocator.Persistent);
+            durabilityA = new NativeArray<float>(voxels.totalVoxels, Allocator.Persistent);
+            durabilityB = new NativeArray<float>(voxels.totalVoxels, Allocator.Persistent);
+            modificationCommands = new NativeList<LayerModificationCommand>(10, Allocator.Persistent);
             mostRecentDataInA = true;
 
             this.voxelLayout = voxels;
+            this.volumetricWorld = volumetricWorld;
         }
 
-        public VolumetricWorldNativeWritableHandle GenerateWritableHandleAndSwitchLatestData(Matrix4x4 localToWorldTransform, ref JobHandle dependency)
+        public VolumetricWorldNativeWritableHandle GenerateWritableHandleAndSwitchLatestData(
+            Matrix4x4 localToWorldTransform, 
+            ref JobHandle dependency)
         {
             UnityEngine.Profiling.Profiler.BeginSample("volume clearing");
             if (!newDataIsAvailable)
@@ -43,19 +54,25 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 mostRecentDataInA = !mostRecentDataInA;
                 newDataIsAvailable = true;
             }
-            var mostRecentVolumeData = mostRecentDataInA ? dataA : dataB;
+            var mostRecentVolumeData = mostRecentDataInA ? durabilityA : durabilityB;
             var volumeClearJob = new NativeArrayClearJob
             {
                 newValue = 0f,
                 writeArray = mostRecentVolumeData
             };
+            modificationCommands.Clear();
+
             dependency = JobHandle.CombineDependencies(dependency, writeDependency);
             dependency = volumeClearJob.Schedule(mostRecentVolumeData.Length, 10000, dependency);
             writeDependency = dependency;
 
             UnityEngine.Profiling.Profiler.EndSample();
 
-            return new VolumetricWorldNativeWritableHandle(mostRecentVolumeData, voxelLayout, localToWorldTransform);
+            return new VolumetricWorldNativeWritableHandle(
+                mostRecentVolumeData,
+                modificationCommands,
+                voxelLayout, 
+                localToWorldTransform);
         }
 
         public void RegisterWriteDependency(JobHandle newWriteDependency)
@@ -76,8 +93,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             }
             isDisposed = true;
             return JobHandle.CombineDependencies(
-                dataA.Dispose(inputDeps),
-                dataB.Dispose(inputDeps));
+                durabilityA.Dispose(inputDeps),
+                durabilityB.Dispose(inputDeps),
+                modificationCommands.Dispose(inputDeps));
         }
     }
 }

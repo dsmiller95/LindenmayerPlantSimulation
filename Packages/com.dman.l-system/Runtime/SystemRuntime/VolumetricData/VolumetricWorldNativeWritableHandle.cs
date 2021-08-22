@@ -13,13 +13,21 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
     public struct VolumetricWorldNativeWritableHandle
     {
-        public NativeArray<float> target;
+        public NativeArray<float> targetDurabilityData;
+        public NativeList<LayerModificationCommand> modificationCommandBuffer;
+
         public VolumetricWorldVoxelLayout voxelLayout;
         public Matrix4x4 localToWorldTransformation;
 
-        public VolumetricWorldNativeWritableHandle(NativeArray<float> target, VolumetricWorldVoxelLayout voxelDistribution, Matrix4x4 localToWorld)
+        public VolumetricWorldNativeWritableHandle(
+            NativeArray<float> targetDurabilityData,
+            NativeList<LayerModificationCommand> modificationCommandBuffer,
+            VolumetricWorldVoxelLayout voxelDistribution, 
+            Matrix4x4 localToWorld)
         {
-            this.target = target;
+            this.targetDurabilityData = targetDurabilityData;
+            this.modificationCommandBuffer = modificationCommandBuffer;
+
             this.voxelLayout = voxelDistribution;
             this.localToWorldTransformation = localToWorld;
         }
@@ -27,17 +35,31 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public int GetVoxelIndexFromLocalSpace(Vector3 localPosition)
         {
             var worldPosition = localToWorldTransformation.MultiplyPoint(localPosition);
-            return voxelLayout.GetDataIndexFromWorldPosition(worldPosition);
+            return voxelLayout.GetVoxelIndexFromWorldPosition(worldPosition);
+        }
+        public void AppentAmountChangeToLayer(Vector3 localPosition, float change, int layerIndex)
+        {
+            var voxelIndex = GetVoxelIndexFromLocalSpace(localPosition);
+            if (voxelIndex < 0)
+            {
+                return;
+            }
+            var resourceLayerIndex = voxelIndex * voxelLayout.dataLayerCount + layerIndex;
+            modificationCommandBuffer.Add(new LayerModificationCommand
+            {
+                resourceLayerIndex = resourceLayerIndex,
+                valueChange = change
+            });
         }
 
-        public void WriteVolumetricAmountToTarget(float amount, Vector3 localPosition)
+        public void WriteVolumetricDurabilityToTarget(float amount, Vector3 localPosition)
         {
             var indexInTarget = GetVoxelIndexFromLocalSpace(localPosition);
             if(indexInTarget < 0)
             {
                 return;
             }
-            target[indexInTarget] += amount;
+            targetDurabilityData[indexInTarget] += amount;
         }
     }
 }

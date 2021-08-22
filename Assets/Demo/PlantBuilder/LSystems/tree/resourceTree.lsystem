@@ -81,9 +81,13 @@ r(a, water, c, glucose, d, virility, e) < k(amt) : amt < flowerCost && water >= 
 
 ## P is a pollen entity spawned from flowers
 #symbols P
+## w is a "water" producing marker
+#symbols w
+
 K(x) : x < 10 -> K(x + 1)
-K(x) : x >= 10 -> K(0)P
+K(x) : x >= 10 -> K(0)Pw(1)
 P -> 
+w(x) -> 
 
 ## R is the resource visualizer
 #symbols R
