@@ -2078,8 +2078,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e92d9f010aaa80b4d96a176c8fdc1af4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldSize: {x: 30, y: 10, z: 30}
-  worldResolution: {x: 30, y: 10, z: 30}
+  worldSize: {x: 30, y: 20, z: 30}
+  worldResolution: {x: 15, y: 10, z: 15}
   heatmapGradient:
     serializedVersion: 2
     key0: {r: 0.03374013, g: 0.03374013, b: 0.03374013, a: 0}

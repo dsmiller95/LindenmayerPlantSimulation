@@ -16,7 +16,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         public bool diffuse;
         public float globalDiffusionConstant = 1;
 
-        public JobHandle ApplyLayerWideUpdate(VoxelWorldVolumetricLayerData data, float deltaTime, JobHandle dependecy)
+        public virtual void SetupInternalData()
+        {
+
+        }
+
+        public virtual JobHandle ApplyLayerWideUpdate(VoxelWorldVolumetricLayerData data, float deltaTime, JobHandle dependecy)
         {
             if (diffuse)
             {
@@ -25,21 +30,26 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             return dependecy;
         }
 
-        private JobHandle Diffuse(VoxelWorldVolumetricLayerData data, float deltaTime, JobHandle dependecy)
+        protected virtual JobHandle Diffuse(VoxelWorldVolumetricLayerData data, float deltaTime, JobHandle dependecy)
         {
             var voxelLayout = data.VoxelLayout;
-            var copiedData = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
+            var diffusionData = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
 
-            var copyInJob = new CopyVoxelToWorkingDataJob
+            var copyDiffuseInJob = new CopyVoxelToWorkingDataJob
             {
                 layerData = data,
-                targetData = copiedData,
+                targetData = diffusionData,
                 layerId = voxelLayerId
             };
 
-            dependecy = copyInJob.Schedule(copiedData.Length, 1000, dependecy);
+            dependecy = copyDiffuseInJob.Schedule(diffusionData.Length, 1000, dependecy);
 
-            var resultArray = VoxelAdjacencyDiffuser.ComputeDiffusion(voxelLayout, copiedData, deltaTime, globalDiffusionConstant, ref dependecy);
+            var resultArray = VoxelAdjacencyDiffuser.ComputeDiffusion(
+                voxelLayout, 
+                diffusionData,
+                deltaTime, 
+                globalDiffusionConstant, 
+                ref dependecy);
 
             var copyBackJob = new CopyWorkingDataToVoxels
             {
@@ -47,7 +57,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 sourceData = resultArray,
                 layerId = voxelLayerId
             };
-            dependecy = copyBackJob.Schedule(copiedData.Length, 1000, dependecy);
+            dependecy = copyBackJob.Schedule(diffusionData.Length, 1000, dependecy);
 
             resultArray.Dispose(dependecy);
 

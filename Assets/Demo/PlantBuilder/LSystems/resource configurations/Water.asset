@@ -15,4 +15,4 @@ MonoBehaviour:
   voxelLayerId: 1
   description: water resource
   diffuse: 1
-  globalDiffusionConstant: 0.2
+  globalDiffusionConstant: 0.5

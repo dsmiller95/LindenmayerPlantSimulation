@@ -55,18 +55,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             return writableHandle;
         }
 
-        //public int IndexForLayer(VolumetricResourceLayer layer)
-        //{
-        //    for (int i = 0; i < extraLayers.Length; i++)
-        //    {
-        //        if (extraLayers[i].myId == layer.myId)
-        //        {
-        //            return i + 1; // add 1, because durability is an exception at 0
-        //        }
-        //    }
-        //    return -1;
-        //}
-
         public JobHandle DisposeWritableHandle(VolumetricWorldModifierHandle handle)
         {
             if (handle.isDisposed)
@@ -85,6 +73,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent),
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent)
                 );
+            foreach (var layer in extraLayers)
+            {
+                layer.SetupInternalData();
+            }
         }
 
         private void Start()

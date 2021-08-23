@@ -10,8 +10,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
     /// <summary>
     /// this diffuser diffuses only to adjacent voxels. not as high quality as the kernel diffuser, but can handle
     ///     boundary conditions better.
+    /// Also allows for setting diffusion adjustments per-voxel, which allows for diffusion to be limited
+    ///     to certain volumes, defined by the voxel array
     /// </summary>
-    public class VoxelAdjacencyDiffuser
+    public class VoxelAdjacencyByVoxelConstantDiffuser
     {
         /// <summary>
         /// takes in a by-voxel data array. returns another array of the same format with the diffused results.
@@ -21,6 +23,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         public static NativeArray<float> ComputeDiffusion(
             VolumetricWorldVoxelLayout voxelLayout,
             NativeArray<float> inputArrayWithData,
+            NativeArray<float> diffusionConstantMultipliers,
+            float minimumDiffusionConstantMultiplier,
             float deltaTime,
             float diffusionConstant,
             ref JobHandle dependecy)
@@ -48,6 +52,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 sourceDiffusionValues = inputArrayWithData,
                 targetDiffusionValues = tmpSwapSpace,
 
+                diffusionConstantAdjusters = diffusionConstantMultipliers,
+                minimumDiffusionConstantMultiplier = minimumDiffusionConstantMultiplier,
+                maximumDiffsuionConstant = 1/7f,
+
                 adjacencyVectors = adjacencyVectors,
 
                 voxelLayout = voxelLayout,
@@ -70,6 +78,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             public NativeArray<float> targetDiffusionValues;
 
             [ReadOnly]
+            public NativeArray<float> diffusionConstantAdjusters;
+            public float minimumDiffusionConstantMultiplier;
+            public float maximumDiffsuionConstant;
+
+            [ReadOnly]
             public NativeArray<Vector3Int> adjacencyVectors;
 
             public VolumetricWorldVoxelLayout voxelLayout;
@@ -84,6 +97,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 };
                 var rootCoordiante = voxelLayout.GetCoordinatesFromVoxelIndex(voxelIndex);
                 var originalSelfValue = sourceDiffusionValues[voxelIndex.Value];
+                var selfDiffusionConstant = math.max(diffusionConstantAdjusters[voxelIndex.Value], minimumDiffusionConstantMultiplier) * diffusionConstant;
 
                 float newValue = originalSelfValue;
 
@@ -102,7 +116,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                     }
 
                     var sampleValue = sourceDiffusionValues[sampleIndex.Value];
-                    var diffusionAdjustment = diffusionConstant;
+                    var otherDiffusionConstantMultiplier = math.max(diffusionConstantAdjusters[sampleIndex.Value], minimumDiffusionConstantMultiplier);
+                    var diffusionAdjustment = math.min(selfDiffusionConstant * otherDiffusionConstantMultiplier, maximumDiffsuionConstant);
 
                     var diffuseAmount = (sampleValue - originalSelfValue) * diffusionAdjustment;
                     newValue += diffuseAmount;
