@@ -4,6 +4,7 @@ using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -32,7 +33,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             this.localToWorldTransformation = localToWorld;
         }
 
-        public int GetVoxelIndexFromLocalSpace(Vector3 localPosition)
+        public VoxelIndex GetVoxelIndexFromLocalSpace(Vector3 localPosition)
         {
             var worldPosition = localToWorldTransformation.MultiplyPoint(localPosition);
             return voxelLayout.GetVoxelIndexFromWorldPosition(worldPosition);
@@ -40,26 +41,26 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public void AppentAmountChangeToLayer(Vector3 localPosition, float change, int layerIndex)
         {
             var voxelIndex = GetVoxelIndexFromLocalSpace(localPosition);
-            if (voxelIndex < 0)
+            if (!voxelIndex.IsValid)
             {
                 return;
             }
-            var resourceLayerIndex = voxelIndex * voxelLayout.dataLayerCount + layerIndex;
             modificationCommandBuffer.Add(new LayerModificationCommand
             {
-                resourceLayerIndex = resourceLayerIndex,
+                layerIndex = layerIndex,
+                voxel = voxelIndex,
                 valueChange = change
             });
         }
 
         public void WriteVolumetricDurabilityToTarget(float amount, Vector3 localPosition)
         {
-            var indexInTarget = GetVoxelIndexFromLocalSpace(localPosition);
-            if(indexInTarget < 0)
+            var voxelIndex = GetVoxelIndexFromLocalSpace(localPosition);
+            if (!voxelIndex.IsValid)
             {
                 return;
             }
-            targetDurabilityData[indexInTarget] += amount;
+            targetDurabilityData[voxelIndex.Value] += amount;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.VolumetricData;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.LSystem.UnityObjects;
 using Dman.LSystem.UnityObjects.VolumetricResource;
 using System.Runtime.InteropServices;
@@ -52,7 +53,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
             NativeList<TurtleOrganInstance> targetOrganInstances,
             VolumetricWorldNativeWritableHandle volumetricNativeWriter,
-            NativeArray<float> volumetricDataArray,
+            VoxelWorldVolumetricLayerData volumetricDataArray,
             EntityCommandBuffer spawningEntityBuffer)
         {
             switch (operationType)

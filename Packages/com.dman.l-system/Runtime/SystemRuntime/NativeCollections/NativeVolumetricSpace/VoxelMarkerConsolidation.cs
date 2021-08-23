@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Dman.LSystem.SystemRuntime.VolumetricData;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+using System;
 using System.Linq;
 using System.Runtime.Serialization;
 using Unity.Burst;
@@ -18,15 +20,18 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
         public NativeArray<float> oldMarkerLevels;
 
         [NativeDisableParallelForRestriction]
-        public NativeArray<float> allBaseMarkers;
+        public VoxelWorldVolumetricLayerData allBaseMarkers;
 
         public int totalLayersInBase;
         public int markerLayerIndex;
 
-        public void Execute(int voxelIndex)
+        public void Execute(int index)
         {
-            var targetIndex = voxelIndex * totalLayersInBase + markerLayerIndex;
-            allBaseMarkers[targetIndex] = Mathf.Max(allBaseMarkers[targetIndex] + newMarkerLevels[voxelIndex] - oldMarkerLevels[voxelIndex], 0);
+            var voxelIndex = new VoxelIndex
+            {
+                Value = index
+            };
+            allBaseMarkers[voxelIndex, markerLayerIndex] = Mathf.Max(allBaseMarkers[voxelIndex, markerLayerIndex] + newMarkerLevels[index] - oldMarkerLevels[index], 0);
         }
     }
     public struct NativeArraySubtractNegativeProtectionJob : IJobParallelFor
@@ -35,14 +40,17 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
         public NativeArray<float> markerLevelsToRemove;
 
         [NativeDisableParallelForRestriction]
-        public NativeArray<float> allBaseMarkers;
+        public VoxelWorldVolumetricLayerData allBaseMarkers;
         public int totalLayersInBase;
         public int markerLayerIndex;
 
-        public void Execute(int voxelIndex)
+        public void Execute(int index)
         {
-            var targetIndex = voxelIndex * totalLayersInBase + markerLayerIndex;
-            allBaseMarkers[targetIndex] = Mathf.Max(allBaseMarkers[targetIndex] - markerLevelsToRemove[voxelIndex], 0);
+            var voxelIndex = new VoxelIndex
+            {
+                Value = index
+            };
+            allBaseMarkers[voxelIndex, markerLayerIndex] = Mathf.Max(allBaseMarkers[voxelIndex, markerLayerIndex] - markerLevelsToRemove[index], 0);
         }
     }
     [BurstCompile]

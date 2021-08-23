@@ -4,7 +4,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
     public struct LayerModificationCommand
     {
-        public int resourceLayerIndex;
+        public VoxelIndex voxel;
+        public int layerIndex;
         public float valueChange;
     }
 }

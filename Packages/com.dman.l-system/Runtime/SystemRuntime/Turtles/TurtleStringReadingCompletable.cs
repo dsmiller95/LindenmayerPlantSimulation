@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -92,7 +93,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var entitySpawningSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
             var entitySpawnBuffer = entitySpawningSystem.CreateCommandBuffer();
 
-            var readableVolumetrics = volumeWriter.volumetricWorld.nativeVolumeData.openReadData;
+            var readableVolumetrics = volumeWriter.volumetricWorld.NativeVolumeData.openReadData;
 
             var turtleCompileJob = new TurtleCompilationJob
             {
@@ -122,7 +123,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             };
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
-            volumeWriter.volumetricWorld.nativeVolumeData.RegisterReadingDependency(currentJobHandle);
+            volumeWriter.volumetricWorld.NativeVolumeData.RegisterReadingDependency(currentJobHandle);
             entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
             damageWorld?.RegisterReaderOfDestructionFlags(currentJobHandle);
             volumeWriter.RegisterWriteDependency(currentJobHandle);
@@ -166,7 +167,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             // volumetric info
             public VolumetricWorldNativeWritableHandle volumetricNativeWriter;
             [ReadOnly]
-            public NativeArray<float> volumetricLayerData;
+            public VoxelWorldVolumetricLayerData volumetricLayerData;
             public bool hasVolumetricDestruction;
             [ReadOnly]
             public NativeArray<float> volumetricDestructionTimestamps;
@@ -225,10 +226,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                         {
                             // check for an operation which may have changed the position of the turtle
                             var turtlePosition = currentState.transformation.MultiplyPoint(Vector3.zero); // extract transformation
-                            var voxelId = volumetricNativeWriter.GetVoxelIndexFromLocalSpace(turtlePosition);
-                            if(voxelId >= 0)
+                            var voxelIndex = volumetricNativeWriter.GetVoxelIndexFromLocalSpace(turtlePosition);
+                            if(voxelIndex.IsValid)
                             {
-                                var lastDestroyCommandTime = volumetricDestructionTimestamps[voxelId];
+                                var lastDestroyCommandTime = volumetricDestructionTimestamps[voxelIndex.Value];
                                 if (lastDestroyCommandTime >= earliestValidDestructionCommand)
                                 {
                                     symbols[symbolIndex] = customRules.autophagicSymbol;

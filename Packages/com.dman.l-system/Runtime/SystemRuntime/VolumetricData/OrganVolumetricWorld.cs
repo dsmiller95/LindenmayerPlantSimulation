@@ -1,4 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -40,7 +43,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public event Action volumeWorldChanged;
 
-        public NativeDelayedReadable nativeVolumeData { get; private set; }
+        public NativeDelayedReadable<VoxelWorldVolumetricLayerData> NativeVolumeData { get; private set; }
         private List<VolumetricWorldModifierHandle> writableHandles;
 
         public VolumetricWorldModifierHandle GetNewWritableHandle()
@@ -76,7 +79,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         private void Awake()
         {
             writableHandles = new List<VolumetricWorldModifierHandle>();
-            nativeVolumeData = new NativeDelayedReadable(VoxelLayout.totalDataSize, Allocator.Persistent);
+            NativeVolumeData = new NativeDelayedReadable<VoxelWorldVolumetricLayerData>(
+                new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent),
+                new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent)
+                );
         }
 
         private void Start()
@@ -88,13 +94,16 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         {
             if (anyChangeLastFrame)
             {
-                nativeVolumeData.CompleteAndForceCopy();
+                NativeVolumeData.CompleteAllDependencies();
+                NativeVolumeData.openReadData.CopyFrom(NativeVolumeData.data);
+
                 volumeWorldChanged?.Invoke();
             }
-            var dependency = this.nativeVolumeData.dataWriterDependencies;
+            var dependency = this.NativeVolumeData.dataWriterDependencies;
 
             anyChangeLastFrame = false;
             var voxelLayout = this.VoxelLayout;
+            // consolidate write handle's changes
             foreach (var writeHandle in writableHandles)
             {
                 if (writeHandle.newDataIsAvailable && writeHandle.writeDependency.IsCompleted)
@@ -102,7 +111,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     writeHandle.writeDependency.Complete();
                     var consolidationJob = new VoxelMarkerConsolidation
                     {
-                        allBaseMarkers = this.nativeVolumeData.data,
+                        allBaseMarkers = this.NativeVolumeData.data,
                         oldMarkerLevels = writeHandle.oldDurability,
                         newMarkerLevels = writeHandle.newDurability,
                         markerLayerIndex = 0,
@@ -113,7 +122,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     var commandPlaybackJob = new LayerModificationCommandPlaybackJob
                     {
                         commands = writeHandle.modificationCommands,
-                        dataArray = this.nativeVolumeData.data,
+                        dataArray = this.NativeVolumeData.data,
                         voxelLayout = voxelLayout
                     };
                     dependency = commandPlaybackJob.Schedule(dependency);
@@ -123,7 +132,14 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     anyChangeLastFrame = true;
                 }
             }
-            this.nativeVolumeData.RegisterWritingDependency(dependency);
+
+            // apply resource layer updates (EX diffusion)
+            foreach (var layer in extraLayers)
+            {
+                dependency = layer.ApplyLayerWideUpdate(this.NativeVolumeData.data, dependency);
+            }
+
+            this.NativeVolumeData.RegisterWritingDependency(dependency);
         }
 
         private void LateUpdate()
@@ -139,22 +155,22 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             }
             writableHandles.Clear();
             dep.Complete();
-            nativeVolumeData.Dispose();
-            nativeVolumeData = null;
+            NativeVolumeData.Dispose();
+            NativeVolumeData = null;
         }
 
         private JobHandle DisposeWritableHandleNoRemove(VolumetricWorldModifierHandle handle)
         {
-            var deps = JobHandle.CombineDependencies(handle.writeDependency, nativeVolumeData.dataWriterDependencies);
+            var deps = JobHandle.CombineDependencies(handle.writeDependency, NativeVolumeData.dataWriterDependencies);
             var subtractCleanupJob = new NativeArraySubtractNegativeProtectionJob
             {
-                allBaseMarkers = this.nativeVolumeData.data,
+                allBaseMarkers = this.NativeVolumeData.data,
                 markerLevelsToRemove = handle.newDurability,
                 markerLayerIndex = 0,
                 totalLayersInBase = VoxelLayout.dataLayerCount
             };
             deps = subtractCleanupJob.Schedule(VoxelLayout.totalVoxels, 1000, deps);
-            nativeVolumeData.RegisterWritingDependency(deps);
+            NativeVolumeData.RegisterWritingDependency(deps);
 
             return handle.Dispose(deps);
         }
@@ -190,13 +206,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
             var voxelLayout = this.VoxelLayout;
             var maxAmount = 1f;
-            if (nativeVolumeData != null)
+            if (NativeVolumeData != null)
             {
-                nativeVolumeData.dataReaderDependencies.Complete();
-                for (int voxelIndex = 0; voxelIndex < voxelLayout.totalVoxels; voxelIndex++)
+                NativeVolumeData.dataReaderDependencies.Complete();
+                for (VoxelIndex voxelIndex = default; voxelIndex.Value < voxelLayout.totalVoxels; voxelIndex.Value++)
                 {
-                    var layerDataIndex = voxelIndex * voxelLayout.dataLayerCount + layerToRender;
-                    var val = nativeVolumeData.openReadData[layerDataIndex];
+                    var val = NativeVolumeData.openReadData[voxelIndex, layerToRender];
                     maxAmount = Mathf.Max(val, maxAmount);
                 }
             }
@@ -217,10 +232,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                         if (amountVisualizedGizmos)
                         {
                             float amount;
-                            if (nativeVolumeData != null)
+                            if (NativeVolumeData != null)
                             {
-                                var layerDataIndex = voxelLayout.GetVoxelIndexFromCoordinates(voxelCoordinate) * voxelLayout.dataLayerCount + layerToRender;
-                                amount = nativeVolumeData.openReadData[layerDataIndex] / maxAmount;
+                                var voxelIndex = voxelLayout.GetVoxelIndexFromCoordinates(voxelCoordinate);
+                                amount = NativeVolumeData.openReadData[voxelIndex, layerToRender] / maxAmount;
                             }
                             else
                             {

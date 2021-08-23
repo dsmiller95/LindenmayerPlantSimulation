@@ -1,5 +1,7 @@
 using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.SystemRuntime.VolumetricData;
+using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -57,7 +59,7 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
             int indexInString,
             SymbolString<float> sourceString,
             VolumetricWorldNativeWritableHandle volumetricNativeWriter,
-            NativeArray<float> volumetricDataArray)
+            VoxelWorldVolumetricLayerData volumetricDataArray)
         {
             var paramIndex = sourceString.parameters[indexInString];
             if (diffusionDirection == OrganDiffusionDirection.PRODUCE && paramIndex.length == 1)

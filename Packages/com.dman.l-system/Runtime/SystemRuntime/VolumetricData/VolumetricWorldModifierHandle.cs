@@ -4,6 +4,7 @@ using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;

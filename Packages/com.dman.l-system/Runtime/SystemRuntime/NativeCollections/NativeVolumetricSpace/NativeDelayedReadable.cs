@@ -9,32 +9,27 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 {
-    public class NativeDelayedReadable :
+    public class NativeDelayedReadable<T> :
         IDisposable,
         INativeDisposable
+        where T : IDisposable, INativeDisposable 
     {
-        public NativeArray<float> openReadData;
-        public NativeArray<float> data;
+        public T openReadData;
+        public T data;
 
         public JobHandle dataWriterDependencies { get; private set; } = default;
         public JobHandle dataReaderDependencies { get; private set; } = default;
 
-        public bool IsCreated => data.IsCreated && openReadData.IsCreated;
-
-        private Allocator allocatorUsed;
-        public NativeDelayedReadable(int dataSize, Allocator allocator)
+        public NativeDelayedReadable(T openReadData, T writerData)
         {
-            allocatorUsed = allocator;
-            data = new NativeArray<float>(dataSize, allocator, NativeArrayOptions.ClearMemory);
-            openReadData = new NativeArray<float>(dataSize, allocator, NativeArrayOptions.ClearMemory);
+            data = writerData;
+            this.openReadData = openReadData;
         }
 
-        public void CompleteAndForceCopy()
+        public void CompleteAllDependencies()
         {
             dataWriterDependencies.Complete();
             dataReaderDependencies.Complete();
-
-            openReadData.CopyFrom(data);
         }
 
         public void RegisterWritingDependency(JobHandle writer)
