@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -6,6 +7,7 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 {
+    [BurstCompile]
     public struct CopyVoxelToWorkingDataJob : IJobParallelFor
     {
         [ReadOnly]
@@ -22,6 +24,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             targetData[voxelIndex.Value] = layerData[voxelIndex, layerId];
         }
     }
+    [BurstCompile]
     public struct CopyWorkingDataToVoxels : IJobParallelFor
     {
         [NativeDisableContainerSafetyRestriction]
