@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 {
+    /// <summary>
+    /// this diffuser uses a kernel to perform diffusion. this may perform better for higher-fidelity diffusion
+    ///     in which a wider gradient needs to be generated in only one pass
+    /// </summary>
     public class VoxelKernelDiffuser
     {
         /// <summary>

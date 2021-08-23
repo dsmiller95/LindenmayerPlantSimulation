@@ -39,7 +39,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
             dependecy = copyInJob.Schedule(copiedData.Length, 1000, dependecy);
 
-            var resultArray = VoxelKernelDiffuser.ComputeDiffusion(voxelLayout, copiedData, deltaTime, globalDiffusionConstant, ref dependecy);
+            var resultArray = VoxelAdjacencyDiffuser.ComputeDiffusion(voxelLayout, copiedData, deltaTime, globalDiffusionConstant, ref dependecy);
 
             var copyBackJob = new CopyWorkingDataToVoxels
             {
