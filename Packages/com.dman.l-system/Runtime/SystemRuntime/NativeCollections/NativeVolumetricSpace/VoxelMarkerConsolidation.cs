@@ -22,7 +22,6 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
         [NativeDisableParallelForRestriction]
         public VoxelWorldVolumetricLayerData allBaseMarkers;
 
-        public int totalLayersInBase;
         public int markerLayerIndex;
 
         public void Execute(int index)

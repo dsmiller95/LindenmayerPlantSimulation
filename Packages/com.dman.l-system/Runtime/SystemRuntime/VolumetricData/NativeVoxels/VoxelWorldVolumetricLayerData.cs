@@ -24,7 +24,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
         internal AtomicSafetyHandle m_Safety;
         [NativeSetClassTypeToNullOnSchedule] internal DisposeSentinel m_DisposeSentinel;
 #endif
-
+        public VolumetricWorldVoxelLayout VoxelLayout => voxelLayout;
         private VolumetricWorldVoxelLayout voxelLayout;
 
         public VoxelWorldVolumetricLayerData(VolumetricWorldVoxelLayout layout, Allocator allocator)

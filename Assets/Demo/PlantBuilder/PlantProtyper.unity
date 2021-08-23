@@ -2111,6 +2111,7 @@ MonoBehaviour:
     m_NumAlphaKeys: 4
   gizmos: 2
   layerToRender: 1
+  minValue: 0.1
   wireCellGizmos: 0
   amountVisualizedGizmos: 1
   extraLayers:

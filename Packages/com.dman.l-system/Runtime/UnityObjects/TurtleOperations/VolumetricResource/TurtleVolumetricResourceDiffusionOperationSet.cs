@@ -42,7 +42,7 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
                         volumetricDiffusionOperation = new TurtleDiffuseVolumetricResource
                         {
                             diffusionDirection = interactable.diffusionDirection,
-                            resourceLayerId = interactable.resourceLayer.voxelLayerId + 1
+                            resourceLayerId = interactable.resourceLayer.voxelLayerId
                         }
                     }
                 });

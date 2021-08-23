@@ -28,6 +28,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public GizmoOptions gizmos = GizmoOptions.SELECTED;
         public int layerToRender = 0;
+        [Range(0.01f, 10f)]
+        public float minValue = 0.01f;
         public bool wireCellGizmos = false;
         public bool amountVisualizedGizmos = true;
 
@@ -115,7 +117,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                         oldMarkerLevels = writeHandle.oldDurability,
                         newMarkerLevels = writeHandle.newDurability,
                         markerLayerIndex = 0,
-                        totalLayersInBase = voxelLayout.dataLayerCount
                     };
                     dependency = consolidationJob.Schedule(writeHandle.newDurability.Length, 1000, dependency);
 
@@ -136,7 +137,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             // apply resource layer updates (EX diffusion)
             foreach (var layer in extraLayers)
             {
-                dependency = layer.ApplyLayerWideUpdate(this.NativeVolumeData.data, dependency);
+                dependency = layer.ApplyLayerWideUpdate(this.NativeVolumeData.data, Time.deltaTime, dependency);
             }
 
             this.NativeVolumeData.RegisterWritingDependency(dependency);
@@ -205,7 +206,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             }
 
             var voxelLayout = this.VoxelLayout;
-            var maxAmount = 1f;
+            var maxAmount = minValue; // to help prevent lag when values are low
             if (NativeVolumeData != null)
             {
                 NativeVolumeData.dataReaderDependencies.Complete();
