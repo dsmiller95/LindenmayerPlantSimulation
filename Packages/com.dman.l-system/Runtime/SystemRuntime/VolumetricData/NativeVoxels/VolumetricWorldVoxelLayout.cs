@@ -44,11 +44,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             return coord;
         }
 
-        public VoxelIndex GetVoxelIndexFromCoordinates(Vector3Int coordiantes)
+        public VoxelIndex GetVoxelIndexFromCoordinates(int x, int y, int z)
         {
-            if (coordiantes.x < 0 || coordiantes.x >= worldResolution.x ||
-                coordiantes.y < 0 || coordiantes.y >= worldResolution.y ||
-                coordiantes.z < 0 || coordiantes.z >= worldResolution.z)
+            if (x < 0 || x >= worldResolution.x ||
+                y < 0 || y >= worldResolution.y ||
+                z < 0 || z >= worldResolution.z)
             {
                 return new VoxelIndex
                 {
@@ -57,8 +57,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             }
             return new VoxelIndex
             {
-                Value = (coordiantes.x * worldResolution.y + coordiantes.y) * worldResolution.z + coordiantes.z
+                Value = (x * worldResolution.y + y) * worldResolution.z + z
             };
+        }
+
+        public VoxelIndex GetVoxelIndexFromCoordinates(Vector3Int coordiantes)
+        {
+            return GetVoxelIndexFromCoordinates(coordiantes.x, coordiantes.y, coordiantes.z);
         }
 
         public Vector3 CoordinateToCenterOfVoxel(Vector3Int coordinate)

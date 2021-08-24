@@ -28,7 +28,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public GizmoOptions gizmos = GizmoOptions.SELECTED;
         public int layerToRender = 0;
-        [Range(0.01f, 10f)]
+        [Range(0.01f, 100f)]
         public float minValue = 0.01f;
         public bool wireCellGizmos = false;
         public bool amountVisualizedGizmos = true;
@@ -73,9 +73,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent),
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent)
                 );
+            var layout = VoxelLayout;
             foreach (var layer in extraLayers)
             {
-                layer.SetupInternalData();
+                layer.SetupInternalData(layout);
             }
         }
 
@@ -129,7 +130,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             // apply resource layer updates (EX diffusion)
             foreach (var layer in extraLayers)
             {
-                dependency = layer.ApplyLayerWideUpdate(this.NativeVolumeData.data, Time.deltaTime, dependency);
+                if(layer.ApplyLayerWideUpdate(this.NativeVolumeData.data, Time.deltaTime, ref dependency))
+                {
+                    anyChangeLastFrame = true;
+                }
             }
 
             this.NativeVolumeData.RegisterWritingDependency(dependency);
@@ -150,6 +154,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             dep.Complete();
             NativeVolumeData.Dispose();
             NativeVolumeData = null;
+
+            var layout = VoxelLayout;
+            foreach (var layer in extraLayers)
+            {
+                layer.CleanupInternalData(layout);
+            }
         }
 
         private JobHandle DisposeWritableHandleNoRemove(VolumetricWorldModifierHandle handle)

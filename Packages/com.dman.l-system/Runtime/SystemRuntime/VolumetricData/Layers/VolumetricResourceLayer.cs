@@ -16,18 +16,24 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         public bool diffuse;
         public float globalDiffusionConstant = 1;
 
-        public virtual void SetupInternalData()
+        public virtual void SetupInternalData(VolumetricWorldVoxelLayout layout)
+        {
+
+        }
+        public virtual void CleanupInternalData(VolumetricWorldVoxelLayout layout)
         {
 
         }
 
-        public virtual JobHandle ApplyLayerWideUpdate(VoxelWorldVolumetricLayerData data, float deltaTime, JobHandle dependecy)
+        public virtual bool ApplyLayerWideUpdate(VoxelWorldVolumetricLayerData data, float deltaTime, ref JobHandle dependecy)
         {
+            var changed = false;
             if (diffuse)
             {
                 dependecy = this.Diffuse(data, deltaTime, dependecy);
+                changed = true;
             }
-            return dependecy;
+            return changed;
         }
 
         protected virtual JobHandle Diffuse(VoxelWorldVolumetricLayerData data, float deltaTime, JobHandle dependecy)
