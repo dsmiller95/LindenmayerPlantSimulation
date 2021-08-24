@@ -15,10 +15,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public int Value;
 
         public bool IsValid => Value >= 0;
-
-        public static implicit operator VoxelIndex(int v)
+        public static VoxelIndex Invalid => new VoxelIndex(-1);
+        public static VoxelIndex Zero => new VoxelIndex(0);
+        public VoxelIndex(int value)
         {
-            throw new NotImplementedException();
+            this.Value = value;
         }
     }
     /// <summary>
@@ -28,5 +29,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
     {
         public int Value;
         public bool IsValid => Value >= 0;
+
+        public static TileIndex Invalid => new TileIndex(-1);
+        public static TileIndex Zero => new TileIndex(0);
+
+        public TileIndex(int value)
+        {
+            this.Value = value;
+        }
     }
 }

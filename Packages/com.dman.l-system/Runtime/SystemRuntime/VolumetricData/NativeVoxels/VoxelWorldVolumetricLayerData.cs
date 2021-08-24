@@ -48,7 +48,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             }
         }
 
-        public float this[VoxelIndex index, int layer = 0]
+        public float this[VoxelIndex index, int layer]
         {
             get
             {
@@ -91,8 +91,45 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 
         public JobHandle Dispose(JobHandle inputDeps)
         {
-            throw new NotImplementedException();
+            DisposeSentinel.Clear(ref m_DisposeSentinel);
+            var result = array.Dispose(inputDeps);
+            AtomicSafetyHandle.Release(m_Safety);
+            return result;
         }
+        public ReadOnly AsReadOnly()
+        {
+            return new ReadOnly(array.AsReadOnly(), m_Length, ref m_Safety, this.voxelLayout);
+        }
+
+        [NativeContainer]
+        [NativeContainerIsReadOnly]
+        public struct ReadOnly
+        {
+            [NativeDisableContainerSafetyRestriction]
+            private NativeArray<float>.ReadOnly array;
+            internal int m_Length;
+
+            internal AtomicSafetyHandle m_Safety;
+            public VolumetricWorldVoxelLayout VoxelLayout => voxelLayout;
+            private VolumetricWorldVoxelLayout voxelLayout;
+
+            internal ReadOnly(NativeArray<float>.ReadOnly array, int length, ref AtomicSafetyHandle safety, VolumetricWorldVoxelLayout voxelLayout)
+            {
+                this.array = array;
+                m_Length = length;
+                m_Safety = safety;
+                this.voxelLayout = voxelLayout;
+            }
+
+            public float this[VoxelIndex index, int layer]
+            {
+                get
+                {
+                    return array[index.Value * voxelLayout.dataLayerCount + layer];
+                }
+            }
+        }
+
     }
 
     internal sealed class VoxelWorldVolumetricLayerDataDebugView
