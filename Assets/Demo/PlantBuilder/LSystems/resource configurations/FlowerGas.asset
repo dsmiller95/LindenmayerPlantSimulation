@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b3d9b60db9ff5dd43b64071d607bb521, type: 3}
-  m_Name: Water
+  m_Name: FlowerGas
   m_EditorClassIdentifier: 
   voxelLayerId: 1
-  description: water resource
+  description: gas released from flowers
   diffuse: 1
   globalDiffusionConstant: 0.5

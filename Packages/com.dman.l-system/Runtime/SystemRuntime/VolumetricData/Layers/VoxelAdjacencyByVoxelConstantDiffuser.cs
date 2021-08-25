@@ -97,7 +97,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 };
                 var rootCoordiante = voxelLayout.GetCoordinatesFromVoxelIndex(voxelIndex);
                 var originalSelfValue = sourceDiffusionValues[voxelIndex.Value];
-                var selfDiffusionConstant = math.max(diffusionConstantAdjusters[voxelIndex.Value], minimumDiffusionConstantMultiplier) * diffusionConstant;
+                var selfDiffusionConstantAdjustment = math.max(diffusionConstantAdjusters[voxelIndex.Value], minimumDiffusionConstantMultiplier);
 
                 float newValue = originalSelfValue;
 
@@ -116,10 +116,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                     }
 
                     var sampleValue = sourceDiffusionValues[sampleIndex.Value];
-                    var otherDiffusionConstantMultiplier = math.max(diffusionConstantAdjusters[sampleIndex.Value], minimumDiffusionConstantMultiplier);
-                    var diffusionAdjustment = math.min(selfDiffusionConstant * otherDiffusionConstantMultiplier, maximumDiffsuionConstant);
+                    var otherDiffusionConstantAdjustment = math.max(diffusionConstantAdjusters[sampleIndex.Value], minimumDiffusionConstantMultiplier);
+                    var diffusionAdjustment = (selfDiffusionConstantAdjustment + otherDiffusionConstantAdjustment) / 2f;
 
-                    var diffuseAmount = (sampleValue - originalSelfValue) * diffusionAdjustment;
+                    var diffuseAmount = (sampleValue - originalSelfValue) * math.min(diffusionConstant * diffusionAdjustment, maximumDiffsuionConstant);
                     newValue += diffuseAmount;
                 }
 

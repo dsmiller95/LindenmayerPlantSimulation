@@ -14,15 +14,24 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
     public class VolumetricResource
     {
         public char indicatorCharacter;
+        public float diffusionConstant;
         public OrganDiffusionDirection diffusionDirection;
         public VolumetricResourceLayer resourceLayer;
     }
 
+    /// <summary>
+    /// pump out will take the entire first parameter of the symbol, and dump it into the diffusion world. it is recommended to use command
+    ///     symbols for this, which only exist for one step of the l-system
+    /// diffuse two-way will perform a weighted diffusion between the l-system parameter and the voxel it collides with
+    /// diffuse in only is like two-way, but will only allow diffusion into the l-system
+    /// diffuse out only is like two-way, but will only allow diffusion out of the l-system
+    /// </summary>
     public enum OrganDiffusionDirection
     {
-        TWO_WAY,
-        CONSUME,
-        PRODUCE
+        DIFFUSE_TWO_WAY,
+        DIFFUSE_IN_ONLY,
+        DIFFUSE_OUT_ONLY,
+        PUMP_OUT
     }
 
     [CreateAssetMenu(fileName = "TurtleVolumetricResourceDiffusion", menuName = "LSystem/TurtleVolumetricResourceDiffusion")]
@@ -42,7 +51,8 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
                         volumetricDiffusionOperation = new TurtleDiffuseVolumetricResource
                         {
                             diffusionDirection = interactable.diffusionDirection,
-                            resourceLayerId = interactable.resourceLayer.voxelLayerId
+                            resourceLayerId = interactable.resourceLayer.voxelLayerId,
+                            diffusionConstant = interactable.diffusionConstant
                         }
                     }
                 });
@@ -53,6 +63,7 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
     {
         public OrganDiffusionDirection diffusionDirection;
         public int resourceLayerId;
+        public float diffusionConstant;
 
         public void Operate(
             ref TurtleState state,
@@ -62,13 +73,44 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
             VoxelWorldVolumetricLayerData volumetricDataArray)
         {
             var paramIndex = sourceString.parameters[indexInString];
-            if (diffusionDirection == OrganDiffusionDirection.PRODUCE && paramIndex.length == 1)
+            if(paramIndex.length != 1)
             {
-                var producedAmount = sourceString.parameters[paramIndex, 0];
-                var pointInLocalSpace = state.transformation.MultiplyPoint(Vector3.zero);
-
-                volumetricNativeWriter.AppentAmountChangeToLayer(pointInLocalSpace, producedAmount, resourceLayerId);
+                return;
             }
+            var pointInLocalSpace = state.transformation.MultiplyPoint(Vector3.zero);
+            var voxelIndex = volumetricNativeWriter.GetVoxelIndexFromLocalSpace(pointInLocalSpace);
+            if (!voxelIndex.IsValid)
+            {
+                return;
+            }
+
+            var amountInSymbol = sourceString.parameters[paramIndex, 0];
+            if (diffusionDirection == OrganDiffusionDirection.PUMP_OUT)
+            {
+                volumetricNativeWriter.AppentAmountChangeToLayer(voxelIndex, amountInSymbol, resourceLayerId);
+                return;
+            }
+            var amountInVoxel = volumetricDataArray[voxelIndex, resourceLayerId];
+            var diffusionToLSystem = (amountInVoxel - amountInSymbol) * diffusionConstant;
+
+            switch (diffusionDirection)
+            {
+                case OrganDiffusionDirection.DIFFUSE_IN_ONLY:
+                    diffusionToLSystem = math.max(diffusionToLSystem, 0);
+                    break;
+                case OrganDiffusionDirection.DIFFUSE_OUT_ONLY:
+                    diffusionToLSystem = math.min(diffusionToLSystem, 0);
+                    break;
+                default:
+                    break;
+            }
+
+            if(diffusionToLSystem == 0)
+            {
+                return;
+            }
+            sourceString.parameters[paramIndex, 0] = amountInSymbol + diffusionToLSystem;
+            volumetricNativeWriter.AppentAmountChangeToLayer(voxelIndex, -diffusionToLSystem, resourceLayerId);
         }
     }
 

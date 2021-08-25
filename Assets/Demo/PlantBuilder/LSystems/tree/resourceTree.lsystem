@@ -1,4 +1,4 @@
-#axiom /(-50)@(1)r(0.3, 0, 1000, 100, 20, 0, 100000)R(0)bS(10)F[p&(90)i(0)s(0)L(5)]T(5)
+#axiom /(-50)@(1)r(0.3, 0, 1000, 100, 20, 0, 100000)bS(10)F[p&(90)i(0)s(0)L(5)e(1)R(0)]T(5)
 #iterations 3000
 
 #symbols +-/\&^F$@!`
@@ -41,7 +41,7 @@ S(x) -> a(x)S(x)
 P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> ~f(0)T(x - 1)
 P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> T(x)
 
-P(1 - flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)o(0)R(0)T(5)][-(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)o(0)R(0)T(5)]
+P(1 - flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)o(0)T(5)][-(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)o(0)R(0)T(5)]
 P(flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> f(0)k(0)
 
 
@@ -57,7 +57,7 @@ P(flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >=
 P(leafProbability)     |     l -> l(0)
 P(1 - leafProbability) |     l -> 
 r(a, water, c, glucose, d, virility, e) < l(amt) : amt < leafCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)l(amt + 0.05)
-                             l(amt) : amt >= leafCost -> m(leafVirilityProduction)pi(0)s(0)L(leafMaxHealth)
+                             l(amt) : amt >= leafCost -> m(leafVirilityProduction)pi(0)s(0)L(leafMaxHealth)e(1)R(1)
 
 r(a, water, c, glucose, d, virility, e)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
 r(a, water, c, glucose, d, virility, e)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
@@ -81,7 +81,7 @@ r(a, water, c, glucose, d, virility, e) < k(amt) : amt < flowerCost && water >= 
 
 ## P is a pollen entity spawned from flowers
 #symbols P
-## w is a "water" producing marker
+## w is a "water" producing marker, which pumps a resource into the volumetric world
 #symbols w
 
 K(x) : x < 10 -> K(x + 1)
@@ -90,9 +90,12 @@ P ->
 w(x) -> 
 
 ## R is the resource visualizer
-#symbols R
-r(a, water, c, glucose, d, virility, e) < R(x) -> R(virility)
-										  R(x) -> 
+## e is the volumetric diffuser accompanying R
+#symbols Re
+#matches e
+e(x) < R(y) -> R(x)
+## r(a, water, c, glucose, d, virility, e) < R(x) -> R(x)
+## R(x) -> 
 
 ## ~ is a random kink
 #symbols ~

@@ -52,6 +52,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 valueChange = change
             });
         }
+        public void AppentAmountChangeToLayer(VoxelIndex voxelIndex, float change, int layerIndex)
+        {
+            modificationCommandBuffer.Add(new LayerModificationCommand
+            {
+                layerIndex = layerIndex,
+                voxel = voxelIndex,
+                valueChange = change
+            });
+        }
 
         public void WriteVolumetricDurabilityToTarget(float amount, Vector3 localPosition)
         {
