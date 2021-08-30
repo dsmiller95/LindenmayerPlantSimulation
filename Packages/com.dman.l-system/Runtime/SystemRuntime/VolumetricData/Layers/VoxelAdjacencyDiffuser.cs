@@ -9,10 +9,57 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 {
     /// <summary>
     /// this diffuser diffuses only to adjacent voxels. not as high quality as the kernel diffuser, but can handle
-    ///     boundary conditions better.
+    ///     boundary conditions.
     /// </summary>
-    public class VoxelAdjacencyDiffuser
+    [CreateAssetMenu(fileName = "VoxelAdjacencyDiffuser", menuName = "LSystem/Resource Layers/VoxelAdjacencyDiffuser")]
+    public class VoxelAdjacencyDiffuser : VolumetricLayerEffect
     {
+        public float globalDiffusionConstant = 1;
+
+        public override bool ApplyEffectToLayer(VoxelWorldVolumetricLayerData data, int targetLayer, float deltaTime, ref JobHandle dependecy)
+        {
+            dependecy = this.Diffuse(data, deltaTime, targetLayer, dependecy);
+            return true;
+        }
+
+        protected virtual JobHandle Diffuse(
+            VoxelWorldVolumetricLayerData data, 
+            float deltaTime, 
+            int layerId,
+            JobHandle dependecy)
+        {
+            var voxelLayout = data.VoxelLayout;
+            var diffusionData = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
+
+            var copyDiffuseInJob = new CopyVoxelToWorkingDataJob
+            {
+                layerData = data,
+                targetData = diffusionData,
+                layerId = layerId
+            };
+
+            dependecy = copyDiffuseInJob.Schedule(diffusionData.Length, 1000, dependecy);
+
+            var resultArray = VoxelAdjacencyDiffuser.ComputeDiffusion(
+                voxelLayout,
+                diffusionData,
+                deltaTime,
+                globalDiffusionConstant,
+                ref dependecy);
+
+            var copyBackJob = new CopyWorkingDataToVoxels
+            {
+                layerData = data,
+                sourceData = resultArray,
+                layerId = layerId
+            };
+            dependecy = copyBackJob.Schedule(diffusionData.Length, 1000, dependecy);
+
+            resultArray.Dispose(dependecy);
+
+            return dependecy;
+        }
+
         /// <summary>
         /// takes in a by-voxel data array. returns another array of the same format with the diffused results.
         ///     may modify the values in the input array. may return the input array. will handle disposing the input
@@ -61,6 +108,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
             return tmpSwapSpace;
         }
+
 
         [BurstCompile]
         struct VoxelAdjacencyResourceConservingBoundaryComputeJob : IJobParallelFor

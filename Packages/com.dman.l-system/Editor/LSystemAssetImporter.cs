@@ -13,12 +13,6 @@ namespace Dman.LSystem.Editor
             var systemObject = ScriptableObject.CreateInstance<LSystemObject>();
             systemObject.LoadFromFilePath(ctx.assetPath);
 
-            var objectList = new List<Object>();
-
-            ctx.GetObjects(objectList);
-
-            Debug.Log(objectList.Count);
-
             ctx.AddObjectToAsset("lSystem", systemObject);
             ctx.SetMainObject(systemObject);
         }

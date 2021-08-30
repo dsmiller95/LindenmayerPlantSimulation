@@ -14,6 +14,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public string axiom = null;
         public int iterations = -1;
         public bool isLibrary;
+        /// <summary>
+        /// The filename of this parsed file. or if builtin, the name of the builtin library
+        /// </summary>
         public string fileSource;
 
         public string allSymbols = "";

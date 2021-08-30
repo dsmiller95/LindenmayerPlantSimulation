@@ -9,10 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3d9b60db9ff5dd43b64071d607bb521, type: 3}
-  m_Name: FlowerGas
+  m_Script: {fileID: 11500000, guid: 868374b686a6f544e8f9912bd2f044af, type: 3}
+  m_Name: GasDiffuse
   m_EditorClassIdentifier: 
-  voxelLayerId: 1
-  description: gas released from flowers
-  effects:
-  - {fileID: 11400000, guid: 34f45706b98356a4fa55cd8a0f91d945, type: 2}
+  description: describes diffusion of gasses
+  globalDiffusionConstant: 0.5

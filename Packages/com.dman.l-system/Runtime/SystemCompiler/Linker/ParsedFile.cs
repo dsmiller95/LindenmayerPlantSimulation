@@ -199,10 +199,11 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     if (allSymbols == null) allSymbols = "";
                     foreach (var symbol in directiveMatch.Groups["parameter"].Value)
                     {
-                        if (!allSymbols.Contains(symbol))
+                        if (allSymbols.Contains(symbol))
                         {
-                            allSymbols += symbol;
+                            throw new SyntaxException($"symbol '{symbol}' defined twice in '{fileSource}'", directiveMatch.Groups["parameter"]);
                         }
+                        allSymbols += symbol;
                     }
                     return;
                 case "global":

@@ -98,6 +98,11 @@ namespace Dman.LSystem.UnityObjects
             {
                 var linker = new FileLinker(new FileSystemFileProvider());
                 linkedFiles = linker.LinkFiles(filePath);
+
+                // compile the system right away and throw it out to catch any compile-time errors
+                this.CompileToCached();
+                compiledSystem?.Dispose();
+                compiledSystem = null;
             }
         }
     }

@@ -88,7 +88,7 @@ Bends the turtle toward a given world-space vector, scaled by the magnitude of t
 
 `.lsystem` files are interpreted on a line-by-line bases. Each line is interpreted in one of 3 ways: lines starting with `##` are comments, lines starting with `#` are directives, and all other non-empty lines are parsed as Rules.
 
-There are 5 types of directives. parameters to the directives are parsed based on space separation:
+There are 9 types of directives. parameters to the directives are parsed based on space separation:
 
 - `#axiom <string>` defines the axiom for this system
 - `#iterations <int>` defines how many iterations the system should step for, by default. x must be an integer.
@@ -98,13 +98,15 @@ There are 5 types of directives. parameters to the directives are parsed based o
   - The identifier used must be globally unique when using `.lsyslib` files. It is suggested to scope global variables defined in library files by the name of the library file, for EX (`std:growthRate`). Scoping does nothing special, it's just an easy way to avoid collisions when using multiple files
 - `#define <string> <string>` defines a global compile time replacement directive which searches the full text of the rules for an exact match against the first string, replacing with the second string.
   - The same globally unique restrictions apply to `#define` variables as apply to `#runtime` variables
-- `#global <string>` defines a set of symbols in the "global" scope which this file will use. Only relevent when using `.lsyslib` files, see [Library files](#library-files)
+- `#global <string>` defines a set of symbols in the "global" scope which this file will use. Only relevant when using `.lsyslib` files, see [Library files](#library-files)
 - `#include <relative path> [<symbol remapping>]` used to import another set of rules into this system, with some or none import remappings to allow this system to interact with the symbols in that file. See [Library files](#library-files)
 - `#export <name> <symbol>` only usable in `.lsyslib` files. Export a specific symbol with a name, allowing it to be imported by other system files.
 
 ## [Rule Examples](#rule-examples)
 
-Currently this package has support for stochastic and parametric Rules. A list of examples of the current and future grammar can be found in [rule-grammar](rule-grammar.txt). Not all of the examples in that file will work, consult the following list for currently supported syntax.
+Currently this package has support for stochastic, parametric, and contextual Rules. A list of examples of the current and future grammar can be found in [rule-grammar](rule-grammar.txt). Not all of the examples in that file will work, consult the following list and the [Examples](#example-showcase) for currently supported syntax.
+
+When multiple rules are defined on the same root symbol, they are evaluated in a specific order, and the first match is used. The rules with the largest contextual matching phrases will be checked first. When the contextual matching phrases are the same size the ordering in the system file is used: The rules earlier in the file will be checked first.
 
 Examples of currently valid rules:
 
@@ -203,6 +205,7 @@ x || y
 ## [Contextual Matching](#contextual-matching)
 
 - Contextual matches must occur in-order, even if nested in branching structures. See the [Contextual match](Runtime/Tests/EditMode/ContextualMatcherTests.cs) tests for examples of how the matching rules work
+- Parametric conditional matching occurs -after- a valid contextual match has been found. If the conditional does not match on the parameters captured by the first found contextual match, then the whole rule won't match. No attempt is made to find one contextual match out of several possible which does satisfy the conditional
 
 ## [Library files](#library-files)
 
