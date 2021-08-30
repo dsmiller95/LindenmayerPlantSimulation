@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.ObjectSets;
 using System.Collections;
 using Unity.Collections;
@@ -26,6 +27,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         /// <param name="deltaTime"></param>
         /// <param name="dependecy"></param>
         /// <returns>true if any changes were applied</returns>
-        public abstract bool ApplyEffectToLayer(VoxelWorldVolumetricLayerData data, int targetLayer, float deltaTime, ref JobHandle dependecy);
+        public abstract bool ApplyEffectToLayer(DoubleBuffered<float> layerData, VolumetricWorldVoxelLayout layout, float deltaTime, ref JobHandle dependecy);
     }
 }

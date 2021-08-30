@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.ObjectSets;
 using System.Collections;
 using Unity.Collections;
@@ -17,23 +18,63 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
         public virtual void SetupInternalData(VolumetricWorldVoxelLayout layout)
         {
-
+            foreach(var effect in effects)
+            {
+                effect.SetupInternalData(layout);
+            }
         }
         public virtual void CleanupInternalData(VolumetricWorldVoxelLayout layout)
         {
-
+            foreach (var effect in effects)
+            {
+                effect.CleanupInternalData(layout);
+            }
         }
 
         public virtual bool ApplyLayerWideUpdate(VoxelWorldVolumetricLayerData data, float deltaTime, ref JobHandle dependecy)
         {
+            if(effects.Length <= 0)
+            {
+                return false;
+            }
+
+
+            var voxelLayout = data.VoxelLayout;
+            var copyInData = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
+
+            var copyInJob = new CopyVoxelToWorkingDataJob
+            {
+                layerData = data,
+                targetData = copyInData,
+                layerId = voxelLayerId
+            };
+
+            dependecy = copyInJob.Schedule(copyInData.Length, 1000, dependecy);
+
+            var swapSpace = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
+            var workingData = new DoubleBuffered<float>(copyInData, swapSpace);
+
             var changed = false;
             foreach (var effect in effects)
             {
-                if(effect.ApplyEffectToLayer(data, voxelLayerId, deltaTime, ref dependecy))
+                if(effect.ApplyEffectToLayer(workingData, data.VoxelLayout, deltaTime, ref dependecy))
                 {
                     changed = true;
                 }
             }
+
+            if (changed)
+            {
+                var copyBackJob = new CopyWorkingDataToVoxels
+                {
+                    layerData = data,
+                    sourceData = workingData.CurrentData,
+                    layerId = this.voxelLayerId
+                };
+                dependecy = copyBackJob.Schedule(workingData.CurrentData.Length, 1000, dependecy);
+                workingData.Dispose(dependecy);
+            }
+
             return changed;
         }
     }

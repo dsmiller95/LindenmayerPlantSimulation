@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -16,48 +17,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
     {
         public float globalDiffusionConstant = 1;
 
-        public override bool ApplyEffectToLayer(VoxelWorldVolumetricLayerData data, int targetLayer, float deltaTime, ref JobHandle dependecy)
+        public override bool ApplyEffectToLayer(DoubleBuffered<float> layerData, VolumetricWorldVoxelLayout layout, float deltaTime, ref JobHandle dependecy)
         {
-            dependecy = this.Diffuse(data, deltaTime, targetLayer, dependecy);
+            ComputeDiffusion(layerData, layout, deltaTime, globalDiffusionConstant, ref dependecy);
             return true;
-        }
-
-        protected virtual JobHandle Diffuse(
-            VoxelWorldVolumetricLayerData data, 
-            float deltaTime, 
-            int layerId,
-            JobHandle dependecy)
-        {
-            var voxelLayout = data.VoxelLayout;
-            var diffusionData = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
-
-            var copyDiffuseInJob = new CopyVoxelToWorkingDataJob
-            {
-                layerData = data,
-                targetData = diffusionData,
-                layerId = layerId
-            };
-
-            dependecy = copyDiffuseInJob.Schedule(diffusionData.Length, 1000, dependecy);
-
-            var resultArray = VoxelAdjacencyDiffuser.ComputeDiffusion(
-                voxelLayout,
-                diffusionData,
-                deltaTime,
-                globalDiffusionConstant,
-                ref dependecy);
-
-            var copyBackJob = new CopyWorkingDataToVoxels
-            {
-                layerData = data,
-                sourceData = resultArray,
-                layerId = layerId
-            };
-            dependecy = copyBackJob.Schedule(diffusionData.Length, 1000, dependecy);
-
-            resultArray.Dispose(dependecy);
-
-            return dependecy;
         }
 
         /// <summary>
@@ -65,15 +28,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         ///     may modify the values in the input array. may return the input array. will handle disposing the input
         ///     array if not returned.
         /// </summary>
-        public static NativeArray<float> ComputeDiffusion(
-            VolumetricWorldVoxelLayout voxelLayout,
-            NativeArray<float> inputArrayWithData,
+        public static void ComputeDiffusion(
+            DoubleBuffered<float> layerData, 
+            VolumetricWorldVoxelLayout layout,
             float deltaTime,
             float diffusionConstant,
             ref JobHandle dependecy)
         {
-            var tmpSwapSpace = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
-
             var combinedDiffusionFactor = deltaTime * diffusionConstant;
             if(combinedDiffusionFactor >= 1f / 6)
             {
@@ -92,21 +53,19 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
             var diffuseJob = new VoxelAdjacencyResourceConservingBoundaryComputeJob
             {
-                sourceDiffusionValues = inputArrayWithData,
-                targetDiffusionValues = tmpSwapSpace,
+                sourceDiffusionValues = layerData.CurrentData,
+                targetDiffusionValues = layerData.NextData,
 
                 adjacencyVectors = adjacencyVectors,
 
-                voxelLayout = voxelLayout,
+                voxelLayout = layout,
 
                 diffusionConstant = combinedDiffusionFactor
             };
-            dependecy = diffuseJob.Schedule(inputArrayWithData.Length, 1000, dependecy);
+            dependecy = diffuseJob.Schedule(layerData.CurrentData.Length, 1000, dependecy);
+            layerData.Swap();
 
-            inputArrayWithData.Dispose(dependecy);
             adjacencyVectors.Dispose(dependecy);
-
-            return tmpSwapSpace;
         }
 
 

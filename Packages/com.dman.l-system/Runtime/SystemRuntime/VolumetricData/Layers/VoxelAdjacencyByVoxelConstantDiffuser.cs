@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -20,17 +21,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         ///     may modify the values in the input array. may return the input array. will handle disposing the input
         ///     array if not returned.
         /// </summary>
-        public static NativeArray<float> ComputeDiffusion(
+        public static void ComputeDiffusion(
             VolumetricWorldVoxelLayout voxelLayout,
-            NativeArray<float> inputArrayWithData,
+            DoubleBuffered<float> layerData,
             NativeArray<float> diffusionConstantMultipliers,
             float minimumDiffusionConstantMultiplier,
             float deltaTime,
             float diffusionConstant,
             ref JobHandle dependecy)
         {
-            var tmpSwapSpace = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
-
             var combinedDiffusionFactor = deltaTime * diffusionConstant;
             if(combinedDiffusionFactor >= 1f / 6)
             {
@@ -49,8 +48,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
             var diffuseJob = new VoxelAdjacencyResourceConservingBoundaryComputeJob
             {
-                sourceDiffusionValues = inputArrayWithData,
-                targetDiffusionValues = tmpSwapSpace,
+                sourceDiffusionValues = layerData.CurrentData,
+                targetDiffusionValues = layerData.NextData,
 
                 diffusionConstantAdjusters = diffusionConstantMultipliers,
                 minimumDiffusionConstantMultiplier = minimumDiffusionConstantMultiplier,
@@ -62,12 +61,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
                 diffusionConstant = combinedDiffusionFactor
             };
-            dependecy = diffuseJob.Schedule(inputArrayWithData.Length, 1000, dependecy);
+            dependecy = diffuseJob.Schedule(layerData.CurrentData.Length, 1000, dependecy);
+            layerData.Swap();
 
-            inputArrayWithData.Dispose(dependecy);
             adjacencyVectors.Dispose(dependecy);
-
-            return tmpSwapSpace;
         }
 
         [BurstCompile]
