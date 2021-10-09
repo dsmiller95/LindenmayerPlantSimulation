@@ -28,7 +28,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             float minimumDiffusionConstantMultiplier,
             float deltaTime,
             float diffusionConstant,
-            ref JobHandle dependecy)
+            ref JobHandleWrapper dependecy)
         {
             var combinedDiffusionFactor = deltaTime * diffusionConstant;
             if(combinedDiffusionFactor >= 1f / 6)

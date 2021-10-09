@@ -82,7 +82,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var volumetricHandles = new TurtleVolumetricHandles
             {
                 durabilityWriter = volumetrics.durabilityWriter.GetNextNativeWritableHandle(localToWorldTransform, ref volumetricJobHandle),
-                universalWriter = volumetrics.universalLayerWriter.GetNextNativeWritableHandle(localToWorldTransform, ref volumetricJobHandle),
+                universalWriter = volumetrics.universalLayerWriter.GetNextNativeWritableHandle(localToWorldTransform),
                 volumetricData = volumetrics.world.NativeVolumeData.openReadData.AsReadOnly()
             };
             currentJobHandle = volumetricJobHandle;

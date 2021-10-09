@@ -1,5 +1,4 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.SceneSaveSystem;
@@ -76,18 +75,29 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public event Action volumeWorldChanged;
 
         public NativeDelayedReadable<VoxelWorldVolumetricLayerData> NativeVolumeData { get; private set; }
-        private List<ModifierHandle> writableHandles;
+        private List<ModifierHandle> WritableHandles
+        {
+            get
+            {
+                if (_writableHandles == null)
+                {
+                    _writableHandles = new List<ModifierHandle>();
+                }
+                return _writableHandles;
+            }
+        }
+        private List<ModifierHandle> _writableHandles;
 
         public DoubleBufferModifierHandle GetDoubleBufferedWritableHandle(int layerIndex = 0)
         {
             var writableHandle = new DoubleBufferModifierHandle(VoxelLayout, layerIndex);
-            writableHandles.Add(writableHandle);
+            WritableHandles.Add(writableHandle);
             return writableHandle;
         }
         public CommandBufferModifierHandle GetCommandBufferWritableHandle()
         {
             var writableHandle = new CommandBufferModifierHandle(VoxelLayout);
-            writableHandles.Add(writableHandle);
+            WritableHandles.Add(writableHandle);
             return writableHandle;
         }
 
@@ -97,7 +107,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             {
                 return default;
             }
-            writableHandles.Remove(handle);
+            WritableHandles.Remove(handle);
 
             var layerData = this.NativeVolumeData.data;
             JobHandleWrapper dependency = NativeVolumeData.dataWriterDependencies;
@@ -107,7 +117,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void Awake()
         {
-            writableHandles = new List<ModifierHandle>();
             NativeVolumeData = new NativeDelayedReadable<VoxelWorldVolumetricLayerData>(
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent),
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent)
@@ -118,7 +127,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             if (damageLayer == null)
             {
                 Debug.LogWarning("No damage layer specified in the volumetric world, no damage effects can happen");
-            } else {
+            }
+            else
+            {
                 var damageCapEffect = damageLayer.effects.OfType<VoxelCapReachedTimestampEffect>().FirstOrDefault();
                 if (damageCapEffect == null)
                 {
@@ -152,7 +163,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
             anyChangeLastFrame = false;
             // consolidate write handle's changes
-            foreach (var writeHandle in writableHandles)
+            foreach (var writeHandle in WritableHandles)
             {
                 var layerData = this.NativeVolumeData.data;
                 if (writeHandle.ConsolidateChanges(layerData, ref dependency))
@@ -164,7 +175,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             // apply resource layer updates (EX diffusion)
             foreach (var layer in AllLayers)
             {
-                if(layer.ApplyLayerWideUpdate(this.NativeVolumeData.data, Time.deltaTime, ref dependency))
+                if (layer.ApplyLayerWideUpdate(this.NativeVolumeData.data, Time.deltaTime, ref dependency))
                 {
                     anyChangeLastFrame = true;
                 }
@@ -182,12 +193,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             JobHandleWrapper dependency = NativeVolumeData.dataWriterDependencies;
             var disposeDependency = default(JobHandleWrapper);
             var layerData = this.NativeVolumeData.data;
-            foreach (var handle in writableHandles)
+            foreach (var handle in WritableHandles)
             {
                 handle.RemoveEffects(layerData, ref dependency);
                 disposeDependency += handle.Dispose(dependency);
             }
-            writableHandles.Clear();
+            WritableHandles.Clear();
             (disposeDependency + dependency).Handle.Complete();
 
             NativeVolumeData.Dispose();
@@ -217,12 +228,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void DrawGizmos()
         {
-            if(!wireCellGizmos && !amountVisualizedGizmos)
+            if (!wireCellGizmos && !amountVisualizedGizmos)
             {
                 return;
             }
 
-            if(layerToRender >= AllLayers.Length + 1)
+            if (layerToRender >= AllLayers.Length + 1)
             {
                 return;
             }

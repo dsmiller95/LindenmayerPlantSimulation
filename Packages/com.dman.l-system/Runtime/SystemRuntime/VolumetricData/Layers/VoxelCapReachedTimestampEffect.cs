@@ -15,11 +15,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
     [CreateAssetMenu(fileName = "VoxelCapReachedTimestampEffect", menuName = "LSystem/Resource Layers/VoxelCapReachedTimestampEffect")]
     public class VoxelCapReachedTimestampEffect : VolumetricLayerEffect
     {
-        /// <summary>
-        /// the layer which defines the cap on the resource amount which this layer is attached
-        ///     to
-        /// </summary>
-        public int voxelResourceLayerCap = 0;
+        [Tooltip("The layer id of the voxel layer which defines the \"durability\" cap which must be reached to trigger")]
+        public int voxelResourceCapLayerId = 0;
         public float regenerationPerSecondAsPercentOfDurability = 0.05f;
 
         /// <summary>
@@ -30,7 +27,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
         public JobHandle? damageDataUpdateDependency { get; private set; }
         private NativeArray<float> volumetricDestructionTimestamps;
-        private bool hasDamageChange;
 
         public override void SetupInternalData(VolumetricWorldVoxelLayout layout)
         {
@@ -47,18 +43,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
         public override bool ApplyEffectToLayer(DoubleBuffered<float> layerData, VoxelWorldVolumetricLayerData readonlyLayerData, float deltaTime, ref JobHandleWrapper dependecy)
         {
-            if (hasDamageChange)
-            {
-                UpdateDestructionFlags(layerData, readonlyLayerData, deltaTime, ref dependecy);
-            }
-            else
-            {
-                RepairDamage(layerData, readonlyLayerData, deltaTime, ref dependecy);
-            }
+            UpdateDestructionFlags(layerData, readonlyLayerData, deltaTime, ref dependecy);
             return true;
         }
-
-
 
 
         private JobHandle destructionFlagReadDependencies = default;
@@ -77,7 +64,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
         private void UpdateDestructionFlags(DoubleBuffered<float> layerData, VoxelWorldVolumetricLayerData readonlyLayerData, float deltaTime, ref JobHandleWrapper dependency)
         {
-            hasDamageChange = false;
             damageDataUpdateDependency?.Complete();
 
             var damageValues = layerData.CurrentData; // this is not a parallized job, so edits are made in-place
@@ -86,7 +72,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             var updateJob = new UpdatePlantDestructionFlags
             {
                 voxelLayerData = voxelLayers,
-                flagCapLayerIndex = voxelResourceLayerCap,
+                flagCapLayerIndex = voxelResourceCapLayerId,
                 voxelLayout = voxelLayers.VoxelLayout,
 
                 volumetricDamageValues = damageValues, 
@@ -97,7 +83,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
             dependency = JobHandle.CombineDependencies(destructionFlagReadDependencies, dependency);
 
-            dependency = updateJob.Schedule(damageValues.Length, 1000, dependency);
+            damageDataUpdateDependency = dependency = updateJob.Schedule(damageValues.Length, 1000, dependency);
         }
 
         private void RepairDamage(DoubleBuffered<float> layerData, VoxelWorldVolumetricLayerData readonlyLayerData, float deltaTime, ref JobHandleWrapper dependency)

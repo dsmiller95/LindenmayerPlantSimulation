@@ -53,9 +53,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             return;
         }
 
-        public CommandBufferNativeWritableHandle GetNextNativeWritableHandle(
-            Matrix4x4 localToWorldTransform, 
-            ref JobHandleWrapper dependency)
+        public CommandBufferNativeWritableHandle GetNextNativeWritableHandle(Matrix4x4 localToWorldTransform)
         {
             if (!newDataIsAvailable)
             {
@@ -65,8 +63,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 modificationCommands.Clear();
                 newDataIsAvailable = true;
             }
-
-            writeDependency = dependency + writeDependency;
 
             return new CommandBufferNativeWritableHandle(
                 modificationCommands,
