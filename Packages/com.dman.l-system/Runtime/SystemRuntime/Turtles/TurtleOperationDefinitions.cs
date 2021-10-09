@@ -52,8 +52,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
             NativeList<TurtleOrganInstance> targetOrganInstances,
-            VolumetricWorldNativeWritableHandle volumetricNativeWriter,
-            VoxelWorldVolumetricLayerData volumetricDataArray,
+            TurtleVolumetricHandles volumetricHandles,
             EntityCommandBuffer spawningEntityBuffer)
         {
             switch (operationType)
@@ -62,10 +61,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     bendTowardsOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
                 case TurtleOperationType.ADD_ORGAN:
-                    meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricNativeWriter);
+                    meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricHandles.durabilityWriter);
                     break;
                 case TurtleOperationType.INSTANTIATE_ENTITY:
-                    instantiateOperator.Operate(ref currentState, indexInString, sourceString, spawningEntityBuffer, volumetricNativeWriter.localToWorldTransformation);
+                    instantiateOperator.Operate(ref currentState, indexInString, sourceString, spawningEntityBuffer, volumetricHandles.durabilityWriter.localToWorldTransformation);
                     break;
                 case TurtleOperationType.ROTATE:
                     rotationOperation.Operate(ref currentState, indexInString, sourceString);
@@ -77,13 +76,20 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     thiccnessOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
                 case TurtleOperationType.VOLUMETRIC_RESOURCE:
-                    volumetricDiffusionOperation.Operate(ref currentState, indexInString, sourceString, volumetricNativeWriter, volumetricDataArray);
+                    volumetricDiffusionOperation.Operate(ref currentState, indexInString, sourceString, volumetricHandles);
                     break;
                 default:
                     break;
             }
             return;
         }
+    }
+
+    public struct TurtleVolumetricHandles
+    {
+        public DoubleBufferNativeWritableHandle durabilityWriter;
+        public CommandBufferNativeWritableHandle universalWriter;
+        public VoxelWorldVolumetricLayerData.ReadOnly volumetricData;
     }
 
     public enum TurtleOperationType : byte

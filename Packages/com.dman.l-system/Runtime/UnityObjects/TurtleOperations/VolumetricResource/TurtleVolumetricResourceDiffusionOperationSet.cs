@@ -69,8 +69,7 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
             ref TurtleState state,
             int indexInString,
             SymbolString<float> sourceString,
-            VolumetricWorldNativeWritableHandle volumetricNativeWriter,
-            VoxelWorldVolumetricLayerData volumetricDataArray)
+            TurtleVolumetricHandles volumetricHandles)
         {
             var paramIndex = sourceString.parameters[indexInString];
             if(paramIndex.length != 1)
@@ -78,7 +77,7 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
                 return;
             }
             var pointInLocalSpace = state.transformation.MultiplyPoint(Vector3.zero);
-            var voxelIndex = volumetricNativeWriter.GetVoxelIndexFromLocalSpace(pointInLocalSpace);
+            var voxelIndex = volumetricHandles.universalWriter.GetVoxelIndexFromLocalSpace(pointInLocalSpace);
             if (!voxelIndex.IsValid)
             {
                 return;
@@ -87,10 +86,10 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
             var amountInSymbol = sourceString.parameters[paramIndex, 0];
             if (diffusionDirection == OrganDiffusionDirection.PUMP_OUT)
             {
-                volumetricNativeWriter.AppentAmountChangeToLayer(voxelIndex, amountInSymbol, resourceLayerId);
+                volumetricHandles.universalWriter.AppendAmountChangeToOtherLayer(voxelIndex, amountInSymbol, resourceLayerId);
                 return;
             }
-            var amountInVoxel = volumetricDataArray[voxelIndex, resourceLayerId];
+            var amountInVoxel = volumetricHandles.volumetricData[voxelIndex, resourceLayerId];
             var diffusionToLSystem = (amountInVoxel - amountInSymbol) * diffusionConstant;
 
             switch (diffusionDirection)
@@ -110,7 +109,7 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
                 return;
             }
             sourceString.parameters[paramIndex, 0] = amountInSymbol + diffusionToLSystem;
-            volumetricNativeWriter.AppentAmountChangeToLayer(voxelIndex, -diffusionToLSystem, resourceLayerId);
+            volumetricHandles.universalWriter.AppendAmountChangeToOtherLayer(voxelIndex, -diffusionToLSystem, resourceLayerId);
         }
     }
 

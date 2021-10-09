@@ -17,9 +17,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
     {
         public float globalDiffusionConstant = 1;
 
-        public override bool ApplyEffectToLayer(DoubleBuffered<float> layerData, VolumetricWorldVoxelLayout layout, float deltaTime, ref JobHandle dependecy)
+        public override bool ApplyEffectToLayer(DoubleBuffered<float> layerData, VoxelWorldVolumetricLayerData readonlyLayerData, float deltaTime, ref JobHandleWrapper dependecy)
         {
-            ComputeDiffusion(layerData, layout, deltaTime, globalDiffusionConstant, ref dependecy);
+            ComputeDiffusion(layerData, readonlyLayerData.VoxelLayout, deltaTime, globalDiffusionConstant, ref dependecy);
             return true;
         }
 
@@ -33,7 +33,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             VolumetricWorldVoxelLayout layout,
             float deltaTime,
             float diffusionConstant,
-            ref JobHandle dependecy)
+            ref JobHandleWrapper dependecy)
         {
             var combinedDiffusionFactor = deltaTime * diffusionConstant;
             if(combinedDiffusionFactor >= 1f / 6)

@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
+using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,9 +27,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         
         private OrganVolumetricWorld volumetricWorld;
-        private VolumetricWorldModifierHandle volumeWriterHandle;
+        private DoubleBufferModifierHandle durabilityWriterHandle;
+        private CommandBufferModifierHandle commandBufferWriter;
 
-        private OrganDamageWorld damageWorld;
+        private VoxelCapReachedTimestampEffect damageCapFlags;
 
 
         public TurtleInterpretor(
@@ -37,7 +39,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             LinkedFileSet linkedFiles,
             CustomRuleSymbols customSymbols,
             OrganVolumetricWorld volumetricWorld,
-            OrganDamageWorld damageWorld,
+            VoxelCapReachedTimestampEffect damageCapFlags,
             char submeshIndex = '`',
             char startChar = '[', char endChar = ']')
         {
@@ -74,8 +76,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             this.defaultState = defaultState;
 
             this.volumetricWorld = volumetricWorld;
-            this.volumeWriterHandle = volumetricWorld.GetNewWritableHandle();
-            this.damageWorld = damageWorld;
+            this.durabilityWriterHandle = volumetricWorld.GetDoubleBufferedWritableHandle();
+            this.commandBufferWriter = volumetricWorld.GetCommandBufferWritableHandle();
+            this.damageCapFlags = damageCapFlags;
         }
 
         public ICompletable<TurtleCompletionResult> CompileStringToTransformsWithMeshIds(
@@ -87,6 +90,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 throw new InvalidOperationException("Turtle has been disposed and cannot be used");
             }
+
+            var volumeWorldReferences = new TurtleVolumeWorldReferences
+            {
+                world = volumetricWorld,
+                durabilityWriter = durabilityWriterHandle,
+                universalLayerWriter = commandBufferWriter,
+                damageFlags = damageCapFlags,
+            };
+
             return new TurtleStringReadingCompletable(
                 targetMesh,
                 submeshMaterials.Length,
@@ -97,8 +109,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 branchEndChar,
                 defaultState,
                 customSymbols,
-                this.volumeWriterHandle,
-                this.damageWorld,
+                volumeWorldReferences,
                 localToWorldTransform
                 );
         }
@@ -113,7 +124,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
             IsDisposed = true;
             nativeDataTracker.Dispose();
-            volumetricWorld.DisposeWritableHandle(volumeWriterHandle).Complete();
+            volumetricWorld.DisposeWritableHandle(durabilityWriterHandle).Complete();
+            volumetricWorld.DisposeWritableHandle(commandBufferWriter).Complete();
         }
 
     }

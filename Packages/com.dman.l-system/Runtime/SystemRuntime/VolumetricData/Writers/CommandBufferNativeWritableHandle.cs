@@ -12,21 +12,21 @@ using UnityEngine.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
-    public struct VolumetricWorldNativeWritableHandle
+    /// <summary>
+    /// A handle used to write to any layer via a modification buffer
+    /// </summary>
+    public struct CommandBufferNativeWritableHandle
     {
-        public NativeArray<float> targetDurabilityData;
         public NativeList<LayerModificationCommand> modificationCommandBuffer;
 
         public VolumetricWorldVoxelLayout voxelLayout;
         public Matrix4x4 localToWorldTransformation;
 
-        public VolumetricWorldNativeWritableHandle(
-            NativeArray<float> targetDurabilityData,
+        public CommandBufferNativeWritableHandle(
             NativeList<LayerModificationCommand> modificationCommandBuffer,
             VolumetricWorldVoxelLayout voxelDistribution, 
             Matrix4x4 localToWorld)
         {
-            this.targetDurabilityData = targetDurabilityData;
             this.modificationCommandBuffer = modificationCommandBuffer;
 
             this.voxelLayout = voxelDistribution;
@@ -38,21 +38,16 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             var worldPosition = localToWorldTransformation.MultiplyPoint(localPosition);
             return voxelLayout.GetVoxelIndexFromWorldPosition(worldPosition);
         }
-        public void AppentAmountChangeToLayer(Vector3 localPosition, float change, int layerIndex)
+        public void AppendAmountChangeToOtherLayer(Vector3 localPosition, float change, int layerIndex)
         {
             var voxelIndex = GetVoxelIndexFromLocalSpace(localPosition);
             if (!voxelIndex.IsValid)
             {
                 return;
             }
-            modificationCommandBuffer.Add(new LayerModificationCommand
-            {
-                layerIndex = layerIndex,
-                voxel = voxelIndex,
-                valueChange = change
-            });
+            AppendAmountChangeToOtherLayer(voxelIndex, change, layerIndex);
         }
-        public void AppentAmountChangeToLayer(VoxelIndex voxelIndex, float change, int layerIndex)
+        public void AppendAmountChangeToOtherLayer(VoxelIndex voxelIndex, float change, int layerIndex)
         {
             modificationCommandBuffer.Add(new LayerModificationCommand
             {
@@ -60,16 +55,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 voxel = voxelIndex,
                 valueChange = change
             });
-        }
-
-        public void WriteVolumetricDurabilityToTarget(float amount, Vector3 localPosition)
-        {
-            var voxelIndex = GetVoxelIndexFromLocalSpace(localPosition);
-            if (!voxelIndex.IsValid)
-            {
-                return;
-            }
-            targetDurabilityData[voxelIndex.Value] += amount;
         }
     }
 }

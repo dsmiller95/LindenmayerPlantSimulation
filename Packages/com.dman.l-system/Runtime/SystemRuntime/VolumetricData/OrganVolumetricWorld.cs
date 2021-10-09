@@ -2,8 +2,10 @@
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+using Dman.SceneSaveSystem;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -17,7 +19,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         ALWAYS
     }
 
-    public class OrganVolumetricWorld : MonoBehaviour
+    public class OrganVolumetricWorld : MonoBehaviour, ISaveableData
     {
         public Vector3 voxelOrigin => transform.position;
         public Vector3 worldSize;
@@ -33,50 +35,102 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public bool wireCellGizmos = false;
         public bool amountVisualizedGizmos = true;
 
+        public VolumetricResourceLayer damageLayer;
+
         public VolumetricResourceLayer[] extraLayers;
+
+        /// <summary>
+        /// compiles all resource layers together into a single list.
+        ///     currently excludes the "durability" layer as a special case
+        /// </summary>
+        private VolumetricResourceLayer[] AllLayers
+        {
+            get
+            {
+                if (_allLayers == null)
+                {
+                    SetAllLayers();
+                }
+                return _allLayers;
+            }
+        }
+        private VolumetricResourceLayer[] _allLayers;
+
+        private void SetAllLayers()
+        {
+            _allLayers = extraLayers
+                .Append(damageLayer)
+                .Where(x => x != null)
+                .Distinct()
+                .ToArray();
+        }
 
         public VolumetricWorldVoxelLayout VoxelLayout => new VolumetricWorldVoxelLayout
         {
             voxelOrigin = voxelOrigin,
             worldSize = worldSize,
             worldResolution = worldResolution,
-            dataLayerCount = extraLayers.Length + 1
+            dataLayerCount = AllLayers.Length + 1
         };
 
         public event Action volumeWorldChanged;
 
         public NativeDelayedReadable<VoxelWorldVolumetricLayerData> NativeVolumeData { get; private set; }
-        private List<VolumetricWorldModifierHandle> writableHandles;
+        private List<ModifierHandle> writableHandles;
 
-        public VolumetricWorldModifierHandle GetNewWritableHandle()
+        public DoubleBufferModifierHandle GetDoubleBufferedWritableHandle(int layerIndex = 0)
         {
-            var writableHandle = new VolumetricWorldModifierHandle(VoxelLayout, this);
+            var writableHandle = new DoubleBufferModifierHandle(VoxelLayout, layerIndex);
+            writableHandles.Add(writableHandle);
+            return writableHandle;
+        }
+        public CommandBufferModifierHandle GetCommandBufferWritableHandle()
+        {
+            var writableHandle = new CommandBufferModifierHandle(VoxelLayout);
             writableHandles.Add(writableHandle);
             return writableHandle;
         }
 
-        public JobHandle DisposeWritableHandle(VolumetricWorldModifierHandle handle)
+        public JobHandle DisposeWritableHandle(ModifierHandle handle)
         {
-            if (handle.isDisposed)
+            if (handle.IsDisposed)
             {
                 return default;
             }
             writableHandles.Remove(handle);
 
-            return DisposeWritableHandleNoRemove(handle);
+            var layerData = this.NativeVolumeData.data;
+            JobHandleWrapper dependency = NativeVolumeData.dataWriterDependencies;
+            handle.RemoveEffects(layerData, ref dependency);
+            return handle.Dispose(dependency);
         }
 
         private void Awake()
         {
-            writableHandles = new List<VolumetricWorldModifierHandle>();
+            writableHandles = new List<ModifierHandle>();
             NativeVolumeData = new NativeDelayedReadable<VoxelWorldVolumetricLayerData>(
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent),
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent)
                 );
             var layout = VoxelLayout;
-            foreach (var layer in extraLayers)
+
+            // damage world should have a cap reached effect
+            if (damageLayer == null)
             {
-                layer.SetupInternalData(layout);
+                Debug.LogWarning("No damage layer specified in the volumetric world, no damage effects can happen");
+            } else {
+                var damageCapEffect = damageLayer.effects.OfType<VoxelCapReachedTimestampEffect>().FirstOrDefault();
+                if (damageCapEffect == null)
+                {
+                    Debug.LogError("No VoxelCapReachedTimestampEffect detected inside the damage layer. this is required to detect when a voxel is damaged to the point of breaking");
+                }
+            }
+            SetAllLayers();
+            var layerId = 1;
+            foreach (var layer in AllLayers)
+            {
+                layer.SetupInternalData(layout, layerId);
+                layerId++;
             }
         }
 
@@ -94,41 +148,21 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
                 volumeWorldChanged?.Invoke();
             }
-            var dependency = this.NativeVolumeData.dataWriterDependencies;
+            JobHandleWrapper dependency = this.NativeVolumeData.dataWriterDependencies;
 
             anyChangeLastFrame = false;
-            var voxelLayout = this.VoxelLayout;
             // consolidate write handle's changes
             foreach (var writeHandle in writableHandles)
             {
-                if (writeHandle.newDataIsAvailable && writeHandle.writeDependency.IsCompleted)
+                var layerData = this.NativeVolumeData.data;
+                if (writeHandle.ConsolidateChanges(layerData, ref dependency))
                 {
-                    writeHandle.writeDependency.Complete();
-                    var consolidationJob = new VoxelMarkerConsolidation
-                    {
-                        allBaseMarkers = this.NativeVolumeData.data,
-                        oldMarkerLevels = writeHandle.oldDurability,
-                        newMarkerLevels = writeHandle.newDurability,
-                        markerLayerIndex = 0,
-                    };
-                    dependency = consolidationJob.Schedule(writeHandle.newDurability.Length, 1000, dependency);
-
-                    var commandPlaybackJob = new LayerModificationCommandPlaybackJob
-                    {
-                        commands = writeHandle.modificationCommands,
-                        dataArray = this.NativeVolumeData.data,
-                        voxelLayout = voxelLayout
-                    };
-                    dependency = commandPlaybackJob.Schedule(dependency);
-
-                    writeHandle.RegisterReadDependency(dependency);
-                    writeHandle.newDataIsAvailable = false;
                     anyChangeLastFrame = true;
                 }
             }
 
             // apply resource layer updates (EX diffusion)
-            foreach (var layer in extraLayers)
+            foreach (var layer in AllLayers)
             {
                 if(layer.ApplyLayerWideUpdate(this.NativeVolumeData.data, Time.deltaTime, ref dependency))
                 {
@@ -145,40 +179,26 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void OnDestroy()
         {
-            var dep = default(JobHandle);
+            JobHandleWrapper dependency = NativeVolumeData.dataWriterDependencies;
+            var disposeDependency = default(JobHandleWrapper);
+            var layerData = this.NativeVolumeData.data;
             foreach (var handle in writableHandles)
             {
-                dep = JobHandle.CombineDependencies(DisposeWritableHandleNoRemove(handle), dep);
+                handle.RemoveEffects(layerData, ref dependency);
+                disposeDependency += handle.Dispose(dependency);
             }
             writableHandles.Clear();
-            dep.Complete();
+            (disposeDependency + dependency).Handle.Complete();
+
             NativeVolumeData.Dispose();
             NativeVolumeData = null;
 
             var layout = VoxelLayout;
-            foreach (var layer in extraLayers)
+            foreach (var layer in AllLayers)
             {
                 layer.CleanupInternalData(layout);
             }
         }
-
-        private JobHandle DisposeWritableHandleNoRemove(VolumetricWorldModifierHandle handle)
-        {
-            var deps = JobHandle.CombineDependencies(handle.writeDependency, NativeVolumeData.dataWriterDependencies);
-            var subtractCleanupJob = new NativeArraySubtractNegativeProtectionJob
-            {
-                allBaseMarkers = this.NativeVolumeData.data,
-                markerLevelsToRemove = handle.newDurability,
-                markerLayerIndex = 0,
-                totalLayersInBase = VoxelLayout.dataLayerCount
-            };
-            deps = subtractCleanupJob.Schedule(VoxelLayout.totalVoxels, 1000, deps);
-            NativeVolumeData.RegisterWritingDependency(deps);
-
-            return handle.Dispose(deps);
-        }
-
-
 
         private void OnDrawGizmosSelected()
         {
@@ -202,7 +222,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 return;
             }
 
-            if(layerToRender >= extraLayers.Length + 1)
+            if(layerToRender >= AllLayers.Length + 1)
             {
                 return;
             }
@@ -262,5 +282,42 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 }
             }
         }
+
+        #region Saveable
+        [System.Serializable]
+        class VolumetricWorldSaveObject
+        {
+            public VolumetricWorldSaveObject(OrganVolumetricWorld source)
+            {
+                source.NativeVolumeData.CompleteAllDependencies();
+                var dataToSave = source.NativeVolumeData.openReadData;
+
+            }
+
+            public void Apply(OrganVolumetricWorld target)
+            {
+            }
+        }
+
+        public string UniqueSaveIdentifier => "VolumetricWorld";
+        public object GetSaveObject()
+        {
+            return new VolumetricWorldSaveObject(this);
+        }
+
+        public void SetupFromSaveObject(object save)
+        {
+            if (save is VolumetricWorldSaveObject saveObj)
+            {
+                saveObj.Apply(this);
+            }
+        }
+
+        public ISaveableData[] GetDependencies()
+        {
+            return new ISaveableData[0];
+        }
+
+        #endregion
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.SystemRuntime.VolumetricData;
+using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.UnityObjects;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,7 +103,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 systemObject.CompileToCached(silent: true);
             }
             var volumetricWorld = GameObject.FindObjectOfType<OrganVolumetricWorld>();
-            var damageWorld = GameObject.FindObjectOfType<OrganDamageWorld>();
+            var damageWorld = volumetricWorld.damageLayer?.effects.OfType<VoxelCapReachedTimestampEffect>().FirstOrDefault();
             turtle = new TurtleInterpretor(
                 operationSets,
                 new TurtleState

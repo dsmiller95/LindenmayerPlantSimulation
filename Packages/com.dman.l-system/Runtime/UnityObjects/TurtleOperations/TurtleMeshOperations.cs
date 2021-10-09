@@ -134,7 +134,7 @@ namespace Dman.LSystem.UnityObjects
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
             NativeList<TurtleOrganInstance> targetOrganInstances,
-            VolumetricWorldNativeWritableHandle volumetricNativeWriter)
+            DoubleBufferNativeWritableHandle volumetricNativeWriter)
         {
             var pIndex = sourceString.parameters[indexInString];
 
@@ -177,7 +177,7 @@ namespace Dman.LSystem.UnityObjects
             if (volumetricValue != 0)
             {
                 var organCenter = meshTransform.MultiplyPoint(Vector3.zero);
-                volumetricNativeWriter.WriteVolumetricDurabilityToTarget(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
+                volumetricNativeWriter.WriteVolumetricAmountToDoubleBufferedData(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
             }
 
             var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];

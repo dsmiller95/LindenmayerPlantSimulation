@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
+using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Burst;
 using Unity.Collections;
@@ -38,6 +39,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public int totalTriangleIndexes;
     }
 
+    public class TurtleVolumeWorldReferences
+    {
+        public OrganVolumetricWorld world;
+        public DoubleBufferModifierHandle durabilityWriter;
+        public CommandBufferModifierHandle universalLayerWriter;
+        public VoxelCapReachedTimestampEffect damageFlags;
+    }
+
     public class TurtleStringReadingCompletable : ICompletable<TurtleCompletionResult>
     {
 #if UNITY_EDITOR
@@ -61,8 +70,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int branchEndChar,
             TurtleState defaultState,
             CustomRuleSymbols customSymbols,
-            VolumetricWorldModifierHandle volumeWriter,
-            OrganDamageWorld damageWorld,
+            TurtleVolumeWorldReferences volumetrics,
             Matrix4x4 localToWorldTransform)
         {
             this.targetMesh = targetMesh;
@@ -70,8 +78,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             UnityEngine.Profiling.Profiler.BeginSample("turtling job");
 
-            var volumetricJobHandle = currentJobHandle;
-            var nativeWritableHandle = volumeWriter.GenerateWritableHandleAndSwitchLatestData(localToWorldTransform, ref volumetricJobHandle);
+            JobHandleWrapper volumetricJobHandle = currentJobHandle;
+            var volumetricHandles = new TurtleVolumetricHandles
+            {
+                durabilityWriter = volumetrics.durabilityWriter.GetNextNativeWritableHandle(localToWorldTransform, ref volumetricJobHandle),
+                universalWriter = volumetrics.universalLayerWriter.GetNextNativeWritableHandle(localToWorldTransform, ref volumetricJobHandle),
+                volumetricData = volumetrics.world.NativeVolumeData.openReadData.AsReadOnly()
+            };
             currentJobHandle = volumetricJobHandle;
 
 
@@ -82,9 +95,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
 
             NativeArray<float> destructionCommandTimestamps;
-            if(damageWorld != null)
+            if(volumetrics.damageFlags != null)
             {
-                destructionCommandTimestamps = damageWorld.GetDestructionCommandTimestampsReadOnly();
+                destructionCommandTimestamps = volumetrics.damageFlags.GetDestructionCommandTimestampsReadOnly();
             }else
             {
                 destructionCommandTimestamps = new NativeArray<float>(0, Allocator.TempJob);
@@ -93,7 +106,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var entitySpawningSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
             var entitySpawnBuffer = entitySpawningSystem.CreateCommandBuffer();
 
-            var readableVolumetrics = volumeWriter.volumetricWorld.NativeVolumeData.openReadData;
 
             var turtleCompileJob = new TurtleCompilationJob
             {
@@ -115,23 +127,24 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 customRules = customSymbols,
 
-                volumetricLayerData = readableVolumetrics,
-                volumetricNativeWriter = nativeWritableHandle,
-                hasVolumetricDestruction = damageWorld != null,
+                volumetricHandles = volumetricHandles,
+                hasVolumetricDestruction = volumetrics.damageFlags != null,
                 volumetricDestructionTimestamps = destructionCommandTimestamps,
-                earliestValidDestructionCommand = damageWorld != null ? Time.time - damageWorld.timeDestructionCommandsStayActive : -1
+                earliestValidDestructionCommand = volumetrics.damageFlags != null ? Time.time - volumetrics.damageFlags.timeCommandStaysActive : -1
             };
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
-            volumeWriter.volumetricWorld.NativeVolumeData.RegisterReadingDependency(currentJobHandle);
+            volumetrics.world.NativeVolumeData.RegisterReadingDependency(currentJobHandle);
             entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
-            damageWorld?.RegisterReaderOfDestructionFlags(currentJobHandle);
-            volumeWriter.RegisterWriteDependency(currentJobHandle);
+            volumetrics.damageFlags?.RegisterReaderOfDestructionFlags(currentJobHandle);
+            volumetrics.durabilityWriter.RegisterWriteDependency(currentJobHandle);
+            volumetrics.universalLayerWriter.RegisterWriteDependency(currentJobHandle);
+
             nativeData.RegisterDependencyOnData(currentJobHandle);
             symbols.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = tmpHelperStack.Dispose(currentJobHandle);
-            if(damageWorld == null)
+            if(volumetrics.damageFlags == null)
             {
                 currentJobHandle = destructionCommandTimestamps.Dispose(currentJobHandle);
             }
@@ -165,9 +178,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             public EntityCommandBuffer spawnEntityBuffer;
 
             // volumetric info
-            public VolumetricWorldNativeWritableHandle volumetricNativeWriter;
-            [ReadOnly]
-            public VoxelWorldVolumetricLayerData volumetricLayerData;
+            public TurtleVolumetricHandles volumetricHandles;
             public bool hasVolumetricDestruction;
             [ReadOnly]
             public NativeArray<float> volumetricDestructionTimestamps;
@@ -219,14 +230,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             symbols,
                             organData,
                             organInstances,
-                            volumetricNativeWriter,
-                            volumetricLayerData,
+                            volumetricHandles,
                             spawnEntityBuffer);
                         if(hasVolumetricDestruction && customRules.hasAutophagy && operation.operationType == TurtleOperationType.ADD_ORGAN)
                         {
                             // check for an operation which may have changed the position of the turtle
                             var turtlePosition = currentState.transformation.MultiplyPoint(Vector3.zero); // extract transformation
-                            var voxelIndex = volumetricNativeWriter.GetVoxelIndexFromLocalSpace(turtlePosition);
+                            var voxelIndex = volumetricHandles.durabilityWriter.GetVoxelIndexFromLocalSpace(turtlePosition);
                             if(voxelIndex.IsValid)
                             {
                                 var lastDestroyCommandTime = volumetricDestructionTimestamps[voxelIndex.Value];

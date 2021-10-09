@@ -1,6 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.ObjectSets;
+using System;
 using System.Collections;
 using Unity.Collections;
 using Unity.Jobs;
@@ -11,13 +12,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
     [CreateAssetMenu(fileName = "VolumetricResourceLayer", menuName = "LSystem/Resource Layers/VolumetricResourceLayer")]
     public class VolumetricResourceLayer : ScriptableObject
     {
-        public int voxelLayerId;
         public string description;
 
         public VolumetricLayerEffect[] effects;
+        [NonSerialized]
+        public int voxelLayerId;
 
-        public virtual void SetupInternalData(VolumetricWorldVoxelLayout layout)
+        public virtual void SetupInternalData(VolumetricWorldVoxelLayout layout, int myLayerId)
         {
+            voxelLayerId = myLayerId;
             foreach(var effect in effects)
             {
                 effect.SetupInternalData(layout);
@@ -31,7 +34,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             }
         }
 
-        public virtual bool ApplyLayerWideUpdate(VoxelWorldVolumetricLayerData data, float deltaTime, ref JobHandle dependecy)
+        public virtual bool ApplyLayerWideUpdate(VoxelWorldVolumetricLayerData data, float deltaTime, ref JobHandleWrapper dependecy)
         {
             if(effects.Length <= 0)
             {
@@ -57,7 +60,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             var changed = false;
             foreach (var effect in effects)
             {
-                if(effect.ApplyEffectToLayer(workingData, data.VoxelLayout, deltaTime, ref dependecy))
+                if(effect.ApplyEffectToLayer(workingData, data, deltaTime, ref dependecy))
                 {
                     changed = true;
                 }

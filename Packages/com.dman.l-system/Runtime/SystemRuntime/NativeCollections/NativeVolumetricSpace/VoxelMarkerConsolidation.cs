@@ -11,6 +11,10 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 {
+    /// <summary>
+    /// takes old and new copies of data and updates the base data
+    ///     by subtracting the old, and adding the new
+    /// </summary>
     [BurstCompile]
     public struct VoxelMarkerConsolidation : IJobParallelFor
     {
