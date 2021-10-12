@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Dman.Utilities.SerializableUnityObjects;
+using System;
+using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 {
@@ -129,6 +131,33 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             var y = tileIndex.Value % worldResolution.z;
 
             return new Vector2Int(x, y);
+        }
+
+        [Serializable]
+        public class Serializable
+        {
+            public SerializableVector3 origin;
+            public SerializableVector3 size;
+            public SerializableVector3Int resolution;
+            public int dataLayerCount;
+            public Serializable(VolumetricWorldVoxelLayout source)
+            {
+                origin = source.voxelOrigin;
+                size = source.voxelSize;
+                resolution = source.worldResolution;
+                dataLayerCount = source.dataLayerCount;
+            }
+
+            public VolumetricWorldVoxelLayout Deserialize()
+            {
+                return new VolumetricWorldVoxelLayout
+                {
+                    voxelOrigin = origin,
+                    worldSize = size,
+                    worldResolution = resolution,
+                    dataLayerCount = dataLayerCount
+                };
+            }
         }
     }
 }

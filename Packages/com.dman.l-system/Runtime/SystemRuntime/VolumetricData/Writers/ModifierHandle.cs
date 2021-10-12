@@ -1,11 +1,12 @@
 ﻿using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
-    public interface ModifierHandle : INativeDisposable
+    public abstract class ModifierHandle : INativeDisposable
     {
-        public bool IsDisposed { get; }
+        public bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Plays back any changes that have been cached inside this modification handle
@@ -13,13 +14,29 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         /// <param name="layerData">the layer data to apply changes to</param>
         /// <param name="dependency">job handle</param>
         /// <returns>true if any changes were available to be applied, false otherwise</returns>
-        bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency);
+        public abstract bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency);
 
         /// <summary>
-        /// remove the effect which this writable handle had on the world
-        ///     for a double buffered handle, this means subtracting the total sum which this
+        /// remove any persistent effects this handle has on the world. <br/>
+        ///     For a double buffered handle, this means subtracting the total sum which this
         ///     handle has contributed to the volume world
         /// </summary>
-        void RemoveEffects(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency);
+        public abstract void RemoveEffects(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency);
+
+        public JobHandle Dispose(JobHandle inputDeps)
+        {
+            if (IsDisposed)
+            {
+                return inputDeps;
+            }
+            IsDisposed = true;
+            return InternalDispose(inputDeps);
+        }
+        public void Dispose()
+        {
+            this.Dispose(default).Complete();
+        }
+
+        protected abstract JobHandle InternalDispose(JobHandle deps);
     }
 }

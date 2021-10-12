@@ -298,15 +298,39 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         [System.Serializable]
         class VolumetricWorldSaveObject
         {
+            VoxelWorldVolumetricLayerData.Serializable worldData;
+
             public VolumetricWorldSaveObject(OrganVolumetricWorld source)
             {
                 source.NativeVolumeData.CompleteAllDependencies();
-                var dataToSave = source.NativeVolumeData.openReadData;
+                using var dataToSave = new VoxelWorldVolumetricLayerData(source.NativeVolumeData.openReadData, Allocator.TempJob);
+                var dep = default(JobHandleWrapper);
 
+                foreach (var handle in source.WritableHandles)
+                {
+                    handle.RemoveEffects(dataToSave, ref dep);
+                }
+                dep.Handle.Complete();
+
+                worldData = dataToSave.AsSerializable();
             }
 
             public void Apply(OrganVolumetricWorld target)
             {
+                target.NativeVolumeData.CompleteAllDependencies();
+                using var loadedData = new VoxelWorldVolumetricLayerData(worldData, Allocator.TempJob);
+                var disposeDependency = default(JobHandleWrapper);
+
+                foreach (var handle in target.WritableHandles)
+                {
+                    disposeDependency += handle.Dispose(default);
+                }
+                disposeDependency.Handle.Complete();
+
+                target.WritableHandles.Clear();
+
+                target.NativeVolumeData.data.CopyFrom(loadedData);
+                target.NativeVolumeData.openReadData.CopyFrom(loadedData);
             }
         }
 

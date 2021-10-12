@@ -1,11 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
-using System;
-using System.Linq;
-using System.Runtime.Serialization;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
 
@@ -37,10 +33,11 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
             allBaseMarkers[voxelIndex, markerLayerIndex] = Mathf.Max(allBaseMarkers[voxelIndex, markerLayerIndex] + newMarkerLevels[index] - oldMarkerLevels[index], 0);
         }
     }
-    public struct NativeArraySubtractNegativeProtectionJob : IJobParallelFor
+    public struct NativeArrayAdditionNegativeProtection : IJobParallelFor
     {
         [ReadOnly]
-        public NativeArray<float> markerLevelsToRemove;
+        public NativeArray<float> layerToAdd;
+        public float layerMultiplier;
 
         [NativeDisableParallelForRestriction]
         public VoxelWorldVolumetricLayerData allBaseMarkers;
@@ -53,7 +50,8 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
             {
                 Value = index
             };
-            allBaseMarkers[voxelIndex, markerLayerIndex] = Mathf.Max(allBaseMarkers[voxelIndex, markerLayerIndex] - markerLevelsToRemove[index], 0);
+            var change = layerToAdd[index] * layerMultiplier;
+            allBaseMarkers[voxelIndex, markerLayerIndex] = Mathf.Max(allBaseMarkers[voxelIndex, markerLayerIndex] + change, 0);
         }
     }
     [BurstCompile]

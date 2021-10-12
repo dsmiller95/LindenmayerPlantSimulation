@@ -24,7 +24,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public JobHandle writeDependency;
         public bool newDataIsAvailable;
         public bool mostRecentDataInA;
-        public bool IsDisposed { get; private set; }
 
 
         public NativeArray<float> newValues => mostRecentDataInA ? valuesA : valuesB;
@@ -44,7 +43,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             Debug.Log("double buffered modifier on layer " + doubleBufferedLayerIndex);
         }
 
-        public bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
+        public override bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
         {
             // TODO: consider skipping if writeDependency is not complete yet. should the job chain keep extending, or should
             //  consolidation be deffered?
@@ -64,24 +63,28 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             newDataIsAvailable = false;
             return true;
         }
-        public void RemoveEffects(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
+        public override void RemoveEffects(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
         {
             var layout = layerData.VoxelLayout;
-            var subtractCleanupJob = new NativeArraySubtractNegativeProtectionJob
+            var subtractCleanupJob = new NativeArrayAdditionNegativeProtection
             {
                 allBaseMarkers = layerData,
-                markerLevelsToRemove = newValues,
+                layerToAdd = newValues,
+                layerMultiplier = -1,
                 markerLayerIndex = doubleBufferedLayerIndex,
                 totalLayersInBase = layout.dataLayerCount
             };
             dependency = subtractCleanupJob.Schedule(layout.totalVoxels, 1000, dependency + writeDependency);
         }
 
-
         public DoubleBufferNativeWritableHandle GetNextNativeWritableHandle(
             Matrix4x4 localToWorldTransform, 
             ref JobHandleWrapper dependency)
         {
+            if (IsDisposed)
+            {
+                throw new System.ObjectDisposedException("DoubleBufferModifierHandle", "Tried to write a modification via a disposed writing handle");
+            }
             UnityEngine.Profiling.Profiler.BeginSample("volume clearing");
             if (!newDataIsAvailable)
             {
@@ -118,24 +121,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             this.writeDependency = JobHandle.CombineDependencies(newReadDependency, this.writeDependency);
         }
 
-        public void Dispose()
+        protected override JobHandle InternalDispose(JobHandle inputDeps)
         {
-            if (IsDisposed)
-            {
-                return;
-            }
-            IsDisposed = true;
-            valuesA.Dispose();
-            valuesB.Dispose();
-        }
-
-        public JobHandle Dispose(JobHandle inputDeps)
-        {
-            if (IsDisposed)
-            {
-                return inputDeps;
-            }
-            IsDisposed = true;
             return JobHandle.CombineDependencies(
                 valuesA.Dispose(inputDeps),
                 valuesB.Dispose(inputDeps));

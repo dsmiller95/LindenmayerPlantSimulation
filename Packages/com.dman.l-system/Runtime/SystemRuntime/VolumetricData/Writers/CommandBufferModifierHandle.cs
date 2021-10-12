@@ -19,7 +19,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public JobHandle writeDependency;
         public bool newDataIsAvailable;
-        public bool IsDisposed { get; private set; }
 
         public VolumetricWorldVoxelLayout voxelLayout;
 
@@ -30,7 +29,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             this.voxelLayout = voxels;
         }
 
-        public bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
+        public override bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
         {
             if (!newDataIsAvailable)
             {
@@ -47,7 +46,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             newDataIsAvailable = false;
             return true;
         }
-        public void RemoveEffects(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
+        public override void RemoveEffects(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
         {
             // command buffer has no record of the effects it has had on the world
             return;
@@ -55,6 +54,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public CommandBufferNativeWritableHandle GetNextNativeWritableHandle(Matrix4x4 localToWorldTransform)
         {
+            if (IsDisposed)
+            {
+                throw new System.ObjectDisposedException("CommandBufferModifierHandle", "Tried to write a modification via a disposed writing handle");
+            }
             if (!newDataIsAvailable)
             {
                 // this is the first writable handle allocated since the last consolidation
@@ -80,24 +83,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             this.writeDependency = JobHandle.CombineDependencies(newReadDependency, this.writeDependency);
         }
 
-        public void Dispose()
+        protected override JobHandle InternalDispose(JobHandle deps)
         {
-            if (IsDisposed)
-            {
-                return;
-            }
-            IsDisposed = true;
-            modificationCommands.Dispose();
-        }
-
-        public JobHandle Dispose(JobHandle inputDeps)
-        {
-            if (IsDisposed)
-            {
-                return inputDeps;
-            }
-            IsDisposed = true;
-            return modificationCommands.Dispose(inputDeps);
+            return modificationCommands.Dispose(deps);
         }
     }
 }

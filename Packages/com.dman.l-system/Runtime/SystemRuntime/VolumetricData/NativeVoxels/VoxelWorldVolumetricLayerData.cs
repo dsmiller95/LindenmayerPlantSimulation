@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dman.Utilities.SerializableUnityObjects;
+using System;
 using System.Collections;
 using System.Diagnostics;
 using Unity.Collections;
@@ -31,7 +32,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
         {
         }
 
-        public VoxelWorldVolumetricLayerData(Serializable serializedData, Allocator allocator) : this (serializedData.layout, new NativeArray<float>(serializedData.data, allocator), allocator)
+        public VoxelWorldVolumetricLayerData(Serializable serializedData, Allocator allocator) : this (serializedData.layout.Deserialize(), new NativeArray<float>(serializedData.data, allocator), allocator)
+        {
+        }
+
+        public VoxelWorldVolumetricLayerData(VoxelWorldVolumetricLayerData cloneSource, Allocator allocator) : this(cloneSource.voxelLayout, new NativeArray<float>(cloneSource.array, allocator), allocator)
         {
         }
 
@@ -48,9 +53,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 #endif
         }
 
+        [Serializable]
         public class Serializable
         {
-            public VolumetricWorldVoxelLayout layout;
+            public VolumetricWorldVoxelLayout.Serializable layout;
+
             public float[] data;
         }
 
@@ -88,6 +95,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             {
                 this.array.CopyFrom(other.array);
             }
+        }
+
+        public Serializable AsSerializable()
+        {
+            return new Serializable
+            {
+                layout = new VolumetricWorldVoxelLayout.Serializable(this.voxelLayout),
+                data = this.array.ToArray()
+            };
         }
 
         public void Dispose()

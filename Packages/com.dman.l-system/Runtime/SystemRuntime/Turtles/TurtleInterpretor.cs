@@ -76,9 +76,20 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             this.defaultState = defaultState;
 
             this.volumetricWorld = volumetricWorld;
-            this.durabilityWriterHandle = volumetricWorld.GetDoubleBufferedWritableHandle();
-            this.commandBufferWriter = volumetricWorld.GetCommandBufferWritableHandle();
             this.damageCapFlags = damageCapFlags;
+            RefreshVolumetricWriters();
+        }
+
+        private void RefreshVolumetricWriters()
+        {
+            if (this.durabilityWriterHandle?.IsDisposed ?? true)
+            {
+                durabilityWriterHandle = volumetricWorld.GetDoubleBufferedWritableHandle();
+            }
+            if (this.commandBufferWriter?.IsDisposed ?? true)
+            {
+                commandBufferWriter = volumetricWorld.GetCommandBufferWritableHandle();
+            }
         }
 
         public ICompletable<TurtleCompletionResult> CompileStringToTransformsWithMeshIds(
@@ -88,9 +99,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             if (IsDisposed)
             {
-                throw new InvalidOperationException("Turtle has been disposed and cannot be used");
+                throw new ObjectDisposedException("Turtle has been disposed and cannot be used");
             }
 
+            RefreshVolumetricWriters();
             var volumeWorldReferences = new TurtleVolumeWorldReferences
             {
                 world = volumetricWorld,
