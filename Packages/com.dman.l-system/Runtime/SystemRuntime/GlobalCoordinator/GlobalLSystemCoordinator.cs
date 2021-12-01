@@ -141,6 +141,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
         #region Saving
         public string UniqueSaveIdentifier => "Global L System Coordinator";
+        public int LoadOrderPriority => -10;
 
 
         [System.Serializable]
@@ -155,6 +156,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             public void Apply(GlobalLSystemCoordinator target)
             {
                 target.allResourceReservations = this.resourceReservations;
+                Debug.Log("global l system coordinator deserialized");
             }
         }
 
@@ -169,11 +171,6 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             {
                 state.Apply(this);
             }
-        }
-
-        public ISaveableData[] GetDependencies()
-        {
-            return new ISaveableData[0];
         }
         #endregion
 

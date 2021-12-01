@@ -32,7 +32,7 @@ namespace Dman.LSystem.UnityObjects
 
         private void Awake()
         {
-            lastUpdateTime = Time.time + UnityEngine.Random.Range(.3f, 0.6f);
+            lastUpdateTime = Time.unscaledTime + UnityEngine.Random.Range(.3f, 0.6f);
             if (systemObject != null)
             {
                 SetSystem(systemObject);
@@ -89,7 +89,7 @@ namespace Dman.LSystem.UnityObjects
                 steppingHandle.ResetState();
             }
 
-            lastUpdateTime = Time.time + UnityEngine.Random.Range(0f, 0.3f);
+            lastUpdateTime = Time.unscaledTime + UnityEngine.Random.Range(0f, 0.3f);
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Dman.LSystem.UnityObjects
         private void LSystemStateWasUpdated()
         {
             OnSystemStateUpdated?.Invoke();
-            lastUpdateTime = Time.time + UnityEngine.Random.Range(0, 0.1f);
+            lastUpdateTime = Time.unscaledTime + UnityEngine.Random.Range(0, 0.1f);
         }
 
         /// <summary>
@@ -125,6 +125,7 @@ namespace Dman.LSystem.UnityObjects
         #region Saving
         public string UniqueSaveIdentifier => "L System Behavior";
 
+        public int LoadOrderPriority => 0;
 
         [System.Serializable]
         class LSystemBehaviorSaveState
@@ -139,6 +140,7 @@ namespace Dman.LSystem.UnityObjects
 
             public void Apply(LSystemBehavior target)
             {
+                Debug.Log("l system behavior deserialized");
                 target.lastUpdateTime = 0;
                 var systemRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
                 target.systemObject = systemRegistry.GetUniqueObjectFromID(lSystemId);
@@ -165,11 +167,6 @@ namespace Dman.LSystem.UnityObjects
             {
                 savedState.Apply(this);
             }
-        }
-
-        public ISaveableData[] GetDependencies()
-        {
-            return new ISaveableData[] { GlobalLSystemCoordinator.instance };
         }
         #endregion
     }

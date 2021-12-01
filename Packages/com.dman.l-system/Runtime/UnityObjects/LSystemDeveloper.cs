@@ -78,7 +78,7 @@ namespace Dman.LSystem.UnityObjects
             {
                 if (system.steppingHandle.lastUpdateChanged
                     && system.steppingHandle.totalSteps < maxUpdates
-                    && Time.time > system.lastUpdateTime + secondsPerUpdate
+                    && Time.unscaledTime > system.lastUpdateTime + secondsPerUpdate
                     && system.steppingHandle.CanStep())
                 {
                     system.StepSystem();
@@ -86,7 +86,7 @@ namespace Dman.LSystem.UnityObjects
                 else if (
                     (!system.steppingHandle.lastUpdateChanged
                     || system.steppingHandle.totalSteps >= maxUpdates)
-                    && Time.time > system.lastUpdateTime + timeBeforeRestart)
+                    && Time.unscaledTime > system.lastUpdateTime + timeBeforeRestart)
                 {
                     system.ResetState();
                 }

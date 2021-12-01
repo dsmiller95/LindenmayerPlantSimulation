@@ -335,6 +335,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         }
 
         public string UniqueSaveIdentifier => "VolumetricWorld";
+        public int LoadOrderPriority => -5;
         public object GetSaveObject()
         {
             return new VolumetricWorldSaveObject(this);
@@ -346,11 +347,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             {
                 saveObj.Apply(this);
             }
-        }
-
-        public ISaveableData[] GetDependencies()
-        {
-            return new ISaveableData[0];
         }
 
         #endregion
