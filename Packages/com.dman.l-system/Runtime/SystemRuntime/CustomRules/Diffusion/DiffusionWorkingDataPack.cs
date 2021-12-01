@@ -89,7 +89,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
             var diffusionConstant = customSymbols.diffusionConstantRuntimeGlobalMultiplier * (nodeA.diffusionConstant + nodeB.diffusionConstant) / 2f;
             for (
                 int resource = 0;
-                resource < nodeA.totalResourceTypes && resource < nodeA.totalResourceTypes;
+                resource < nodeA.totalResourceTypes && resource < nodeB.totalResourceTypes;
                 resource++)
             {
                 var oldNodeAValue = sourceAmounts[nodeA.indexInTempAmountList + resource];
