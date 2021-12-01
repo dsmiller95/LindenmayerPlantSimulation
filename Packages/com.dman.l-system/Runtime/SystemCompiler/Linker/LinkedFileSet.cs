@@ -186,7 +186,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 compiledRules,
                 nativeRuleData,
                 expectedGlobalParameters: allGlobalRuntimeParams.Count,
-                includedCharactersByRuleIndex: includedByFile,
+                includedContextualCharactersByRuleIndex: includedByFile,
                 branchOpenSymbol: openSymbol,
                 branchCloseSymbol: closeSymbol,
                 customSymbols: customSymbols

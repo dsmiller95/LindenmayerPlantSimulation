@@ -40,7 +40,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 nativeRuleData,
                 branchOpenSymbol, branchCloseSymbol,
                 globalParameters?.Length ?? 0,
-                includedCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) }
+                includedContextualCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) }
             );
         }
     }
@@ -138,7 +138,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             int branchOpenSymbol,
             int branchCloseSymbol,
             int expectedGlobalParameters = 0,
-            ISet<int>[] includedCharactersByRuleIndex = null,
+            ISet<int>[] includedContextualCharactersByRuleIndex = null,
             CustomRuleSymbols customSymbols = default)
         {
             this.customSymbols = customSymbols;
@@ -146,7 +146,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             this.branchOpenSymbol = branchOpenSymbol;
             this.branchCloseSymbol = branchCloseSymbol;
-            includedCharacters = includedCharactersByRuleIndex == null ? new HashSet<int>[0] : includedCharactersByRuleIndex;
+            includedCharacters = includedContextualCharactersByRuleIndex == null ? new HashSet<int>[0] : includedContextualCharactersByRuleIndex;
 
             rulesByTargetSymbol = new Dictionary<int, IList<BasicRule>>();
             foreach (var rule in rules)

@@ -11,7 +11,7 @@ public class FileParsingTests
 #axiom /(20)S(1)R(0)
 #iterations 1000
 
-#symbols ZXCQWE/SRABCK
+#symbols ZXCQWE/SRABK
 #symbols Lx
 
 #global ZXC
@@ -79,7 +79,7 @@ A -> AB";
 #export Key W
 #export Signal O
 
-#symbols ZXCQWEABCKLxO
+#symbols ZXCQWEABKLxO
 
 #global ZXC
 #matches QW

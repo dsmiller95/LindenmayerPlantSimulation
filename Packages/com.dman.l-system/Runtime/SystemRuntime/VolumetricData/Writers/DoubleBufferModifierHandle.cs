@@ -40,7 +40,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
             this.voxelLayout = voxels;
             this.doubleBufferedLayerIndex = doubleBufferedLayerIndex;
-            Debug.Log("double buffered modifier on layer " + doubleBufferedLayerIndex);
         }
 
         public override bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)

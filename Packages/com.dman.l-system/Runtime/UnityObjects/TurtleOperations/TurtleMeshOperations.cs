@@ -63,6 +63,11 @@ namespace Dman.LSystem.UnityObjects
                     );
             }).ToArray();
         }
+
+        public override string ToString()
+        {
+            return $"{Character} : {MeshRef.name}";
+        }
     }
     [CreateAssetMenu(fileName = "TurtleMeshOperations", menuName = "LSystem/TurtleMeshOperations")]
     public class TurtleMeshOperations : TurtleOperationSet
