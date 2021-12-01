@@ -1,6 +1,6 @@
 {
   "name": "com.dman.l-system",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "displayName": "L-system",
   "description": "An attempt to implement most of the features present in L-systems described by 'The Algorithmic Beauty Of Plants' http://algorithmicbotany.org/papers/abop/abop.pdf",
   "unity": "2020.1",
@@ -11,6 +11,7 @@
     "com.syomus.proceduraltoolkit": "0.2.3",
     "com.dman.utilities": "0.3.13",
     "com.dman.scene-save-system": "0.1.4",
+    "com.dman.reactive-variables": "0.1.6",
     "com.dman.object-sets": "0.1.2"
   },
   "author": {
