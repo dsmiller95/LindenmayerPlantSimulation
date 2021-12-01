@@ -12,7 +12,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
         // layout file. This means that the state survives restarting Unity as long as the window
         // is not closed. If the attribute is omitted then the state is still serialized/deserialized.
         [SerializeField] TreeViewState m_TreeViewState;
-        [SerializeField] List<int> ignoredSymbols;
+        [SerializeField] bool showAllSymbols;
 
         //The TreeView is not serializable, so it should be reconstructed from the tree data.
         LSystemStructureTreeView m_BehaviorTree;
@@ -22,10 +22,8 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             // that survived assembly reloading)
             if (m_TreeViewState == null)
                 m_TreeViewState = new TreeViewState();
-            if (ignoredSymbols == null)
-                ignoredSymbols = new List<int>();
 
-            m_BehaviorTree = new LSystemStructureTreeView(m_TreeViewState);
+            m_BehaviorTree = new LSystemStructureTreeView(m_TreeViewState, showAllSymbols);
             UpdateTreeViewTargetSystem();
         }
 
@@ -62,7 +60,13 @@ namespace Dman.LSystem.Editor.LSystemDebugger
 
         private void OnGUI()
         {
-            m_BehaviorTree.OnGUI(new Rect(0, 0, position.width, position.height));
+            var nextShowAll = EditorGUILayout.Toggle("Show all symbols", showAllSymbols);
+            if(nextShowAll != showAllSymbols)
+            {
+                showAllSymbols = nextShowAll;
+                m_BehaviorTree.SetShowAllSymbols(showAllSymbols);
+            }
+            m_BehaviorTree.OnGUI(new Rect(0, 20, position.width, position.height));
         }
 
         [MenuItem("LSystem/Inspector")]

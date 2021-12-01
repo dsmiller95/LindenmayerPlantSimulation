@@ -11,9 +11,11 @@ namespace Dman.LSystem.Editor.LSystemDebugger
 {
     public class LSystemStructureTreeView : TreeView
     {
-        public LSystemStructureTreeView(TreeViewState treeViewState)
+        bool showAllSymbols;
+        public LSystemStructureTreeView(TreeViewState treeViewState, bool showAll)
             : base(treeViewState)
         {
+            showAllSymbols = showAll;
             Reload();
         }
 
@@ -31,6 +33,12 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             }
         }
 
+        public void SetShowAllSymbols(bool shouldShowAll)
+        {
+            showAllSymbols = shouldShowAll;
+            Reload();
+        }
+
         private void LSystemStateWasUpdated()
         {
             Reload();
@@ -46,14 +54,23 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             var stepper = inspectedMachine.steppingHandle.Stepper();
             try
             {
-                var rootNode = LSystemStructureTreeElement.ConstructTreeFromString(
-                    inspectedMachine.systemObject.linkedFiles,
-                    inspectedMachine.steppingHandle.currentState.currentSymbols.Data,
-                    stepper.includedCharacters.Aggregate(new HashSet<int>(), (acc, next) =>
+                ISet<int> displayedSymbols;
+                if (showAllSymbols)
+                {
+                    displayedSymbols = new HashSet<int>(inspectedMachine.systemObject.linkedFiles.allSymbolDefinitionsLeafFirst.Select(x => x.actualSymbol));
+                }
+                else
+                {
+                    displayedSymbols = stepper.includedCharacters.Aggregate(new HashSet<int>(), (acc, next) =>
                     {
                         acc.UnionWith(next);
                         return acc;
-                    }),
+                    });
+                }
+                var rootNode = LSystemStructureTreeElement.ConstructTreeFromString(
+                    inspectedMachine.systemObject.linkedFiles,
+                    inspectedMachine.steppingHandle.currentState.currentSymbols.Data,
+                    displayedSymbols,
                     stepper.branchOpenSymbol,
                     stepper.branchCloseSymbol
                     );
