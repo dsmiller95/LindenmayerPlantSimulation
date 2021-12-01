@@ -28,7 +28,7 @@ public class LSystemCustomDiffusionTests
             nativeRuleData,
             branchOpenSymbol, branchCloseSymbol,
             globalParameters?.Length ?? 0,
-            includedCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) },
+            includedContextualCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) },
             customSymbols: customSymbols
         );
     }

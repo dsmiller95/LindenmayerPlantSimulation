@@ -280,9 +280,6 @@ public class LSystemPerformanceTests
 #runtime hasAnther 1
 #runtime isPollinated 0
 
-## composition definitions. define directives evaluate in-order, these directives rely on subsequent definitions to complete
-#define flowerMeshIndex (flowerColorOuterIndex + flowerColorInnerIndex * 3)
-
 ## variables controlled by genes
 #define primaryBranchInternodes 7
 #define flowerFailureChance 0.25
@@ -292,6 +289,9 @@ public class LSystemPerformanceTests
 #define flowerColorInnerIndex 1
 #define flowerColorOuterIndex 1
 #define primaryAngularSeparation 137
+
+## composition definitions.
+#define flowerMeshIndex (flowerColorOuterIndex + flowerColorInnerIndex * 3)
 
 
 ## variables defined for utility
@@ -357,8 +357,8 @@ $(y) > D(z, x) : x < fruitSize -> $(y * 1.3)
 D(y, x) : x < fruitSize -> D(y, x + 1)
 
 ## P is the petiole, x is number of leaves
-#symbols PILO
-#matches PILO
+#symbols PO
+#matches PO
 #define petiole( P(
 petiole(x) : x >= 2 -> I(3)[O((x - 1) / 2, -petioleLeafAngularDist)]L[O((x - 1) / 2, petioleLeafAngularDist)]
 petiole(x) : x > 0 -> L

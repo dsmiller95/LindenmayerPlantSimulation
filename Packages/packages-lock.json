@@ -17,7 +17,7 @@
         "com.unity.mathematics": "1.2.1",
         "com.syomus.proceduraltoolkit": "0.2.3",
         "com.dman.utilities": "0.3.13",
-        "com.dman.scene-save-system": "0.1.2",
+        "com.dman.scene-save-system": "0.1.4",
         "com.dman.object-sets": "0.1.2"
       }
     },
@@ -58,7 +58,7 @@
       }
     },
     "com.dman.reactive-variables": {
-      "version": "0.1.4",
+      "version": "0.1.6",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -67,18 +67,18 @@
       "url": "https://package.openupm.com"
     },
     "com.dman.scene-save-system": {
-      "version": "0.1.2",
+      "version": "0.2.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.dman.object-sets": "0.1.1",
-        "com.dman.utilities": "0.3.3"
+        "com.dman.object-sets": "0.1.2",
+        "com.dman.utilities": "0.3.13"
       },
       "url": "https://package.openupm.com"
     },
     "com.dman.utilities": {
       "version": "0.3.13",
-      "depth": 1,
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"
