@@ -18,9 +18,6 @@
 #runtime hasAnther 1
 #runtime isPollinated 0
 
-## composition definitions. define directives evaluate in-order, these directives rely on subsequent definitions to complete
-#define flowerMeshIndex (flowerColorOuterIndex + flowerColorInnerIndex * 3)
-
 ## variables controlled by genes
 #define primaryBranchInternodes 10
 #define flowerFailureChance 0.3
@@ -30,6 +27,10 @@
 #define flowerColorInnerIndex 1
 #define flowerColorOuterIndex 1
 #define primaryAngularSeparation 137
+
+## composition definitions.
+#define flowerMeshIndex (flowerColorOuterIndex + flowerColorInnerIndex * 3)
+
 
 ## variables defined for utility
 #define shootHeight 5
@@ -112,8 +113,8 @@ r(a, water, n) < petiole(x) : x > 0  && water >= 1 -> a(-1)L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
-#symbols JIF
-#matches JI
+#symbols I
+#matches I
 I(x)         : x > 0 -> I(x - 1)$(0.003)@F
 I(x) > r(a, b, c)J         -> JI(x)
 
@@ -121,8 +122,8 @@ I(x) > r(a, b, c)J         -> JI(x)
 ## organs
 
 #define leafExpression [&&L][/(180)&&L]
-#symbols NL
-#matches NL
+#symbols N
+#matches N
 N -> leafExpression
 
 ## l is a leaf

@@ -206,8 +206,17 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 .SelectMany((file, index) =>
                 {
                     Func<char, int> remappingFunction = character => file.GetSymbolInFile(character);
-                    return file.GetRulesWithReplacements(allReplacementDirectives)
-                        .Select(x => RuleParser.ParseToRule(x, remappingFunction, (short)index, allValidRuntimeParameters));
+                    try
+                    {
+                        return file.GetRulesWithReplacements(allReplacementDirectives)
+                            .Select(x => RuleParser.ParseToRule(x, remappingFunction, (short)index, allValidRuntimeParameters))
+                            .ToList();
+                    }
+                    catch (SyntaxException ex)
+                    {
+                        ex.fileName = file.fileSource;
+                        throw ex;
+                    }
                 })
                 .Where(x => x != null)
                 .ToArray();

@@ -22,8 +22,8 @@
 
 
 ## S is the Shoot symbol
-#symbols FSN
-#matches FSN
+#symbols FS
+#matches FS
 S(x) : x == 0 -> FS(x + 1)N
 S(x) : x < shootHeight && x > 0-> FS(x+1)
 S(x) : x == shootHeight -> T(0)
@@ -47,8 +47,8 @@ P(flowerIncrementFailureChance)     | V(x) : x > 0 -> []
                                       V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
-#symbols RPLO
-#matches RPLO
+#symbols RPO
+#matches RPO
 P(shootStemBranchingFactor)     | R(x) : x < branchLength -> I(internodeHeight)[-(75)^(20)B(x + 1)][+(75)^(20)B(x + 1)]R(x + 1)
 P(1 - shootStemBranchingFactor) | R(x) : x < branchLength -> I(internodeHeight)R(x + 1)
                                   R(x) : x == branchLength -> P(leavesPerPetiole)
@@ -58,8 +58,8 @@ P(x) : x > 0 -> L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
-#symbols IAQNI
-#matches IAQN
+#symbols IAQ
+#matches IAQ
 I(x) : x > 0 -> FI(x - 1)F
 
 A(x) : x < growthStop -> Q(x)NI(growthStop - x + 3)A(x + 1)
@@ -67,8 +67,8 @@ A(x) : x == growthStop -> Q(x)N
 
 Q(x) : x < segmentGrowth -> FQ(x + 1)F
 
-#symbols NLlK
-#matches NL1K
+#symbols NlK
+#matches NlK
 N -> leafExpression
 L -> [`!(1, 0.5, 0.5)l(1, leafAge)]
 L(x) -> [`!(1, 0.5, 0.5)l(1, x)]

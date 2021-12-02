@@ -3,7 +3,7 @@
 
 
 #symbols /\+-^&`
-#symbols PILYQESWF
+#symbols PILYQESWFlK
 #matches PILYQESWF
 
 P -> I+[P+Y]--//[--L]I[++L]-[PY]++P

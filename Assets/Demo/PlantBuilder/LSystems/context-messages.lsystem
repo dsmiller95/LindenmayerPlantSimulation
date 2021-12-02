@@ -1,7 +1,7 @@
 #axiom Z(0)T(0)
 #iterations 70
 
-#symbols /\&^F$
+#symbols /\&^-+F$`!
 
 #runtime terminalBudGrowth 15
 
@@ -28,21 +28,21 @@ X ->
 
 #define rootBounceTime 10
 ## Z is the root, and bounces signals
-#symbols ZJ
-#matches ZJ
+#symbols Z
+#matches Z
 Z(x) : x == 1 -> Z(0)X
 Z(x) : x > 1 -> Z(x - 1)
 Z(x) > J -> Z(rootBounceTime)
 ## o Z > J -> ZX
 
 ## B is a bud, and randomly chooses what it will become
-#symbols BJIR
-#matches BJIR
+#symbols BR
+#matches BR
 JI(Y) < B(x) -> R((terminalBudGrowth - x)^0.6)
 
 ## G is a dormant flowering bud
-#symbols GV
-#matches GV
+#symbols G
+#matches G
 G(x) -> V(x)
 
 ## V is a flowering bud
@@ -52,8 +52,8 @@ V(x) : x > 0 -> ^(7)FV(x - 1)
 X < V(x) : x == 0 -> [``K(0)]
 
 ## R is a side branch terminal node
-#symbols RPO
-#matches RPO
+#symbols PO
+#matches PO
 P(shootStemLeafProbability) | R(x) : x > 0 -> I(sideInternodeLength)[-(75)^(20)P(leavesPerPetiole)][+(75)^(20)P(leavesPerPetiole)]R(x - 1)
 P(1 - shootStemLeafProbability) | R(x) : x > 0 -> I(sideInternodeLength)R(x - 1)
 R(x) : x <= 0 -> [^G(2)]P(leavesPerPetiole)
@@ -63,15 +63,15 @@ P(x) : x > 0 -> L
 O(x, t) : x > 0 -> +(t)L(x/(leavesPerPetiole/2) * leafAge)O(x - 1, t)
 
 ## I is an internode, used to just build length of certain size
-#symbols IJX
-#matches IJX
+#symbols I
+#matches I
 I(x) : x > 0 -> $(0.05 / x)FI(x - 1)
 I(x) > J -> JI(x)
 X < I(x) -> I(x)X
 
 ## organs
-#symbols LlK
-#matches L1K
+#symbols LKl 
+#matches LKl
 L -> [`!(1, 0.5, 0.5)l(1, leafAge)]
 L(x) -> [`!(1, 0.5, 0.5)l(1, x)]
 l(x, y) : x < y -> l(x + 1, y)

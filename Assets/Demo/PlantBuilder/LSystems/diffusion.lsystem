@@ -12,8 +12,8 @@ Z(x) : x <= 0 -> Z(productionTime)F
 Z(x) : x > 0 -> Z(x - 1)
 
 ## J is a diffusion node
-#symbols FJ
-#matches FJ
+#symbols J
+#matches J
 P(0.5)  | F < J     -> JF
 P(0.5)  | F < J     -> FJ
 P(0.5)  |     J > F -> FJ
@@ -23,7 +23,7 @@ P(0.5)  | F < J > F -> FJF
 P(0.25) | F < J > F -> JFF
               J > FFX -> JJX
 
-#symbols FJX
+#symbols X
 #matches X
      F > J -> 
 J  < F     -> 

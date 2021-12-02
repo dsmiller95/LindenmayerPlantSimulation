@@ -8,6 +8,7 @@ namespace Dman.LSystem.SystemCompiler
         public string errorDescription;
         public int errorStartIndex;
         public int errorLength;
+        public string fileName = null;
 
         public int ErrorEndIndex
         {
@@ -59,7 +60,8 @@ namespace Dman.LSystem.SystemCompiler
                 var prefix = ruleText.Substring(0, errorStartIndex);
                 var errorRule = $"<color=red>{ruleText.Substring(errorStartIndex, errorLength)}</color>";
                 var suffix = ruleText.Substring(ErrorEndIndex, ruleText.Length - ErrorEndIndex);
-                return $"{prefix + errorRule + suffix} : {errorDescription}";
+                var filePrefix = fileName != null ? (fileName + ": ") : "";
+                return $"{filePrefix}{prefix + errorRule + suffix} : {errorDescription}";
             }
         }
     }
