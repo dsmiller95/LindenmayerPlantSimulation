@@ -34,14 +34,15 @@ namespace Assets.Demo.PlantBuilder
                     rand.NextFloat(-1, 1) * time * 360);
                 position.Value += (float3)(rotation * new float3(time, 0, 0));
                 rot.Value = rotation;
-                poll.lifespan -= time;
-                if(poll.lifespan <= 0)
+                poll.lifespanRemaining -= time;
+                if(poll.lifespanRemaining <= 0)
                 {
                     ecb.DestroyEntity(entityInQueryIndex, entity);
+                }else
+                {
+                    var newScale = math.pow(poll.lifespanRemaining / poll.totalLifespan, 1f / 3);
+                    scale.Value = new float3(newScale, newScale, newScale);
                 }
-
-                var newScale = poll.lifespan / poll.totalLifespan;
-                scale.Value = new float3(newScale, newScale, newScale);
             }).ScheduleParallel();
 
             commandBufferSystem.AddJobHandleForProducer(this.Dependency);

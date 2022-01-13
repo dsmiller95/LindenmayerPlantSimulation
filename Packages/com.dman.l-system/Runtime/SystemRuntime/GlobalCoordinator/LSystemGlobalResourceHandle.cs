@@ -40,11 +40,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             this.parent = parent;
         }
 
-        public JobHandle GlobalPreStep(
-            LSystemState<float> systemState,
-            CustomRuleSymbols customSymbols,
-            int openBranchSymbol,
-            int closeBranchSymbol)
+        public void UpdateUniqueIdReservationSpace(LSystemState<float> systemState)
         {
             while (systemState.maxUniqueOrganIds > requestedNextReservationSize * parent.idSpaceResizeThreshold)
             {
@@ -52,7 +48,14 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             }
 
             systemState.firstUniqueOrganId = uniqueIdOriginPoint;
+        }
 
+        public JobHandle ApplyPrestepEnvironment(
+            LSystemState<float> systemState,
+            CustomRuleSymbols customSymbols,
+            int openBranchSymbol,
+            int closeBranchSymbol)
+        {
             return parent.sunlightCameraSingleton?.ApplySunlightToSymbols(
                 systemState,
                 customSymbols,

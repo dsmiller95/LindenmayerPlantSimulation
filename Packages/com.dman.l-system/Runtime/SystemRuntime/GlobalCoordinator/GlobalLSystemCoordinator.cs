@@ -46,7 +46,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             this.reservationsLocked = locked;
         }
 
-        public LSystemGlobalResourceHandle AllocateResourceHandle(LSystemBehavior associatedBehavior)
+        public LSystemGlobalResourceHandle AllocateResourceHandle(LSystemBehavior associatedBehavior, uint initialReservationSize)
         {
             var lastReservation = allResourceReservations.LastOrDefault();
             uint originPoint = 1;
@@ -56,30 +56,35 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             }
             var newHandle = new LSystemGlobalResourceHandle(
                 originPoint,
-                uniqueIdMinSpaceRequired,
+                initialReservationSize,
                 this,
                 associatedBehavior);
             allResourceReservations.Add(newHandle);
 
             return newHandle;
         }
+        public LSystemGlobalResourceHandle AllocateResourceHandle(LSystemBehavior associatedBehavior)
+        {
+            return this.AllocateResourceHandle(associatedBehavior, uniqueIdMinSpaceRequired);
+        }
 
         /// <summary>
-        /// Get a managed resource handle, from a handle which was saved off independently
+        /// Get a managed resource handle, from a handle which was saved off independently. The handle may or may not have the same origin index,
+        ///     but will have sufficient size
         /// </summary>
         /// <param name="savedHandle"></param>
-        /// <returns></returns>
+        /// <returns>a different global handle instance, properly linked</returns>
         public LSystemGlobalResourceHandle GetManagedResourceHandleFromSavedData(LSystemGlobalResourceHandle savedHandle, LSystemBehavior assocatedBehavior)
         {
             var matchingHandle = allResourceReservations
                 .Where(x => x.uniqueIdOriginPoint == savedHandle.uniqueIdOriginPoint && x.uniqueIdReservationSize == savedHandle.uniqueIdReservationSize)
                 .FirstOrDefault();
-            if(matchingHandle == null)
+            if(matchingHandle != null)
             {
-                throw new Exception($"Could not find global resource handle matching a saved handle from [{savedHandle.uniqueIdOriginPoint},{savedHandle.uniqueIdReservationSize + savedHandle.uniqueIdOriginPoint})");
+                matchingHandle.InitializePostDeserialize(assocatedBehavior, this);
+                return matchingHandle;
             }
-            matchingHandle.InitializePostDeserialize(assocatedBehavior, this);
-            return matchingHandle;
+            return this.AllocateResourceHandle(assocatedBehavior, savedHandle.requestedNextReservationSize);
         }
 
         /// <summary>
@@ -89,6 +94,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         /// <returns></returns>
         public uint ResizeLSystemReservations()
         {
+            // TODO: debug reservations to make sure unused reservations don't pile up
             if (reservationsLocked)
             {
                 var lastReservation = allResourceReservations.LastOrDefault();

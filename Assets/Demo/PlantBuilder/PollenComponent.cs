@@ -7,7 +7,7 @@ namespace Assets.Demo.PlantBuilder
     [GenerateAuthoringComponent]
     public struct PollenComponent : IComponentData
     {
-        public float lifespan;
+        public float lifespanRemaining;
         public float totalLifespan;
     }
 }

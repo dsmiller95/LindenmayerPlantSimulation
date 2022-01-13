@@ -186,7 +186,11 @@ namespace Dman.LSystem.UnityObjects
             lSystemPendingCompletable.CompleteImmediate();
         }
 
-
+        /// <summary>
+        /// Root implementation of Step system, all other step calls funnel here
+        /// </summary>
+        /// <param name="runtimeParameters"></param>
+        /// <param name="repeatLast">True if this system should just repeat the last update. Useful if a runtime parameter changed, or </param>
         private void StepSystemAsync(
             ArrayParameterRepresenation<float> runtimeParameters,
             bool repeatLast = false)
@@ -200,13 +204,15 @@ namespace Dman.LSystem.UnityObjects
                 }
                 if (repeatLast)
                 {
+                    globalResourceHandle.UpdateUniqueIdReservationSpace(lastState);
                     pendingStateHandle = compiledSystem.StepSystemJob(
                         lastState,
                         runtimeParameters.GetCurrentParameters());
                 }
                 else
                 {
-                    var sunlightJob = globalResourceHandle.GlobalPreStep(
+                    globalResourceHandle.UpdateUniqueIdReservationSpace(currentState);
+                    var sunlightJob = globalResourceHandle.ApplyPrestepEnvironment(
                         currentState,
                         compiledSystem.customSymbols,
                         compiledSystem.branchOpenSymbol,
@@ -357,12 +363,11 @@ namespace Dman.LSystem.UnityObjects
             }
             if (GlobalLSystemCoordinator.instance == null)
             {
-                throw new Exception("No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
+                throw new Exception("No global l system coordinator singleton object. A single GlobalLSystemCoordinator must be present");
             }
 
-            globalResourceHandle = GlobalLSystemCoordinator.instance.GetManagedResourceHandleFromSavedData(globalResourceHandle, handleOwner);
-
-            // TODO: recompile l-system?
+            var lastHandle = globalResourceHandle;
+            globalResourceHandle = GlobalLSystemCoordinator.instance.GetManagedResourceHandleFromSavedData(lastHandle, handleOwner);
 
             if (!useSharedSystem)
             {
@@ -373,6 +378,14 @@ namespace Dman.LSystem.UnityObjects
                 }
                 compiledSystem?.Dispose();
                 compiledSystem = newSystem;
+            }
+
+            if (globalResourceHandle.uniqueIdOriginPoint != lastHandle.uniqueIdOriginPoint)
+            {
+                Debug.Log("global handle was changed when loading from save");
+                // the unique ID origin point changed. therefore, the l-system must step again to update the IDs based on the serialized LastState
+                //  this could be done faster with a simple ID update
+                StepSystemAsync(runtimeParameters, repeatLast: true);
             }
         }
 
