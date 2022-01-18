@@ -154,6 +154,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public ICompletable StepNext()
         {
             currentJobHandle.Complete();
+            if (nativeData.IsDisposed)
+            {
+                this.Dispose();
+                return new ErrorCompletable<TurtleCompletionResult>("turtle data has been disposed before completable could finish");
+            }
             return new TurtleMeshBuildingCompletable(
                 targetMesh,
                 newMeshSizeBySubmesh,

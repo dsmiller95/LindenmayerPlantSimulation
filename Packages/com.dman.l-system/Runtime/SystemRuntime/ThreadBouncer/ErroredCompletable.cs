@@ -15,7 +15,6 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             error = errorMessage;
         }
 
-
         public string GetError()
         {
             return error;

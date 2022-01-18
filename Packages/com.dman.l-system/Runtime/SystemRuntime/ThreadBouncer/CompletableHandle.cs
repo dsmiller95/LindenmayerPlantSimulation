@@ -51,6 +51,15 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             return currentState.IsComplete() && !currentState.HasErrored();
         }
 
+        public string GetError()
+        {
+            if (!currentState.HasErrored())
+            {
+                return null;
+            }
+            return currentState.GetError();
+        }
+
         public JobHandle Dispose(JobHandle inputDeps)
         {
             if (IsDisposed) return inputDeps;

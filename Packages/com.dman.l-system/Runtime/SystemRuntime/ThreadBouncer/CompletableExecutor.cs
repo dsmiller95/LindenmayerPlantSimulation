@@ -74,7 +74,16 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 #endif
             try
             {
-                return x.TryStep();
+                var stepChanged = x.TryStep();
+
+                var error = x.GetError();
+                if(error != null)
+                {
+                    Debug.LogWarning("completable error: " + error);
+                    return false;
+                }
+
+                return stepChanged;
             }
             catch (System.Exception e1)
             {
