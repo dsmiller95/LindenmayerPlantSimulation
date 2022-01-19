@@ -1,11 +1,6 @@
 using Dman.LSystem.SystemRuntime.Turtle;
-using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
-using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
-using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects.VolumetricResource
@@ -15,6 +10,8 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
     {
         public char indicatorCharacter;
         public float diffusionConstant;
+        [Tooltip("If diffusion would cause any node involved to exceed this cap, instead only diffuse up to that cap. 0 or less indicates no cap")]
+        public float diffusionCap = -1;
         public OrganDiffusionDirection diffusionDirection;
         public VolumetricResourceLayer resourceLayer;
     }
@@ -52,7 +49,8 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
                         {
                             diffusionDirection = interactable.diffusionDirection,
                             resourceLayerId = interactable.resourceLayer.voxelLayerId,
-                            diffusionConstant = interactable.diffusionConstant
+                            diffusionConstant = interactable.diffusionConstant,
+                            diffusionCap = interactable.diffusionCap
                         }
                     }
                 });
@@ -64,6 +62,7 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
         public OrganDiffusionDirection diffusionDirection;
         public int resourceLayerId;
         public float diffusionConstant;
+        public float diffusionCap;
 
         public void Operate(
             ref TurtleState state,
@@ -72,7 +71,7 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
             TurtleVolumetricHandles volumetricHandles)
         {
             var paramIndex = sourceString.parameters[indexInString];
-            if(paramIndex.length != 1)
+            if (paramIndex.length != 1)
             {
                 return;
             }
@@ -104,10 +103,18 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
                     break;
             }
 
-            if(diffusionToLSystem == 0)
+            if (diffusionCap > 0)
+            {
+                var maxAllowableDiffuseIn = math.max(diffusionCap - amountInSymbol, 0);
+                diffusionToLSystem = math.min(diffusionToLSystem, maxAllowableDiffuseIn);
+                var maxAllowableDiffuseOut = math.max(diffusionCap - amountInVoxel, 0);
+                diffusionToLSystem = -math.min(-diffusionToLSystem, maxAllowableDiffuseOut);
+            }
+            if (diffusionToLSystem == 0)
             {
                 return;
             }
+
             sourceString.parameters[paramIndex, 0] = amountInSymbol + diffusionToLSystem;
             volumetricHandles.universalWriter.AppendAmountChangeToOtherLayer(voxelIndex, -diffusionToLSystem, resourceLayerId);
         }
