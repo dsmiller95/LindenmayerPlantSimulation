@@ -161,7 +161,9 @@ public class LSystemPerformanceTests
                 diffusionAmount = 'a',
                 diffusionNode = 'n',
                 diffusionStepsPerStep = 1,
-                diffusionConstantRuntimeGlobalMultiplier = 1f
+                diffusionConstantRuntimeGlobalMultiplier = 1f,
+                branchOpenSymbol = '[',
+                branchCloseSymbol = ']',
             });
         using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
         Assert.AreEqual("n(0.5, 50, 100)[n(0.5, -25, 100)[n(0.5, 25, 100)][n(0.5, 25, 100)]][n(0.5, -25, 100)[n(0.5, 25, 100)][n(0.5, 25, 100)]]", nextState.Data.ToString());

@@ -12,24 +12,22 @@ public class LSystemCustomDiffusionTests
        IEnumerable<string> rules,
        string[] globalParameters = null,
        string includedCharacters = "[]ABCDEFDna",
-       int branchOpenSymbol = '[',
-       int branchCloseSymbol = ']',
        CustomRuleSymbols customSymbols = default)
     {
         var compiledRules = RuleParser.CompileRules(
                     rules,
                     out var nativeRuleData,
-                    branchOpenSymbol, branchCloseSymbol,
+                    customSymbols.branchOpenSymbol, customSymbols.branchCloseSymbol,
                     globalParameters
                     );
+
 
         return new LSystemStepper(
             compiledRules,
             nativeRuleData,
-            branchOpenSymbol, branchCloseSymbol,
+            customSymbols,
             globalParameters?.Length ?? 0,
-            includedContextualCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) },
-            customSymbols: customSymbols
+            includedContextualCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) }
         );
     }
 

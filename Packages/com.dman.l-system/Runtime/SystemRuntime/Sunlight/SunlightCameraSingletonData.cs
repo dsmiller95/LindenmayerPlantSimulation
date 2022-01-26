@@ -172,9 +172,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         public JobHandle ApplySunlightToSymbols(
             LSystemState<float> systemState,
-            CustomRuleSymbols customSymbols,
-            int openBranchSymbol,
-            int closeBranchSymbol)
+            CustomRuleSymbols customSymbols)
         {
 
             var idsNativeArray = uniqueSunlightAssignments.ActiveData;
@@ -200,8 +198,6 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 lastIdentityStack = tmpIdentityStack,
 
                 sunlightPerPixel = sunlightPerPixel,
-                branchOpen = openBranchSymbol,
-                branchClose = closeBranchSymbol,
                 customSymbols = customSymbols,
             };
 

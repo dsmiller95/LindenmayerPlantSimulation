@@ -16,8 +16,6 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
         public SymbolString<float> symbols;
         public TmpNativeStack<BranchIdentity> lastIdentityStack;
 
-        public int branchOpen;
-        public int branchClose;
         public CustomRuleSymbols customSymbols;
 
         public void Execute()
@@ -30,11 +28,11 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
             {
                 var symbol = symbols[symbolIndex];
 
-                if (symbol == branchOpen)
+                if (symbol == customSymbols.branchOpenSymbol)
                 {
                     lastIdentityStack.Push(branchIdentity);
                 }
-                else if (symbol == branchClose)
+                else if (symbol == customSymbols.branchCloseSymbol)
                 {
                     branchIdentity = lastIdentityStack.Pop();
                 }

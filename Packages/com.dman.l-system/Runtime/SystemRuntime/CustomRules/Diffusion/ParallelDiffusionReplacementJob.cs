@@ -25,9 +25,6 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
         [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public SymbolString<float> targetData;
 
-        public int branchOpenSymbol;
-        public int branchCloseSymbol;
-
         internal DiffusionWorkingDataPack working;
 
         public CustomRuleSymbols customSymbols;
@@ -118,7 +115,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                         working.nodeAmountsListA[modifiedNode.indexInTempAmountList + resourceType] += sourceData.parameters[amountParameters, resourceType];
                     }
                 }
-                else if (symbol == branchOpenSymbol)
+                else if (symbol == customSymbols.branchOpenSymbol)
                 {
                     branchSymbolParentStack.Push(new BranchEvent
                     {
@@ -126,7 +123,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                         currentNodeParent = currentNodeParent
                     });
                 }
-                else if (symbol == branchCloseSymbol)
+                else if (symbol == customSymbols.branchCloseSymbol)
                 {
                     var lastBranchState = branchSymbolParentStack.Pop();
                     currentNodeParent = lastBranchState.currentNodeParent;

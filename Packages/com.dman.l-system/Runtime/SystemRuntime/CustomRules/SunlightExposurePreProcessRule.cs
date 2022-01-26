@@ -16,8 +16,6 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
         public TmpNativeStack<BranchIdentity> lastIdentityStack;
 
         public float sunlightPerPixel;
-        public int branchOpen;
-        public int branchClose;
         public CustomRuleSymbols customSymbols;
 
         public void Execute()
@@ -35,11 +33,11 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                     var identityBits = new UIntFloatColor32(symbols.parameters[symbolIndex, 0]);
                     branchIdentity = new BranchIdentity(identityBits.UIntValue);
                 }
-                else if (symbol == branchOpen)
+                else if (symbol == customSymbols.branchOpenSymbol)
                 {
                     lastIdentityStack.Push(branchIdentity);
                 }
-                else if (symbol == branchClose)
+                else if (symbol == customSymbols.branchCloseSymbol)
                 {
                     branchIdentity = lastIdentityStack.Pop();
                 }

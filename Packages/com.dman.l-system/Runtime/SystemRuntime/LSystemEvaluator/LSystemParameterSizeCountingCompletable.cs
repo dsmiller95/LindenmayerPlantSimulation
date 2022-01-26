@@ -19,7 +19,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 #endif
         private LSystemState<float> systemState;
 
-        public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public CustomRuleSymbols customSymbols;
 
         /////////////// things owned by this step /////////
@@ -44,8 +43,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             LSystemState<float> systemState,
             DependencyTracker<SystemLevelRuleNativeData> lSystemNativeData,
             float[] globalParameters,
-            int branchOpenSymbol,
-            int branchCloseSymbol,
             ISet<int>[] includedCharactersByRuleIndex,
             CustomRuleSymbols customSymbols,
             JobHandle parameterModificationJobDependency)
@@ -57,14 +54,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             this.systemState = systemState;
             this.customSymbols = customSymbols;
-            sourceSymbolString = systemState.currentSymbols;
             nativeData = lSystemNativeData;
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(sourceSymbolString.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             parameterTotalSum = new NativeArray<int>(1, Allocator.TempJob);
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -73,11 +69,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData = matchSingletonData,
                 memoryRequirementsPerSymbol = nativeData.Data.maxParameterMemoryRequirementsPerSymbol,
                 parameterTotalSum = parameterTotalSum,
-                sourceSymbolString = sourceSymbolString.Data
+                sourceSymbolString = systemState.currentSymbols.Data
             };
 
             currentJobHandle = memorySizeJob.Schedule();
-            sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
+            systemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
 
@@ -86,11 +82,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             // 2.1
             UnityEngine.Profiling.Profiler.BeginSample("branch cache");
             branchingCache = new SymbolStringBranchingCache(
-                branchOpenSymbol,
-                branchCloseSymbol,
+                customSymbols.branchOpenSymbol,
+                customSymbols.branchCloseSymbol,
                 includedCharactersByRuleIndex,
                 nativeData.Data);
-            branchingCache.BuildJumpIndexesFromSymbols(sourceSymbolString);
+            branchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
             UnityEngine.Profiling.Profiler.EndSample();
         }
 

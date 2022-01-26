@@ -52,15 +52,11 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
         public JobHandle ApplyPrestepEnvironment(
             LSystemState<float> systemState,
-            CustomRuleSymbols customSymbols,
-            int openBranchSymbol,
-            int closeBranchSymbol)
+            CustomRuleSymbols customSymbols)
         {
             return parent.sunlightCameraSingleton?.ApplySunlightToSymbols(
                 systemState,
-                customSymbols,
-                openBranchSymbol,
-                closeBranchSymbol) ?? default(JobHandle);
+                customSymbols) ?? default(JobHandle);
         }
 
         public bool ContainsId(uint organId)

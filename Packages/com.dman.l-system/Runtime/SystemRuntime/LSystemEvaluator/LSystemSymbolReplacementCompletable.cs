@@ -16,7 +16,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public string TaskDescription => "L System symbol replacements";
 #endif
 
-        public DependencyTracker<SymbolString<float>> sourceSymbolString;
+        public LSystemState<float> lastSystemState;
         public Unity.Mathematics.Random randResult;
 
         /////////////// things owned by this step /////////
@@ -27,7 +27,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         private DiffusionWorkingDataPack diffusionHelper;
         private NativeArray<uint> maxIdReached;
         private NativeArray<bool> isImmature;
-        private uint uniqueIdOriginIndex;
 
         /////////////// l-system native data /////////
         public DependencyTracker<SystemLevelRuleNativeData> nativeData;
@@ -36,7 +35,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         public LSystemSymbolReplacementCompletable(
             Unity.Mathematics.Random randResult,
-            DependencyTracker<SymbolString<float>> sourceSymbolString,
+            LSystemState<float> lastSystemState,
             int totalNewSymbolSize,
             int totalNewParamSize,
             NativeArray<float> globalParamNative,
@@ -44,10 +43,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
             DependencyTracker<SystemLevelRuleNativeData> nativeData,
             SymbolStringBranchingCache branchingCache,
-            CustomRuleSymbols customSymbols,
-            uint originIndex)
+            CustomRuleSymbols customSymbols)
         {
-            this.uniqueIdOriginIndex = originIndex;
+            this.lastSystemState = lastSystemState;
             this.matchSingletonData = matchSingletonData;
             this.branchingCache = branchingCache;
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
@@ -55,7 +53,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             UnityEngine.Profiling.Profiler.EndSample();
 
             this.randResult = randResult;
-            this.sourceSymbolString = sourceSymbolString;
 
             this.nativeData = nativeData;
 
@@ -69,7 +66,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 parameterMatchMemory = tmpParameterMemory,
                 matchSingletonData = matchSingletonData,
 
-                sourceData = sourceSymbolString.Data,
+                sourceData = lastSystemState.currentSymbols.Data,
                 structExpressionSpace = nativeData.Data.structExpressionMemorySpace,
                 globalOperatorData = nativeData.Data.dynamicOperatorMemory,
                 replacementSymbolData = nativeData.Data.replacementsSymbolMemorySpace,
@@ -92,11 +89,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 var diffusionJob = new ParallelDiffusionReplacementJob
                 {
                     matchSingletonData = matchSingletonData,
-
-                    sourceData = sourceSymbolString.Data,
+                    sourceData = lastSystemState.currentSymbols.Data,
                     targetData = target,
-                    branchOpenSymbol = branchingCache.branchOpenSymbol,
-                    branchCloseSymbol = branchingCache.branchCloseSymbol,
                     customSymbols = customSymbols,
                     working = diffusionHelper
                 };
@@ -106,12 +100,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                      );
             }
             // only parameter modifications beyond this point
-            sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
+            lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(
-                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, uniqueIdOriginIndex),
+                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, lastSystemState.firstUniqueOrganId),
                     ScheduleIndependentDiffusion(currentJobHandle, customSymbols)
                 ),
                 JobHandle.CombineDependencies(
@@ -131,8 +125,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 var diffusionJob = new IndependentDiffusionReplacementJob
                 {
                     inPlaceSymbols = target,
-                    branchOpenSymbol = branchingCache.branchOpenSymbol,
-                    branchCloseSymbol = branchingCache.branchCloseSymbol,
                     customSymbols = customSymbols,
                     working = diffusionHelper
                 };
@@ -163,8 +155,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 {
                     symbols = target,
                     lastIdentityStack = helperStack,
-                    branchOpen = branchingCache.branchOpenSymbol,
-                    branchClose = branchingCache.branchCloseSymbol,
                     customSymbols = customSymbols
                 };
 
@@ -211,7 +201,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 currentSymbols = new DependencyTracker<SymbolString<float>>(target),
                 maxUniqueOrganIds = maxIdReached[0],
                 hasImmatureSymbols = hasImmatureSymbols,
-                firstUniqueOrganId = uniqueIdOriginIndex
+                firstUniqueOrganId = lastSystemState.firstUniqueOrganId
             };
 
             maxIdReached.Dispose();

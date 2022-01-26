@@ -213,9 +213,7 @@ namespace Dman.LSystem.UnityObjects
                     globalResourceHandle.UpdateUniqueIdReservationSpace(currentState);
                     var sunlightJob = globalResourceHandle.ApplyPrestepEnvironment(
                         currentState,
-                        compiledSystem.customSymbols,
-                        compiledSystem.branchOpenSymbol,
-                        compiledSystem.branchCloseSymbol);
+                        compiledSystem.customSymbols);
 
                     pendingStateHandle = compiledSystem.StepSystemJob(
                         currentState,

@@ -14,6 +14,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 {
     public struct TurtleOrganInstance
     {
+        /// <summary>
+        /// the unique ID of the organ template used to spawn this organ
+        /// </summary>
         public ushort organIndexInAllOrgans;
         public float4x4 organTransform;
         public JaggedIndexing vertexMemorySpace;
@@ -45,6 +48,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public VoxelCapReachedTimestampEffect damageFlags;
     }
 
+    /// <summary>
+    /// Executes all actions relating to the turtle, and compiles a list of organs to be turned into a mesh
+    /// </summary>
     public class TurtleStringReadingCompletable : ICompletable<TurtleCompletionResult>
     {
 #if UNITY_EDITOR

@@ -2,6 +2,9 @@
 {
     public struct CustomRuleSymbols
     {
+        public int branchOpenSymbol;
+        public int branchCloseSymbol;
+
         public bool hasDiffusion;
         public bool independentDiffusionUpdate;
         /// <summary>

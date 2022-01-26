@@ -35,10 +35,16 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                         globalParameters
                         );
 
+            var customSymbols = new CustomRuleSymbols
+            {
+                branchOpenSymbol = branchOpenSymbol,
+                branchCloseSymbol = branchCloseSymbol
+            };
+
             return new LSystemStepper(
                 compiledRules,
                 nativeRuleData,
-                branchOpenSymbol, branchCloseSymbol,
+                customSymbols,
                 globalParameters?.Length ?? 0,
                 includedContextualCharactersByRuleIndex: new[] { new HashSet<int>(includedCharacters.Select(x => (int)x)) }
             );
@@ -119,8 +125,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// </summary>
         public int GlobalParameters { get; private set; }
 
-        public int branchOpenSymbol;
-        public int branchCloseSymbol;
         public CustomRuleSymbols customSymbols;
         /// <summary>
         /// Defaults to false. fully ordering agnostic matching is not yet implemented, setting to true will result in an approximation
@@ -135,17 +139,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public LSystemStepper(
             IEnumerable<BasicRule> rules,
             SystemLevelRuleNativeData nativeRuleData,
-            int branchOpenSymbol,
-            int branchCloseSymbol,
+            CustomRuleSymbols customSymbols,
             int expectedGlobalParameters = 0,
-            ISet<int>[] includedContextualCharactersByRuleIndex = null,
-            CustomRuleSymbols customSymbols = default)
+            ISet<int>[] includedContextualCharactersByRuleIndex = null)
         {
-            this.customSymbols = customSymbols;
             GlobalParameters = expectedGlobalParameters;
 
-            this.branchOpenSymbol = branchOpenSymbol;
-            this.branchCloseSymbol = branchCloseSymbol;
+            this.customSymbols = customSymbols;
+
             includedCharacters = includedContextualCharactersByRuleIndex == null ? new HashSet<int>[0] : includedContextualCharactersByRuleIndex;
 
             rulesByTargetSymbol = new Dictionary<int, IList<BasicRule>>();
@@ -260,8 +261,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 systemState,
                 nativeRuleData,
                 globalParameters,
-                branchOpenSymbol,
-                branchCloseSymbol,
                 includedCharacters,
                 customSymbols,
                 parameterWriteDependency);

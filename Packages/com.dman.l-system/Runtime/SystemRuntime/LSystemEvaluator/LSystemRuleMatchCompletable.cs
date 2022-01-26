@@ -17,10 +17,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 #if UNITY_EDITOR
         public string TaskDescription => "L System rule matching";
 #endif
-        public DependencyTracker<SymbolString<float>> sourceSymbolString;
         public Unity.Mathematics.Random randResult;
         public CustomRuleSymbols customSymbols;
-        public uint uniqueIDOriginIndex;
+        public LSystemState<float> lastSystemState;
 
         /////////////// things owned by this step /////////
         public NativeArray<int> totalSymbolCount;
@@ -42,7 +41,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="systemState"></param>
+        /// <param name="lastSystemState"></param>
         /// <param name="lSystemNativeData"></param>
         /// <param name="globalParameters"></param>
         /// <param name="maxMemoryRequirementsPerSymbol"></param>
@@ -56,16 +55,15 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
             int parameterTotalSum,
             SymbolStringBranchingCache branchingCache,
-            LSystemState<float> systemState,
+            LSystemState<float> lastSystemState,
             DependencyTracker<SystemLevelRuleNativeData> lSystemNativeData,
             float[] globalParameters,
             CustomRuleSymbols customSymbols,
             JobHandle parameterModificationJobDependency)
         {
             this.customSymbols = customSymbols;
-            uniqueIDOriginIndex = systemState.firstUniqueOrganId;
-            randResult = systemState.randomProvider;
-            sourceSymbolString = systemState.currentSymbols;
+            this.lastSystemState = lastSystemState;
+            randResult = lastSystemState.randomProvider;
             nativeData = lSystemNativeData;
 
             this.matchSingletonData = matchSingletonData;
@@ -85,7 +83,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             {
                 matchSingletonData = matchSingletonData,
 
-                sourceData = sourceSymbolString.Data,
+                sourceData = lastSystemState.currentSymbols.Data,
                 tmpParameterMemory = tmpParameterMemory,
 
                 globalOperatorData = nativeData.Data.dynamicOperatorMemory,
@@ -118,11 +116,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData = matchSingletonData,
                 totalResultSymbolCount = totalSymbolCount,
                 totalResultParameterCount = totalSymbolParameterCount,
-                sourceData = sourceSymbolString.Data,
+                sourceData = lastSystemState.currentSymbols.Data,
                 customSymbols = customSymbols
             };
             currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
-            sourceSymbolString.RegisterDependencyOnData(currentJobHandle);
+            lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -139,7 +137,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             return new LSystemSymbolReplacementCompletable(
                 randResult,
-                sourceSymbolString,
+                lastSystemState,
                 totalNewSymbolSize,
                 totalNewParamSize,
                 globalParamNative,
@@ -147,11 +145,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData,
                 nativeData,
                 branchingCache,
-                customSymbols,
-                uniqueIDOriginIndex)
-            {
-                randResult = randResult,
-            };
+                customSymbols);
         }
 
         public bool IsComplete()

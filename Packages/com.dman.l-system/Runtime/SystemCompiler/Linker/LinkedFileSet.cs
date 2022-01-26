@@ -159,6 +159,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
                 .ToArray();
 
             var customSymbols = new CustomRuleSymbols();
+            customSymbols.branchOpenSymbol = openSymbol;
+            customSymbols.branchCloseSymbol = closeSymbol;
+
             foreach (var file in allFiles.data)
             {
                 file.SetCustomRuleSymbols(ref customSymbols);
@@ -185,11 +188,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
             var result = new LSystemStepper(
                 compiledRules,
                 nativeRuleData,
+                customSymbols,
                 expectedGlobalParameters: allGlobalRuntimeParams.Count,
-                includedContextualCharactersByRuleIndex: includedByFile,
-                branchOpenSymbol: openSymbol,
-                branchCloseSymbol: closeSymbol,
-                customSymbols: customSymbols
+                includedContextualCharactersByRuleIndex: includedByFile
             );
             UnityEngine.Profiling.Profiler.EndSample();
             return result;

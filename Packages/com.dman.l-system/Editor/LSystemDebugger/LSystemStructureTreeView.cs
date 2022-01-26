@@ -71,8 +71,8 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                     inspectedMachine.systemObject.linkedFiles,
                     inspectedMachine.steppingHandle.currentState.currentSymbols.Data,
                     displayedSymbols,
-                    stepper.branchOpenSymbol,
-                    stepper.branchCloseSymbol
+                    stepper.customSymbols.branchOpenSymbol,
+                    stepper.customSymbols.branchCloseSymbol
                     );
                 rootNode.depth = -1;
 
