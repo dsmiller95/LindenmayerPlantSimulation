@@ -1,13 +1,10 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.VolumetricData;
+﻿using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.LSystem.UnityObjects;
 using Dman.LSystem.UnityObjects.VolumetricResource;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {

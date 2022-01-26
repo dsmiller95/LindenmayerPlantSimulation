@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Diagnostics;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
-
-namespace Dman.LSystem.SystemRuntime.VolumetricData
+﻿namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
     /// <summary>
     /// index of a voxel inside a 3D volume

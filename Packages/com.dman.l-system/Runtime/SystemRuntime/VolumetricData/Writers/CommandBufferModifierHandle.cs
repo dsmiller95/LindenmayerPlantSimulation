@@ -1,15 +1,7 @@
-﻿using Dman.LSystem.SystemRuntime.CustomRules;
-using Dman.LSystem.SystemRuntime.GlobalCoordinator;
-using Dman.LSystem.SystemRuntime.LSystemEvaluator;
-using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
-using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+﻿using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Rendering;
-using Dman.LSystem;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
@@ -69,7 +61,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
             return new CommandBufferNativeWritableHandle(
                 modificationCommands,
-                voxelLayout, 
+                voxelLayout,
                 localToWorldTransform);
         }
 

@@ -1,5 +1,4 @@
-﻿using Dman.MeshDraftExtensions;
-using ProceduralToolkit;
+﻿using ProceduralToolkit;
 using SplineMesh;
 using UnityEngine;
 

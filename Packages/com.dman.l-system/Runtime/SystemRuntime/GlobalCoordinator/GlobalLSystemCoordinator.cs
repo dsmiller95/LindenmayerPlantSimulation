@@ -2,7 +2,6 @@
 using Dman.LSystem.UnityObjects;
 using Dman.ObjectSets;
 using Dman.SceneSaveSystem;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -79,7 +78,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             var matchingHandle = allResourceReservations
                 .Where(x => x.uniqueIdOriginPoint == savedHandle.uniqueIdOriginPoint && x.uniqueIdReservationSize == savedHandle.uniqueIdReservationSize)
                 .FirstOrDefault();
-            if(matchingHandle != null)
+            if (matchingHandle != null)
             {
                 matchingHandle.InitializePostDeserialize(assocatedBehavior, this);
                 return matchingHandle;
@@ -98,7 +97,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             if (reservationsLocked)
             {
                 var lastReservation = allResourceReservations.LastOrDefault();
-                if(lastReservation == null)
+                if (lastReservation == null)
                 {
                     return 1;
                 }
@@ -137,7 +136,8 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
             foreach (var resourceAllocation in allResourceReservations)
             {
-                if (resourceAllocation.ContainsId(organId)){
+                if (resourceAllocation.ContainsId(organId))
+                {
                     return resourceAllocation.associatedBehavior == null ? null : resourceAllocation.associatedBehavior;
                 }
             }

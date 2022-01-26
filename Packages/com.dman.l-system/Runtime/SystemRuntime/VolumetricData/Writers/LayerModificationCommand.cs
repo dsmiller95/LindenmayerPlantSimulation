@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace Dman.LSystem.SystemRuntime.VolumetricData
+﻿namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
     public struct LayerModificationCommand
     {

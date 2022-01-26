@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
@@ -35,10 +34,11 @@ namespace Assets.Demo.PlantBuilder
                 position.Value += (float3)(rotation * new float3(time, 0, 0));
                 rot.Value = rotation;
                 poll.lifespanRemaining -= time;
-                if(poll.lifespanRemaining <= 0)
+                if (poll.lifespanRemaining <= 0)
                 {
                     ecb.DestroyEntity(entityInQueryIndex, entity);
-                }else
+                }
+                else
                 {
                     var newScale = math.pow(poll.lifespanRemaining / poll.totalLifespan, 1f / 3);
                     scale.Value = new float3(newScale, newScale, newScale);

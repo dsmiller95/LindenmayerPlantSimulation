@@ -1,18 +1,12 @@
-﻿using Dman.LSystem.SystemRuntime.CustomRules;
-using Dman.LSystem.SystemRuntime.GlobalCoordinator;
-using Dman.LSystem.SystemRuntime.LSystemEvaluator;
-using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
+﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData
 {
-    public class DoubleBufferModifierHandle: ModifierHandle
+    public class DoubleBufferModifierHandle : ModifierHandle
     {
         public NativeArray<float> valuesA;
         public NativeArray<float> valuesB;
@@ -77,7 +71,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         }
 
         public DoubleBufferNativeWritableHandle GetNextNativeWritableHandle(
-            Matrix4x4 localToWorldTransform, 
+            Matrix4x4 localToWorldTransform,
             ref JobHandleWrapper dependency)
         {
             if (IsDisposed)
@@ -106,7 +100,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
             return new DoubleBufferNativeWritableHandle(
                 mostRecentVolumeData,
-                voxelLayout, 
+                voxelLayout,
                 localToWorldTransform);
         }
 

@@ -1,6 +1,5 @@
 ﻿
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.ThreadBouncer
@@ -77,7 +76,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
                 var stepChanged = x.TryStep();
 
                 var error = x.GetError();
-                if(error != null)
+                if (error != null)
                 {
                     Debug.LogWarning("completable error: " + error);
                     return false;

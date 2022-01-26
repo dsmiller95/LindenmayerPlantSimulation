@@ -1,9 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
-using Dman.ObjectSets;
-using System.Collections;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers

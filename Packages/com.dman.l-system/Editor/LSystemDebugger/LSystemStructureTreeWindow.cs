@@ -1,5 +1,4 @@
 ﻿using Dman.LSystem.UnityObjects;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -61,7 +60,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
         private void OnGUI()
         {
             var nextShowAll = EditorGUILayout.Toggle("Show all symbols", showAllSymbols);
-            if(nextShowAll != showAllSymbols)
+            if (nextShowAll != showAllSymbols)
             {
                 showAllSymbols = nextShowAll;
                 m_BehaviorTree.SetShowAllSymbols(showAllSymbols);

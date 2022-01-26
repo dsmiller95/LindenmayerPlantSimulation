@@ -1,11 +1,13 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using System;
 using System.Linq;
-using System;
+using UnityEngine;
 
-namespace SplineMesh {
-    public static class UOUtility {
-        public static GameObject Create(string name, GameObject parent, params Type[] components) {
+namespace SplineMesh
+{
+    public static class UOUtility
+    {
+        public static GameObject Create(string name, GameObject parent, params Type[] components)
+        {
             var res = new GameObject(name, components);
             res.transform.parent = parent.transform;
             res.transform.localPosition = Vector3.zero;
@@ -14,7 +16,8 @@ namespace SplineMesh {
             return res;
         }
 
-        public static GameObject Instantiate(GameObject prefab, Transform parent) {
+        public static GameObject Instantiate(GameObject prefab, Transform parent)
+        {
             var res = UnityEngine.Object.Instantiate(prefab, parent);
             res.transform.localPosition = Vector3.zero;
             res.transform.localRotation = Quaternion.identity;
@@ -22,25 +25,35 @@ namespace SplineMesh {
             return res;
         }
 
-        public static void Destroy(GameObject go) {
-            if (Application.isPlaying) {
+        public static void Destroy(GameObject go)
+        {
+            if (Application.isPlaying)
+            {
                 UnityEngine.Object.Destroy(go);
-            } else {
+            }
+            else
+            {
                 UnityEngine.Object.DestroyImmediate(go);
             }
         }
 
-        public static void Destroy(Component comp) {
-            if (Application.isPlaying) {
+        public static void Destroy(Component comp)
+        {
+            if (Application.isPlaying)
+            {
                 UnityEngine.Object.Destroy(comp);
-            } else {
+            }
+            else
+            {
                 UnityEngine.Object.DestroyImmediate(comp);
             }
         }
 
-        public static void DestroyChildren(GameObject go) {
+        public static void DestroyChildren(GameObject go)
+        {
             var childList = go.transform.Cast<Transform>().ToList();
-            foreach (Transform childTransform in childList) {
+            foreach (Transform childTransform in childList)
+            {
                 Destroy(childTransform.gameObject);
             }
         }

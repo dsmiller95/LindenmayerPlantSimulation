@@ -61,7 +61,7 @@ public class LSystemCustomDiffusionTests
                 Assert.AreEqual(expectedStep, state.currentSymbols.Data.ToString(symbolStringMapping));
             }
         }
-        catch(System.Exception e)
+        catch (System.Exception e)
         {
             UnityEngine.Debug.LogException(e);
             UnityEngine.Debug.Log("actual result:");

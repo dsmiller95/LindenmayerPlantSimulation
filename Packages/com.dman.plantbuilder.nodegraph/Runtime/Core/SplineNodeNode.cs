@@ -1,9 +1,5 @@
-using Dman.Utilities.SerializableUnityObjects;
 using GraphProcessor;
-using PlantBuilder.NodeGraph.DeferredEvaluators;
-using PlantBuilder.NodeGraph.MeshNodes;
 using SplineMesh;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace PlantBuilder.NodeGraph.Core
@@ -30,11 +26,11 @@ namespace PlantBuilder.NodeGraph.Core
         protected override void Process()
         {
             output = new SplineNode(positionInput, positionInput + direction)
-                {
-                    Up = up,
-                    Scale = scale,
-                    Roll = roll
-                };
+            {
+                Up = up,
+                Scale = scale,
+                Roll = roll
+            };
         }
 
         //[System.Serializable]

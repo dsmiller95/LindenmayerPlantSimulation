@@ -4,7 +4,6 @@ using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.ObjectSets;
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -50,7 +49,7 @@ namespace Dman.LSystem.UnityObjects
                 this.systemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
             }
 
-            if(GlobalLSystemCoordinator.instance == null)
+            if (GlobalLSystemCoordinator.instance == null)
             {
                 throw new Exception("No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
             }

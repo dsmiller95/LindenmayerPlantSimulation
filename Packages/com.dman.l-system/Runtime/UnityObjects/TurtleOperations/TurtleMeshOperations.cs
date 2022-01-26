@@ -148,7 +148,7 @@ namespace Dman.LSystem.UnityObjects
             var selectedMeshIndex = 0;
             if (organTemplateVariants.length > 1 && pIndex.length > 0)
             {
-                var index = math.clamp(((int)sourceString.parameters[pIndex, 0]), 0,  organTemplateVariants.length - 1);
+                var index = math.clamp(((int)sourceString.parameters[pIndex, 0]), 0, organTemplateVariants.length - 1);
                 selectedMeshIndex = index;
             }
             var selectedOrganIndex = organTemplateVariants.index + selectedMeshIndex;

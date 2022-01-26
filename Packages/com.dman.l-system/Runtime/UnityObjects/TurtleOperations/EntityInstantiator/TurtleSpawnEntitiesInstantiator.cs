@@ -1,9 +1,6 @@
-using Dman.LSystem.SystemRuntime.Turtle;
-using Unity.Mathematics;
-using UnityEngine;
-
-using Unity.Entities;
 using System.Collections.Generic;
+using Unity.Entities;
+using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {
@@ -21,7 +18,7 @@ namespace Dman.LSystem.UnityObjects
 
         public Entity GetEntityPrefab(TurtleSpawnData spawnablePrefab)
         {
-            if(entitiesByGoInstanceId.TryGetValue(spawnablePrefab.gameObject.GetInstanceID(), out var entity))
+            if (entitiesByGoInstanceId.TryGetValue(spawnablePrefab.gameObject.GetInstanceID(), out var entity))
             {
                 return entity;
             }

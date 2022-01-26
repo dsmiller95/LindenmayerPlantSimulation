@@ -1,6 +1,4 @@
 ﻿using Unity.Jobs;
-using UnityEditor;
-using UnityEngine;
 
 namespace Dman.LSystem
 {

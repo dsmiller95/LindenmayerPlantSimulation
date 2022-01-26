@@ -3,7 +3,7 @@ using UnityEngine;
 namespace PlantBuilder.NodeGraph.Core.Vectors
 {
     [System.Serializable]
-    public struct CylinderCoordinate: System.IEquatable<CylinderCoordinate>
+    public struct CylinderCoordinate : System.IEquatable<CylinderCoordinate>
     {
         [SerializeField]
         public float y;
@@ -36,7 +36,7 @@ namespace PlantBuilder.NodeGraph.Core.Vectors
         public override bool Equals(object obj)
         {
 
-            if(!(obj is CylinderCoordinate cyl))
+            if (!(obj is CylinderCoordinate cyl))
             {
                 return false;
             }

@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using UnityEngine;
-using UnityEngine.Events;
 
-namespace SplineMesh {
+namespace SplineMesh
+{
     [DisallowMultipleComponent]
     [ExecuteInEditMode]
     [RequireComponent(typeof(Spline))]
-    public class SplineSmoother : MonoBehaviour {
+    public class SplineSmoother : MonoBehaviour
+    {
         private Spline spline;
-        private Spline Spline {
-            get {
+        private Spline Spline
+        {
+            get
+            {
                 if (spline == null) spline = GetComponent<Spline>();
                 return spline;
             }
@@ -20,52 +20,66 @@ namespace SplineMesh {
 
         [Range(0, 1f)] public float curvature = 0.3f;
 
-        private void OnValidate() {
+        private void OnValidate()
+        {
             SmoothAll();
         }
 
-        private void OnEnable() {
+        private void OnEnable()
+        {
             Spline.NodeListChanged += Spline_NodeListChanged;
-            foreach(var node in Spline.nodes) {
+            foreach (var node in Spline.nodes)
+            {
                 node.Changed += OnNodeChanged;
             }
             SmoothAll();
         }
 
-        private void OnDisable() {
+        private void OnDisable()
+        {
             Spline.NodeListChanged -= Spline_NodeListChanged;
-            foreach (var node in Spline.nodes) {
+            foreach (var node in Spline.nodes)
+            {
                 node.Changed -= OnNodeChanged;
             }
         }
 
-        private void Spline_NodeListChanged(object sender, ListChangedEventArgs<SplineNode> args) {
-            if(args.newItems != null) {
-                foreach (var node in args.newItems) {
+        private void Spline_NodeListChanged(object sender, ListChangedEventArgs<SplineNode> args)
+        {
+            if (args.newItems != null)
+            {
+                foreach (var node in args.newItems)
+                {
                     node.Changed += OnNodeChanged;
                 }
             }
-            if(args.removedItems != null) {
-                foreach (var node in args.removedItems) {
+            if (args.removedItems != null)
+            {
+                foreach (var node in args.removedItems)
+                {
                     node.Changed -= OnNodeChanged;
                 }
             }
         }
 
-        private void OnNodeChanged(object sender, EventArgs e) {
+        private void OnNodeChanged(object sender, EventArgs e)
+        {
             var node = (SplineNode)sender;
             SmoothNode(node);
             var index = Spline.nodes.IndexOf(node);
-            if(index > 0) {
+            if (index > 0)
+            {
                 SmoothNode(Spline.nodes[index - 1]);
             }
-            if(index < Spline.nodes.Count - 1) {
+            if (index < Spline.nodes.Count - 1)
+            {
                 SmoothNode(Spline.nodes[index + 1]);
 
             }
         }
 
-        private void SmoothNode(SplineNode node) {
+        private void SmoothNode(SplineNode node)
+        {
             var index = Spline.nodes.IndexOf(node);
             var pos = node.Position;
             // For the direction, we need to compute a smooth vector.
@@ -74,13 +88,15 @@ namespace SplineMesh {
             // Then we apply a part of the average magnitude of these two vectors, according to the smoothness we want.
             var dir = Vector3.zero;
             float averageMagnitude = 0;
-            if (index != 0) {
+            if (index != 0)
+            {
                 var previousPos = Spline.nodes[index - 1].Position;
                 var toPrevious = pos - previousPos;
                 averageMagnitude += toPrevious.magnitude;
                 dir += toPrevious.normalized;
             }
-            if (index != Spline.nodes.Count - 1) {
+            if (index != Spline.nodes.Count - 1)
+            {
                 var nextPos = Spline.nodes[index + 1].Position;
                 var toNext = pos - nextPos;
                 averageMagnitude += toNext.magnitude;
@@ -98,8 +114,10 @@ namespace SplineMesh {
         }
 
 
-        private void SmoothAll() {
-            foreach(var node in Spline.nodes) {
+        private void SmoothAll()
+        {
+            foreach (var node in Spline.nodes)
+            {
                 SmoothNode(node);
             }
         }

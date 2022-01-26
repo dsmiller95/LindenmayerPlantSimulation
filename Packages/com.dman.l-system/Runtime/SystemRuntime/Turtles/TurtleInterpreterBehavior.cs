@@ -91,7 +91,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             {
                 return;
             }
-            if(!operationSets.Any(x => x is TurtleMeshOperations))
+            if (!operationSets.Any(x => x is TurtleMeshOperations))
             {
                 // don't create an interpretor if there are no meshes. no point.
                 return;

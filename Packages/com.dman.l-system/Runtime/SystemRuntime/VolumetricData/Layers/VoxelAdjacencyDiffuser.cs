@@ -3,7 +3,6 @@ using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
@@ -29,14 +28,14 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         ///     array if not returned.
         /// </summary>
         public static void ComputeDiffusion(
-            DoubleBuffered<float> layerData, 
+            DoubleBuffered<float> layerData,
             VolumetricWorldVoxelLayout layout,
             float deltaTime,
             float diffusionConstant,
             ref JobHandleWrapper dependecy)
         {
             var combinedDiffusionFactor = deltaTime * diffusionConstant;
-            if(combinedDiffusionFactor >= 1f / 6)
+            if (combinedDiffusionFactor >= 1f / 6)
             {
                 throw new System.ArgumentException("diffusion factor cannot exceed the connectivity of each node");
             }

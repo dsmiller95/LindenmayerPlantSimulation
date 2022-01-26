@@ -1,10 +1,8 @@
 ﻿using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
-using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -95,10 +93,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
 
             NativeArray<float> destructionCommandTimestamps;
-            if(volumetrics.damageFlags != null)
+            if (volumetrics.damageFlags != null)
             {
                 destructionCommandTimestamps = volumetrics.damageFlags.GetDestructionCommandTimestampsReadOnly();
-            }else
+            }
+            else
             {
                 destructionCommandTimestamps = new NativeArray<float>(0, Allocator.TempJob);
             }
@@ -144,7 +143,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             symbols.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = tmpHelperStack.Dispose(currentJobHandle);
-            if(volumetrics.damageFlags == null)
+            if (volumetrics.damageFlags == null)
             {
                 currentJobHandle = destructionCommandTimestamps.Dispose(currentJobHandle);
             }
@@ -237,12 +236,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             organInstances,
                             volumetricHandles,
                             spawnEntityBuffer);
-                        if(hasVolumetricDestruction && customRules.hasAutophagy && operation.operationType == TurtleOperationType.ADD_ORGAN)
+                        if (hasVolumetricDestruction && customRules.hasAutophagy && operation.operationType == TurtleOperationType.ADD_ORGAN)
                         {
                             // check for an operation which may have changed the position of the turtle
                             var turtlePosition = currentState.transformation.MultiplyPoint(Vector3.zero); // extract transformation
                             var voxelIndex = volumetricHandles.durabilityWriter.GetVoxelIndexFromLocalSpace(turtlePosition);
-                            if(voxelIndex.IsValid)
+                            if (voxelIndex.IsValid)
                             {
                                 var lastDestroyCommandTime = volumetricDestructionTimestamps[voxelIndex.Value];
                                 if (lastDestroyCommandTime >= earliestValidDestructionCommand)

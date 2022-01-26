@@ -1,9 +1,5 @@
-using Dman.LSystem.SystemRuntime.Turtle;
-using Unity.Mathematics;
-using UnityEngine;
-
 using Unity.Entities;
-using Unity.Transforms;
+using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {

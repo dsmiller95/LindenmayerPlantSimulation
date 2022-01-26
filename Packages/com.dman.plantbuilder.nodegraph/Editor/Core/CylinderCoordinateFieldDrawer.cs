@@ -1,5 +1,4 @@
 ﻿using GraphProcessor;
-using System.Collections.Generic;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,14 +8,16 @@ namespace PlantBuilder.NodeGraph.Core.Vectors
     [FieldDrawer(typeof(CylinderCoordinate))]
     public class CylinderCoordinateFieldDrawer : Vector3Field, INotifyValueChanged<CylinderCoordinate>
     {
-        public CylinderCoordinateFieldDrawer(): base()
+        public CylinderCoordinateFieldDrawer() : base()
         {
         }
-        public CylinderCoordinateFieldDrawer(string label): base(label)
+        public CylinderCoordinateFieldDrawer(string label) : base(label)
         {
         }
 
-        public override Vector3 value { get => base.value; set
+        public override Vector3 value
+        {
+            get => base.value; set
             {
                 var trueValue = new CylinderCoordinate
                 {

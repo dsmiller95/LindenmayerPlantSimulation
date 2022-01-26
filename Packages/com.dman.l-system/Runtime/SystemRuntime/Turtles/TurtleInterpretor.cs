@@ -1,6 +1,5 @@
 ﻿using Dman.LSystem.SystemCompiler.Linker;
 using Dman.LSystem.SystemRuntime.CustomRules;
-using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
@@ -25,7 +23,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         private TurtleState defaultState;
         private CustomRuleSymbols customSymbols;
 
-        
+
         private OrganVolumetricWorld volumetricWorld;
         private DoubleBufferModifierHandle durabilityWriterHandle;
         private CommandBufferModifierHandle commandBufferWriter;

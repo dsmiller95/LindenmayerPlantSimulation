@@ -2,7 +2,7 @@
 
 namespace PlantBuilder.NodeGraph
 {
-    public class MeshProcessor: ProcessGraphProcessor
+    public class MeshProcessor : ProcessGraphProcessor
     {
         private PlantMeshGeneratorGraph meshGraph => graph as PlantMeshGeneratorGraph;
 

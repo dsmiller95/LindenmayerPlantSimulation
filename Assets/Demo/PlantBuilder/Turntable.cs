@@ -2,7 +2,7 @@
 
 namespace Assets.Scripts.UI.PlantData
 {
-    public class Turntable: MonoBehaviour
+    public class Turntable : MonoBehaviour
     {
         public float rotationSpeed;
         public bool rotate = true;

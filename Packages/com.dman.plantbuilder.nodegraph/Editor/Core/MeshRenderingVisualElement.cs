@@ -25,7 +25,7 @@ namespace PlantBuilder.NodeGraph.Core
                 return _cached;
             }
         }
-        public MeshRenderingVisualElement( Rect previewSize)
+        public MeshRenderingVisualElement(Rect previewSize)
         {
             previewRect = previewSize;
             style.width = new Length(previewSize.width, LengthUnit.Pixel);

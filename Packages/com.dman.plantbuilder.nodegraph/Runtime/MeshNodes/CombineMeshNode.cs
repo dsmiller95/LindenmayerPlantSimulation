@@ -1,10 +1,6 @@
 using Dman.MeshDraftExtensions;
 using GraphProcessor;
-using PlantBuilder.NodeGraph.DeferredEvaluators;
 using ProceduralToolkit;
-using SplineMesh;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace PlantBuilder.NodeGraph.MeshNodes
@@ -22,7 +18,7 @@ namespace PlantBuilder.NodeGraph.MeshNodes
         protected override void Process()
         {
             var outputMesh = new CompoundMeshDraft();
-            if(A.meshDraft != null)
+            if (A.meshDraft != null)
                 outputMesh.Add(A.meshDraft);
             if (B.meshDraft != null)
                 outputMesh.Add(B.meshDraft);

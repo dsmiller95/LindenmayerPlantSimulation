@@ -1,11 +1,8 @@
-﻿using Dman.Utilities.SerializableUnityObjects;
-using System;
-using System.Collections;
+﻿using System;
 using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 {
@@ -32,7 +29,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
         {
         }
 
-        public VoxelWorldVolumetricLayerData(Serializable serializedData, Allocator allocator) : this (serializedData.layout.Deserialize(), new NativeArray<float>(serializedData.data, allocator), allocator)
+        public VoxelWorldVolumetricLayerData(Serializable serializedData, Allocator allocator) : this(serializedData.layout.Deserialize(), new NativeArray<float>(serializedData.data, allocator), allocator)
         {
         }
 

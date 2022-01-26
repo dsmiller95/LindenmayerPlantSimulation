@@ -1,15 +1,9 @@
-﻿using Dman.LSystem.SystemRuntime.VolumetricData;
-using System;
-using System.Linq;
-using System.Runtime.Serialization;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 {
-    public class DoubleBuffered<T> where T : unmanaged 
+    public class DoubleBuffered<T> where T : unmanaged
     {
         public NativeArray<T> a;
         public NativeArray<T> b;
@@ -17,7 +11,7 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
         public bool lastWriteToA;
 
         public NativeArray<T> CurrentData => lastWriteToA ? a : b;
-        public NativeArray<T>  NextData => lastWriteToA ? b : a;
+        public NativeArray<T> NextData => lastWriteToA ? b : a;
 
         public DoubleBuffered(NativeArray<T> currentData, NativeArray<T> workingData)
         {

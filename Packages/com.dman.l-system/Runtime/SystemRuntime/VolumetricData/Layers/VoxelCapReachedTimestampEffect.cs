@@ -75,7 +75,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 flagCapLayerIndex = voxelResourceCapLayerId,
                 voxelLayout = voxelLayers.VoxelLayout,
 
-                volumetricDamageValues = damageValues, 
+                volumetricDamageValues = damageValues,
                 volumetricDestructionTimestamps = volumetricDestructionTimestamps,
                 currentTime = Time.time,
                 durabilityRegenerationFactor = Mathf.Exp(regenerationPerSecondAsPercentOfDurability * deltaTime) - 1

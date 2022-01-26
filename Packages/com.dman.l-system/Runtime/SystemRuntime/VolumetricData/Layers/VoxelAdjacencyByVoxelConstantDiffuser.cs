@@ -31,7 +31,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             ref JobHandleWrapper dependecy)
         {
             var combinedDiffusionFactor = deltaTime * diffusionConstant;
-            if(combinedDiffusionFactor >= 1f / 6)
+            if (combinedDiffusionFactor >= 1f / 6)
             {
                 throw new System.ArgumentException("diffusion factor cannot exceed the connectivity of each node");
             }
@@ -53,7 +53,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
                 diffusionConstantAdjusters = diffusionConstantMultipliers,
                 minimumDiffusionConstantMultiplier = minimumDiffusionConstantMultiplier,
-                maximumDiffsuionConstant = 1/7f,
+                maximumDiffsuionConstant = 1 / 7f,
 
                 adjacencyVectors = adjacencyVectors,
 

@@ -86,7 +86,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     100
                 );
 
-            if(customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
+            if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
             {
                 diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
                 var diffusionJob = new ParallelDiffusionReplacementJob
@@ -244,7 +244,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
-            if(diffusionHelper.IsCreated) diffusionHelper.Dispose();
+            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
             if (branchingCache.IsCreated) branchingCache.Dispose();
             if (isImmature.IsCreated) isImmature.Dispose();
             return inputDeps;

@@ -37,11 +37,11 @@ namespace PlantBuilder
         {
             Seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         }
-        
+
 
         public void BuildComponents()
         {
-            if(builders.Length <= 0)
+            if (builders.Length <= 0)
             {
                 return;
             }
@@ -58,7 +58,7 @@ namespace PlantBuilder
             while (newMeshes.Count > 0)
             {
                 var nextMesh = newMeshes.Pop();
-                if(nextMesh.componentIndex >= builders.Length)
+                if (nextMesh.componentIndex >= builders.Length)
                 {
                     continue;
                 }

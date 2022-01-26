@@ -94,7 +94,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                 {
                     var modifiedNode = working.nodes[currentNodeParent];
                     var amountParameters = sourceData.parameters[symbolIndex];
-                    if(amountParameters.length == 0)
+                    if (amountParameters.length == 0)
                     {
                         // the amount has no parameters left. removal will be happening via regular update
                         continue;

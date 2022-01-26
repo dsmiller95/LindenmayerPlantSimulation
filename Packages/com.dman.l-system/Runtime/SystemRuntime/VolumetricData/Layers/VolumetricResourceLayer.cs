@@ -1,8 +1,6 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
-using Dman.ObjectSets;
 using System;
-using System.Collections;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -21,7 +19,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         public virtual void SetupInternalData(VolumetricWorldVoxelLayout layout, int myLayerId)
         {
             voxelLayerId = myLayerId;
-            foreach(var effect in effects)
+            foreach (var effect in effects)
             {
                 effect.SetupInternalData(layout);
             }
@@ -36,7 +34,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
         public virtual bool ApplyLayerWideUpdate(VoxelWorldVolumetricLayerData data, float deltaTime, ref JobHandleWrapper dependecy)
         {
-            if(effects.Length <= 0)
+            if (effects.Length <= 0)
             {
                 return false;
             }
@@ -60,7 +58,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             var changed = false;
             foreach (var effect in effects)
             {
-                if(effect.ApplyEffectToLayer(workingData, data, deltaTime, ref dependecy))
+                if (effect.ApplyEffectToLayer(workingData, data, deltaTime, ref dependecy))
                 {
                     changed = true;
                 }

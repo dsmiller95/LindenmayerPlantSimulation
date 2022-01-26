@@ -1,18 +1,13 @@
-﻿using Dman.LSystem.SystemRuntime.VolumetricData;
-using System;
-using System.Linq;
-using System.Runtime.Serialization;
+﻿using System;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace
 {
     public class NativeDelayedReadable<T> :
         IDisposable,
         INativeDisposable
-        where T : IDisposable, INativeDisposable 
+        where T : IDisposable, INativeDisposable
     {
         public T openReadData;
         public T data;

@@ -131,7 +131,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 #if UNITY_EDITOR
             dependencyTracker.underlyingAllocator = Allocator.Persistent;
 
-            if(Time.frameCount > lastReadbackFrame + 4)
+            if (Time.frameCount > lastReadbackFrame + 4)
             {
                 Debug.LogWarning("sunlight not refreshing fast enough. temp alloc will have expired.");
             }
