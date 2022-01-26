@@ -19,6 +19,8 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
         public NativeArray<uint> maxIdentityId;
 
         public CustomRuleSymbols customSymbols;
+        public uint lastMaxIdReached;
+        public uint uniquePlantId;
         public uint originOfUniqueIndexes;
 
         public void Execute()
@@ -29,21 +31,24 @@ namespace Dman.LSystem.SystemRuntime.CustomRules
                 return;
             }
 
-            var persistentOrganIdentityIndex = new UIntFloatColor32
-            {
-                UIntValue = originOfUniqueIndexes
-            };
-
             for (int symbolIndex = 0; symbolIndex < targetData.Length; symbolIndex++)
             {
                 var symbol = targetData[symbolIndex];
                 if (symbol == customSymbols.identifier)
                 {
-                    targetData.parameters[symbolIndex, 0] = persistentOrganIdentityIndex.FloatValue;
-                    persistentOrganIdentityIndex.UIntValue++;
+                    uint currentId = (uint)targetData.parameters[symbolIndex, 1];
+                    if (currentId == 0)
+                    {
+                        lastMaxIdReached++;
+                        currentId = lastMaxIdReached;
+                        targetData.parameters[symbolIndex, 1] = (float)currentId;
+                        targetData.parameters[symbolIndex, 2] = uniquePlantId;
+                    }
+                    var updatedOrganId = new UIntFloatColor32(currentId + originOfUniqueIndexes);
+                    targetData.parameters[symbolIndex, 0] = updatedOrganId.FloatValue;
                 }
             }
-            maxIdentityId[0] = persistentOrganIdentityIndex.UIntValue - originOfUniqueIndexes;
+            maxIdentityId[0] = lastMaxIdReached;
         }
     }
 

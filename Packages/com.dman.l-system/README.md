@@ -276,8 +276,17 @@ The Amount symbol will mark an amount to add to the nearest diffusion node. As a
 
 ### Organ Identity
 
-Import with `#include organIdentity (Identifier->i)`. This library is used to uniquely identify a region of the plant: all organ meshes which follow this symbol will be given a unique vertex color, which can be read back as a unique uint ID in a vertex shader output texture. This is used by other builtin libraries which need to identify physical parts of the plant, such as the Sunlight library. The imported symbol must be given exactly one parameter: this parameter will be used to store the unique ID of this node. It's not in a form which can be easily used as part of the l-system, though, since the id is stored as a uint inside a float field. using the parameter inside the l-system will lead to undefined results.
-
+Import with `#include organIdentity (Identifier->i)`. This library is used to uniquely identify a region of the plant: all organ meshes which follow this symbol will be given a unique vertex color, which can be read back as a unique uint ID from a unlit vertex color output texture. This is used by other builtin libraries which need to identify physical parts of the plant, such as the Sunlight library. The imported symbol must be given exactly three parameters, in order:
+- the first parameter will be used to store the globally unique ID of this node.
+  - The id is stored internally as a uint, and all parameters are interpreted as floats. Therefore this parameter will be unusable inside the l-system itself, and will take on extremely unstable values
+  - This parameter will also be highly unstable: subject to change potentially multiple times between updates, or not at all for 100s of updates
+- the second parameter will be used to store a locally unique ID of this organ.
+  - It is unique and fixed within the l-system, therefore once assigned it will never change
+  - unlike the first parameter, this is stored as a floating point, and can be used inside the l-system
+- the third parameter will be used to store a globally unique ID of the entire plant
+  - It is unique and fixed withing the l-system and the global scope, once assigned it will never change
+  - similar to the second parameter, stored as a floating point, and can be used inside the l-system
+  - the second and third parameter together form a globally unique and fixed id which can be used when referencing this organ specifically from game code
 see the [Simulated Bush](../../Assets/Demo/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the sunlight library.
 
 ### Sunlight
@@ -322,3 +331,4 @@ The current version shown below uses the sunlight simulation to give energy only
 If you encounter any problems using this library, open an issue on the [github here](https://github.com/dsmiller95/plantbuilder/issues) .
 
 Before contributing to the code base you should open an issue and describe it as either a feature request or bug. This is to make sure that the proposed addition is compatible with the project's goals.
+

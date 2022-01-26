@@ -105,7 +105,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             currentJobHandle = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(
-                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, lastSystemState.firstUniqueOrganId),
+                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, lastSystemState),
                     ScheduleIndependentDiffusion(currentJobHandle, customSymbols)
                 ),
                 JobHandle.CombineDependencies(
@@ -132,7 +132,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             }
             return dependency;
         }
-        private JobHandle ScheduleIdAssignmentJob(JobHandle dependency, CustomRuleSymbols customSymbols, uint uniqueIDOriginIndex)
+        private JobHandle ScheduleIdAssignmentJob(
+            JobHandle dependency, 
+            CustomRuleSymbols customSymbols,
+            LSystemState<float> lastSystemState)
         {
             // identity assignment job is not dependent on the source string or any other native data. can skip assigning it as a dependent
             maxIdReached = new NativeArray<uint>(1, Allocator.TempJob);
@@ -141,7 +144,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 targetData = target,
                 maxIdentityId = maxIdReached,
                 customSymbols = customSymbols,
-                originOfUniqueIndexes = uniqueIDOriginIndex
+                lastMaxIdReached = lastSystemState.maxUniqueOrganIds,
+                uniquePlantId = 0, // TODO
+                originOfUniqueIndexes = lastSystemState.firstUniqueOrganId,
             };
             return identityAssignmentJob.Schedule(dependency);
         }

@@ -1,4 +1,4 @@
-#axiom /(-50)@(1)r(0.3, 0, 1000, 100, 20, 0, 100000)bS(10)F[p&(90)i(0)s(0)L(5)e(0)R(0)]T(5)
+#axiom /(-50)@(1)r(0.3, 0, 1000, 100, 20, 0, 100000)bS(10)F[p&(90)i(0, 0, 0)s(0)L(5)e(0)R(0)]T(5)
 #iterations 3000
 
 #symbols +-/\&^$@!`
@@ -58,7 +58,7 @@ P(flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >=
 P(leafProbability)     |     l -> l(0)
 P(1 - leafProbability) |     l -> 
 r(a, water, c, glucose, d, virility, e) < l(amt) : amt < leafCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)l(amt + 0.05)
-                             l(amt) : amt >= leafCost -> m(leafVirilityProduction)pi(0)s(0)L(leafMaxHealth)e(0)R(1)
+                             l(amt) : amt >= leafCost -> m(leafVirilityProduction)pi(0, 0, 0)s(0)L(leafMaxHealth)e(0)R(1)
 
 r(a, water, c, glucose, d, virility, e)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
 r(a, water, c, glucose, d, virility, e)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
