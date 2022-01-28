@@ -71,11 +71,11 @@ namespace Dman.LSystem.UnityObjects
                 totalLocalToWorld.GetColumn(1).magnitude,
                 totalLocalToWorld.GetColumn(2).magnitude
             );
-            spawningCommandBuffer.SetComponent(instantiableEntity, new Rotation
+            spawningCommandBuffer.SetComponent(spawned, new Rotation
             {
                 Value = rot
             });
-            spawningCommandBuffer.SetComponent(instantiableEntity, new Translation
+            spawningCommandBuffer.SetComponent(spawned, new Translation
             {
                 Value = pos
             });
