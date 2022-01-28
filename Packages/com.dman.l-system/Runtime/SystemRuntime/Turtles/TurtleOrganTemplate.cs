@@ -26,7 +26,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             organTemplateSize = 1,
             vertextDataSize = draft.vertexCount,
-            triangleDataSize = draft.triangles.Count
+            triangleDataSize = draft.triangles.Length
         };
 
         public void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
@@ -52,7 +52,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var triangleCount = new JaggedIndexing
             {
                 index = writer.indexInTriangles,
-                length = (ushort)draft.triangles.Count
+                length = (ushort)draft.triangles.Length
             };
             for (int i = 0; i < triangleCount.length; i++)
             {

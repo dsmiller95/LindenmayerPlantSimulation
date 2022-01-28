@@ -6,26 +6,26 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 {
     public class MeshDraft
     {
-        public List<Vector3> vertices;
-        public List<Vector2> uvs;
-        public List<Vector3> normals;
-        public List<Vector4> tangents;
-        public List<int> triangles;
+        public Vector3[] vertices;
+        public Vector2[] uvs;
+        public Vector3[] normals;
+        public Vector4[] tangents;
+        public int[] triangles;
 
-        public int vertexCount => vertices.Count;
+        public int vertexCount => vertices.Length;
 
         public MeshDraft(Mesh sourceMesh)
         {
-            this.vertices = sourceMesh.vertices.ToList();
-            this.uvs = sourceMesh.uv.ToList();
-            this.normals = sourceMesh.normals.ToList();
-            this.tangents = sourceMesh.tangents.ToList();
-            this.triangles = sourceMesh.triangles.ToList();
+            this.vertices = sourceMesh.vertices.ToArray();
+            this.uvs = sourceMesh.uv.ToArray();
+            this.normals = sourceMesh.normals.ToArray();
+            this.tangents = sourceMesh.tangents.ToArray();
+            this.triangles = sourceMesh.triangles.ToArray();
         }
 
         public void Move(Vector3 translate)
         {
-            for (int i = 0; i < vertices.Count; i++)
+            for (int i = 0; i < vertices.Length; i++)
             {
                 vertices[i] = vertices[i] + translate;
             }
@@ -33,7 +33,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public void Scale(Vector3 scale)
         {
-            for (int i = 0; i < vertices.Count; i++)
+            for (int i = 0; i < vertices.Length; i++)
             {
                 vertices[i] = Vector3.Scale(vertices[i], scale);
                 normals[i] = Vector3.Scale(normals[i], scale).normalized;
