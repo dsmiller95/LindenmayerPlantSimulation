@@ -15,3 +15,5 @@ MonoBehaviour:
   instantiatableEntities:
   - characterToSpawnFrom: 80
     prefab: {fileID: 651890539438364982, guid: 628b1843b0a8ae8469faf6df34f8ffb1, type: 3}
+  - characterToSpawnFrom: 69
+    prefab: {fileID: 651890539438364982, guid: 72785b83a30575446bd9467d2c247619, type: 3}

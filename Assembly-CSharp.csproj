@@ -59,6 +59,11 @@
     <Compile Include="Assets\Demo\PlantBuilder\CameraOrbitMRI.cs" />
     <Compile Include="Assets\Demo\PlantBuilder\PollenSystem.cs" />
     <Compile Include="Assets\Demo\PlantBuilder\Turntable.cs" />
+    <Compile Include="Assets\Demo\PlantBuilder\FlowerEntity\LSystemBindingSystem.cs" />
+    <Compile Include="Assets\Demo\PlantBuilder\FlowerEntity\LSystemBindingComponent.cs" />
+    <Compile Include="Assets\Demo\PlantBuilder\FlowerEntity\BoundFlowerUpdateSystem.cs" />
+    <Compile Include="Assets\Demo\PlantBuilder\FlowerEntity\LSystemBoundComponent.cs" />
+    <Compile Include="Assets\Demo\PlantBuilder\FlowerEntity\FlowerComponent.cs" />
     <Compile Include="Assets\Demo\PlantBuilder\PollenComponent.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -11,10 +11,10 @@ GameObject:
   - component: {fileID: 1349657918167939001}
   - component: {fileID: 5262991822386166416}
   - component: {fileID: 5257669647133394088}
-  - component: {fileID: 651890539438364982}
-  - component: {fileID: 5013210833689922222}
+  - component: {fileID: 8225499871907155874}
+  - component: {fileID: 6309368953461635476}
   m_Layer: 0
-  m_Name: PollenSphere
+  m_Name: flowerEntity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41,7 +41,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7033642088675614153}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &5257669647133394088
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -61,7 +61,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: dbf3708e7e0fe054782a97f8cb4bceeb, type: 2}
+  - {fileID: 2100000, guid: e520c19c21eba8f47ba404904f4f10ba, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -83,7 +83,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &651890539438364982
+--- !u!114 &8225499871907155874
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -92,10 +92,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 7033642088675614153}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72ab1aeeaf16bf74598452d677a0e53a, type: 3}
+  m_Script: {fileID: 11500000, guid: 7824409f182d95f4da82625d889ee335, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5013210833689922222
+  plantId: 0
+  organId: 0
+  lastResourceTransferTime: 0
+  resourceAmount: 0
+--- !u!114 &6309368953461635476
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -104,9 +108,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 7033642088675614153}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3976282d707f34b429b6dab4b52f3264, type: 3}
+  m_Script: {fileID: 11500000, guid: 01faf7b529a05e14fb18f5d282f989b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lifespanRemaining: 3
-  totalLifespan: 3
-  scaleMultiplier: 0.5

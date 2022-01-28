@@ -7,5 +7,6 @@ namespace Assets.Demo.PlantBuilder
     {
         public float lifespanRemaining;
         public float totalLifespan;
+        public float scaleMultiplier;
     }
 }

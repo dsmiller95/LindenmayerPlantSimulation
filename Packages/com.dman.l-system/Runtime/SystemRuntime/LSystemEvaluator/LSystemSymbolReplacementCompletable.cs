@@ -145,7 +145,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 maxIdentityId = maxIdReached,
                 customSymbols = customSymbols,
                 lastMaxIdReached = lastSystemState.maxUniqueOrganIds,
-                uniquePlantId = 0, // TODO
+                uniquePlantId = lastSystemState.uniquePlantId,
                 originOfUniqueIndexes = lastSystemState.firstUniqueOrganId,
             };
             return identityAssignmentJob.Schedule(dependency);
@@ -206,7 +206,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 currentSymbols = new DependencyTracker<SymbolString<float>>(target),
                 maxUniqueOrganIds = maxIdReached[0],
                 hasImmatureSymbols = hasImmatureSymbols,
-                firstUniqueOrganId = lastSystemState.firstUniqueOrganId
+                firstUniqueOrganId = lastSystemState.firstUniqueOrganId,
+                uniquePlantId = lastSystemState.uniquePlantId,
             };
 
             maxIdReached.Dispose();

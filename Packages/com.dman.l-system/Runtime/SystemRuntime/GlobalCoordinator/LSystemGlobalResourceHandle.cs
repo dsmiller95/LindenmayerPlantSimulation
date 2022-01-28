@@ -14,6 +14,11 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         public uint uniqueIdReservationSize;
         public uint requestedNextReservationSize;
 
+        /// <summary>
+        /// globally unique and constant plant id for this handle
+        /// </summary>
+        public uint globalPlantId;
+
         [NonSerialized]
         private GlobalLSystemCoordinator parent;
         [NonSerialized]
@@ -23,12 +28,14 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         public LSystemGlobalResourceHandle(
             uint originPoint,
             uint initialSpace,
+            uint globalPlantId,
             GlobalLSystemCoordinator parent,
             LSystemBehavior associatedBehavior)
         {
             uniqueIdReservationSize = initialSpace;
             requestedNextReservationSize = uniqueIdReservationSize;
             uniqueIdOriginPoint = originPoint;
+            this.globalPlantId = globalPlantId;
 
             this.parent = parent;
             this.associatedBehavior = associatedBehavior;
@@ -48,6 +55,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             }
 
             systemState.firstUniqueOrganId = uniqueIdOriginPoint;
+            systemState.uniquePlantId = globalPlantId;
         }
 
         public JobHandle ApplyPrestepEnvironment(

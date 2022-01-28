@@ -270,6 +270,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnableEntityPrefabs:
   - {fileID: 651890539438364982, guid: 628b1843b0a8ae8469faf6df34f8ffb1, type: 3}
+  - {fileID: 651890539438364982, guid: 72785b83a30575446bd9467d2c247619, type: 3}
 --- !u!4 &88810433
 Transform:
   m_ObjectHideFlags: 0
@@ -2109,11 +2110,12 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 7
     m_NumAlphaKeys: 4
-  gizmos: 2
+  gizmos: 1
   layerToRender: 1
   minValue: 0.1
   wireCellGizmos: 0
   amountVisualizedGizmos: 1
+  damageLayer: {fileID: 0}
   extraLayers:
   - {fileID: 11400000, guid: 2d1689397daf99c4e9821e7d05b45178, type: 2}
 --- !u!4 &1621242208
@@ -2293,7 +2295,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9089396037661369507, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}

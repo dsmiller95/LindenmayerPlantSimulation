@@ -49,13 +49,16 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         {
             var lastReservation = allResourceReservations.LastOrDefault();
             uint originPoint = 1;
+            uint globalPlantId = 1;
             if (lastReservation != null)
             {
                 originPoint = lastReservation.uniqueIdOriginPoint + lastReservation.requestedNextReservationSize;
+                globalPlantId = lastReservation.globalPlantId + 1;
             }
             var newHandle = new LSystemGlobalResourceHandle(
                 originPoint,
                 initialReservationSize,
+                globalPlantId,
                 this,
                 associatedBehavior);
             allResourceReservations.Add(newHandle);

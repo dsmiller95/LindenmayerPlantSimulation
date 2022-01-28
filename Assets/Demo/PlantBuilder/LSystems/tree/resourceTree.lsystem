@@ -1,4 +1,4 @@
-#axiom /(-50)@(1)r(0.3, 0, 1000, 100, 20, 0, 100000)bS(10)F[p&(90)i(0, 0, 0)s(0)L(5)e(0)R(0)]T(5)
+#axiom /(-50)@(1)i(0, 0, 0)r(0.3, 0, 1000, 100, 20, 0, 100000)bS(10)F[p&(90)i(0, 0, 0)s(0)L(5)e(0)R(0)]T(5)
 #iterations 3000
 
 #symbols +-/\&^$@!`
@@ -26,6 +26,7 @@
 #include diffusion (Node->r) (Amount->a)
 
 #symbols i
+#matches i
 #include organIdentity (Identifier->i)
 #symbols s
 #matches s
@@ -34,7 +35,6 @@
 #symbols n
 #include autophagy (Necrose->n)
 
-
 S(x) -> a(x)S(x)
 
 #symbols TFK
@@ -42,8 +42,8 @@ S(x) -> a(x)S(x)
 P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> ~f(0)T(x - 1)
 P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> T(x)
 
-P(1 - flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)o(0)T(5)][-(35)f(0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)o(0)R(0)T(5)]
-P(flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> f(0)k(0)
+P(1 - flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][+(35)f(0)i(0, 0, 0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)o(0)T(5)][-(35)f(0)i(0, 0, 0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)o(0)R(0)T(5)]
+P(flowerProbability)     | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> f(0)k(0)
 
 
 
@@ -60,12 +60,12 @@ P(1 - leafProbability) |     l ->
 r(a, water, c, glucose, d, virility, e) < l(amt) : amt < leafCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)l(amt + 0.05)
                              l(amt) : amt >= leafCost -> m(leafVirilityProduction)pi(0, 0, 0)s(0)L(leafMaxHealth)e(0)R(1)
 
-r(a, water, c, glucose, d, virility, e)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
-r(a, water, c, glucose, d, virility, e)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
+r(a, water, c, glucose, d, virility, e)i(f, g, h)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
+r(a, water, c, glucose, d, virility, e)i(f, g, h)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
 
-r(a, water, c, glucose, d, virility, e)s(sunlight) < L(health) : !(water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> L(health + sunlight - leafMinSunlight)
+r(a, water, c, glucose, d, virility, e)i(f, g, h)s(sunlight) < L(health) : !(water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> L(health + sunlight - leafMinSunlight)
 
-## r(a, water, c, glucose, d)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
+## r(a, water, c, glucose, d)i(f, g, h)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
 
 ## f is a precursor to a stem
 #define stemCost 1
@@ -85,10 +85,14 @@ r(a, water, c, glucose, d, virility, e) < k(amt) : amt < flowerCost && water >= 
 ## w is a "water" producing marker, which pumps a resource into the volumetric world
 #symbols w
 
-K(x) : x < 10 -> K(x + 1)
-K(x) : x >= 10 -> K(0)Pw(1)
+## E is a resource transmission node, which is used to bind to a persistent DOTS entity
+#symbols E
+
+i(f, organId, plantId)r(a, water, c, glucose, d, virility, e) < K(x) : x < 10 -> K(x + 1)
+i(f, organId, plantId)r(a, water, c, glucose, d, virility, e) < K(x) : x >= 10 && glucose > 0.1 -> a(0, -0.05)K(0)Pw(1)E(0.05, organId, plantId)
 P -> 
 w(x) -> 
+E(a, b, c) -> 
 
 ## R is the resource visualizer
 ## e is the volumetric diffuser accompanying R

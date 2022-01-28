@@ -40,7 +40,7 @@ namespace Assets.Demo.PlantBuilder
                 }
                 else
                 {
-                    var newScale = math.pow(poll.lifespanRemaining / poll.totalLifespan, 1f / 3);
+                    var newScale = math.pow(poll.lifespanRemaining / poll.totalLifespan, 1f / 3) * poll.scaleMultiplier;
                     scale.Value = new float3(newScale, newScale, newScale);
                 }
             }).ScheduleParallel();

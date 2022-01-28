@@ -58,6 +58,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public Unity.Mathematics.Random randomProvider;
         public uint firstUniqueOrganId;
         public uint maxUniqueOrganIds;
+        public uint uniquePlantId;
         public bool hasImmatureSymbols = true; // default to being immature, if not set otherwise
 
         public LSystemState()
