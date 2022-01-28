@@ -1,5 +1,4 @@
 ﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using ProceduralToolkit;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
@@ -43,7 +42,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 {
                     vertex = draft.vertices[i],
                     normal = draft.normals[i],
-                    uv = draft.uv[i],
+                    uv = draft.uvs[i],
                     tangent = draft.tangents[i]
                 };
                 nativeData.vertexData[i + writer.indexInVertexes] = vertexDatum;

@@ -119,8 +119,6 @@ namespace Dman.LSystem.UnityObjects
             steppingHandle.runtimeParameters.SetParameter(parameterName, parameterValue);
         }
 
-
-
         #region Saving
         public string UniqueSaveIdentifier => "L System Behavior";
 
