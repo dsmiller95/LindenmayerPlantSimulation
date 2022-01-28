@@ -35,8 +35,10 @@
 #symbols n
 #include autophagy (Necrose->n)
 
-r(a, water, maxWater, glucose, d, virility, e) < S(x) : water < maxWater && water + x < maxWater -> a(x)S(x)
+r(a, water, maxWater, glucose, d, virility, e) < S(x) : water < maxWater && water + x < maxWater  -> a(x)S(x)
 r(a, water, maxWater, glucose, d, virility, e) < S(x) : water < maxWater && water + x >= maxWater -> a(maxWater - water)S(x)
+r(a, water, maxWater, glucose, d, virility, e) < S(x) : water >= maxWater                          -> a(0.01, 0.01, 0.01)S(x)
+
 
 #symbols TFK
 #matches TK

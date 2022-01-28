@@ -35,8 +35,8 @@ namespace Assets.Demo.PlantBuilder
 
                     var scaleFactor = boundComponent.resourceAmount;
 
-                    var newScale = math.pow(scaleFactor, 1f / 3f);
-                    scale.Value = new float3(newScale, newScale, newScale);
+                    var newScale = math.pow(scaleFactor, 1f / 2f);
+                    scale.Value = new float3(scale.Value.x, newScale, scale.Value.z);
                     rotation.Value = ((Quaternion)rotation.Value) * Quaternion.Euler(0, 0, flower.rotationSpeed * time);
                 }).Schedule();
 
