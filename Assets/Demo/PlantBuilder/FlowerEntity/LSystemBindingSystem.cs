@@ -55,36 +55,42 @@ namespace Assets.Demo.PlantBuilder
         {
             var deltaTime = Time.DeltaTime;
             var time = (float)Time.ElapsedTime;
-            var ecb = commandBufferSystem.CreateCommandBuffer();
             random.NextFloat();
             var rand = random;
 
-            //var totalBoundEntities = boundComponentQuery.CalculateEntityCount();
-            //var boundEntitiesByBoundComponent = new NativeHashMap<UniqueStaticId, Entity>(totalBoundEntities, Allocator.TempJob);
-            //var boundEntitiesWriter = boundEntitiesByBoundComponent.AsParallelWriter();
+            var totalBoundEntities = boundComponentQuery.CalculateEntityCount();
+            var boundEntitiesByBoundComponent = new NativeHashMap<UniqueStaticId, Entity>(totalBoundEntities, Allocator.TempJob);
+            var boundEntitiesWriter = boundEntitiesByBoundComponent.AsParallelWriter();
 
-            var boundEntitiesByBoundComponent = new Dictionary<UniqueStaticId, Entity>();
-
+            var ecbParallel = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
             Entities
                 .ForEach((Entity entity, int entityInQueryIndex, ref LSystemBoundComponent boundComponent) =>
                 {
-                    var uniqueId = new UniqueStaticId
+                    if (boundComponent.ShouldExpire(time))
                     {
-                        plantId = boundComponent.plantId,
-                        organId = boundComponent.organId
-                    };
-                    if (boundEntitiesByBoundComponent.ContainsKey(uniqueId))
-                    {
-                        Debug.LogError("duplicate unique Id detected. l system unique Id not truly unique");
+                        ecbParallel.DestroyEntity(entityInQueryIndex, entity);
                     }
-                    boundEntitiesByBoundComponent.Add(uniqueId, entity);
-                    //boundEntitiesWriter.TryAdd(uniqueId, entity);
+                    else
+                    {
+                        var uniqueId = new UniqueStaticId
+                        {
+                            plantId = boundComponent.plantId,
+                            organId = boundComponent.organId
+                        };
+
+                        //if (boundEntitiesByBoundComponent.ContainsKey(uniqueId))
+                        //{
+                        //    Debug.LogError("duplicate unique Id detected. l system unique Id not truly unique");
+                        //}
+                        //boundEntitiesByBoundComponent.Add(uniqueId, entity);
+                        boundEntitiesWriter.TryAdd(uniqueId, entity);
+                    }
                 })
                 .WithStoreEntityQueryInField(ref boundComponentQuery)
-                .WithoutBurst()
-                .Run();// ScheduleParallel();
+                .ScheduleParallel();
 
 
+            var ecb = commandBufferSystem.CreateCommandBuffer();
             Entities
                 .ForEach((Entity entity, ref Translation position, ref Rotation rot, ref NonUniformScale scale, ref LSystemBindingComponent bindingComponent, ref DynamicBuffer<TurtleSpawnedParameters> spawnParameters) =>
             {
@@ -101,19 +107,17 @@ namespace Assets.Demo.PlantBuilder
                 } else
                 {
                     boundEntity = ecb.Instantiate(bindingComponent.boundPrefab);
-                    oldBoundComponent = new LSystemBoundComponent
-                    {
-                        organId = uniqueId.organId,
-                        plantId = uniqueId.plantId,
-                        resourceAmount = 0,
-                        lastResourceTransferTime = time
-                    };
+                    oldBoundComponent = GetComponent<LSystemBoundComponent>(bindingComponent.boundPrefab);
+                    oldBoundComponent.organId = uniqueId.organId;
+                    oldBoundComponent.plantId = uniqueId.plantId;
+
                     ecb.SetComponent(boundEntity, rot);
                     ecb.SetComponent(boundEntity, scale);
                 }
                 ecb.SetComponent(boundEntity, position);
 
                 oldBoundComponent.resourceAmount += spawnParameters[0].parameterValue;
+                oldBoundComponent.lastResourceTransferTime = time;
                 // can do this with a ECB because the nature of the system should avoid two binding components matching to one bound entity, based on the following assumptions:
                 //  1. this system updates at least as frequently as the l-systems
                 //  2. one or multiple l-systems will never produce multiple binding components with the exact same organId and plantId
@@ -121,11 +125,10 @@ namespace Assets.Demo.PlantBuilder
                 ecb.DestroyEntity(entity);
             })
                 .WithStoreEntityQueryInField(ref bindingQuery)
-                .WithoutBurst()
-                .Run();//.Schedule();
+                .Schedule();
 
             commandBufferSystem.AddJobHandleForProducer(this.Dependency);
-            //boundEntitiesByBoundComponent.Dispose(this.Dependency);
+            boundEntitiesByBoundComponent.Dispose(this.Dependency);
         }
     }
 }

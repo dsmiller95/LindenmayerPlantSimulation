@@ -116,7 +116,7 @@ namespace Dman.LSystem.UnityObjects
         {
             var paramIndex = sourceString.parameters[indexInString];
             float theta = defaultTheta;
-            if (paramIndex.length == 1)
+            if (paramIndex.length >= 1)
             {
                 theta = sourceString.parameters[paramIndex, 0];
             }

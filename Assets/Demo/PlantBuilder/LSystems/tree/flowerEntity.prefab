@@ -99,6 +99,7 @@ MonoBehaviour:
   organId: 0
   lastResourceTransferTime: 0
   resourceAmount: 0
+  lifespanWithoutUpdate: 0.5
 --- !u!114 &6309368953461635476
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,3 +112,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01faf7b529a05e14fb18f5d282f989b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hasInstantiated: 0
+  rotationSpeed: 0

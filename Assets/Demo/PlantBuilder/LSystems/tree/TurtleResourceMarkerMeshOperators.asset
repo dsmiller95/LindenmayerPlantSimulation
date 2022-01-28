@@ -21,8 +21,8 @@ MonoBehaviour:
     UseMeshOrigin: 0
     ParameterScale: 1
     ScaleIsAdditional: 0
-    VolumetricScale: 0
-    ScalePerParameter: {x: 1, y: 1, z: 1}
+    VolumetricScale: 1
+    ScalePerParameter: {x: 0.5, y: 0.5, z: 0.5}
     AlsoMove: 0
     UseThickness: 0
     volumetricDurabilityValue: 0
