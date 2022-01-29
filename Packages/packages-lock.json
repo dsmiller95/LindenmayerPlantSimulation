@@ -1,12 +1,5 @@
 {
   "dependencies": {
-    "com.alelievr.node-graph-processor": {
-      "version": "1.0.1",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://package.openupm.com"
-    },
     "com.dman.l-system": {
       "version": "file:com.dman.l-system",
       "depth": 0,
@@ -15,19 +8,10 @@
         "com.unity.jobs": "0.8.0-preview.23",
         "com.unity.collections": "0.15.0-preview.21",
         "com.unity.mathematics": "1.2.1",
-        "com.syomus.proceduraltoolkit": "0.2.3",
         "com.dman.utilities": "0.4.0",
         "com.dman.scene-save-system": "0.2.1",
         "com.dman.reactive-variables": "0.1.7",
         "com.dman.object-sets": "0.1.3"
-      }
-    },
-    "com.dman.mesh-draft-extensions": {
-      "version": "file:com.dman.MeshDraftExtensions",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.syomus.proceduraltoolkit": "0.2.3"
       }
     },
     "com.dman.object-sets": {
@@ -36,27 +20,6 @@
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"
-    },
-    "com.dman.plantbuilder": {
-      "version": "file:com.dman.plantbuilder",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.syomus.proceduraltoolkit": "0.2.3",
-        "com.dman.mesh-draft-extensions": "0.1.1",
-        "com.dman.utilities": "0.3.3"
-      }
-    },
-    "com.dman.plantbuilder.nodegraph": {
-      "version": "file:com.dman.plantbuilder.nodegraph",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.syomus.proceduraltoolkit": "0.2.3",
-        "com.dman.mesh-draft-extensions": "0.1.1",
-        "com.dman.utilities": "0.3.3",
-        "com.alelievr.node-graph-processor": "1.0.1"
-      }
     },
     "com.dman.reactive-variables": {
       "version": "0.1.7",
@@ -89,15 +52,6 @@
       "depth": 1,
       "source": "registry",
       "dependencies": {},
-      "url": "https://package.openupm.com"
-    },
-    "com.syomus.proceduraltoolkit": {
-      "version": "0.2.3",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.ugui": "1.0.0"
-      },
       "url": "https://package.openupm.com"
     },
     "com.unity.burst": {

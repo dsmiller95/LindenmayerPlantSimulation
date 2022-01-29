@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Demo/PlantBuilder/PlantProtyper.unity
+    path: Assets/PlantBuilder/PlantProtyper.unity
     guid: 4a8906830401018489aec34010e06688
   m_configObjects: {}
