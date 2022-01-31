@@ -35,7 +35,7 @@ S -> FC[l][\(120)l][\(240)l]
 
 ## l is an initializer for a sensor leaf
 #symbols l
-l -> i(0)s(0)^(5)L(.2)^(35)\(180)L(.2)
+l -> i(0, 0, 0)s(0)^(5)L(.2)^(35)\(180)L(.2)
 
 ## C is a directional controller to seek out sunlight
 
