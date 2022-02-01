@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5257669647133394088}
   - component: {fileID: 8225499871907155874}
   - component: {fileID: 6309368953461635476}
+  - component: {fileID: 6106012517461495193}
   m_Layer: 0
   m_Name: flowerEntity
   m_TagString: Untagged
@@ -97,9 +98,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   plantId: 0
   organId: 0
-  lastResourceTransferTime: 0
-  resourceAmount: 0
-  lifespanWithoutUpdate: 0.5
 --- !u!114 &6309368953461635476
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -114,3 +112,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hasInstantiated: 0
   rotationSpeed: 0
+--- !u!114 &6106012517461495193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7033642088675614153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2895b65d7582294898ec628db6ec236, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lastResourceTransferTime: 0
+  resourceAmount: 0
+  lifespanWithoutUpdate: 0.5

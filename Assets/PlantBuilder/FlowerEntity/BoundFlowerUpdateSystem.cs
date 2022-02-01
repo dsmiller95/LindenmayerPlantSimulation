@@ -8,6 +8,7 @@ using UnityEngine;
 namespace Assets.Demo.PlantBuilder
 {
     [UpdateBefore(typeof(TransformSystemGroup))]
+    [UpdateAfter(typeof(FlowerBindingSystem))]
     public class BoundFlowerUpdateSystem : SystemBase
     {
         private Unity.Mathematics.Random random;
@@ -20,12 +21,12 @@ namespace Assets.Demo.PlantBuilder
 
         protected override void OnUpdate()
         {
-            var time = Time.DeltaTime;
+            var timeDelta = Time.DeltaTime;
             random.NextFloat();
             var rand = random;
 
             Entities
-                .ForEach((Entity entity, ref LSystemBoundComponent boundComponent, ref NonUniformScale scale, ref Rotation rotation, ref FlowerComponent flower) =>
+                .ForEach((Entity entity, ref NonUniformScale scale, ref Rotation rotation, ref FlowerComponent flower, in FlowerResourceAmountComponent flowerAmounts) =>
                 {
                     if (!flower.hasInstantiated)
                     {
@@ -33,11 +34,11 @@ namespace Assets.Demo.PlantBuilder
                         flower.hasInstantiated = true;  
                     }
 
-                    var scaleFactor = boundComponent.resourceAmount;
+                    var scaleFactor = flowerAmounts.resourceAmount;
 
                     var newScale = math.pow(scaleFactor, 1f / 2f);
                     scale.Value = new float3(scale.Value.x, newScale, scale.Value.z);
-                    rotation.Value = ((Quaternion)rotation.Value) * Quaternion.Euler(0, 0, flower.rotationSpeed * time);
+                    rotation.Value = ((Quaternion)rotation.Value) * Quaternion.Euler(0, 0, flower.rotationSpeed * timeDelta);
                 }).Schedule();
 
         }
