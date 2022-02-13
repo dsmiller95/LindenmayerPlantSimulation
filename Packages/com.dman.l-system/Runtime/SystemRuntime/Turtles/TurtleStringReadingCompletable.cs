@@ -69,7 +69,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             int totalSubmeshes,
             DependencyTracker<SymbolString<float>> symbols,
             DependencyTracker<NativeTurtleData> nativeData,
-            int submeshIndexIncrementChar,
             int branchStartChar,
             int branchEndChar,
             TurtleState defaultState,
@@ -124,7 +123,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 nativeTurtleStack = tmpHelperStack,
 
-                submeshIndexIncrementChar = submeshIndexIncrementChar,
                 branchStartChar = branchStartChar,
                 branchEndChar = branchEndChar,
 
@@ -200,7 +198,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             public CustomRuleSymbols customRules;
 
-            public int submeshIndexIncrementChar;
             public int branchStartChar;
             public int branchEndChar;
 
@@ -219,11 +216,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     if (symbol == branchEndChar)
                     {
                         currentState = nativeTurtleStack.Pop();
-                        continue;
-                    }
-                    if (symbol == submeshIndexIncrementChar)
-                    {
-                        currentState.submeshIndex++;
                         continue;
                     }
                     if (customRules.hasIdentifiers && customRules.identifier == symbol)

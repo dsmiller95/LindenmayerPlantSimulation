@@ -21,10 +21,6 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// the begining scale of the turtle's transformation matrix
         /// </summary>
         public Vector3 initialScale = Vector3.one;
-        /// <summary>
-        /// a character which will increment the index of the current target submesh being copied to
-        /// </summary>
-        public char submeshIndexIncrementor = '`';
 
         private TurtleInterpretor turtle;
         private LSystemBehavior System => GetComponent<LSystemBehavior>();
@@ -110,7 +106,6 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 {
                     transformation = Matrix4x4.Scale(initialScale),
                     thickness = 1f,
-                    submeshIndex = 0,
                     organIdentity = new UIntFloatColor32(0)
                 },
                 systemObject.linkedFiles,
@@ -118,7 +113,6 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 volumetricWorld,
                 damageWorld
                 );
-            turtle.submeshIndexIncrementChar = submeshIndexIncrementor;
         }
 
         private void OnSystemObjectUpdated()
