@@ -31,7 +31,7 @@ namespace Dman.LSystem.UnityObjects
 
         private void Awake()
         {
-            lastUpdateTime = Time.unscaledTime + UnityEngine.Random.Range(.3f, 0.6f);
+            SetLastUpdateTime();
             if (systemObject != null)
             {
                 SetSystem(systemObject);
@@ -88,7 +88,7 @@ namespace Dman.LSystem.UnityObjects
                 steppingHandle.ResetState();
             }
 
-            lastUpdateTime = Time.unscaledTime + UnityEngine.Random.Range(0f, 0.3f);
+            SetLastUpdateTime();
         }
 
         /// <summary>
@@ -105,7 +105,12 @@ namespace Dman.LSystem.UnityObjects
         private void LSystemStateWasUpdated()
         {
             OnSystemStateUpdated?.Invoke();
-            lastUpdateTime = Time.unscaledTime + UnityEngine.Random.Range(0, 0.1f);
+            SetLastUpdateTime();
+        }
+
+        private void SetLastUpdateTime()
+        {
+            lastUpdateTime = Time.unscaledTime + UnityEngine.Random.Range(0, 0.3f);
         }
 
         /// <summary>
