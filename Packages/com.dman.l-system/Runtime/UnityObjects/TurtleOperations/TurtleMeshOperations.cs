@@ -9,12 +9,19 @@ using UnityEngine;
 namespace Dman.LSystem.UnityObjects
 {
     [System.Serializable]
+    public class MeshVariant
+    {
+        public Mesh mesh;
+        public Material materialOverride;
+    }
+
+    [System.Serializable]
     public class MeshKey
     {
         public char Character;
         public Mesh MeshRef;
         [Tooltip("a list of variants available. If populated, indexed by the first parameter of the symbol")]
-        public Mesh[] MeshVariants;
+        public MeshVariant[] MeshVariants;
         public Material material;
         public Vector3 IndividualScale;
         [Tooltip("Force using the mesh's intrinsic origin as the root of this organ, instead of automatically shifting the origin based on the bounding box")]
@@ -38,10 +45,14 @@ namespace Dman.LSystem.UnityObjects
         public TurtleOrganTemplate[] CachedOrganTemplates;
         public void InteralCacheOrganTemplates()
         {
-            CachedOrganTemplates = (new[] { MeshRef }.Concat(MeshVariants)).Select(mesh =>
+            CachedOrganTemplates = (new[] {
+                new MeshVariant{
+                    mesh = MeshRef
+                }
+            }.Concat(MeshVariants)).Select(variant =>
             {
-                var newDraft = new MeshDraft(mesh);
-                var bounds = mesh.bounds;
+                var newDraft = new MeshDraft(variant.mesh);
+                var bounds = variant.mesh.bounds;
                 Vector3 translatePostMesh;
                 if (UseMeshOrigin)
                 {
@@ -56,7 +67,7 @@ namespace Dman.LSystem.UnityObjects
 
                 return new TurtleOrganTemplate(
                     newDraft,
-                    material,
+                    variant.materialOverride ?? material,
                     translatePostMesh,
                     AlsoMove
                     );

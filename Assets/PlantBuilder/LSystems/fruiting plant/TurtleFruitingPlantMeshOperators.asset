@@ -18,72 +18,97 @@ MonoBehaviour:
     MeshVariants: []
     material: {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
     IndividualScale: {x: 0.5, y: 0.5, z: 0.5}
+    UseMeshOrigin: 0
     ParameterScale: 1
+    ScaleIsAdditional: 0
     VolumetricScale: 0
     ScalePerParameter: {x: 0.5, y: 0.5, z: 0.5}
     AlsoMove: 0
     UseThickness: 0
+    volumetricDurabilityValue: 0
   - Character: 75
-    MeshRef: {fileID: 5691666353457927829, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    MeshRef: {fileID: -8233340004779243719, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants:
-    - {fileID: 5691666353457927829, guid: a381acc0272832b44bdaff9265914e18, type: 3}
-    - {fileID: 5691666353457927829, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    - mesh: {fileID: 794568307061694738, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+      materialOverride: {fileID: 0}
+    - mesh: {fileID: -3366813454224735725, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+      materialOverride: {fileID: 0}
     material: {fileID: 2100000, guid: 2c82f0931f461c54184b79cdbba8edf8, type: 2}
     IndividualScale: {x: 1, y: 1, z: 1}
+    UseMeshOrigin: 0
     ParameterScale: 1
+    ScaleIsAdditional: 0
     VolumetricScale: 0
     ScalePerParameter: {x: 2, y: 0.5, z: 0.5}
     AlsoMove: 1
     UseThickness: 0
+    volumetricDurabilityValue: 0
   - Character: 66
     MeshRef: {fileID: -8117828432582735504, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants: []
     material: {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
     IndividualScale: {x: 1, y: 1, z: 1}
+    UseMeshOrigin: 0
     ParameterScale: 0
+    ScaleIsAdditional: 0
     VolumetricScale: 0
     ScalePerParameter: {x: 0, y: 0, z: 0}
     AlsoMove: 0
     UseThickness: 0
+    volumetricDurabilityValue: 0
   - Character: 86
     MeshRef: {fileID: -8117828432582735504, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants: []
     material: {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
     IndividualScale: {x: 1, y: 1, z: 1}
+    UseMeshOrigin: 0
     ParameterScale: 0
+    ScaleIsAdditional: 0
     VolumetricScale: 0
     ScalePerParameter: {x: 0, y: 0, z: 0}
     AlsoMove: 0
     UseThickness: 0
+    volumetricDurabilityValue: 0
   - Character: 84
     MeshRef: {fileID: -8117828432582735504, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants: []
     material: {fileID: 2100000, guid: a4e09c3a8d1850249b106475873431e9, type: 2}
     IndividualScale: {x: 1, y: 1, z: 1}
+    UseMeshOrigin: 0
     ParameterScale: 0
+    ScaleIsAdditional: 0
     VolumetricScale: 0
     ScalePerParameter: {x: 0, y: 0, z: 0}
     AlsoMove: 0
     UseThickness: 0
+    volumetricDurabilityValue: 0
   - Character: 68
-    MeshRef: {fileID: -1692108017345405815, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    MeshRef: {fileID: -632565698310742879, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants:
-    - {fileID: -1692108017345405815, guid: a381acc0272832b44bdaff9265914e18, type: 3}
-    - {fileID: -1692108017345405815, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    - mesh: {fileID: 1569212055897181770, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+      materialOverride: {fileID: 0}
+    - mesh: {fileID: 5010122461826768861, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+      materialOverride: {fileID: 0}
     material: {fileID: 2100000, guid: dbf3708e7e0fe054782a97f8cb4bceeb, type: 2}
     IndividualScale: {x: 1, y: 1, z: 1}
+    UseMeshOrigin: 0
     ParameterScale: 1
+    ScaleIsAdditional: 0
     VolumetricScale: 0
     ScalePerParameter: {x: 0.15, y: 0.15, z: 0.15}
     AlsoMove: 0
     UseThickness: 0
+    volumetricDurabilityValue: 0
   - Character: 74
     MeshRef: {fileID: -1692108017345405815, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants: []
     material: {fileID: 2100000, guid: dbf3708e7e0fe054782a97f8cb4bceeb, type: 2}
     IndividualScale: {x: 2, y: 2, z: 2}
+    UseMeshOrigin: 0
     ParameterScale: 1
+    ScaleIsAdditional: 0
     VolumetricScale: 0
     ScalePerParameter: {x: 0.7, y: 0.7, z: 0.7}
     AlsoMove: 0
     UseThickness: 0
+    volumetricDurabilityValue: 0
