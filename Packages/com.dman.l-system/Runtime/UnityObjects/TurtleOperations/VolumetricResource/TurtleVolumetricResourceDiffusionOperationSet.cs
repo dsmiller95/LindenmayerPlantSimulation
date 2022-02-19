@@ -70,6 +70,10 @@ namespace Dman.LSystem.UnityObjects.VolumetricResource
             SymbolString<float> sourceString,
             TurtleVolumetricHandles volumetricHandles)
         {
+            if (!volumetricHandles.IsCreated)
+            {
+                return;
+            }
             var paramIndex = sourceString.parameters[indexInString];
             if (paramIndex.length != 1)
             {

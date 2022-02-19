@@ -99,7 +99,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 systemObject.CompileToCached(silent: true);
             }
             var volumetricWorld = GameObject.FindObjectOfType<OrganVolumetricWorld>();
-            var damageWorld = volumetricWorld.damageLayer?.effects.OfType<VoxelCapReachedTimestampEffect>().FirstOrDefault();
+            var damageWorld = volumetricWorld?.damageLayer?.effects.OfType<VoxelCapReachedTimestampEffect>().FirstOrDefault();
             turtle = new TurtleInterpretor(
                 operationSets,
                 new TurtleState

@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
+using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -81,14 +82,37 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             UnityEngine.Profiling.Profiler.BeginSample("turtling job");
 
-            JobHandleWrapper volumetricJobHandle = currentJobHandle;
-            var volumetricHandles = new TurtleVolumetricHandles
+            TurtleVolumetricHandles volumetricHandles;
+            VoxelWorldVolumetricLayerData tempDataToDispose = default;
+            if (volumetrics != null)
             {
-                durabilityWriter = volumetrics.durabilityWriter.GetNextNativeWritableHandle(localToWorldTransform, ref volumetricJobHandle),
-                universalWriter = volumetrics.universalLayerWriter.GetNextNativeWritableHandle(localToWorldTransform),
-                volumetricData = volumetrics.world.NativeVolumeData.openReadData.AsReadOnly()
-            };
-            currentJobHandle = volumetricJobHandle;
+                JobHandleWrapper volumetricJobHandle = currentJobHandle;
+                volumetricHandles = new TurtleVolumetricHandles
+                {
+                    durabilityWriter = volumetrics.durabilityWriter.GetNextNativeWritableHandle(localToWorldTransform, ref volumetricJobHandle),
+                    universalWriter = volumetrics.universalLayerWriter.GetNextNativeWritableHandle(localToWorldTransform),
+                    volumetricData = volumetrics.world.NativeVolumeData.openReadData.AsReadOnly(),
+                    IsCreated = true
+                };
+                currentJobHandle = volumetricJobHandle;
+            }
+            else
+            {
+                tempDataToDispose = new VoxelWorldVolumetricLayerData(new VolumetricWorldVoxelLayout
+                {
+                    voxelOrigin = Vector3.zero,
+                    dataLayerCount = 0,
+                    worldResolution = Vector3Int.zero,
+                    worldSize = Vector3.one,
+                }, Allocator.TempJob);
+                volumetricHandles = new TurtleVolumetricHandles
+                {
+                    durabilityWriter = DoubleBufferNativeWritableHandle.GetTemp(Allocator.TempJob),
+                    universalWriter = CommandBufferNativeWritableHandle.GetTemp(Allocator.TempJob),
+                    volumetricData = tempDataToDispose.AsReadOnly(),
+                    IsCreated = false
+                };
+            }
 
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
@@ -98,7 +122,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
 
             NativeArray<float> destructionCommandTimestamps;
-            if (volumetrics.damageFlags != null)
+            var hasDamageFlags = volumetrics?.damageFlags != null;
+            if (hasDamageFlags)
             {
                 destructionCommandTimestamps = volumetrics.damageFlags.GetDestructionCommandTimestampsReadOnly();
             }
@@ -131,23 +156,31 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 customRules = customSymbols,
 
                 volumetricHandles = volumetricHandles,
-                hasVolumetricDestruction = volumetrics.damageFlags != null,
+                hasVolumetricDestruction = hasDamageFlags,
                 volumetricDestructionTimestamps = destructionCommandTimestamps,
-                earliestValidDestructionCommand = volumetrics.damageFlags != null ? Time.time - volumetrics.damageFlags.timeCommandStaysActive : -1
+                earliestValidDestructionCommand = hasDamageFlags ? Time.time - volumetrics.damageFlags.timeCommandStaysActive : -1
             };
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
-            volumetrics.world.NativeVolumeData.RegisterReadingDependency(currentJobHandle);
             entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
-            volumetrics.damageFlags?.RegisterReaderOfDestructionFlags(currentJobHandle);
-            volumetrics.durabilityWriter.RegisterWriteDependency(currentJobHandle);
-            volumetrics.universalLayerWriter.RegisterWriteDependency(currentJobHandle);
+
+            volumetrics?.world.NativeVolumeData.RegisterReadingDependency(currentJobHandle);
+            volumetrics?.damageFlags?.RegisterReaderOfDestructionFlags(currentJobHandle);
+            volumetrics?.durabilityWriter.RegisterWriteDependency(currentJobHandle);
+            volumetrics?.universalLayerWriter.RegisterWriteDependency(currentJobHandle);
+
+            if(!volumetricHandles.IsCreated)
+            {
+                volumetricHandles.durabilityWriter.targetData.Dispose(currentJobHandle);
+                volumetricHandles.universalWriter.modificationCommandBuffer.Dispose(currentJobHandle);
+                tempDataToDispose.Dispose(currentJobHandle);
+            }
 
             nativeData.RegisterDependencyOnData(currentJobHandle);
             symbols.RegisterDependencyOnData(currentJobHandle);
 
             currentJobHandle = tmpHelperStack.Dispose(currentJobHandle);
-            if (volumetrics.damageFlags == null)
+            if (!hasDamageFlags)
             {
                 currentJobHandle = destructionCommandTimestamps.Dispose(currentJobHandle);
             }

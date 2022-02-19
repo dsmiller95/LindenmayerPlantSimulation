@@ -24,6 +24,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             this.voxelLayout = voxelDistribution;
             this.localToWorldTransformation = localToWorld;
         }
+        public static CommandBufferNativeWritableHandle GetTemp(Allocator allocator = Allocator.TempJob)
+        {
+            return new CommandBufferNativeWritableHandle
+            {
+                modificationCommandBuffer = new NativeList<LayerModificationCommand>(0, allocator),
+                voxelLayout = default,
+                localToWorldTransformation = default
+            };
+        }
 
         public VoxelIndex GetVoxelIndexFromLocalSpace(Vector3 localPosition)
         {

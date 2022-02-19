@@ -58,9 +58,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     bendTowardsOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
                 case TurtleOperationType.ADD_ORGAN:
-                    meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricHandles.durabilityWriter);
+                    meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricHandles);
                     break;
-                case TurtleOperationType.INSTANTIATE_ENTITY:
+                case TurtleOperationType.INSTANTIATE_ENTITY: // TODO: get the local to world transform from somewhere other than the volumetric handles
                     instantiateOperator.Operate(ref currentState, indexInString, sourceString, spawningEntityBuffer, volumetricHandles.durabilityWriter.localToWorldTransformation);
                     break;
                 case TurtleOperationType.ROTATE:
@@ -84,6 +84,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
     public struct TurtleVolumetricHandles
     {
+        public bool IsCreated;
         public DoubleBufferNativeWritableHandle durabilityWriter;
         public CommandBufferNativeWritableHandle universalWriter;
         public VoxelWorldVolumetricLayerData.ReadOnly volumetricData;

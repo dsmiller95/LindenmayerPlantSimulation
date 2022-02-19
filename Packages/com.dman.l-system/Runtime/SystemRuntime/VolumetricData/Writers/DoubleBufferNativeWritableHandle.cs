@@ -26,6 +26,16 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             this.localToWorldTransformation = localToWorld;
         }
 
+        public static DoubleBufferNativeWritableHandle GetTemp(Allocator allocator = Allocator.TempJob)
+        {
+            return new DoubleBufferNativeWritableHandle
+            {
+                targetData = new NativeArray<float>(0, allocator),
+                voxelLayout = default,
+                localToWorldTransformation = default
+            };
+        }
+
         public VoxelIndex GetVoxelIndexFromLocalSpace(Vector3 localPosition)
         {
             var worldPosition = localToWorldTransformation.MultiplyPoint(localPosition);

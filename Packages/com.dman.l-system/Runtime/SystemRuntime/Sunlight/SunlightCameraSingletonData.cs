@@ -12,7 +12,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 {
     public class SunlightCameraSingletonData : MonoBehaviour
     {
-        public SunlightCamera activeCamera => GameObject.FindObjectOfType<SunlightCamera>(false);
+        public SunlightCamera ActiveCamera => GameObject.FindObjectOfType<SunlightCamera>(false);
 
         public RenderTexture sunlightTexture;
 
@@ -174,6 +174,11 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             LSystemState<float> systemState,
             CustomRuleSymbols customSymbols)
         {
+            var activeSunlightCamera = ActiveCamera;
+            if(activeSunlightCamera == null)
+            {
+                return default(JobHandle);
+            }
 
             var idsNativeArray = uniqueSunlightAssignments.ActiveData;
             if (idsNativeArray == null)
@@ -190,7 +195,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight result apply");
 
             var tmpIdentityStack = new TmpNativeStack<SunlightExposurePreProcessRule.BranchIdentity>(10, Allocator.TempJob);
-            var sunlightPerPixel = activeCamera.sunlightPerPixel;
+            var sunlightPerPixel = activeSunlightCamera.sunlightPerPixel;
             var applyJob = new SunlightExposurePreProcessRule
             {
                 symbols = systemState.currentSymbols.Data,

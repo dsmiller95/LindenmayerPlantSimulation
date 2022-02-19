@@ -77,6 +77,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         private void RefreshVolumetricWriters()
         {
+            if (volumetricWorld == null)
+            {
+                durabilityWriterHandle?.Dispose();
+                durabilityWriterHandle = null;
+                commandBufferWriter?.Dispose();
+                commandBufferWriter = null;
+                return;
+            }
             if (this.durabilityWriterHandle?.IsDisposed ?? true)
             {
                 durabilityWriterHandle = volumetricWorld.GetDoubleBufferedWritableHandle();
@@ -98,7 +106,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
 
             RefreshVolumetricWriters();
-            var volumeWorldReferences = new TurtleVolumeWorldReferences
+            var volumeWorldReferences = volumetricWorld == null ? null : new TurtleVolumeWorldReferences
             {
                 world = volumetricWorld,
                 durabilityWriter = durabilityWriterHandle,
@@ -130,8 +138,16 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
             IsDisposed = true;
             nativeDataTracker.Dispose();
-            volumetricWorld.DisposeWritableHandle(durabilityWriterHandle).Complete();
-            volumetricWorld.DisposeWritableHandle(commandBufferWriter).Complete();
+            if (volumetricWorld == null)
+            {
+                durabilityWriterHandle?.Dispose();
+                commandBufferWriter?.Dispose();
+            }
+            else
+            {
+                volumetricWorld?.DisposeWritableHandle(durabilityWriterHandle).Complete();
+                volumetricWorld?.DisposeWritableHandle(commandBufferWriter).Complete();
+            }
         }
 
     }

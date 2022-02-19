@@ -47,12 +47,14 @@ namespace Dman.LSystem.UnityObjects
         {
             CachedOrganTemplates = (new[] {
                 new MeshVariant{
-                    mesh = MeshRef
                 }
             }.Concat(MeshVariants)).Select(variant =>
             {
-                var newDraft = new MeshDraft(variant.mesh);
-                var bounds = variant.mesh.bounds;
+                var overridenMesh = (variant.mesh != null) ? variant.mesh : MeshRef;
+                var overridenMaterial = (variant.materialOverride != null) ? variant.materialOverride : material;
+
+                var newDraft = new MeshDraft(overridenMesh);
+                var bounds = overridenMesh.bounds;
                 Vector3 translatePostMesh;
                 if (UseMeshOrigin)
                 {
@@ -67,7 +69,7 @@ namespace Dman.LSystem.UnityObjects
 
                 return new TurtleOrganTemplate(
                     newDraft,
-                    variant.materialOverride ?? material,
+                    overridenMaterial,
                     translatePostMesh,
                     AlsoMove
                     );
@@ -149,7 +151,7 @@ namespace Dman.LSystem.UnityObjects
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
             NativeList<TurtleOrganInstance> targetOrganInstances,
-            DoubleBufferNativeWritableHandle volumetricNativeWriter)
+            TurtleVolumetricHandles volumetricHandles)
         {
             var pIndex = sourceString.parameters[indexInString];
 
@@ -189,10 +191,10 @@ namespace Dman.LSystem.UnityObjects
                 meshTransform *= Matrix4x4.Scale(new Vector3(1, state.thickness, state.thickness));
             }
 
-            if (volumetricValue != 0)
+            if (volumetricHandles.IsCreated && volumetricValue != 0)
             {
                 var organCenter = meshTransform.MultiplyPoint(Vector3.zero);
-                volumetricNativeWriter.WriteVolumetricAmountToDoubleBufferedData(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
+                volumetricHandles.durabilityWriter.WriteVolumetricAmountToDoubleBufferedData(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
             }
 
             var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];
