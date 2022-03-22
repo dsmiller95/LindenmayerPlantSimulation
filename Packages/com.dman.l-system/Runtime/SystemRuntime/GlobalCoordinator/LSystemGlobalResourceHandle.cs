@@ -19,11 +19,15 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         /// </summary>
         public uint globalPlantId;
 
+        public bool isDisposed;
+
         [NonSerialized]
         private GlobalLSystemCoordinator parent;
         [NonSerialized]
         private LSystemBehavior _associatedBehavior;
         public LSystemBehavior associatedBehavior { get => _associatedBehavior; private set => _associatedBehavior = value; }
+
+        public bool isFreeToBeReused => associatedBehavior == null && !isDisposed;
 
         public LSystemGlobalResourceHandle(
             uint originPoint,
@@ -39,17 +43,23 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
 
             this.parent = parent;
             this.associatedBehavior = associatedBehavior;
+
+            isDisposed = false;
         }
 
         public void InitializePostDeserialize(LSystemBehavior associatedBehavior, GlobalLSystemCoordinator parent)
         {
+            if (!isFreeToBeReused)
+            {
+                throw new Exception("this handle cannot be reused");
+            }
             this.associatedBehavior = associatedBehavior;
             this.parent = parent;
         }
 
         public void UpdateUniqueIdReservationSpace(LSystemState<float> systemState)
         {
-            while (systemState.maxUniqueOrganIds > requestedNextReservationSize * parent.idSpaceResizeThreshold)
+            while (requestedNextReservationSize > 0 && systemState.maxUniqueOrganIds > requestedNextReservationSize * parent.idSpaceResizeThreshold)
             {
                 requestedNextReservationSize = (uint)(requestedNextReservationSize * parent.idSpaceResizeMultiplier);
             }
@@ -62,6 +72,10 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             LSystemState<float> systemState,
             CustomRuleSymbols customSymbols)
         {
+            if (isDisposed)
+            {
+                throw new Exception("using disposed resource handle");
+            }
             return parent.sunlightCameraSingleton?.ApplySunlightToSymbols(
                 systemState,
                 customSymbols) ?? default(JobHandle);
@@ -76,6 +90,9 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         public void Dispose()
         {
             requestedNextReservationSize = 0;
+            isDisposed = true;
+            parent = null;
+            associatedBehavior = null;
         }
     }
 }

@@ -105,6 +105,10 @@ namespace Dman.LSystem.UnityObjects
            LSystemState<float> newState,
            LSystemStepper newSystem)
         {
+            if (isDisposed)
+            {
+                throw new Exception("trying to access disposed stepping handle");
+            }
             if (lSystemPendingCompletable != null)
             {
                 lSystemPendingCompletable.Cancel();
@@ -141,11 +145,11 @@ namespace Dman.LSystem.UnityObjects
 
         public bool HasValidSystem()
         {
-            return compiledSystem != null;
+            return compiledSystem != null && !isDisposed;// && !globalResourceHandle.isDisposed;
         }
         public bool CanStep()
         {
-            return lSystemPendingCompletable == null;
+            return lSystemPendingCompletable == null && !isDisposed;// && !globalResourceHandle.isDisposed;
         }
         /// <summary>
         /// step the Lsystem forward one tick. when CompleteInLateUpdate is true, be very careful with changes to the L-system
@@ -194,6 +198,10 @@ namespace Dman.LSystem.UnityObjects
             ArrayParameterRepresenation<float> runtimeParameters,
             bool repeatLast = false)
         {
+            if (isDisposed)
+            {
+                throw new Exception("trying to access disposed stepping handle");
+            }
             ICompletable<LSystemState<float>> pendingStateHandle;
             try
             {
@@ -271,8 +279,14 @@ namespace Dman.LSystem.UnityObjects
             }
             compiledSystem = newSystem;
         }
+        public bool isDisposed { get; private set; } = false;
         public void Dispose()
         {
+            if (isDisposed)
+            {
+                throw new Exception("disposing already disposed stepping handle");
+            }
+            isDisposed = true;
             if (useSharedSystem)
             {
                 systemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
@@ -347,6 +361,15 @@ namespace Dman.LSystem.UnityObjects
                 target.runtimeParameters = this.runtimeParameters;
                 target.compiledGlobalCompiletimeReplacements = this.compiledGlobalCompiletimeReplacements;
 
+                if (target.isDisposed)
+                {
+                    throw new Exception("deserialized disposed stepping handle");
+                }
+                if (target.globalResourceHandle?.isDisposed ?? false)
+                {
+                    throw new Exception("deserialized disposed global resource handle");
+                }
+
                 return target;
             }
         }
@@ -354,6 +377,10 @@ namespace Dman.LSystem.UnityObjects
 
         public void InitializePostDeserialize(LSystemBehavior handleOwner)
         {
+            if (isDisposed || globalResourceHandle.isDisposed)
+            {
+                throw new Exception("stepping handle is disposed when deserializing");
+            }
             if (useSharedSystem)
             {
                 this.systemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
@@ -365,6 +392,10 @@ namespace Dman.LSystem.UnityObjects
 
             var lastHandle = globalResourceHandle;
             globalResourceHandle = GlobalLSystemCoordinator.instance.GetManagedResourceHandleFromSavedData(lastHandle, handleOwner);
+            if (globalResourceHandle.isDisposed)
+            {
+                throw new Exception("global resource handle is already disposed");
+            }
 
             if (!useSharedSystem)
             {

@@ -79,8 +79,12 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         public LSystemGlobalResourceHandle GetManagedResourceHandleFromSavedData(LSystemGlobalResourceHandle savedHandle, LSystemBehavior assocatedBehavior)
         {
             var matchingHandle = allResourceReservations
-                .Where(x => x.uniqueIdOriginPoint == savedHandle.uniqueIdOriginPoint && x.uniqueIdReservationSize == savedHandle.uniqueIdReservationSize)
+                .Where(x => 
+                    x.uniqueIdOriginPoint == savedHandle.uniqueIdOriginPoint && 
+                    x.uniqueIdReservationSize == savedHandle.uniqueIdReservationSize &&
+                    x.isFreeToBeReused)
                 .FirstOrDefault();
+
             if (matchingHandle != null)
             {
                 matchingHandle.InitializePostDeserialize(assocatedBehavior, this);
