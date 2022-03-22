@@ -176,7 +176,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 {
                     Value = index
                 };
-                var rootCoordiante = voxelLayout.GetCoordinatesFromVoxelIndex(voxelIndex);
+                var rootCoordiante = voxelLayout.GetVoxelCoordinatesFromVoxelIndex(voxelIndex);
 
                 var kernelOrigin = oneDimensionalKernel.Length / 2;
                 float newValue = 0;
@@ -186,7 +186,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                     var kernelWeight = oneDimensionalKernel[kernelIndex];
 
                     var sampleCoordinate = offset + rootCoordiante;
-                    var sampleIndex = voxelLayout.GetVoxelIndexFromCoordinates(sampleCoordinate);
+                    var sampleIndex = voxelLayout.GetVoxelIndexFromVoxelCoordinates(sampleCoordinate);
 
                     float sampleValue;
                     if (!sampleIndex.IsValid)

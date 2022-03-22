@@ -25,15 +25,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 
         public VoxelIndex GetVoxelIndexFromWorldPosition(Vector3 worldPosition)
         {
-            return GetVoxelIndexFromCoordinates(GetVoxelCoordinates(worldPosition));
+            return GetVoxelIndexFromVoxelCoordinates(GetVoxelCoordinatesFromWorldPosition(worldPosition));
         }
 
         public Vector3 GetWorldPositionFromVoxelIndex(VoxelIndex voxelIndex)
         {
-            return CoordinateToCenterOfVoxel(GetCoordinatesFromVoxelIndex(voxelIndex));
+            return GetWorldPositionFromVoxelCoordinates(GetVoxelCoordinatesFromVoxelIndex(voxelIndex));
         }
 
-        public Vector3Int GetVoxelCoordinates(Vector3 worldPosition)
+        public Vector3Int GetVoxelCoordinatesFromWorldPosition(Vector3 worldPosition)
         {
             var relativePos = (worldPosition - voxelOrigin);
 
@@ -46,7 +46,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             return coord;
         }
 
-        public VoxelIndex GetVoxelIndexFromCoordinates(int x, int y, int z)
+        public VoxelIndex GetVoxelIndexFromVoxelCoordinates(int x, int y, int z)
         {
             if (x < 0 || x >= worldResolution.x ||
                 y < 0 || y >= worldResolution.y ||
@@ -63,17 +63,17 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             };
         }
 
-        public VoxelIndex GetVoxelIndexFromCoordinates(Vector3Int coordiantes)
+        public VoxelIndex GetVoxelIndexFromVoxelCoordinates(Vector3Int coordiantes)
         {
-            return GetVoxelIndexFromCoordinates(coordiantes.x, coordiantes.y, coordiantes.z);
+            return GetVoxelIndexFromVoxelCoordinates(coordiantes.x, coordiantes.y, coordiantes.z);
         }
 
-        public Vector3 CoordinateToCenterOfVoxel(Vector3Int coordinate)
+        public Vector3 GetWorldPositionFromVoxelCoordinates(Vector3Int coordinate)
         {
             return Vector3.Scale(voxelSize, coordinate) + (voxelOrigin + (voxelSize / 2f));
         }
 
-        public Vector3Int GetCoordinatesFromVoxelIndex(VoxelIndex voxelIndex)
+        public Vector3Int GetVoxelCoordinatesFromVoxelIndex(VoxelIndex voxelIndex)
         {
             var x = voxelIndex.Value / (worldResolution.y * worldResolution.z);
             var y = (voxelIndex.Value / worldResolution.z) % worldResolution.y;
@@ -84,14 +84,14 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 
         public TileIndex SurfaceGetTileIndexFromWorldPosition(Vector3 worldPosition)
         {
-            return SurfaceGetTileIndexFromCoordinates(SurfaceGetSurfaceCoordinates(worldPosition));
+            return SurfaceGetTileIndexFromTileCoordinates(SurfaceGetTileCoordinatesFromWorldPosition(worldPosition));
         }
         public Vector2 SurfaceGetTilePositionFromTileIndex(TileIndex tileIndex)
         {
-            return SurfaceToCenterOfTile(SurfaceGetCoordinatesFromTileIndex(tileIndex));
+            return SurfaceGetTilePositionFromTileCoordinates(SurfaceGetTileCoordinatesFromTileIndex(tileIndex));
         }
 
-        public Vector2Int SurfaceGetSurfaceCoordinates(Vector3 worldPosition)
+        public Vector2Int SurfaceGetTileCoordinatesFromWorldPosition(Vector3 worldPosition)
         {
             var relativePos = (worldPosition - voxelOrigin);
 
@@ -103,7 +103,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             return coord;
         }
 
-        public TileIndex SurfaceGetTileIndexFromCoordinates(Vector2Int coordiantes)
+        public TileIndex SurfaceGetTileIndexFromTileCoordinates(Vector2Int coordiantes)
         {
             if (coordiantes.x < 0 || coordiantes.x >= worldResolution.x ||
                 coordiantes.y < 0 || coordiantes.y >= worldResolution.z)
@@ -119,13 +119,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             };
         }
 
-        public Vector2 SurfaceToCenterOfTile(Vector2Int coordinate)
+        public Vector2 SurfaceGetTilePositionFromTileCoordinates(Vector2Int coordinate)
         {
-            var voxelPoint = CoordinateToCenterOfVoxel(new Vector3Int(coordinate.x, 0, coordinate.y));
+            var voxelPoint = GetWorldPositionFromVoxelCoordinates(new Vector3Int(coordinate.x, 0, coordinate.y));
             return new Vector2(voxelPoint.x, voxelPoint.z);
         }
 
-        public Vector2Int SurfaceGetCoordinatesFromTileIndex(TileIndex tileIndex)
+        public Vector2Int SurfaceGetTileCoordinatesFromTileIndex(TileIndex tileIndex)
         {
             var x = tileIndex.Value / worldResolution.z;
             var y = tileIndex.Value % worldResolution.z;

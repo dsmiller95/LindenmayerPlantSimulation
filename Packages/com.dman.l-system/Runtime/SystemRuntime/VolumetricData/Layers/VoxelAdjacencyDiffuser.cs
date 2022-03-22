@@ -88,7 +88,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 {
                     Value = index
                 };
-                var rootCoordiante = voxelLayout.GetCoordinatesFromVoxelIndex(voxelIndex);
+                var rootCoordiante = voxelLayout.GetVoxelCoordinatesFromVoxelIndex(voxelIndex);
                 var originalSelfValue = sourceDiffusionValues[voxelIndex.Value];
 
                 float newValue = originalSelfValue;
@@ -97,7 +97,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 {
                     var offset = adjacencyVectors[adjacencyIndex];
                     var sampleCoordinate = offset + rootCoordiante;
-                    var sampleIndex = voxelLayout.GetVoxelIndexFromCoordinates(sampleCoordinate);
+                    var sampleIndex = voxelLayout.GetVoxelIndexFromVoxelCoordinates(sampleCoordinate);
 
                     if (!sampleIndex.IsValid)
                     {

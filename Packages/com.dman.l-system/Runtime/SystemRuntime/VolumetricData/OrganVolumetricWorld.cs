@@ -261,14 +261,14 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     for (int z = 0; z < worldResolution.z; z++)
                     {
                         var voxelCoordinate = new Vector3Int(x, y, z);
-                        var cubeCenter = voxelLayout.CoordinateToCenterOfVoxel(voxelCoordinate);
+                        var cubeCenter = voxelLayout.GetWorldPositionFromVoxelCoordinates(voxelCoordinate);
 
                         if (amountVisualizedGizmos)
                         {
                             float amount;
                             if (NativeVolumeData != null)
                             {
-                                var voxelIndex = voxelLayout.GetVoxelIndexFromCoordinates(voxelCoordinate);
+                                var voxelIndex = voxelLayout.GetVoxelIndexFromVoxelCoordinates(voxelCoordinate);
                                 amount = NativeVolumeData.openReadData[voxelIndex, layerToRender] / maxAmount;
                             }
                             else
