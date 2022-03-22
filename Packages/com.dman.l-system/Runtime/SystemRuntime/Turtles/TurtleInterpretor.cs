@@ -118,7 +118,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             };
 
 
-            var reader = new TurtleStringReadingCompletable(
+            var reader = new TurtleStringReadingCompletable();
+            return await reader.ReadString(
                 targetMesh,
                 submeshMaterials.Length,
                 symbols,
@@ -128,9 +129,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 defaultState,
                 customSymbols,
                 volumeWorldReferences,
-                localToWorldTransform
-                );
-            return await reader.StepNext(token);
+                localToWorldTransform,
+                token);
         }
 
         private bool IsDisposed = false;

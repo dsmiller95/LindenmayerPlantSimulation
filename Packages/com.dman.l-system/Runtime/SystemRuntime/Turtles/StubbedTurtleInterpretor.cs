@@ -74,19 +74,21 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 throw new ObjectDisposedException("Turtle has been disposed and cannot be used");
             }
 
-            var reader = new TurtleStringReadingCompletable(
-                targetMesh,
-                submeshMaterials.Length,
-                symbols,
-                nativeDataTracker,
-                branchStartChar,
-                branchEndChar,
-                defaultState,
-                customSymbols,
-                null,
-                localToWorldTransform
-                );
-            return await reader.StepNext(token);
+            return null;
+
+            //var reader = new TurtleStringReadingCompletable();
+            //return await reader.ReadString(
+            //    targetMesh,
+            //    submeshMaterials.Length,
+            //    symbols,
+            //    nativeDataTracker,
+            //    branchStartChar,
+            //    branchEndChar,
+            //    defaultState,
+            //    customSymbols,
+            //    null,
+            //    localToWorldTransform,
+            //    token);
         }
 
         private bool IsDisposed = false;

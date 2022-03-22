@@ -1,5 +1,7 @@
-﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
+﻿using Cysharp.Threading.Tasks;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System;
+using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -9,31 +11,34 @@ using UnityEngine.Rendering;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public class TurtleMeshBuildingCompletable : ICompletable<TurtleCompletionResult>
+    public class TurtleMeshBuildingCompletable
     {
 #if UNITY_EDITOR
         public string TaskDescription => "Turtle mesh building";
 #endif
         public JobHandle currentJobHandle { get; private set; }
 
-        private Mesh targetMesh;
         private NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh;
 
         private MyMeshData meshData;
 
 
-        public TurtleMeshBuildingCompletable(
+        public TurtleMeshBuildingCompletable()
+        {
+        }
+
+        public async UniTask<ICompletable> StepNext(
             Mesh targetMesh,
             NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh,
             DependencyTracker<NativeTurtleData> nativeData,
-            NativeList<TurtleOrganInstance> organInstances)
+            NativeList<TurtleOrganInstance> organInstances,
+            CancellationToken token)
         {
             if (nativeData.IsDisposed)
             {
                 throw new InvalidOperationException("turtle data has been disposed before completable could finish.");
             }
 
-            this.targetMesh = targetMesh;
             targetMesh.MarkDynamic();
             this.resultMeshSizeBySubmesh = resultMeshSizeBySubmesh;
             UnityEngine.Profiling.Profiler.BeginSample("mesh data building job");
@@ -67,12 +72,27 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             currentJobHandle = organInstances.Dispose(currentJobHandle);
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.EndSample();
-        }
 
-        public ICompletable StepNext()
-        {
+
+            // wait for task complete, with safe and immediate cancellation
+            var cancelled = false;
+            while (!currentJobHandle.IsCompleted && !token.IsCancellationRequested && !cancelled)
+            {
+                var (cancelledTask, registration) = token.ToUniTask();
+                var completedIndex = await UniTask.WhenAny(
+                    cancelledTask,
+                    // TODO: yield at more spots
+                    UniTask.Yield(PlayerLoopTiming.PostLateUpdate, token).SuppressCancellationThrow());
+                cancelled = completedIndex == 0;
+                registration.Dispose();
+            }
             currentJobHandle.Complete();
 
+            if (cancelled || token.IsCancellationRequested)
+            {
+                this.Dispose();
+                throw new OperationCanceledException();
+            }
 
             SetDataToMesh(targetMesh, meshData, resultMeshSizeBySubmesh);
 

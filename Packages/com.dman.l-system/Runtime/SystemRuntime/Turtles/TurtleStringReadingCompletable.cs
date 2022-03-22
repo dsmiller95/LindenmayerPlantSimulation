@@ -63,12 +63,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public JobHandle currentJobHandle { get; private set; } = default;
 
         private NativeList<TurtleOrganInstance> organInstances;
-        private DependencyTracker<NativeTurtleData> nativeData;
 
         private NativeArray<TurtleMeshAllocationCounter> newMeshSizeBySubmesh;
-        private Mesh targetMesh;
 
-        public TurtleStringReadingCompletable(
+        public async UniTask<ICompletable> ReadString(
             Mesh targetMesh,
             int totalSubmeshes,
             DependencyTracker<SymbolString<float>> symbols,
@@ -78,11 +76,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             TurtleState defaultState,
             CustomRuleSymbols customSymbols,
             TurtleVolumeWorldReferences volumetrics,
-            Matrix4x4 localToWorldTransform)
+            Matrix4x4 localToWorldTransform,
+            CancellationToken token)
         {
-            this.targetMesh = targetMesh;
-            this.nativeData = nativeData;
-
             UnityEngine.Profiling.Profiler.BeginSample("turtling job");
 
             TurtleVolumetricHandles volumetricHandles;
@@ -172,11 +168,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             volumetrics?.durabilityWriter.RegisterWriteDependency(currentJobHandle);
             volumetrics?.universalLayerWriter.RegisterWriteDependency(currentJobHandle);
 
-            if(!volumetricHandles.IsCreated)
+            if (!volumetricHandles.IsCreated)
             {
+#pragma warning disable CS4014 // no await on awaitable handle warning. not relevant here since these should execute in their time, and be forgotten
                 volumetricHandles.durabilityWriter.targetData.Dispose(currentJobHandle);
                 volumetricHandles.universalWriter.modificationCommandBuffer.Dispose(currentJobHandle);
                 tempDataToDispose.Dispose(currentJobHandle);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
 
             nativeData.RegisterDependencyOnData(currentJobHandle);
@@ -188,22 +186,23 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 currentJobHandle = destructionCommandTimestamps.Dispose(currentJobHandle);
             }
             UnityEngine.Profiling.Profiler.EndSample();
-        }
 
-        public async UniTask<ICompletable> StepNext(CancellationToken token)
-        {
+
+            // wait for task complete, with safe and immediate cancellation
             var cancelled = false;
             while (!currentJobHandle.IsCompleted && !token.IsCancellationRequested && !cancelled)
             {
                 var (cancelledTask, registration) = token.ToUniTask();
                 var completedIndex = await UniTask.WhenAny(
                     cancelledTask,
+                    // TODO: yield at more spots
                     UniTask.Yield(PlayerLoopTiming.PostLateUpdate, token).SuppressCancellationThrow());
                 cancelled = completedIndex == 0;
                 registration.Dispose();
             }
-            // complete whether cancelled or not
             currentJobHandle.Complete();
+
+
             if (cancelled || token.IsCancellationRequested || nativeData.IsDisposed)
             {
                 this.Dispose();
@@ -213,12 +212,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 }
                 throw new OperationCanceledException();
             }
-            return new TurtleMeshBuildingCompletable(
+
+            var meshBuilder = new TurtleMeshBuildingCompletable();
+
+            return await meshBuilder.StepNext(
                 targetMesh,
                 newMeshSizeBySubmesh,
                 nativeData,
-                organInstances
-                );
+                organInstances,
+                token);
         }
 
         [BurstCompile]
