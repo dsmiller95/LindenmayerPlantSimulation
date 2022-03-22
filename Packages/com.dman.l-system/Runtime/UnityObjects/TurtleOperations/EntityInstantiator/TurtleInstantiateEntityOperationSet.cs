@@ -23,7 +23,7 @@ namespace Dman.LSystem.UnityObjects
         {
             foreach (var instantiable in instantiatableEntities)
             {
-                var entity = TurtleSpawnEntitiesInstantiator.instance.GetEntityPrefab(instantiable.prefab);
+                var entity = TurtleSpawnEntitiesInstantiator.Instance.GetEntityPrefab(instantiable.prefab);
 
                 writer.operators.Add(new TurtleOperationWithCharacter
                 {

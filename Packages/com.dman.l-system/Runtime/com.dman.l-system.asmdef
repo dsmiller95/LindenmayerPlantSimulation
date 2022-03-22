@@ -12,7 +12,9 @@
         "ReactiveVariables",
         "Unity.Entities",
         "Unity.Entities.Hybrid",
-        "Unity.Transforms"
+        "Unity.Transforms",
+        "Dman.EntityUtilities",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

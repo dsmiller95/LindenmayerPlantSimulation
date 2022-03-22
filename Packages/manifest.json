@@ -4,6 +4,7 @@
     "com.dman.reactive-variables": "0.1.7",
     "com.dman.scene-save-system": "0.2.1",
     "com.dman.utilities": "0.4.0",
+    "com.dman.entity-utilities": "0.1.0",
     "com.unity.burst": "1.5.5",
     "com.unity.collab-proxy": "1.15.7",
     "com.unity.entities": "0.17.0-preview.42",
@@ -49,7 +50,8 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.cysharp.unitask": "2.3.1"
   },
   "scopedRegistries": [
     {
@@ -57,6 +59,8 @@
       "url": "https://package.openupm.com",
       "scopes": [
         "com.alelievr.node-graph-processor",
+        "com.cysharp.unitask",
+        "com.dman.entity-utilities",
         "com.dman.object-sets",
         "com.dman.reactive-variables",
         "com.dman.scene-save-system",

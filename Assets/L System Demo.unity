@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1905895031}
-  m_IndirectSpecularColor: {r: 0.17932487, g: 0.22454008, b: 0.30623657, a: 1}
+  m_IndirectSpecularColor: {r: 0.17932065, g: 0.22453478, b: 0.30623242, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -229,6 +229,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -249,6 +250,7 @@ GameObject:
   m_Component:
   - component: {fileID: 88810433}
   - component: {fileID: 88810432}
+  - component: {fileID: 88810434}
   m_Layer: 0
   m_Name: turtle entity instantiator
   m_TagString: Untagged
@@ -268,9 +270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af59327ebceb9f2499d8a097a4d23a09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnableEntityPrefabs:
-  - {fileID: 651890539438364982, guid: 628b1843b0a8ae8469faf6df34f8ffb1, type: 3}
-  - {fileID: 651890539438364982, guid: 72785b83a30575446bd9467d2c247619, type: 3}
+  prefabRegistry: {fileID: 88810434}
 --- !u!4 &88810433
 Transform:
   m_ObjectHideFlags: 0
@@ -285,6 +285,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &88810434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88810431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be1db6c3cf4e5a545b017f40315e3b19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnableEntityPrefabs:
+  - {fileID: 7033642088675614153, guid: 628b1843b0a8ae8469faf6df34f8ffb1, type: 3}
+  - {fileID: 7033642088675614153, guid: 72785b83a30575446bd9467d2c247619, type: 3}
 --- !u!1001 &175833465
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1060,6 +1075,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -2620,6 +2636,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2

@@ -29,6 +29,8 @@ MonoBehaviour:
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.alelievr.node-graph-processor
+    - com.cysharp.unitask
+    - com.dman.entity-utilities
     - com.dman.object-sets
     - com.dman.reactive-variables
     - com.dman.scene-save-system
@@ -48,6 +50,8 @@ MonoBehaviour:
       m_Url: https://package.openupm.com
       m_Scopes:
       - com.alelievr.node-graph-processor
+      - com.cysharp.unitask
+      - com.dman.entity-utilities
       - com.dman.object-sets
       - com.dman.reactive-variables
       - com.dman.scene-save-system
@@ -62,6 +66,8 @@ MonoBehaviour:
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.alelievr.node-graph-processor
+    - com.cysharp.unitask
+    - com.dman.entity-utilities
     - com.dman.object-sets
     - com.dman.reactive-variables
     - com.dman.scene-save-system
