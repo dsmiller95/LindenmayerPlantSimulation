@@ -141,16 +141,15 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 cancelPending = new CancellationTokenSource();
                 //if (!previousTurtle?.IsComplete() ?? false) previousTurtle.Cancel();
 
-                var completable = InterpretSymbols(System.steppingHandle.currentState.currentSymbols, cancelPending.Token);
-                AwaitThenRegister(completable).Forget();
+                CompileTurtle().Forget();
 
                 //var mesh = GetComponent<MeshFilter>().mesh;
             }
         }
 
-        private async UniTask AwaitThenRegister(UniTask completable)
+        private async UniTask CompileTurtle()
         {
-            await completable;
+            await InterpretSymbols(System.steppingHandle.currentState.currentSymbols, cancelPending.Token);
             //previousTurtle = CompletableExecutor.Instance.RegisterCompletable(await completable);
         }
     }

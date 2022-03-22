@@ -118,9 +118,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             };
 
 
-            var reader = new TurtleStringReadingCompletable();
-            await reader.ReadString(
-                targetMesh,
+            var meshResult = await TurtleStringReadingCompletable.ReadString(
                 submeshMaterials.Length,
                 symbols,
                 nativeDataTracker,
@@ -130,6 +128,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 customSymbols,
                 volumeWorldReferences,
                 localToWorldTransform,
+                token);
+
+            await TurtleMeshBuildingCompletable.BuildMesh(
+                targetMesh,
+                meshResult,
+                nativeDataTracker,
                 token);
         }
 

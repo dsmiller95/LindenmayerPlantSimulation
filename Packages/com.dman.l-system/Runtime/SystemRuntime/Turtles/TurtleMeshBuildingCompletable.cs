@@ -8,30 +8,16 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static Dman.LSystem.SystemRuntime.Turtle.TurtleStringReadingCompletable;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
     public class TurtleMeshBuildingCompletable
     {
-#if UNITY_EDITOR
-        public string TaskDescription => "Turtle mesh building";
-#endif
-        public JobHandle currentJobHandle { get; private set; }
-
-        private NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh;
-
-        private MyMeshData meshData;
-
-
-        public TurtleMeshBuildingCompletable()
-        {
-        }
-
-        public async UniTask StepNext(
+        public static async UniTask BuildMesh(
             Mesh targetMesh,
-            NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh,
+            TurtleMeshBuildingInstructions meshBuilding,
             DependencyTracker<NativeTurtleData> nativeData,
-            NativeList<TurtleOrganInstance> organInstances,
             CancellationToken token)
         {
             if (nativeData.IsDisposed)
@@ -40,12 +26,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
 
             targetMesh.MarkDynamic();
-            this.resultMeshSizeBySubmesh = resultMeshSizeBySubmesh;
             UnityEngine.Profiling.Profiler.BeginSample("mesh data building job");
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            var lastSubmeshSize = resultMeshSizeBySubmesh[resultMeshSizeBySubmesh.Length - 1];
-            meshData = new MyMeshData
+            var lastSubmeshSize = meshBuilding.meshSizePerSubmesh[meshBuilding.meshSizePerSubmesh.Length - 1];
+            var meshData = new MyMeshData
             {
                 indices = new NativeArray<uint>(lastSubmeshSize.indexInTriangles + lastSubmeshSize.totalTriangleIndexes, Allocator.TempJob), // TODO: does this have to be persistent? or can it be tempjob since it'll be handed to the mesh?
                 vertexData = new NativeArray<MeshVertexLayout>(lastSubmeshSize.indexInVertexes + lastSubmeshSize.totalVertexes, Allocator.TempJob),
@@ -57,19 +42,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 templateVertexData = nativeData.Data.vertexData,
                 templateTriangleData = nativeData.Data.triangleData,
                 templateOrganData = nativeData.Data.allOrganData,
-                submeshSizes = resultMeshSizeBySubmesh,
+                submeshSizes = meshBuilding.meshSizePerSubmesh,
 
-                organInstances = organInstances,
+                organInstances = meshBuilding.organInstances,
 
                 targetMesh = meshData
             };
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("scheduling");
-            currentJobHandle = turtleEntitySpawnJob.Schedule();
+            var currentJobHandle = turtleEntitySpawnJob.Schedule();
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
-            currentJobHandle = organInstances.Dispose(currentJobHandle);
+            currentJobHandle = meshBuilding.organInstances.Dispose(currentJobHandle);
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -90,18 +75,17 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             if (cancelled || token.IsCancellationRequested)
             {
-                this.Dispose();
+                meshData.Dispose();
+                meshBuilding.meshSizePerSubmesh.Dispose();
                 throw new OperationCanceledException();
             }
 
-            SetDataToMesh(targetMesh, meshData, resultMeshSizeBySubmesh);
+            SetDataToMesh(targetMesh, meshData, meshBuilding.meshSizePerSubmesh);
 
             //Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, targetMesh, MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontResetBoneBounds);
 
-            UnityEngine.Profiling.Profiler.BeginSample("cleanup");
-            resultMeshSizeBySubmesh.Dispose();
             meshData.Dispose();
-            UnityEngine.Profiling.Profiler.EndSample();
+            meshBuilding.meshSizePerSubmesh.Dispose();
         }
 
         private static void SetDataToMesh(UnityEngine.Mesh mesh, MyMeshData meshData, NativeArray<TurtleMeshAllocationCounter> submeshSizes)
@@ -247,45 +231,5 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 return identity.color;
             }
         }
-
-        public JobHandle Dispose(JobHandle inputDeps)
-        {
-            currentJobHandle.Complete();
-            return JobHandle.CombineDependencies(
-                inputDeps,
-                resultMeshSizeBySubmesh.Dispose(inputDeps),
-                meshData.Dispose(inputDeps)
-                );
-        }
-
-        public void Dispose()
-        {
-            currentJobHandle.Complete();
-            meshData.Dispose();
-            resultMeshSizeBySubmesh.Dispose();
-        }
-
-        public TurtleCompletionResult GetData()
-        {
-            return default;
-        }
-
-        public string GetError()
-        {
-            return null;
-        }
-
-        public bool HasErrored()
-        {
-            return false;
-        }
-
-        public bool IsComplete()
-
-        {
-            return false;
-        }
-
-
     }
 }

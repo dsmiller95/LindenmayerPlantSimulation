@@ -57,17 +57,20 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     /// </summary>
     public class TurtleStringReadingCompletable
     {
-#if UNITY_EDITOR
-        public string TaskDescription => "Turtle string reading completable";
-#endif
-        public JobHandle currentJobHandle { get; private set; } = default;
+        public class TurtleMeshBuildingInstructions : IDisposable
+        {
+            public NativeList<TurtleOrganInstance> organInstances;
 
-        private NativeList<TurtleOrganInstance> organInstances;
+            public NativeArray<TurtleMeshAllocationCounter> meshSizePerSubmesh;
 
-        private NativeArray<TurtleMeshAllocationCounter> newMeshSizeBySubmesh;
+            public void Dispose()
+            {
+                organInstances.Dispose();
+                meshSizePerSubmesh.Dispose();
+            }
+        }
 
-        public async UniTask ReadString(
-            Mesh targetMesh,
+        public static async UniTask<TurtleMeshBuildingInstructions> ReadString(
             int totalSubmeshes,
             DependencyTracker<SymbolString<float>> symbols,
             DependencyTracker<NativeTurtleData> nativeData,
@@ -80,6 +83,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             CancellationToken token)
         {
             UnityEngine.Profiling.Profiler.BeginSample("turtling job");
+
+            var currentJobHandle = default(JobHandle);
 
             TurtleVolumetricHandles volumetricHandles;
             VoxelWorldVolumetricLayerData tempDataToDispose = default;
@@ -116,8 +121,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
             var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
-            organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
-            newMeshSizeBySubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob);
+
+            var meshInstructions = new TurtleMeshBuildingInstructions
+            {
+                meshSizePerSubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob),
+                organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob)
+            };
+
             UnityEngine.Profiling.Profiler.EndSample();
 
             NativeArray<float> destructionCommandTimestamps;
@@ -141,8 +151,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 operationsByKey = nativeData.Data.operationsByKey,
                 organData = nativeData.Data.allOrganData,
 
-                organInstances = organInstances,
-                newMeshSizeBySubmesh = newMeshSizeBySubmesh,
+                organInstances = meshInstructions.organInstances,
+                newMeshSizeBySubmesh = meshInstructions.meshSizePerSubmesh,
                 spawnEntityBuffer = entitySpawnBuffer,
 
                 nativeTurtleStack = tmpHelperStack,
@@ -205,7 +215,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             if (cancelled || token.IsCancellationRequested || nativeData.IsDisposed)
             {
-                this.Dispose();
+                currentJobHandle.Complete();
+                meshInstructions.Dispose();
                 if (nativeData.IsDisposed)
                 {
                     Debug.LogError("turtle data has been disposed before completable could finish");
@@ -213,14 +224,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 throw new OperationCanceledException();
             }
 
-            var meshBuilder = new TurtleMeshBuildingCompletable();
-
-            await meshBuilder.StepNext(
-                targetMesh,
-                newMeshSizeBySubmesh,
-                nativeData,
-                organInstances,
-                token);
+            return meshInstructions;
         }
 
         [BurstCompile]
@@ -318,40 +322,5 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
         }
 
-        public JobHandle Dispose(JobHandle inputDeps)
-        {
-            currentJobHandle.Complete();
-            return JobHandle.CombineDependencies(
-                organInstances.Dispose(inputDeps),
-                newMeshSizeBySubmesh.Dispose(inputDeps)
-                );
-        }
-
-        public void Dispose()
-        {
-            currentJobHandle.Complete();
-            organInstances.Dispose();
-            newMeshSizeBySubmesh.Dispose();
-        }
-
-        public TurtleCompletionResult GetData()
-        {
-            return default;
-        }
-
-        public string GetError()
-        {
-            return null;
-        }
-
-        public bool HasErrored()
-        {
-            return false;
-        }
-
-        public bool IsComplete()
-        {
-            return false;
-        }
     }
 }
