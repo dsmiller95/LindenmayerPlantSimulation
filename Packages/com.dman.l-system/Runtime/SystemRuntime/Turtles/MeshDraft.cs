@@ -39,5 +39,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 normals[i] = Vector3.Scale(normals[i], scale).normalized;
             }
         }
+
+        public void Transform(Matrix4x4 transform)
+        {
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] = transform.MultiplyPoint(vertices[i]);
+                normals[i] = transform.MultiplyVector(normals[i]);
+            }
+        }
     }
 }

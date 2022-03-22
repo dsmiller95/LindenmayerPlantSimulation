@@ -14,12 +14,21 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 
         public void Dispose()
         {
-            data.Dispose();
+            if (data.IsCreated)
+            {
+                data.Dispose();
+            }
         }
 
         public JobHandle Dispose(JobHandle inputDeps)
         {
-            return data.Dispose(inputDeps);
+            if (data.IsCreated)
+            {
+                return data.Dispose(inputDeps);
+            }else
+            {
+                return default;
+            }
         }
 
         public static implicit operator NativeArray<T>(NativeArrayNativeDisposableAdapter<T> wrapper)
