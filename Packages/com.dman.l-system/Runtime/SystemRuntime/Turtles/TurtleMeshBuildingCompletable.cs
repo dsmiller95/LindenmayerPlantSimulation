@@ -27,7 +27,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
         }
 
-        public async UniTask<ICompletable> StepNext(
+        public async UniTask StepNext(
             Mesh targetMesh,
             NativeArray<TurtleMeshAllocationCounter> resultMeshSizeBySubmesh,
             DependencyTracker<NativeTurtleData> nativeData,
@@ -102,8 +102,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             resultMeshSizeBySubmesh.Dispose();
             meshData.Dispose();
             UnityEngine.Profiling.Profiler.EndSample();
-
-            return new CompleteCompletable<TurtleCompletionResult>(new TurtleCompletionResult());
         }
 
         private static void SetDataToMesh(UnityEngine.Mesh mesh, MyMeshData meshData, NativeArray<TurtleMeshAllocationCounter> submeshSizes)

@@ -66,7 +66,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         private NativeArray<TurtleMeshAllocationCounter> newMeshSizeBySubmesh;
 
-        public async UniTask<ICompletable> ReadString(
+        public async UniTask ReadString(
             Mesh targetMesh,
             int totalSubmeshes,
             DependencyTracker<SymbolString<float>> symbols,
@@ -215,7 +215,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             var meshBuilder = new TurtleMeshBuildingCompletable();
 
-            return await meshBuilder.StepNext(
+            await meshBuilder.StepNext(
                 targetMesh,
                 newMeshSizeBySubmesh,
                 nativeData,

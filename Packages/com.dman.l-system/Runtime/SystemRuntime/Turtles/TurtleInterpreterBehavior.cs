@@ -61,7 +61,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
         /// <param name="symbols"></param>
-        public async UniTask<ICompletable> InterpretSymbols(DependencyTracker<SymbolString<float>> symbols, CancellationToken token)
+        public async UniTask InterpretSymbols(DependencyTracker<SymbolString<float>> symbols, CancellationToken token)
         {
             //UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
 
@@ -70,7 +70,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             var meshFilter = GetComponent<MeshFilter>();
             var meshRenderer = GetComponent<MeshRenderer>();
             meshRenderer.materials = turtle.submeshMaterials;
-            var dep = await turtle.CompileStringToTransformsWithMeshIds(
+            await turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
                 meshFilter.mesh,
                 meshFilter.transform.localToWorldMatrix,
@@ -78,7 +78,6 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             // TOODO: do this oon startup?
 
             //UnityEngine.Profiling.Profiler.EndSample();
-            return dep;
         }
 
         public void InitializeWithSpecificSystem(LSystemObject systemObject)
@@ -127,7 +126,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
         }
 
-        private CompletableHandle previousTurtle;
+        //private CompletableHandle previousTurtle;
         private CancellationTokenSource cancelPending;
 
         private void OnSystemStateUpdated()
@@ -140,7 +139,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                     cancelPending.Dispose();
                 }
                 cancelPending = new CancellationTokenSource();
-                if (!previousTurtle?.IsComplete() ?? false) previousTurtle.Cancel();
+                //if (!previousTurtle?.IsComplete() ?? false) previousTurtle.Cancel();
 
                 var completable = InterpretSymbols(System.steppingHandle.currentState.currentSymbols, cancelPending.Token);
                 AwaitThenRegister(completable).Forget();
@@ -149,9 +148,10 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
         }
 
-        private async UniTask AwaitThenRegister(UniTask<ICompletable> completable)
+        private async UniTask AwaitThenRegister(UniTask completable)
         {
-            previousTurtle = CompletableExecutor.Instance.RegisterCompletable(await completable);
+            await completable;
+            //previousTurtle = CompletableExecutor.Instance.RegisterCompletable(await completable);
         }
     }
 }

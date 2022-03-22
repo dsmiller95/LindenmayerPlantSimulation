@@ -97,7 +97,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
         }
 
-        public async UniTask<ICompletable> CompileStringToTransformsWithMeshIds(
+        public async UniTask CompileStringToTransformsWithMeshIds(
             DependencyTracker<SymbolString<float>> symbols,
             Mesh targetMesh,
             Matrix4x4 localToWorldTransform,
@@ -119,7 +119,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
 
             var reader = new TurtleStringReadingCompletable();
-            return await reader.ReadString(
+            await reader.ReadString(
                 targetMesh,
                 submeshMaterials.Length,
                 symbols,
