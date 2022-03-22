@@ -10,7 +10,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public NativeList<LayerModificationCommand> modificationCommands;
 
         public JobHandle writeDependency;
-        public bool newDataIsAvailable;
+        public bool newDataIsAvailable { get; private set; }
 
         public VolumetricWorldVoxelLayout voxelLayout;
 
@@ -23,10 +23,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public override bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
         {
-            if (!newDataIsAvailable)
+            if (!newDataIsAvailable || !writeDependency.IsCompleted)
             {
                 return false;
             }
+            writeDependency.Complete();
             var commandPlaybackJob = new LayerModificationCommandPlaybackJob
             {
                 commands = modificationCommands,

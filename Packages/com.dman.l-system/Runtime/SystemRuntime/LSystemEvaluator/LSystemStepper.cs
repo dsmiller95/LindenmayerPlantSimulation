@@ -2,6 +2,7 @@ using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -52,7 +53,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     }
 
     [System.Serializable]
-    public class LSystemState<T> : ISerializable where T : unmanaged
+    public class LSystemState<T> : ISerializable, IDisposable where T : unmanaged
     {
         public DependencyTracker<SymbolString<T>> currentSymbols;
         public Unity.Mathematics.Random randomProvider;
@@ -86,6 +87,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             firstUniqueOrganId = info.GetUInt32("firstUniqueOrganId");
             maxUniqueOrganIds = info.GetUInt32("maxUniqueOrganIds");
             hasImmatureSymbols = info.GetBoolean("hasImmatureSymbols");
+        }
+
+        public void Dispose()
+        {
+            currentSymbols.DisposeImmediate();
         }
         #endregion
     }

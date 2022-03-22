@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public class TurtleInterpretor : IDisposable
+    public class StubbedTurtleInterpretor : IDisposable
     {
         private DependencyTracker<NativeTurtleData> nativeDataTracker;
         public Material[] submeshMaterials;
@@ -24,21 +24,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         private TurtleState defaultState;
         private CustomRuleSymbols customSymbols;
 
-
-        private OrganVolumetricWorld volumetricWorld;
-        private DoubleBufferModifierHandle durabilityWriterHandle;
-        private CommandBufferModifierHandle commandBufferWriter;
-
-        private VoxelCapReachedTimestampEffect damageCapFlags;
-
-
-        public TurtleInterpretor(
+        public StubbedTurtleInterpretor(
             List<TurtleOperationSet> operationSets,
             TurtleState defaultState,
             LinkedFileSet linkedFiles,
             CustomRuleSymbols customSymbols,
-            OrganVolumetricWorld volumetricWorld,
-            VoxelCapReachedTimestampEffect damageCapFlags,
             char startChar = '[', char endChar = ']')
         {
             foreach (var operationSet in operationSets)
@@ -68,33 +58,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             branchEndChar = linkedFiles.GetSymbolFromRoot(endChar);
             this.customSymbols = customSymbols;
 
-
+            // TODO: don't need the vertex, triangle, or material data in here
             nativeDataTracker = new DependencyTracker<NativeTurtleData>(nativeData);
             this.defaultState = defaultState;
-
-            this.volumetricWorld = volumetricWorld;
-            this.damageCapFlags = damageCapFlags;
-            RefreshVolumetricWriters();
-        }
-
-        private void RefreshVolumetricWriters()
-        {
-            if (volumetricWorld == null)
-            {
-                durabilityWriterHandle?.Dispose();
-                durabilityWriterHandle = null;
-                commandBufferWriter?.Dispose();
-                commandBufferWriter = null;
-                return;
-            }
-            if (this.durabilityWriterHandle?.IsDisposed ?? true)
-            {
-                durabilityWriterHandle = volumetricWorld.GetDoubleBufferedWritableHandle();
-            }
-            if (this.commandBufferWriter?.IsDisposed ?? true)
-            {
-                commandBufferWriter = volumetricWorld.GetCommandBufferWritableHandle();
-            }
         }
 
         public async UniTask<ICompletable> CompileStringToTransformsWithMeshIds(
@@ -108,16 +74,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 throw new ObjectDisposedException("Turtle has been disposed and cannot be used");
             }
 
-            RefreshVolumetricWriters();
-            var volumeWorldReferences = volumetricWorld == null ? null : new TurtleVolumeWorldReferences
-            {
-                world = volumetricWorld,
-                durabilityWriter = durabilityWriterHandle,
-                universalLayerWriter = commandBufferWriter,
-                damageFlags = damageCapFlags,
-            };
-
-
             var reader = new TurtleStringReadingCompletable(
                 targetMesh,
                 submeshMaterials.Length,
@@ -127,7 +83,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 branchEndChar,
                 defaultState,
                 customSymbols,
-                volumeWorldReferences,
+                null,
                 localToWorldTransform
                 );
             return await reader.StepNext(token);
@@ -143,16 +99,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
             IsDisposed = true;
             nativeDataTracker.Dispose();
-            if (volumetricWorld == null)
-            {
-                durabilityWriterHandle?.Dispose();
-                commandBufferWriter?.Dispose();
-            }
-            else
-            {
-                volumetricWorld?.DisposeWritableHandle(durabilityWriterHandle).Complete();
-                volumetricWorld?.DisposeWritableHandle(commandBufferWriter).Complete();
-            }
         }
 
     }

@@ -16,6 +16,12 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             PendingCompletables.Add(handle);
             return handle;
         }
+        public CompletableHandle RegisterCompletable(ICompletable completable)
+        {
+            var handle = new CompletableHandle(completable);
+            PendingCompletables.Add(handle);
+            return handle;
+        }
 
         private void Awake()
         {

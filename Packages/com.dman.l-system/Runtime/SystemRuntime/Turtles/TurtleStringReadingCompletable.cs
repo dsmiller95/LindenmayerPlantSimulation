@@ -1,9 +1,12 @@
-﻿using Dman.LSystem.SystemRuntime.CustomRules;
+﻿using Cysharp.Threading.Tasks;
+using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+using System;
+using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -52,7 +55,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     /// <summary>
     /// Executes all actions relating to the turtle, and compiles a list of organs to be turned into a mesh
     /// </summary>
-    public class TurtleStringReadingCompletable : ICompletable<TurtleCompletionResult>
+    public class TurtleStringReadingCompletable
     {
 #if UNITY_EDITOR
         public string TaskDescription => "Turtle string reading completable";
@@ -187,13 +190,28 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        public ICompletable StepNext()
+        public async UniTask<ICompletable> StepNext(CancellationToken token)
         {
+            var cancelled = false;
+            while (!currentJobHandle.IsCompleted && !token.IsCancellationRequested && !cancelled)
+            {
+                var (cancelledTask, registration) = token.ToUniTask();
+                var completedIndex = await UniTask.WhenAny(
+                    cancelledTask,
+                    UniTask.Yield(PlayerLoopTiming.PostLateUpdate, token).SuppressCancellationThrow());
+                cancelled = completedIndex == 0;
+                registration.Dispose();
+            }
+            // complete whether cancelled or not
             currentJobHandle.Complete();
-            if (nativeData.IsDisposed)
+            if (cancelled || token.IsCancellationRequested || nativeData.IsDisposed)
             {
                 this.Dispose();
-                return new ErrorCompletable<TurtleCompletionResult>("turtle data has been disposed before completable could finish");
+                if (nativeData.IsDisposed)
+                {
+                    Debug.LogError("turtle data has been disposed before completable could finish");
+                }
+                throw new OperationCanceledException();
             }
             return new TurtleMeshBuildingCompletable(
                 targetMesh,

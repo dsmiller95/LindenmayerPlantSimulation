@@ -1,10 +1,13 @@
-﻿using Dman.LSystem.SystemRuntime.ThreadBouncer;
+﻿using Cysharp.Threading.Tasks;
+using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.UnityObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.DOTSRenderer
@@ -58,22 +61,23 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
         /// <param name="symbols"></param>
-        public ICompletable<TurtleCompletionResult> InterpretSymbols(DependencyTracker<SymbolString<float>> symbols)
+        public async UniTask<ICompletable> InterpretSymbols(DependencyTracker<SymbolString<float>> symbols, CancellationToken token)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
+            //UnityEngine.Profiling.Profiler.BeginSample("Turtle compilation");
 
             //var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
             var meshFilter = GetComponent<MeshFilter>();
             var meshRenderer = GetComponent<MeshRenderer>();
-            var dep = turtle.CompileStringToTransformsWithMeshIds(
+            meshRenderer.materials = turtle.submeshMaterials;
+            var dep = await turtle.CompileStringToTransformsWithMeshIds(
                 symbols,
                 meshFilter.mesh,
-                meshFilter.transform.localToWorldMatrix);
+                meshFilter.transform.localToWorldMatrix,
+                token);
             // TOODO: do this oon startup?
-            meshRenderer.materials = turtle.submeshMaterials;
 
-            UnityEngine.Profiling.Profiler.EndSample();
+            //UnityEngine.Profiling.Profiler.EndSample();
             return dep;
         }
 
@@ -124,17 +128,30 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         }
 
         private CompletableHandle previousTurtle;
+        private CancellationTokenSource cancelPending;
 
         private void OnSystemStateUpdated()
         {
             if (System != null)
             {
+                if(cancelPending != null)
+                {
+                    cancelPending.Cancel();
+                    cancelPending.Dispose();
+                }
+                cancelPending = new CancellationTokenSource();
                 if (!previousTurtle?.IsComplete() ?? false) previousTurtle.Cancel();
-                var completable = InterpretSymbols(System.steppingHandle.currentState.currentSymbols);
-                previousTurtle = CompletableExecutor.Instance.RegisterCompletable(completable);
+
+                var completable = InterpretSymbols(System.steppingHandle.currentState.currentSymbols, cancelPending.Token);
+                AwaitThenRegister(completable).Forget();
 
                 //var mesh = GetComponent<MeshFilter>().mesh;
             }
+        }
+
+        private async UniTask AwaitThenRegister(UniTask<ICompletable> completable)
+        {
+            previousTurtle = CompletableExecutor.Instance.RegisterCompletable(await completable);
         }
     }
 }
