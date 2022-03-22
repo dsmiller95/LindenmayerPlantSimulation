@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.Utilities;
 using System;
 using System.Threading;
 using Unity.Burst;
@@ -59,19 +60,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
 
 
-            // wait for task complete, with safe and immediate cancellation
-            var cancelled = false;
-            while (!currentJobHandle.IsCompleted && !token.IsCancellationRequested && !cancelled)
-            {
-                var (cancelledTask, registration) = token.ToUniTask();
-                var completedIndex = await UniTask.WhenAny(
-                    cancelledTask,
-                    // TODO: yield at more spots
-                    UniTask.Yield(PlayerLoopTiming.PostLateUpdate, token).SuppressCancellationThrow());
-                cancelled = completedIndex == 0;
-                registration.Dispose();
-            }
-            currentJobHandle.Complete();
+            var cancelled = await currentJobHandle.ToUniTaskImmediateCompleteOnCancel(token);
 
             if (cancelled || token.IsCancellationRequested)
             {

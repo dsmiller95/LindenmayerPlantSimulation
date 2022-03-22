@@ -731,9 +731,6 @@
     <Reference Include="Unity.Properties.UI.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Properties.UI.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Utilities">
-      <HintPath>Library\ScriptAssemblies\Utilities.dll</HintPath>
-    </Reference>
     <Reference Include="Dman.EntityUtilities">
       <HintPath>Library\ScriptAssemblies\Dman.EntityUtilities.dll</HintPath>
     </Reference>
@@ -775,9 +772,6 @@
     </Reference>
     <Reference Include="Unity.Scenes.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Scenes.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="UtilitiesEditor">
-      <HintPath>Library\ScriptAssemblies\UtilitiesEditor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics.Extensions.Hybrid">
       <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
@@ -886,6 +880,14 @@
     <ProjectReference Include="Assembly-CSharp.csproj">
       <Project>{1F8886CA-E65A-90B9-4C74-AED90FBBFDD9}</Project>
       <Name>Assembly-CSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="Utilities.csproj">
+      <Project>{C7E2F7B7-29F5-253E-79C0-94954AFCAF19}</Project>
+      <Name>Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="UtilitiesEditor.csproj">
+      <Project>{00A455E6-29D8-0A23-C996-8A79EF86DC5D}</Project>
+      <Name>UtilitiesEditor</Name>
     </ProjectReference>
     <ProjectReference Include="com.dman.l-system.editor.csproj">
       <Project>{44B8745B-63BB-7783-4E5E-7820367AAC62}</Project>
