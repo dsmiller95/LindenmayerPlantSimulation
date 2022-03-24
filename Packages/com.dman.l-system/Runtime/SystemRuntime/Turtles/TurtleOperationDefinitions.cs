@@ -44,7 +44,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public void Operate(
             ref TurtleState currentState,
-            NativeArray<TurtleMeshAllocationCounter> meshSizeCounterPerSubmesh,
             int indexInString,
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
@@ -58,7 +57,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     bendTowardsOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
                 case TurtleOperationType.ADD_ORGAN:
-                    meshOperation.Operate(ref currentState, meshSizeCounterPerSubmesh, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricHandles);
+                    meshOperation.Operate(ref currentState, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricHandles);
                     break;
                 case TurtleOperationType.INSTANTIATE_ENTITY: // TODO: get the local to world transform from somewhere other than the volumetric handles
                     instantiateOperator.Operate(ref currentState, indexInString, sourceString, spawningEntityBuffer, volumetricHandles.durabilityWriter.localToWorldTransformation);

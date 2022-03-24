@@ -62,12 +62,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             public NativeList<TurtleOrganInstance> organInstances;
 
-            public NativeArray<TurtleMeshAllocationCounter> meshSizePerSubmesh;
+            public int totalSubmeshes;
 
             public void Dispose()
             {
                 organInstances.Dispose();
-                meshSizePerSubmesh.Dispose();
             }
         }
 
@@ -123,11 +122,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
             var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
 
-            var meshInstructions = new TurtleMeshBuildingInstructions
-            {
-                meshSizePerSubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob),
-                organInstances = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob)
-            };
+            var organInstancesBuilder = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
 
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -152,8 +147,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 operationsByKey = nativeData.Data.operationsByKey,
                 organData = nativeData.Data.allOrganData,
 
-                organInstances = meshInstructions.organInstances,
-                newMeshSizeBySubmesh = meshInstructions.meshSizePerSubmesh,
+                organInstances = organInstancesBuilder,
                 spawnEntityBuffer = entitySpawnBuffer,
 
                 nativeTurtleStack = tmpHelperStack,
@@ -170,6 +164,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 volumetricDestructionTimestamps = destructionCommandTimestamps,
                 earliestValidDestructionCommand = hasDamageFlags ? Time.time - volumetrics.damageFlags.timeCommandStaysActive : -1
             };
+
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
             entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
@@ -188,6 +183,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
 
+
             nativeData.RegisterDependencyOnData(currentJobHandle);
             symbols.RegisterDependencyOnData(currentJobHandle);
 
@@ -200,11 +196,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
 
             var cancelled = await currentJobHandle.ToUniTaskImmediateCompleteOnCancel(token);
-
             if (cancelled || nativeData.IsDisposed)
             {
                 currentJobHandle.Complete();
-                meshInstructions.Dispose();
+                organInstancesBuilder.Dispose();
                 if (nativeData.IsDisposed)
                 {
                     Debug.LogError("turtle data has been disposed before completable could finish");
@@ -212,7 +207,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 throw new OperationCanceledException();
             }
 
-            return meshInstructions;
+            return new TurtleMeshBuildingInstructions
+            {
+                organInstances = organInstancesBuilder,
+                totalSubmeshes = totalSubmeshes
+            };
         }
 
         [BurstCompile]
@@ -227,7 +226,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             // Outputs
             public NativeList<TurtleOrganInstance> organInstances;
-            public NativeArray<TurtleMeshAllocationCounter> newMeshSizeBySubmesh;
             public EntityCommandBuffer spawnEntityBuffer;
 
             // volumetric info
@@ -272,7 +270,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     {
                         operation.Operate(
                             ref currentState,
-                            newMeshSizeBySubmesh,
                             symbolIndex,
                             symbols,
                             organData,
@@ -296,19 +293,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                         }
                     }
                 }
-                var totalVertexes = 0;
-                var totalIndexes = 0;
-                for (int i = 0; i < newMeshSizeBySubmesh.Length; i++)
-                {
-                    var meshSize = newMeshSizeBySubmesh[i];
-                    meshSize.indexInVertexes = totalVertexes;
-                    meshSize.indexInTriangles = totalIndexes;
-                    totalVertexes += meshSize.totalVertexes;
-                    totalIndexes += meshSize.totalTriangleIndexes;
-                    newMeshSizeBySubmesh[i] = meshSize;
-                }
             }
         }
+
 
     }
 }

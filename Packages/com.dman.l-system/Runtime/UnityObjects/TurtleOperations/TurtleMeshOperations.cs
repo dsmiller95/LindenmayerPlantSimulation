@@ -146,7 +146,6 @@ namespace Dman.LSystem.UnityObjects
 
         public void Operate(
             ref TurtleState state,
-            NativeArray<TurtleMeshAllocationCounter> meshSizeCounterPerSubmesh,
             int indexInString,
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
@@ -197,29 +196,29 @@ namespace Dman.LSystem.UnityObjects
                 volumetricHandles.durabilityWriter.WriteVolumetricAmountToDoubleBufferedData(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
             }
 
-            var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];
+            //var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];
 
             var newOrganEntry = new TurtleOrganInstance
             {
                 organIndexInAllOrgans = (ushort)selectedOrganIndex,
                 organTransform = meshTransform,
-                vertexMemorySpace = new JaggedIndexing
-                {
-                    index = meshSizeForSubmesh.totalVertexes,
-                    length = selectedOrgan.vertexes.length
-                },
-                trianglesMemorySpace = new JaggedIndexing
-                {
-                    index = meshSizeForSubmesh.totalTriangleIndexes,
-                    length = selectedOrgan.trianges.length
-                },
+                //vertexMemorySpace = new JaggedIndexing
+                //{
+                //    index = meshSizeForSubmesh.totalVertexes,
+                //    length = selectedOrgan.vertexes.length
+                //},
+                //trianglesMemorySpace = new JaggedIndexing
+                //{
+                //    index = meshSizeForSubmesh.totalTriangleIndexes,
+                //    length = selectedOrgan.trianges.length
+                //},
                 organIdentity = state.organIdentity
             };
             targetOrganInstances.Add(newOrganEntry);
 
-            meshSizeForSubmesh.totalVertexes += newOrganEntry.vertexMemorySpace.length;
-            meshSizeForSubmesh.totalTriangleIndexes += newOrganEntry.trianglesMemorySpace.length;
-            meshSizeCounterPerSubmesh[selectedOrgan.materialIndex] = meshSizeForSubmesh;
+            //meshSizeForSubmesh.totalVertexes += newOrganEntry.vertexMemorySpace.length;
+            //meshSizeForSubmesh.totalTriangleIndexes += newOrganEntry.trianglesMemorySpace.length;
+            //meshSizeCounterPerSubmesh[selectedOrgan.materialIndex] = meshSizeForSubmesh;
 
             if (selectedOrgan.alsoMove)
             {

@@ -63,9 +63,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             this.defaultState = defaultState;
         }
 
-        public async UniTask<ICompletable> CompileStringToTransformsWithMeshIds(
+        public async UniTask CompileStringToTransformsWithMeshIds(
             DependencyTracker<SymbolString<float>> symbols,
-            Mesh targetMesh,
             Matrix4x4 localToWorldTransform,
             CancellationToken token)
         {
@@ -74,21 +73,17 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 throw new ObjectDisposedException("Turtle has been disposed and cannot be used");
             }
 
-            return null;
-
-            //var reader = new TurtleStringReadingCompletable();
-            //return await reader.ReadString(
-            //    targetMesh,
-            //    submeshMaterials.Length,
-            //    symbols,
-            //    nativeDataTracker,
-            //    branchStartChar,
-            //    branchEndChar,
-            //    defaultState,
-            //    customSymbols,
-            //    null,
-            //    localToWorldTransform,
-            //    token);
+            var meshResult = await TurtleStringReadingCompletable.ReadString(
+                submeshMaterials.Length,
+                symbols,
+                nativeDataTracker,
+                branchStartChar,
+                branchEndChar,
+                defaultState,
+                customSymbols,
+                null,
+                localToWorldTransform,
+                token);
         }
 
         private bool IsDisposed = false;
