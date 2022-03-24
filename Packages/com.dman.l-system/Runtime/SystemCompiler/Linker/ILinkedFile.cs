@@ -52,14 +52,23 @@ namespace Dman.LSystem.SystemCompiler.Linker
 
     public static class LinkedFileExtensions
     {
-        public static int GetSymbolInFile(this LinkedFile file, char symbol)
+        public static int GetSymbolInFile(this LinkedFile file, char character)
         {
-            var match = file.allSymbolAssignments.Find(x => x.sourceCharacter == symbol);
+            var match = file.allSymbolAssignments.Find(x => x.sourceCharacter == character);
+            if (match == null)
+            {
+                throw new LSystemRuntimeException($"{file.fileSource} does not contain requested character '{character}'. Did you forget to declare it in a <color=blue>#symbols</color> directive?");
+            }
+            return match.remappedSymbol;
+        }
+        public static char GetCharacterFromSymbolInFile(this LinkedFile file, int symbol)
+        {
+            var match = file.allSymbolAssignments.Find(x => x.remappedSymbol == symbol);
             if (match == null)
             {
                 throw new LSystemRuntimeException($"{file.fileSource} does not contain requested symbol '{symbol}'. Did you forget to declare it in a <color=blue>#symbols</color> directive?");
             }
-            return match.remappedSymbol;
+            return match.sourceCharacter;
         }
     }
 }

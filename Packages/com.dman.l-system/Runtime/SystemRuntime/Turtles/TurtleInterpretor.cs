@@ -18,9 +18,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         private DependencyTracker<NativeTurtleData> nativeDataTracker;
         public Material[] submeshMaterials;
 
-        public int branchStartChar;
-        public int branchEndChar;
-
         private TurtleState defaultState;
         private CustomRuleSymbols customSymbols;
 
@@ -38,8 +35,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             LinkedFileSet linkedFiles,
             CustomRuleSymbols customSymbols,
             OrganVolumetricWorld volumetricWorld,
-            VoxelCapReachedTimestampEffect damageCapFlags,
-            char startChar = '[', char endChar = ']')
+            VoxelCapReachedTimestampEffect damageCapFlags)
         {
             foreach (var operationSet in operationSets)
             {
@@ -64,8 +60,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 nativeData.operationsByKey[realSymbol] = ops.operation;
             }
 
-            branchStartChar = linkedFiles.GetSymbolFromRoot(startChar);
-            branchEndChar = linkedFiles.GetSymbolFromRoot(endChar);
             this.customSymbols = customSymbols;
 
 
@@ -119,11 +113,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
 
             var meshResult = await TurtleStringReadingCompletable.ReadString(
-                submeshMaterials.Length,
                 symbols,
                 nativeDataTracker,
-                branchStartChar,
-                branchEndChar,
                 defaultState,
                 customSymbols,
                 volumeWorldReferences,
@@ -132,6 +123,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             await TurtleMeshBuildingCompletable.BuildMesh(
                 targetMesh,
+                submeshMaterials.Length,
                 meshResult,
                 nativeDataTracker,
                 token);

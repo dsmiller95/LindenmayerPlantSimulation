@@ -220,6 +220,12 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         public int Start => index;
         public int End => index + length;
 
+        public static JaggedIndexing INVALID = new JaggedIndexing
+        {
+            index = -1,
+            length = 0,
+        };
+
         public static JaggedIndexing GetWithNoLength(int index)
         {
             return new JaggedIndexing
@@ -240,6 +246,11 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         public T GetValue<T>(NativeArray<T> array, ushort indexInSelf) where T : unmanaged
         {
             return array[indexInSelf + index];
+        }
+
+        public bool ContainsIndex(int index)
+        {
+            return index >= this.Start && index < this.End;
         }
 
         public bool Equals(JaggedIndexing other)

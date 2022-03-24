@@ -23,6 +23,7 @@ namespace Dman.LSystem.UnityObjects
         {
             foreach (var instantiable in instantiatableEntities)
             {
+                nativeData.HasEntitySpawning = true;
                 var entity = TurtleSpawnEntitiesInstantiator.Instance.GetEntityPrefab(instantiable.prefab);
 
                 writer.operators.Add(new TurtleOperationWithCharacter
@@ -53,6 +54,8 @@ namespace Dman.LSystem.UnityObjects
             EntityCommandBuffer spawningCommandBuffer,
             Matrix4x4 localToWorldTransform)
         {
+            if (!spawningCommandBuffer.IsCreated)
+                return;
             var paramIndex = sourceString.parameters[indexInString];
 
             var spawned = spawningCommandBuffer.Instantiate(instantiableEntity);

@@ -62,8 +62,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             public NativeList<TurtleOrganInstance> organInstances;
 
-            public int totalSubmeshes;
-
             public void Dispose()
             {
                 organInstances.Dispose();
@@ -71,11 +69,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         }
 
         public static async UniTask<TurtleMeshBuildingInstructions> ReadString(
-            int totalSubmeshes,
             DependencyTracker<SymbolString<float>> symbols,
             DependencyTracker<NativeTurtleData> nativeData,
-            int branchStartChar,
-            int branchEndChar,
             TurtleState defaultState,
             CustomRuleSymbols customSymbols,
             TurtleVolumeWorldReferences volumetrics,
@@ -137,8 +132,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 destructionCommandTimestamps = new NativeArray<float>(0, Allocator.TempJob);
             }
 
-            var entitySpawningSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
-            var entitySpawnBuffer = entitySpawningSystem.CreateCommandBuffer();
+            EntityCommandBufferSystem entitySpawningSystem;
+            EntityCommandBuffer entitySpawnBuffer;
+
+            if (nativeData.Data.HasEntitySpawning)
+            {
+                entitySpawningSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+                entitySpawnBuffer = entitySpawningSystem.CreateCommandBuffer();
+            }
+            else
+            {
+                entitySpawningSystem = null;
+                entitySpawnBuffer = default;
+            }
 
 
             var turtleCompileJob = new TurtleCompilationJob
@@ -152,9 +158,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
                 nativeTurtleStack = tmpHelperStack,
 
-                branchStartChar = branchStartChar,
-                branchEndChar = branchEndChar,
-
                 currentState = defaultState,
 
                 customRules = customSymbols,
@@ -167,7 +170,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
-            entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
+            if(entitySpawningSystem != null)
+            {
+                entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
+            }
 
             volumetrics?.world.NativeVolumeData.RegisterReadingDependency(currentJobHandle);
             volumetrics?.damageFlags?.RegisterReaderOfDestructionFlags(currentJobHandle);
@@ -209,8 +215,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             return new TurtleMeshBuildingInstructions
             {
-                organInstances = organInstancesBuilder,
-                totalSubmeshes = totalSubmeshes
+                organInstances = organInstancesBuilder
             };
         }
 
@@ -241,9 +246,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             public CustomRuleSymbols customRules;
 
-            public int branchStartChar;
-            public int branchEndChar;
-
             public TurtleState currentState;
 
             public void Execute()
@@ -251,12 +253,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 for (int symbolIndex = 0; symbolIndex < symbols.Length; symbolIndex++)
                 {
                     var symbol = symbols[symbolIndex];
-                    if (symbol == branchStartChar)
+                    if (symbol == customRules.branchOpenSymbol)
                     {
                         nativeTurtleStack.Push(currentState);
                         continue;
                     }
-                    if (symbol == branchEndChar)
+                    if (symbol == customRules.branchCloseSymbol)
                     {
                         currentState = nativeTurtleStack.Pop();
                         continue;

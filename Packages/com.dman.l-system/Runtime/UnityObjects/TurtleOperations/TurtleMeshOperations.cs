@@ -124,7 +124,7 @@ namespace Dman.LSystem.UnityObjects
                             isVolumetricScale = meshKey.VolumetricScale,
                             doScaleMesh = meshKey.ParameterScale,
                             doApplyThiccness = meshKey.UseThickness,
-                            organTemplateVariants = organIndexes,
+                            organIndexRange = organIndexes,
                             volumetricValue = meshKey.volumetricDurabilityValue
                         }
                     }
@@ -140,7 +140,7 @@ namespace Dman.LSystem.UnityObjects
         public bool scaleIsAdditional;
         public bool isVolumetricScale;
         public bool doApplyThiccness;
-        public JaggedIndexing organTemplateVariants;
+        public JaggedIndexing organIndexRange;
 
         public float volumetricValue;
 
@@ -157,17 +157,17 @@ namespace Dman.LSystem.UnityObjects
             var meshTransform = state.transformation;
 
             var selectedMeshIndex = 0;
-            if (organTemplateVariants.length > 1 && pIndex.length > 0)
+            if (organIndexRange.length > 1 && pIndex.length > 0)
             {
-                var index = math.clamp(((int)sourceString.parameters[pIndex, 0]), 0, organTemplateVariants.length - 1);
+                var index = math.clamp(((int)sourceString.parameters[pIndex, 0]), 0, organIndexRange.length - 1);
                 selectedMeshIndex = index;
             }
-            var selectedOrganIndex = organTemplateVariants.index + selectedMeshIndex;
+            var selectedOrganIndex = organIndexRange.index + selectedMeshIndex;
             var selectedOrgan = allOrgans[selectedOrganIndex];
 
 
             var turtleTranslate = selectedOrgan.translation;
-            var scaleIndex = organTemplateVariants.length <= 1 ? 0 : 1;
+            var scaleIndex = organIndexRange.length <= 1 ? 0 : 1;
             float scale = 1f;
             if (doScaleMesh && pIndex.length > scaleIndex)
             {

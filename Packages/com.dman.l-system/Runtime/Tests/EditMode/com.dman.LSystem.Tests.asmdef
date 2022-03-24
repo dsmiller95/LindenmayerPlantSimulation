@@ -9,7 +9,8 @@
         "Unity.PerformanceTesting",
         "Unity.Collections",
         "Utilities",
-        "ObjectSets"
+        "ObjectSets",
+        "UniTask"
     ],
     "includePlatforms": [
         "Editor"

@@ -10,7 +10,7 @@ using Unity.Collections;
 namespace Dman.LSystem.SystemCompiler.Linker
 {
     [Serializable]
-    public class LinkedFileSet
+    public class LinkedFileSet : ISymbolRemapper
     {
         public string originFile;
 
@@ -138,6 +138,20 @@ namespace Dman.LSystem.SystemCompiler.Linker
             }
             var fileData = allFiles.data[fileIndexesByFullIdentifier[fileName]];
             return fileData.GetSymbolInFile(characterInFile);
+        }
+
+        public char GetCharacterInRoot(int trueSymbol)
+        {
+            return GetCharacterInFile(originFile, trueSymbol);
+        }
+        public char GetCharacterInFile(string fileName, int symbolFromFile)
+        {
+            if (!fileIndexesByFullIdentifier.ContainsKey(fileName))
+            {
+                throw new LSystemRuntimeException("could not find file: " + fileName);
+            }
+            var fileData = allFiles.data[fileIndexesByFullIdentifier[fileName]];
+            return fileData.GetCharacterFromSymbolInFile(symbolFromFile);
         }
 
         public LSystemStepper CompileSystem(Dictionary<string, string> globalCompileTimeOverrides = null)

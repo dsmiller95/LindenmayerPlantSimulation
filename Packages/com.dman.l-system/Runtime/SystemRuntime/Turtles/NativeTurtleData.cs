@@ -8,11 +8,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 {
     public struct NativeTurtleData : INativeDisposable
     {
+        /// <summary>
+        /// index all operations by their associated symbol
+        /// </summary>
         public NativeHashMap<int, TurtleOperation> operationsByKey;
         public NativeArray<TurtleOrganTemplate.Blittable> allOrganData;
         public NativeArray<NativeVertexDatum> vertexData;
         public NativeArray<int> triangleData;
 
+        public bool HasEntitySpawning;
         public NativeTurtleData(
             TurtleDataRequirements memReqs)
         {
@@ -20,6 +24,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             allOrganData = new NativeArray<TurtleOrganTemplate.Blittable>(memReqs.organTemplateSize, Allocator.Persistent);
             vertexData = new NativeArray<NativeVertexDatum>(memReqs.vertextDataSize, Allocator.Persistent);
             triangleData = new NativeArray<int>(memReqs.triangleDataSize, Allocator.Persistent);
+            HasEntitySpawning = false;
         }
 
         public JobHandle Dispose(JobHandle inputDeps)

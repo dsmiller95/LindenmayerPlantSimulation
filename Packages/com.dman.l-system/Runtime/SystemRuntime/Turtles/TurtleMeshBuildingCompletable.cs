@@ -18,6 +18,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     {
         public static async UniTask BuildMesh(
             Mesh targetMesh,
+            int totalSubmeshes,
             TurtleMeshBuildingInstructions meshBuilding,
             DependencyTracker<NativeTurtleData> nativeData,
             CancellationToken token)
@@ -27,7 +28,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 throw new InvalidOperationException("turtle data has been disposed before completable could finish.");
             }
 
-            var meshSizePerSubmesh = new NativeArray<TurtleMeshAllocationCounter>(meshBuilding.totalSubmeshes, Allocator.TempJob);
+            var meshSizePerSubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob);
             var meshCountingJob = new TurtleMeshSizeRequirementComputeJob
             {
                 allOrgans = nativeData.Data.allOrganData,

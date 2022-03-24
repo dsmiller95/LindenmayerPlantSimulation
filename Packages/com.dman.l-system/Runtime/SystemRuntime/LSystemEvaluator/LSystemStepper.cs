@@ -66,6 +66,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
         }
 
+        public void Dispose()
+        {
+            currentSymbols.DisposeImmediate();
+        }
+
         #region Serialization
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
@@ -87,11 +92,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             firstUniqueOrganId = info.GetUInt32("firstUniqueOrganId");
             maxUniqueOrganIds = info.GetUInt32("maxUniqueOrganIds");
             hasImmatureSymbols = info.GetBoolean("hasImmatureSymbols");
-        }
-
-        public void Dispose()
-        {
-            currentSymbols.DisposeImmediate();
         }
         #endregion
     }
