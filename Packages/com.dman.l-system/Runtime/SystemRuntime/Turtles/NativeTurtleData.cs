@@ -16,7 +16,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public NativeArray<NativeVertexDatum> vertexData;
         public NativeArray<int> triangleData;
 
-        public bool HasEntitySpawning;
+        private NativeArray<bool> _hasEntitySpawning;
+        public bool HasEntitySpawning
+        {
+            get => _hasEntitySpawning[0];
+            set => _hasEntitySpawning[0] = value;
+        }
         public NativeTurtleData(
             TurtleDataRequirements memReqs)
         {
@@ -24,6 +29,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             allOrganData = new NativeArray<TurtleOrganTemplate.Blittable>(memReqs.organTemplateSize, Allocator.Persistent);
             vertexData = new NativeArray<NativeVertexDatum>(memReqs.vertextDataSize, Allocator.Persistent);
             triangleData = new NativeArray<int>(memReqs.triangleDataSize, Allocator.Persistent);
+            _hasEntitySpawning = new NativeArray<bool>(memReqs.triangleDataSize, Allocator.Persistent);
             HasEntitySpawning = false;
         }
 
@@ -34,12 +40,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 allOrganData.Dispose(inputDeps),
                 JobHandle.CombineDependencies(
                     vertexData.Dispose(inputDeps),
-                    triangleData.Dispose(inputDeps)
+                    triangleData.Dispose(inputDeps),
+                    _hasEntitySpawning.Dispose(inputDeps)
                 ));
         }
 
         public void Dispose()
         {
+            _hasEntitySpawning.Dispose();
             operationsByKey.Dispose();
             allOrganData.Dispose();
             vertexData.Dispose();
