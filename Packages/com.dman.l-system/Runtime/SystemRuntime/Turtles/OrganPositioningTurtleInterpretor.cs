@@ -58,7 +58,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             this.symbolRemapper = symbolRemapper;
         }
 
-        public async UniTask<NativeList<TurtleOrganInstance>> CompileStringToTransformsWithMeshIds(
+        public async UniTask<NativeList<TurtleOrganInstance>> CompileStringToMeshOrganInstances(
             DependencyTracker<SymbolString<float>> symbols,
             Matrix4x4 localToWorldTransform,
             CancellationToken token)

@@ -118,6 +118,36 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 );
         }
 
+        public OrganPositioningTurtleInterpretor GetNewOrganPositionDigestor()
+        {
+            if (System.systemObject == null)
+            {
+                return null;
+            }
+            if (!operationSets.Any(x => x is TurtleMeshOperations))
+            {
+                // don't create an interpretor if there are no meshes. no point.
+                return null;
+            }
+            if (System.systemObject.compiledSystem == null)
+            {
+                // compiles so that the custom symbols can be pulled out
+                // TODO: extract custom symbols w/o a full system compilation
+                System.systemObject.CompileToCached(silent: true);
+            }
+            var positionProvider = new OrganPositioningTurtleInterpretor(
+                operationSets,
+                new TurtleState
+                {
+                    transformation = Matrix4x4.Scale(initialScale),
+                    thickness = 1f,
+                    organIdentity = new UIntFloatColor32(0)
+                },
+                System.systemObject.linkedFiles,
+                System.systemObject.compiledSystem.customSymbols);
+            return positionProvider;
+        }
+
         private void OnSystemObjectUpdated()
         {
             if (System != null)

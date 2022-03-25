@@ -28,7 +28,6 @@ MonoBehaviour:
     m_Name: package.openupm.com
     m_Url: https://package.openupm.com
     m_Scopes:
-    - com.alelievr.node-graph-processor
     - com.cysharp.unitask
     - com.dman.entity-utilities
     - com.dman.object-sets
@@ -37,7 +36,6 @@ MonoBehaviour:
     - com.dman.utilities
     - com.neuecc.unirx
     - com.openupm
-    - com.syomus.proceduraltoolkit
     m_IsDefault: 0
     m_Capabilities: 0
   m_UserSelectedRegistryName: 
@@ -49,7 +47,6 @@ MonoBehaviour:
       m_Name: package.openupm.com
       m_Url: https://package.openupm.com
       m_Scopes:
-      - com.alelievr.node-graph-processor
       - com.cysharp.unitask
       - com.dman.entity-utilities
       - com.dman.object-sets
@@ -58,14 +55,12 @@ MonoBehaviour:
       - com.dman.utilities
       - com.neuecc.unirx
       - com.openupm
-      - com.syomus.proceduraltoolkit
       m_IsDefault: 0
       m_Capabilities: 0
     m_Modified: 0
     m_Name: package.openupm.com
     m_Url: https://package.openupm.com
     m_Scopes:
-    - com.alelievr.node-graph-processor
     - com.cysharp.unitask
     - com.dman.entity-utilities
     - com.dman.object-sets
@@ -74,5 +69,4 @@ MonoBehaviour:
     - com.dman.utilities
     - com.neuecc.unirx
     - com.openupm
-    - com.syomus.proceduraltoolkit
     m_SelectedScopeIndex: 0

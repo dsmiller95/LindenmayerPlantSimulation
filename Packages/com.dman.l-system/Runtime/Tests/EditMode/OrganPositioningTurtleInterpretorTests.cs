@@ -85,7 +85,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var systemState = new DefaultLSystemState("C"))
         using (var cancellation = new CancellationTokenSource())
         {
-            var meshInstances = await turtle.CompileStringToTransformsWithMeshIds(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
+            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
@@ -104,7 +104,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var systemState = new DefaultLSystemState("CCCCC"))
         using (var cancellation = new CancellationTokenSource())
         {
-            var meshInstances = await turtle.CompileStringToTransformsWithMeshIds(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
+            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
@@ -127,7 +127,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var systemState = new DefaultLSystemState("CDCDDCDCDCDDDC"))
         using (var cancellation = new CancellationTokenSource())
         {
-            var meshInstances = await turtle.CompileStringToTransformsWithMeshIds(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
+            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
@@ -151,7 +151,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var systemState = new DefaultLSystemState("C+C-C+C-C"))
         using (var cancellation = new CancellationTokenSource())
         {
-            var meshInstances = await turtle.CompileStringToTransformsWithMeshIds(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
+            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
@@ -174,7 +174,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var systemState = new DefaultLSystemState("C[+CCC][-CCC]"))
         using (var cancellation = new CancellationTokenSource())
         {
-            var meshInstances = await turtle.CompileStringToTransformsWithMeshIds(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
+            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
