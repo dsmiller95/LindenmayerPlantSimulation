@@ -58,7 +58,6 @@
       "name": "package.openupm.com",
       "url": "https://package.openupm.com",
       "scopes": [
-        "com.alelievr.node-graph-processor",
         "com.cysharp.unitask",
         "com.dman.entity-utilities",
         "com.dman.object-sets",
@@ -66,8 +65,7 @@
         "com.dman.scene-save-system",
         "com.dman.utilities",
         "com.neuecc.unirx",
-        "com.openupm",
-        "com.syomus.proceduraltoolkit"
+        "com.openupm"
       ]
     }
   ]
