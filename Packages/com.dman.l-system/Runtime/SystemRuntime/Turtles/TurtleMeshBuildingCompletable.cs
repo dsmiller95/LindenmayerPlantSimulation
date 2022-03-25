@@ -25,6 +25,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             if (nativeData.IsDisposed)
             {
+                meshBuilding.Dispose();
                 throw new InvalidOperationException("turtle data has been disposed before completable could finish.");
             }
 
@@ -43,6 +44,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             if (cancelled || token.IsCancellationRequested || nativeData.IsDisposed)
             {
                 meshSizePerSubmesh.Dispose();
+                meshBuilding.Dispose();
                 throw new OperationCanceledException();
             }
 

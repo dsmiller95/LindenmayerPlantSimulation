@@ -4,6 +4,7 @@ using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.UnityObjects;
+using Dman.LSystem.UnityObjects.VolumetricResource;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -135,8 +136,13 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 // TODO: extract custom symbols w/o a full system compilation
                 System.systemObject.CompileToCached(silent: true);
             }
+            // when getting mesh positions, omit operations which have other side effects
+            //  or attempt to pull in data from the world
+            var filteredOperators = operationSets.Where(x => 
+                !(x is TurtleInstantiateEntityOperationSet) &&
+                !(x is TurtleVolumetricResourceDiffusionOperationSet)).ToList();
             var positionProvider = new OrganPositioningTurtleInterpretor(
-                operationSets,
+                filteredOperators,
                 new TurtleState
                 {
                     transformation = Matrix4x4.Scale(initialScale),
