@@ -53,6 +53,7 @@ namespace Dman.LSystem.UnityObjects
                 var overridenMesh = (variant.mesh != null) ? variant.mesh : MeshRef;
                 var overridenMaterial = (variant.materialOverride != null) ? variant.materialOverride : material;
 
+                var baseMeshTransform = Matrix4x4.identity;
                 var newDraft = new MeshDraft(overridenMesh);
                 var bounds = overridenMesh.bounds;
                 Vector3 translatePostMesh;
@@ -62,16 +63,17 @@ namespace Dman.LSystem.UnityObjects
                 }
                 else
                 {
-                    newDraft.Move(Vector3.right * (-bounds.center.x + bounds.size.x / 2));
+                    baseMeshTransform = Matrix4x4.Translate(Vector3.right * (-bounds.center.x + bounds.size.x / 2)) * baseMeshTransform;
                     translatePostMesh = new Vector3(bounds.size.x * IndividualScale.x, 0, 0);
                 }
-                newDraft.Scale(IndividualScale);
+                baseMeshTransform = Matrix4x4.Scale(IndividualScale) * baseMeshTransform;
 
                 return new TurtleOrganTemplate(
                     newDraft,
                     overridenMaterial,
                     translatePostMesh,
-                    AlsoMove
+                    AlsoMove,
+                    baseMeshTransform
                     );
             }).ToArray();
         }
@@ -196,29 +198,14 @@ namespace Dman.LSystem.UnityObjects
                 volumetricHandles.durabilityWriter.WriteVolumetricAmountToDoubleBufferedData(volumetricValue * scale * math.pow(state.thickness, 1.5f), organCenter);
             }
 
-            //var meshSizeForSubmesh = meshSizeCounterPerSubmesh[selectedOrgan.materialIndex];
-
+            
             var newOrganEntry = new TurtleOrganInstance
             {
                 organIndexInAllOrgans = (ushort)selectedOrganIndex,
-                organTransform = meshTransform,
-                //vertexMemorySpace = new JaggedIndexing
-                //{
-                //    index = meshSizeForSubmesh.totalVertexes,
-                //    length = selectedOrgan.vertexes.length
-                //},
-                //trianglesMemorySpace = new JaggedIndexing
-                //{
-                //    index = meshSizeForSubmesh.totalTriangleIndexes,
-                //    length = selectedOrgan.trianges.length
-                //},
+                organTransform = meshTransform * selectedOrgan.baseMeshTransform,
                 organIdentity = state.organIdentity
             };
             targetOrganInstances.Add(newOrganEntry);
-
-            //meshSizeForSubmesh.totalVertexes += newOrganEntry.vertexMemorySpace.length;
-            //meshSizeForSubmesh.totalTriangleIndexes += newOrganEntry.trianglesMemorySpace.length;
-            //meshSizeCounterPerSubmesh[selectedOrgan.materialIndex] = meshSizeForSubmesh;
 
             if (selectedOrgan.alsoMove)
             {

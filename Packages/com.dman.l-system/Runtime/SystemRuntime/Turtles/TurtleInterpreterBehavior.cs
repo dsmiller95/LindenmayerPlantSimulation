@@ -5,7 +5,6 @@ using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.UnityObjects;
 using Dman.LSystem.UnityObjects.VolumetricResource;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -138,7 +137,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
             // when getting mesh positions, omit operations which have other side effects
             //  or attempt to pull in data from the world
-            var filteredOperators = operationSets.Where(x => 
+            var filteredOperators = operationSets.Where(x =>
                 !(x is TurtleInstantiateEntityOperationSet) &&
                 !(x is TurtleVolumetricResourceDiffusionOperationSet)).ToList();
             var positionProvider = new OrganPositioningTurtleInterpretor(
@@ -169,7 +168,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         {
             if (System != null)
             {
-                if(cancelPending != null)
+                if (cancelPending != null)
                 {
                     cancelPending.Cancel();
                     cancelPending.Dispose();

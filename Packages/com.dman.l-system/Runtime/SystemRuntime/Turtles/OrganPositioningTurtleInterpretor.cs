@@ -60,21 +60,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public async UniTask<NativeList<TurtleOrganInstance>> CompileStringToMeshOrganInstances(
             DependencyTracker<SymbolString<float>> symbols,
-            Matrix4x4 localToWorldTransform,
             CancellationToken token)
         {
             if (IsDisposed)
             {
                 throw new ObjectDisposedException("Turtle has been disposed and cannot be used");
             }
-
             var meshResult = await TurtleStringReadingCompletable.ReadString(
                 symbols,
                 nativeDataTracker,
                 defaultState,
                 customSymbols,
                 null,
-                localToWorldTransform,
+                Matrix4x4.identity, // this is only used for volumetrics
                 token);
 
             return meshResult.organInstances;
@@ -97,7 +95,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var organInstances = organs.ToArray().Where(x => range.ContainsIndex(x.organIndexInAllOrgans));
             UnityEngine.Profiling.Profiler.EndSample();
 
-            return organInstances.ToList(); ;
+            return organInstances.ToList();
         }
 
         public JaggedIndexing GetOrganIndexesForCharacter(char character)

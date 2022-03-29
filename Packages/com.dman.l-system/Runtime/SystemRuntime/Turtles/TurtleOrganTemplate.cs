@@ -9,17 +9,20 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public Material material;
         public Vector3 translation;
         public bool alsoMove;
+        public Matrix4x4 meshTransform;
 
         public TurtleOrganTemplate(
             MeshDraft draft,
             Material material,
             Vector3 translation,
-            bool shouldMove)
+            bool shouldMove,
+            Matrix4x4 meshTransform)
         {
             this.draft = draft;
             this.material = material;
             this.translation = translation;
             this.alsoMove = shouldMove;
+            this.meshTransform = meshTransform;
         }
 
         public TurtleDataRequirements DataReqs => new TurtleDataRequirements
@@ -71,6 +74,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 translation = translation,
                 alsoMove = alsoMove,
                 vertexes = vertexSlice,
+                baseMeshTransform = meshTransform,
                 trianges = triangleCount,
                 materialIndex = (byte)existingMaterialIndex
             };
@@ -87,6 +91,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             public bool alsoMove;
             public byte materialIndex;
 
+            public Matrix4x4 baseMeshTransform;
             public JaggedIndexing vertexes;
             public JaggedIndexing trianges;
         }

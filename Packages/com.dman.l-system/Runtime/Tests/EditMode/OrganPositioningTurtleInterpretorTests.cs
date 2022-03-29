@@ -5,6 +5,7 @@ using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.LSystem.UnityObjects;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +16,12 @@ using UnityEngine.TestTools;
 
 public class OrganPositioningTurtleInterpretorTests
 {
-    private OrganPositioningTurtleInterpretor GetInterpretor(char[] meshKeys)
+    private OrganPositioningTurtleInterpretor GetInterpretor(char[] meshKeys, Action<MeshKey> meshKeyOverrides = null)
     {
         var meshOperations = ScriptableObject.CreateInstance<TurtleMeshOperations>();
         meshOperations.meshKeys = meshKeys.Select(x =>
         {
-            return new MeshKey
+            var mesh = new MeshKey
             {
                 Character = x,
                 MeshRef = Resources.GetBuiltinResource<Mesh>("Cube.fbx"),
@@ -35,6 +36,8 @@ public class OrganPositioningTurtleInterpretorTests
                 UseThickness = false,
                 volumetricDurabilityValue = 0,
             };
+            meshKeyOverrides?.Invoke(mesh);
+            return mesh;
         }).ToArray();
 
         var turnOperations = ScriptableObject.CreateInstance<TurtleRotateOperations>();
@@ -84,14 +87,14 @@ public class OrganPositioningTurtleInterpretorTests
         using (var turtle = GetInterpretor(new[] { 'C' }))
         using (var systemState = new DefaultLSystemState("C"))
         using (var cancellation = new CancellationTokenSource())
+        using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
         {
-            new Vector3(0, 0, 0),
+            new Vector3(.5f, 0, 0),
         };
         ExpectPositions(organInstances, expected);
     });
@@ -103,18 +106,18 @@ public class OrganPositioningTurtleInterpretorTests
         using (var turtle = GetInterpretor(new[] { 'C' }))
         using (var systemState = new DefaultLSystemState("CCCCC"))
         using (var cancellation = new CancellationTokenSource())
+        using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
         {
-            new Vector3(0, 0, 0),
-            new Vector3(1, 0, 0),
-            new Vector3(2, 0, 0),
-            new Vector3(3, 0, 0),
-            new Vector3(4, 0, 0),
+            new Vector3(0.5f, 0, 0),
+            new Vector3(1.5f, 0, 0),
+            new Vector3(2.5f, 0, 0),
+            new Vector3(3.5f, 0, 0),
+            new Vector3(4.5f, 0, 0),
         };
         ExpectPositions(organInstances, expected);
     });
@@ -126,19 +129,19 @@ public class OrganPositioningTurtleInterpretorTests
         using (var turtle = GetInterpretor(new[] { 'C', 'D' }))
         using (var systemState = new DefaultLSystemState("CDCDDCDCDCDDDC"))
         using (var cancellation = new CancellationTokenSource())
+        using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
         {
-            new Vector3(0, 0, 0),
-            new Vector3(2, 0, 0),
-            new Vector3(5, 0, 0),
-            new Vector3(7, 0, 0),
-            new Vector3(9, 0, 0),
-            new Vector3(13, 0, 0),
+            new Vector3(0.5f, 0, 0),
+            new Vector3(2.5f, 0, 0),
+            new Vector3(5.5f, 0, 0),
+            new Vector3(7.5f, 0, 0),
+            new Vector3(9.5f, 0, 0),
+            new Vector3(13.5f, 0, 0),
         };
         ExpectPositions(organInstances, expected);
     });
@@ -150,18 +153,18 @@ public class OrganPositioningTurtleInterpretorTests
         using (var turtle = GetInterpretor(new[] { 'C' }))
         using (var systemState = new DefaultLSystemState("C+C-C+C-C"))
         using (var cancellation = new CancellationTokenSource())
+        using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
         {
-            new Vector3(0, 0, 0),
-            new Vector3(1, 0, 0),
-            new Vector3(1, 0, 1),
-            new Vector3(2, 0, 1),
-            new Vector3(2, 0, 2),
+            new Vector3(0.5f, 0, 0),
+            new Vector3(1, 0, 0.5f),
+            new Vector3(1.5f, 0, 1),
+            new Vector3(2, 0, 1.5f),
+            new Vector3(2.5f, 0, 2),
         };
         ExpectPositions(organInstances, expected);
     });
@@ -173,20 +176,41 @@ public class OrganPositioningTurtleInterpretorTests
         using (var turtle = GetInterpretor(new[] { 'C' }))
         using (var systemState = new DefaultLSystemState("C[+CCC][-CCC]"))
         using (var cancellation = new CancellationTokenSource())
+        using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, Matrix4x4.identity, cancellation.Token);
             organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
         {
-            new Vector3(0, 0, 0),
-            new Vector3(1, 0, 0),
-            new Vector3(1, 0, 1),
-            new Vector3(1, 0, 2),
-            new Vector3(1, 0, 0),
-            new Vector3(1, 0,-1),
-            new Vector3(1, 0,-2),
+            new Vector3(0.5f, 0, 0),
+            new Vector3(1, 0, 0.5f),
+            new Vector3(1, 0, 1.5f),
+            new Vector3(1, 0, 2.5f),
+            new Vector3(1, 0,-0.5f),
+            new Vector3(1, 0,-1.5f),
+            new Vector3(1, 0,-2.5f),
+        };
+        ExpectPositions(organInstances, expected);
+    });
+
+    [UnityTest]
+    public IEnumerator TurtleOrganCompilesAndRespectsScalingOfOrgans() => UniTask.ToCoroutine(async () =>
+    {
+        List<TurtleOrganInstance> organInstances;
+        using (var turtle = GetInterpretor(new[] { 'C' }, (mesh) => mesh.IndividualScale = new Vector3(2, 2, 2)))
+        using (var systemState = new DefaultLSystemState("CCC"))
+        using (var cancellation = new CancellationTokenSource())
+        using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
+        {
+            organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
+        }
+
+        var expected = new List<Vector3>
+        {
+            new Vector3(1f, 0, 0),
+            new Vector3(3f, 0, 0),
+            new Vector3(5f, 0, 0),
         };
         ExpectPositions(organInstances, expected);
     });
