@@ -29,18 +29,32 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         public VertexColorExposureCounter(
             RenderTexture sunlightTexture,
-            ComputeShader uniqueSummationShader,
-            float computerBufferResizeThreshold = 0.9f,
-            float computeBufferResizeMultiplier = 2f,
-            int defaultUniqueAllocationSize = 4096)
+            VertexExposureCountingSettings overrides = null)
         {
+            var defaultSettings = Resources.Load<VertexExposureCountingSettings>("defaultVertexCountingSettings");
             this.sunlightTexture = sunlightTexture;
 
-            this.uniqueSummationShader = UnityEngine.Object.Instantiate(uniqueSummationShader);
+            if (overrides == null)
+                overrides = null;
+            if (overrides?.uniqueSummationShader != null)
+                this.uniqueSummationShader = UnityEngine.Object.Instantiate(overrides.uniqueSummationShader);
+            else
+                this.uniqueSummationShader = UnityEngine.Object.Instantiate(defaultSettings.uniqueSummationShader);
 
-            this.computeBufferResizeThreshold = computerBufferResizeThreshold;
-            this.computeBufferResizeMultiplier = computeBufferResizeMultiplier;
-            this.uniqueOrgansInitialAllocation = defaultUniqueAllocationSize;
+            if ((overrides?.computerBufferResizeThreshold ?? -1) > 0)
+                this.computeBufferResizeThreshold = overrides.computerBufferResizeThreshold;
+            else
+                this.computeBufferResizeThreshold = defaultSettings.computerBufferResizeThreshold;
+
+            if ((overrides?.computeBufferResizeMultiplier ?? -1) > 1)
+                this.computeBufferResizeMultiplier = overrides.computeBufferResizeMultiplier;
+            else
+                this.computeBufferResizeMultiplier = defaultSettings.computeBufferResizeMultiplier;
+
+            if ((overrides?.defaultUniqueAllocationSize ?? -1) > 1)
+                this.uniqueOrgansInitialAllocation = overrides.defaultUniqueAllocationSize;
+            else
+                this.uniqueOrgansInitialAllocation = defaultSettings.defaultUniqueAllocationSize;
         }
 
         public void Initialize()

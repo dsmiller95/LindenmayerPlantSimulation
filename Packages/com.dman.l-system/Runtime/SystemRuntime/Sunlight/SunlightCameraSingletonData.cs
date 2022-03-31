@@ -15,30 +15,12 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
         [SerializeField]
         private RenderTexture sunlightTexture;
 
-        [SerializeField]
-        private ComputeShader uniqueSummationShader;
-        [SerializeField]
-        private int uniqueOrgansInitialAllocation = 4096;
-
-        [Tooltip("The multiplier used to increase the size of the compute buffer on each resize event")]
-        [SerializeField]
-        private float computeBufferResizeMultiplier = 2;
-        [Tooltip("The usage percentage of the current compute buffer which will trigger a buffer resize")]
-        [Range(0, 1)]
-        [SerializeField]
-        private float computeBufferResizeThreshold = 0.9f;
-
-
         private VertexColorExposureCounter exposureCalculator;
 
         private void Start()
         {
             exposureCalculator = new VertexColorExposureCounter(
-                sunlightTexture,
-                uniqueSummationShader,
-                computeBufferResizeThreshold,
-                computeBufferResizeMultiplier,
-                uniqueOrgansInitialAllocation);
+                sunlightTexture);
             exposureCalculator.Initialize();
         }
 
