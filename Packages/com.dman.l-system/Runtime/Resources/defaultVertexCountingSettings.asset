@@ -15,4 +15,4 @@ MonoBehaviour:
   uniqueSummationShader: {fileID: 7200000, guid: 1549cd601b32dbd43bce4432c0ed2bfd, type: 3}
   computerBufferResizeThreshold: 0.9
   computeBufferResizeMultiplier: 2
-  defaultUniqueAllocationSize: 4096
+  defaultUniqueAllocationSize: 2048

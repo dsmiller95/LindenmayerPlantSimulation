@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.Sunlight;
+﻿using Cysharp.Threading.Tasks;
+using Dman.LSystem.SystemRuntime.Sunlight;
 using Dman.LSystem.UnityObjects;
 using Dman.ObjectSets;
 using Dman.SceneSaveSystem;
@@ -148,6 +149,24 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             return null;
         }
 
+        /// <summary>
+        /// dispose all reservations which are marked free for reuse after 20 frames, in case not all are used
+        /// </summary>
+        /// <returns></returns>
+        private async UniTask CleanupUnusedReservationsAfterDelay()
+        {
+            var cancel = this.GetCancellationTokenOnDestroy();
+            await UniTask.DelayFrame(20, cancellationToken: cancel);
+            for (int i = 0; i < allResourceReservations.Count; i++)
+            {
+                var currentReservation = allResourceReservations[i];
+                if (currentReservation.isFreeToBeReused)
+                {
+                    currentReservation.Dispose();
+                }
+            }
+        }
+
 
         #region Saving
         public string UniqueSaveIdentifier => "Global L System Coordinator";
@@ -166,6 +185,7 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             public void Apply(GlobalLSystemCoordinator target)
             {
                 target.allResourceReservations = this.resourceReservations;
+                target.CleanupUnusedReservationsAfterDelay().Forget();
                 Debug.Log("global l system coordinator deserialized");
             }
         }
@@ -183,6 +203,5 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
             }
         }
         #endregion
-
     }
 }

@@ -24,16 +24,17 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             exposureCalculator.Initialize();
         }
 
+        private uint cachedSystemSizeRequired;
         private void Update()
         {
+            cachedSystemSizeRequired = GlobalLSystemCoordinator.instance.ResizeLSystemReservations();
             // don't force the exposure buffer to resize;
-            exposureCalculator.RefreshExposureData(0);
+            exposureCalculator.RefreshExposureData(cachedSystemSizeRequired);
         }
 
         private void LateUpdate()
         {
-            var newSize = GlobalLSystemCoordinator.instance.ResizeLSystemReservations();
-            exposureCalculator.RefreshExposureData(newSize);
+            exposureCalculator.RefreshExposureData(cachedSystemSizeRequired);
         }
 
         private void OnDestroy()

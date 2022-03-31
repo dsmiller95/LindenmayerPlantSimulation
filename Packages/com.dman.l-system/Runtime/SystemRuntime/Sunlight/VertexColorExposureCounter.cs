@@ -8,7 +8,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 {
     public class VertexColorExposureCounter : IDisposable
     {
-        private readonly RenderTexture sunlightTexture;
+        public RenderTexture exposureTexture { get; private set; }
 
         private int frameOfLastUpdate = 0;
         private NativeDisposableHotSwap<NativeArrayNativeDisposableAdapter<uint>> uniqueSunlightAssignments;
@@ -32,7 +32,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             VertexExposureCountingSettings overrides = null)
         {
             var defaultSettings = Resources.Load<VertexExposureCountingSettings>("defaultVertexCountingSettings");
-            this.sunlightTexture = sunlightTexture;
+            this.exposureTexture = sunlightTexture;
 
             if (overrides == null)
                 overrides = null;
@@ -57,8 +57,12 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 this.uniqueOrgansInitialAllocation = defaultSettings.defaultUniqueAllocationSize;
         }
 
-        public void Initialize()
+        public void Initialize(uint? uniqueOrganIdSpaceOverride = null)
         {
+            if(uniqueOrganIdSpaceOverride.HasValue && uniqueOrganIdSpaceOverride.Value > 0)
+            {
+                this.uniqueOrgansInitialAllocation = (int)uniqueOrganIdSpaceOverride.Value;
+            }
             this.InitializeBuffers();
         }
 
@@ -94,7 +98,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 throw new System.Exception("Could not initialize sunlight camera");
             }
 
-            uniqueSummationShader.SetTexture(mainKernalId, "InputTexture", sunlightTexture, 0, UnityEngine.Rendering.RenderTextureSubElement.Color);
+            uniqueSummationShader.SetTexture(mainKernalId, "InputTexture", exposureTexture, 0, UnityEngine.Rendering.RenderTextureSubElement.Color);
             uniqueSummationShader.SetBuffer(mainKernalId, "IdResultBuffer", sunlightSumBuffer);
             uniqueSummationShader.SetBuffer(initializeKernalId, "IdResultBuffer", sunlightSumBuffer);
 
@@ -129,7 +133,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             uniqueSummationShader.Dispatch(initializeKernalId, (sunlightSumBuffer.count + 63) / 64, 1, 1);
 
             // divided by 8 in x and y because of [numthreads(8,8,1)] in the compute shader code
-            uniqueSummationShader.Dispatch(mainKernalId, (sunlightTexture.width + 7) / 8, (sunlightTexture.height + 7) / 8, 1);
+            uniqueSummationShader.Dispatch(mainKernalId, (exposureTexture.width + 7) / 8, (exposureTexture.height + 7) / 8, 1);
 
             readbackRequest = AsyncGPUReadback.Request(sunlightSumBuffer);
             UnityEngine.Profiling.Profiler.EndSample();
