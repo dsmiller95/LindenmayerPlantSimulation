@@ -24,8 +24,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         /// </summary>
         public ushort organIndexInAllOrgans;
         public float4x4 organTransform;
-        public JaggedIndexing vertexMemorySpace;
-        public JaggedIndexing trianglesMemorySpace;
         /// <summary>
         /// floating point identity. a uint value of 0, or a color of RGBA(0,0,0,0) indicates there is no organ identity
         /// </summary>

@@ -10,13 +10,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
 public class OrganPositioningTurtleInterpretorTests
 {
-    private OrganPositioningTurtleInterpretor GetInterpretor(char[] meshKeys, Action<MeshKey> meshKeyOverrides = null)
+    private OrganPositioningTurtleInterpretor GetInterpretor(char[] meshKeys, Action<MeshKey> meshKeyOverrides = null, Matrix4x4? organSpaceTransform = null)
     {
         var meshOperations = ScriptableObject.CreateInstance<TurtleMeshOperations>();
         meshOperations.meshKeys = meshKeys.Select(x =>
@@ -48,7 +49,7 @@ public class OrganPositioningTurtleInterpretorTests
         var opSets = new List<TurtleOperationSet>() { meshOperations, turnOperations };
         var defaultState = new TurtleState
         {
-            transformation = Matrix4x4.identity,
+            transformation = organSpaceTransform ?? Matrix4x4.identity,
             thickness = 1,
             organIdentity = new UIntFloatColor32(0)
         };
@@ -80,6 +81,24 @@ public class OrganPositioningTurtleInterpretorTests
         }
     }
 
+    private void ExpectOrientations(List<TurtleOrganInstance> organs, List<Matrix4x4> orientations)
+    {
+        Assert.AreEqual(orientations.Count, organs.Count);
+        for (int instanceNum = 0; instanceNum < organs.Count; instanceNum++)
+        {
+            var instance = organs[instanceNum];
+            var actualOrientation = instance.organTransform;
+            var expectedOrientation = (float4x4)orientations[instanceNum];
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    Assert.AreEqual(expectedOrientation[i][j], actualOrientation[i][j], 1e-5, $"Expected organ at {expectedOrientation}, but was at {actualOrientation}. index {instanceNum}");
+                }
+            }
+        }
+    }
+
     [UnityTest]
     public IEnumerator TurtleOrganIdsCompilesSingleOrgan() => UniTask.ToCoroutine(async () =>
     {
@@ -89,7 +108,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var cancellation = new CancellationTokenSource())
         using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
+            organInstances = turtle.FilterOrgansByCharacter(meshInstances.organInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
@@ -108,7 +127,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var cancellation = new CancellationTokenSource())
         using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
+            organInstances = turtle.FilterOrgansByCharacter(meshInstances.organInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
@@ -121,6 +140,29 @@ public class OrganPositioningTurtleInterpretorTests
         };
         ExpectPositions(organInstances, expected);
     });
+    [UnityTest]
+    public IEnumerator TurtleOrganCompilesMultiOrgansWithSpaceTransform() => UniTask.ToCoroutine(async () =>
+    {
+        List<TurtleOrganInstance> organInstances;
+        var spaceTransform = Matrix4x4.TRS(new Vector3(1, 2, 0), Quaternion.identity, new Vector3(2, 3, 1));
+        using (var turtle = GetInterpretor(new[] { 'C' }, organSpaceTransform: spaceTransform))
+        using (var systemState = new DefaultLSystemState("CCCCC"))
+        using (var cancellation = new CancellationTokenSource())
+        using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
+        {
+            organInstances = turtle.FilterOrgansByCharacter(meshInstances.organInstances, 'C').ToList();
+        }
+
+        var expected = new List<Matrix4x4>
+        {
+            Matrix4x4.TRS(new Vector3(2f, 2, 0), Quaternion.identity, new Vector3(2, 3, 1)),
+            Matrix4x4.TRS(new Vector3(4f, 2, 0), Quaternion.identity, new Vector3(2, 3, 1)),
+            Matrix4x4.TRS(new Vector3(6f, 2, 0), Quaternion.identity, new Vector3(2, 3, 1)),
+            Matrix4x4.TRS(new Vector3(8f, 2, 0), Quaternion.identity, new Vector3(2, 3, 1)),
+            Matrix4x4.TRS(new Vector3(10f, 2, 0), Quaternion.identity, new Vector3(2, 3, 1)),
+        };
+        ExpectOrientations(organInstances, expected);
+    });
 
     [UnityTest]
     public IEnumerator TurtleOrganCompilesMultiOrganTypes() => UniTask.ToCoroutine(async () =>
@@ -131,7 +173,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var cancellation = new CancellationTokenSource())
         using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
+            organInstances = turtle.FilterOrgansByCharacter(meshInstances.organInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
@@ -155,7 +197,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var cancellation = new CancellationTokenSource())
         using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
+            organInstances = turtle.FilterOrgansByCharacter(meshInstances.organInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
@@ -178,7 +220,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var cancellation = new CancellationTokenSource())
         using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
+            organInstances = turtle.FilterOrgansByCharacter(meshInstances.organInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>
@@ -203,7 +245,7 @@ public class OrganPositioningTurtleInterpretorTests
         using (var cancellation = new CancellationTokenSource())
         using (var meshInstances = await turtle.CompileStringToMeshOrganInstances(systemState.currentSymbols, cancellation.Token))
         {
-            organInstances = turtle.FilterOrgansByCharacter(meshInstances, 'C').ToList();
+            organInstances = turtle.FilterOrgansByCharacter(meshInstances.organInstances, 'C').ToList();
         }
 
         var expected = new List<Vector3>

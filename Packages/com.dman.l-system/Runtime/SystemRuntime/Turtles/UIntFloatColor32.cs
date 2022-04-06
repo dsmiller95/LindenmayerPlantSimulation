@@ -34,6 +34,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             UIntValue = value;
         }
+        public static uint AsUint(Color32 color)
+        {
+            return new UIntFloatColor32 { color = color }.UIntValue;
+        }
+        public static Color32 AsColor32(uint uInt)
+        {
+            return new UIntFloatColor32 { UIntValue = uInt }.color;
+        }
     }
 
 }

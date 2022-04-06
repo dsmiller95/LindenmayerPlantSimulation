@@ -118,13 +118,14 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 );
         }
 
-        public OrganPositioningTurtleInterpretor GetNewOrganPositionDigestor()
+        public OrganPositioningTurtleInterpretor GetNewOrganPositionDigestor(Matrix4x4 rootTransformation, IEnumerable<TurtleOperationSet> turtleOperationOverrides = null)
         {
             if (System.systemObject == null)
             {
                 return null;
             }
-            if (!operationSets.Any(x => x is TurtleMeshOperations))
+            var turtleOperations = turtleOperationOverrides ?? operationSets;
+            if (!turtleOperations.Any(x => x is TurtleMeshOperations))
             {
                 // don't create an interpretor if there are no meshes. no point.
                 return null;
@@ -137,14 +138,14 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
             }
             // when getting mesh positions, omit operations which have other side effects
             //  or attempt to pull in data from the world
-            var filteredOperators = operationSets.Where(x =>
+            var filteredOperators = turtleOperations.Where(x =>
                 !(x is TurtleInstantiateEntityOperationSet) &&
                 !(x is TurtleVolumetricResourceDiffusionOperationSet)).ToList();
             var positionProvider = new OrganPositioningTurtleInterpretor(
                 filteredOperators,
                 new TurtleState
                 {
-                    transformation = Matrix4x4.Scale(initialScale),
+                    transformation = Matrix4x4.Scale(initialScale) * rootTransformation,
                     thickness = 1f,
                     organIdentity = new UIntFloatColor32(0)
                 },

@@ -112,7 +112,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             };
 
 
-            var meshResult = await TurtleStringReadingCompletable.ReadString(
+            using var meshResult = await TurtleStringReadingCompletable.ReadString(
                 symbols,
                 nativeDataTracker,
                 defaultState,

@@ -25,15 +25,16 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             if (nativeData.IsDisposed)
             {
-                meshBuilding.Dispose();
                 throw new InvalidOperationException("turtle data has been disposed before completable could finish.");
             }
 
             var meshSizePerSubmesh = new NativeArray<TurtleMeshAllocationCounter>(totalSubmeshes, Allocator.TempJob);
+            var organMeshSizeAllocations = new NativeArray<OrganMeshMemorySpaceAllocation>(meshBuilding.organInstances.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             var meshCountingJob = new TurtleMeshSizeRequirementComputeJob
             {
                 allOrgans = nativeData.Data.allOrganData,
                 organInstances = meshBuilding.organInstances,
+                organMeshAllocations = organMeshSizeAllocations,
                 meshSizeCounterPerSubmesh = meshSizePerSubmesh,
             };
 
@@ -44,7 +45,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             if (cancelled || token.IsCancellationRequested || nativeData.IsDisposed)
             {
                 meshSizePerSubmesh.Dispose();
-                meshBuilding.Dispose();
+                organMeshSizeAllocations.Dispose();
                 throw new OperationCanceledException();
             }
 
@@ -57,7 +58,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 indices = new NativeArray<uint>(lastSubmeshSize.indexInTriangles + lastSubmeshSize.totalTriangleIndexes, Allocator.TempJob), // TODO: does this have to be persistent? or can it be tempjob since it'll be handed to the mesh?
                 vertexData = new NativeArray<MeshVertexLayout>(lastSubmeshSize.indexInVertexes + lastSubmeshSize.totalVertexes, Allocator.TempJob),
-                meshBounds = new NativeArray<Bounds>(1, Allocator.TempJob)
+                meshBoundsBySubmesh = new NativeArray<Bounds>(totalSubmeshes, Allocator.TempJob)
             };
 
             var turtleEntitySpawnJob = new TurtleMeshBuildingJob
@@ -68,6 +69,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 submeshSizes = meshSizePerSubmesh,
 
                 organInstances = meshBuilding.organInstances,
+                organMeshAllocations = organMeshSizeAllocations,
 
                 targetMesh = meshData
             };
@@ -77,7 +79,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             currentJobHandle = turtleEntitySpawnJob.Schedule(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
-            currentJobHandle = meshBuilding.organInstances.Dispose(currentJobHandle);
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -88,6 +89,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 meshData.Dispose();
                 meshSizePerSubmesh.Dispose();
+                organMeshSizeAllocations.Dispose();
                 throw new OperationCanceledException();
             }
 
@@ -97,6 +99,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             meshData.Dispose();
             meshSizePerSubmesh.Dispose();
+            organMeshSizeAllocations.Dispose();
         }
 
         private static void SetDataToMesh(UnityEngine.Mesh mesh, MyMeshData meshData, NativeArray<TurtleMeshAllocationCounter> submeshSizes)
@@ -114,6 +117,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             mesh.SetIndexBufferData(meshData.indices, 0, 0, indexCount, MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontResetBoneBounds | MeshUpdateFlags.DontValidateIndices);
 
             mesh.subMeshCount = submeshSizes.Length;
+            var combinedBounds = meshData.meshBoundsBySubmesh[0];
             for (int i = 0; i < submeshSizes.Length; i++)
             {
                 var submeshSize = submeshSizes[i];
@@ -123,11 +127,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     topology = MeshTopology.Triangles,
                     indexCount = submeshSize.totalTriangleIndexes,
                     indexStart = submeshSize.indexInTriangles,
+                    firstVertex = submeshSize.indexInVertexes,
+                    vertexCount = submeshSize.totalVertexes,
+                    bounds = meshData.meshBoundsBySubmesh[i],
                 };
+                combinedBounds.Encapsulate(descriptor.bounds);
                 mesh.SetSubMesh(i, descriptor, MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontResetBoneBounds | MeshUpdateFlags.DontValidateIndices);
             }
 
-            mesh.bounds = meshData.meshBounds[0];
+            mesh.bounds = combinedBounds;
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
@@ -154,27 +162,32 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             public NativeArray<MeshVertexLayout> vertexData;
             public NativeArray<uint> indices;
-            public NativeArray<Bounds> meshBounds;
+            public NativeArray<Bounds> meshBoundsBySubmesh;
 
             public JobHandle Dispose(JobHandle inputDeps)
             {
                 return JobHandle.CombineDependencies(
                     vertexData.Dispose(inputDeps),
                     indices.Dispose(inputDeps),
-                    meshBounds.Dispose(inputDeps));
+                    meshBoundsBySubmesh.Dispose(inputDeps));
             }
 
             public void Dispose()
             {
                 vertexData.Dispose();
                 indices.Dispose();
-                meshBounds.Dispose();
+                meshBoundsBySubmesh.Dispose();
             }
         }
 
+        private struct OrganMeshMemorySpaceAllocation
+        {
+            public JaggedIndexing vertexMemorySpace;
+            public JaggedIndexing trianglesMemorySpace;
+        }
 
         [BurstCompile]
-        struct TurtleMeshBuildingJob : IJob
+        private struct TurtleMeshBuildingJob : IJob
         {
             [ReadOnly]
             [NativeDisableParallelForRestriction]
@@ -192,6 +205,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             [ReadOnly]
             public NativeArray<TurtleOrganInstance> organInstances;
+            [ReadOnly]
+            public NativeArray<OrganMeshMemorySpaceAllocation> organMeshAllocations;
 
             [NativeDisableParallelForRestriction]
             public MyMeshData targetMesh;
@@ -200,16 +215,17 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 var vertexTargetData = targetMesh.vertexData;// targetMesh.GetVertexData<MeshVertexLayout>();
                 var triangleIndexes = targetMesh.indices;// targetMesh.GetIndexData<uint>();
-                var bounds = targetMesh.meshBounds[0];
                 for (int index = 0; index < organInstances.Length; index++)
                 {
                     var organInstance = organInstances[index];
                     var organTemplate = templateOrganData[organInstance.organIndexInAllOrgans];
                     var submeshData = submeshSizes[organTemplate.materialIndex];
+                    var submeshBounds = targetMesh.meshBoundsBySubmesh[organTemplate.materialIndex];
                     var matrixTransform = (Matrix4x4)organInstance.organTransform;
 
-                    var organVertexOffset = submeshData.indexInVertexes + organInstance.vertexMemorySpace.index;
-                    var organTriangleOffset = submeshData.indexInTriangles + organInstance.trianglesMemorySpace.index;
+                    var organMeshSpace = organMeshAllocations[index];
+                    var organVertexOffset = submeshData.indexInVertexes + organMeshSpace.vertexMemorySpace.index;
+                    var organTriangleOffset = submeshData.indexInTriangles + organMeshSpace.trianglesMemorySpace.index;
 
                     for (int i = 0; i < organTemplate.vertexes.length; i++)
                     {
@@ -222,8 +238,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             color = ColorFromIdentity(organInstance.organIdentity, (uint)index),
                         };
                         vertexTargetData[i + organVertexOffset] = newVertexData;
-                        bounds.Encapsulate(newVertexData.pos);
+                        submeshBounds.Encapsulate(newVertexData.pos);
                     }
+                    targetMesh.meshBoundsBySubmesh[organTemplate.materialIndex] = submeshBounds;
 
                     for (int i = 0; i < organTemplate.trianges.length; i++)
                     {
@@ -232,7 +249,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             + organVertexOffset); // offset the triangle indexes by the current index in vertex mem space
                     }
                 }
-                targetMesh.meshBounds[0] = bounds;
             }
 
             private Color32 ColorFromIdentity(UIntFloatColor32 identity, uint index)
@@ -247,15 +263,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         /// takes a list of organ instances, and computes the space required to fit them all inside of a mesh object
         /// </summary>
         [BurstCompile]
-        public struct TurtleMeshSizeRequirementComputeJob : IJob
+        private struct TurtleMeshSizeRequirementComputeJob : IJob
         {
             [ReadOnly]
             public NativeArray<TurtleOrganTemplate.Blittable> allOrgans;
-
-            // input+output
+            [ReadOnly]
             public NativeArray<TurtleOrganInstance> organInstances;
 
             // outputs
+            public NativeArray<OrganMeshMemorySpaceAllocation> organMeshAllocations;
             public NativeArray<TurtleMeshAllocationCounter> meshSizeCounterPerSubmesh;
             public void Execute()
             {
@@ -265,21 +281,22 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     var organConfig = allOrgans[organInstance.organIndexInAllOrgans];
                     var meshSizeForSubmesh = meshSizeCounterPerSubmesh[organConfig.materialIndex];
 
-                    organInstance.vertexMemorySpace = new JaggedIndexing
+                    var organAllocationSize = new OrganMeshMemorySpaceAllocation();
+                    organAllocationSize.vertexMemorySpace = new JaggedIndexing
                     {
                         index = meshSizeForSubmesh.totalVertexes,
                         length = organConfig.vertexes.length
                     };
-                    organInstance.trianglesMemorySpace = new JaggedIndexing
+                    organAllocationSize.trianglesMemorySpace = new JaggedIndexing
                     {
                         index = meshSizeForSubmesh.totalTriangleIndexes,
                         length = organConfig.trianges.length
                     };
 
-                    meshSizeForSubmesh.totalVertexes += organInstance.vertexMemorySpace.length;
-                    meshSizeForSubmesh.totalTriangleIndexes += organInstance.trianglesMemorySpace.length;
+                    meshSizeForSubmesh.totalVertexes += organConfig.vertexes.length;
+                    meshSizeForSubmesh.totalTriangleIndexes += organConfig.trianges.length;
 
-                    organInstances[i] = organInstance;
+                    organMeshAllocations[i] = organAllocationSize;
                     meshSizeCounterPerSubmesh[organConfig.materialIndex] = meshSizeForSubmesh;
                 }
 

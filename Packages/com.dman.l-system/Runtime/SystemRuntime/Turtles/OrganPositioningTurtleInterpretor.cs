@@ -12,12 +12,14 @@ using System.Linq;
 using System.Threading;
 using Unity.Collections;
 using UnityEngine;
+using static Dman.LSystem.SystemRuntime.Turtle.TurtleStringReadingCompletable;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
     public class OrganPositioningTurtleInterpretor : IDisposable
     {
         private DependencyTracker<NativeTurtleData> nativeDataTracker;
+        public Material[] submeshMaterials;
 
         private TurtleState defaultState;
         private CustomRuleSymbols customSymbols;
@@ -43,6 +45,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 operationSet.WriteIntoNativeData(nativeData, nativeWriter);
             }
 
+            submeshMaterials = nativeWriter.materialsInOrder.ToArray();
+
             nativeData.operationsByKey = new NativeHashMap<int, TurtleOperation>(nativeWriter.operators.Count(), Allocator.Persistent);
             foreach (var ops in nativeWriter.operators)
             {
@@ -50,6 +54,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 nativeData.operationsByKey[realSymbol] = ops.operation;
             }
 
+            customSymbols.hasAutophagy = false;
             this.customSymbols = customSymbols;
 
             // TODO: don't need the vertex, triangle, or material data in here
@@ -58,7 +63,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             this.symbolRemapper = symbolRemapper;
         }
 
-        public async UniTask<NativeList<TurtleOrganInstance>> CompileStringToMeshOrganInstances(
+        public async UniTask<TurtleMeshBuildingInstructions> CompileStringToMeshOrganInstances(
             DependencyTracker<SymbolString<float>> symbols,
             CancellationToken token)
         {
@@ -75,7 +80,24 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 Matrix4x4.identity, // this is only used for volumetrics
                 token);
 
-            return meshResult.organInstances;
+            return meshResult;
+        }
+        public async UniTask<Mesh> RenderOrganInstancesToMesh(
+            TurtleMeshBuildingInstructions organInstances,
+            Mesh targetMesh,
+            CancellationToken token)
+        {
+            if (IsDisposed)
+            {
+                throw new ObjectDisposedException("Turtle has been disposed and cannot be used");
+            }
+            await TurtleMeshBuildingCompletable.BuildMesh(
+                targetMesh,
+                submeshMaterials.Length,
+                organInstances,
+                nativeDataTracker,
+                token);
+            return targetMesh;
         }
 
         public class TurtleOrganIdentifier
