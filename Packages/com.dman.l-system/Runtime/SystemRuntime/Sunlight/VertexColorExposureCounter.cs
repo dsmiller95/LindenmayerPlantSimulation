@@ -59,7 +59,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         public void Initialize(uint? uniqueOrganIdSpaceOverride = null)
         {
-            if(uniqueOrganIdSpaceOverride.HasValue && uniqueOrganIdSpaceOverride.Value > 0)
+            if (uniqueOrganIdSpaceOverride.HasValue && uniqueOrganIdSpaceOverride.Value > 0)
             {
                 this.uniqueOrgansInitialAllocation = (int)uniqueOrganIdSpaceOverride.Value;
             }
@@ -71,6 +71,11 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             LazyEnsureUpdatedReadback(nextExposureBufferSize);
         }
 
+        public bool HasDataFromBuffer()
+        {
+            return uniqueSunlightAssignments?.ActiveData != null;
+        }
+
         public DependencyTracker<NativeArrayNativeDisposableAdapter<uint>> GetReadAccessSunlightExposure()
         {
             return uniqueSunlightAssignments.ActiveData;
@@ -78,7 +83,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
 
         public void Dispose()
         {
-            readbackRequest.Value.WaitForCompletion();
+            readbackRequest?.WaitForCompletion();
             sunlightSumBuffer.Dispose();
             uniqueSunlightAssignments.Dispose();
         }
@@ -149,24 +154,23 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 Debug.LogError("gpu request not available");
             }
             readbackRequest.Value.WaitForCompletion();
-            if (!readbackRequest.Value.done)
+            if (readbackRequest.Value.done && !readbackRequest.Value.hasError)
             {
-                Debug.LogError("gpu request not completed");
-            }
-            using var nativeIdData = readbackRequest.Value.GetData<uint>();
-            var reAllocatedNativeData = new NativeArray<uint>(nativeIdData, Allocator.Persistent);
-            var dependencyTracker = uniqueSunlightAssignments.AssignPending(reAllocatedNativeData);
+                using var nativeIdData = readbackRequest.Value.GetData<uint>();
+                var reAllocatedNativeData = new NativeArray<uint>(nativeIdData, Allocator.Persistent);
+                var dependencyTracker = uniqueSunlightAssignments.AssignPending(reAllocatedNativeData);
 
 #if UNITY_EDITOR
-            dependencyTracker.underlyingAllocator = Allocator.Persistent;
+                dependencyTracker.underlyingAllocator = Allocator.Persistent;
 
-            if (Time.frameCount > lastReadbackFrame + 4)
-            {
-                Debug.LogWarning("sunlight not refreshing fast enough. temp alloc will have expired.");
-            }
-            lastReadbackFrame = Time.frameCount;
+                if (Time.frameCount > lastReadbackFrame + 4)
+                {
+                    Debug.LogWarning("sunlight not refreshing fast enough. temp alloc will have expired.");
+                }
+                lastReadbackFrame = Time.frameCount;
 #endif
-            uniqueSunlightAssignments.HotSwapToPending();
+                uniqueSunlightAssignments.HotSwapToPending();
+            }
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
