@@ -73,7 +73,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             CustomRuleSymbols customSymbols,
             TurtleVolumeWorldReferences volumetrics,
             Matrix4x4 localToWorldTransform,
-            CancellationToken token)
+            CancellationToken token,
+            Matrix4x4? postReadTransform = null)
         {
             UnityEngine.Profiling.Profiler.BeginSample("turtling job");
 
@@ -196,6 +197,17 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 currentJobHandle = destructionCommandTimestamps.Dispose(currentJobHandle);
             }
+
+            if (postReadTransform.HasValue)
+            {
+                var postProcessJob = new TurtleOrganPostProcessJob
+                {
+                    organInstances = organInstancesBuilder,
+                    transformOrgans = postReadTransform.Value
+                };
+                currentJobHandle = postProcessJob.Schedule(currentJobHandle);
+            }
+
             UnityEngine.Profiling.Profiler.EndSample();
 
 
@@ -296,6 +308,27 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
         }
 
+        public struct TurtleOrganPostProcessJob : IJob
+        {
+            public NativeList<TurtleOrganInstance> organInstances;
+
+            public Matrix4x4 transformOrgans;
+
+            public void Execute(int index)
+            {
+                var organ = organInstances[index];
+                organ.organTransform = (transformOrgans * (Matrix4x4)organ.organTransform);
+                organInstances[index] = organ;
+            }
+
+            public void Execute()
+            {
+                for (int i = 0; i < organInstances.Length; i++)
+                {
+                    Execute(i);
+                }
+            }
+        }
 
     }
 }

@@ -14,6 +14,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public int vertexCount => vertices.Length;
 
+        public MeshDraft()
+        {
+            this.vertices = new Vector3[0];
+            this.uvs = new Vector2[0];
+            this.normals = new Vector3[0];
+            this.tangents = new Vector4[0];
+            this.triangles = new int[0];
+        }
         public MeshDraft(Mesh sourceMesh)
         {
             this.vertices = sourceMesh.vertices.ToArray();

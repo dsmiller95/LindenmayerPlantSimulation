@@ -40,6 +40,12 @@ namespace Dman.LSystem.UnityObjects
 
         public float volumetricDurabilityValue;
 
+        /// <summary>
+        /// usable to reconfigure this operation to only move the turtle by how much it would be moved
+        ///     by this organ. but; it will generate no mesh vertexes
+        /// </summary>
+        public bool useAsDummyMesh = false;
+
         public TurtleDataRequirements RequiredDataSpace => CachedOrganTemplates.Select(x => x.DataReqs).Sum();
 
         public TurtleOrganTemplate[] CachedOrganTemplates;
@@ -54,7 +60,6 @@ namespace Dman.LSystem.UnityObjects
                 var overridenMaterial = (variant.materialOverride != null) ? variant.materialOverride : material;
 
                 var baseMeshTransform = Matrix4x4.identity;
-                var newDraft = new MeshDraft(overridenMesh);
                 var bounds = overridenMesh.bounds;
                 Vector3 translatePostMesh;
                 if (UseMeshOrigin)
@@ -69,7 +74,7 @@ namespace Dman.LSystem.UnityObjects
                 baseMeshTransform = Matrix4x4.Scale(IndividualScale) * baseMeshTransform;
 
                 return new TurtleOrganTemplate(
-                    newDraft,
+                    useAsDummyMesh ? new MeshDraft() : new MeshDraft(overridenMesh),
                     overridenMaterial,
                     translatePostMesh,
                     AlsoMove,

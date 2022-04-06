@@ -65,7 +65,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
         public async UniTask<TurtleMeshBuildingInstructions> CompileStringToMeshOrganInstances(
             DependencyTracker<SymbolString<float>> symbols,
-            CancellationToken token)
+            CancellationToken token,
+            Matrix4x4? postReadTransform = null)
         {
             if (IsDisposed)
             {
@@ -78,7 +79,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 customSymbols,
                 null,
                 Matrix4x4.identity, // this is only used for volumetrics
-                token);
+                token,
+                postReadTransform);
 
             return meshResult;
         }
