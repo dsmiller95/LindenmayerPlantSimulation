@@ -71,6 +71,12 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             LazyEnsureUpdatedReadback(nextExposureBufferSize);
         }
 
+        public void DisposeTemps()
+        {
+            readbackRequest?.WaitForCompletion();
+            uniqueSunlightAssignments.DisposeTemp();
+        }
+
         public bool HasDataFromBuffer()
         {
             return uniqueSunlightAssignments?.ActiveData != null;
@@ -86,6 +92,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             readbackRequest?.WaitForCompletion();
             sunlightSumBuffer.Dispose();
             uniqueSunlightAssignments.Dispose();
+            UnityEngine.Object.Destroy(uniqueSummationShader);
         }
 
         private void InitializeBuffers()
@@ -144,7 +151,6 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        private int lastReadbackFrame;
 
         private void CompleteGPUReadback()
         {
@@ -159,16 +165,8 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 using var nativeIdData = readbackRequest.Value.GetData<uint>();
                 var reAllocatedNativeData = new NativeArray<uint>(nativeIdData, Allocator.Persistent);
                 var dependencyTracker = uniqueSunlightAssignments.AssignPending(reAllocatedNativeData);
-
-#if UNITY_EDITOR
                 dependencyTracker.underlyingAllocator = Allocator.Persistent;
 
-                if (Time.frameCount > lastReadbackFrame + 4)
-                {
-                    Debug.LogWarning("sunlight not refreshing fast enough. temp alloc will have expired.");
-                }
-                lastReadbackFrame = Time.frameCount;
-#endif
                 uniqueSunlightAssignments.HotSwapToPending();
             }
             UnityEngine.Profiling.Profiler.EndSample();

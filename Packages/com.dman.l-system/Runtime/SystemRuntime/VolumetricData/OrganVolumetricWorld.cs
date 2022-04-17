@@ -115,6 +115,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             return handle.Dispose(dependency);
         }
 
+        public bool HasResourceLayer(VolumetricResourceLayer layer)
+        {
+            return _allLayers.Contains(layer);
+        }
+
         private void Awake()
         {
             NativeVolumeData = new NativeDelayedReadable<VoxelWorldVolumetricLayerData>(

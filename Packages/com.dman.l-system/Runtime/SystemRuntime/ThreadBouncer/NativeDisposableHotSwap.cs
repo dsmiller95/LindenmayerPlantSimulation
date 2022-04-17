@@ -64,6 +64,18 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             }
         }
 
+        /// <summary>
+        /// disposes the underlying native data structures and sets them to null, effectively
+        ///     reseting all pending data
+        /// useful for manually managing the lifecycle of native containers when using temp or jobtemp allocs
+        /// </summary>
+        public void DisposeTemp()
+        {
+            dataA?.Dispose();
+            dataB?.Dispose();
+            dataA = dataB = null;
+        }
+
         public void Dispose()
         {
             dataA?.Dispose();
