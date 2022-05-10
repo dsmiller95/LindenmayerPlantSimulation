@@ -165,6 +165,8 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         //private CompletableHandle previousTurtle;
         private CancellationTokenSource cancelPending;
 
+        public bool IsTurtlePending { get; private set; } = false;
+
         private void OnSystemStateUpdated()
         {
             if (System != null)
@@ -185,8 +187,12 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
 
         private async UniTask CompileTurtle()
         {
-            await InterpretSymbols(System.steppingHandle.currentState.currentSymbols, cancelPending.Token);
-            //previousTurtle = CompletableExecutor.Instance.RegisterCompletable(await completable);
+            if (this.isActiveAndEnabled)
+            {
+                IsTurtlePending = true;
+                await InterpretSymbols(System.steppingHandle.currentState.currentSymbols, cancelPending.Token);
+            }
+            IsTurtlePending = false;
         }
     }
 }

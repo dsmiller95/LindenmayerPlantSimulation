@@ -1,19 +1,15 @@
-#axiom /(-50)@(1)i(0, 0, 0)r(0.3, 0, 150, 100, 20, 0, 100000)b(1)S(10)F[p&(90)i(0, 0, 0)s(0)L(5)e(0)R(0)]T(5)
+#axiom /(-50)@(1)i(0, 0, 0)r(0.3, 200, 150, 200, 20, 0, 100000, 0, 100000)bS(10)F[p&(90)i(0, 0, 0)s(0)L(5)e(0)R(0)]T(5)
 #iterations 3000
 
-#symbols +-/\&^$@!`
+#symbols +-/\&^$@!`F
+#global F
 #matches @!`
 
 #define leafProbability 1
-#define flowerProbability .25
 
-#define defaultMaxWater 150
-#define defaultMaxGlucose 20
-#define defaultMaxVirility 10000
-#define leafSunlightMultiplier 1
+#define leafSunlightMultiplier 4
 #define maxGlucoseFromLeaf 2.5
 
-#define leafVirilityProduction 1
 #define autophagicVirilityProduction .4
 
 
@@ -21,9 +17,23 @@
 
 #symbols ra
 #matches r
-#define diffusionStepsPerStep 1
+#define diffusionStepsPerStep 5
 #define independentDiffusionStep true
 #include diffusion (Node->r) (Amount->a)
+
+#define |TreeLifeLeafNode| m
+#define |TreeLifeRoot| b
+#define |TreeBranchBaseMarker| O
+#define |TreeBranchCrookMarker| u
+#symbols mbOu
+#include tree-sizing.lsyslib (TreeLifeLeafNode->m) (TreeLifeRoot->b) (TreeBranchBaseMarker->O) (TreeBranchCrookMarker->u)
+
+#define defaultMaxWater 150
+#define defaultMaxGlucose 20
+#define defaultMaxFlow 10000
+#define defaultMaxCounterFlow 10000
+#define |DEFAULT_DIFFUSION_NODE| r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, flow, defaultMaxFlow, counterFlow, defaultMaxCounterFlow)|TreeLifeLeafNode|
+#define |DIFFUSION_PARAMETERS| (a, water, maxWater, glucose, maxGlucose, flow, maxFlow, counterFlow, maxCounterFlow)
 
 #symbols i
 #matches i
@@ -35,24 +45,39 @@
 #symbols n
 #include autophagy (Necrose->n)
 
-r(a, water, maxWater, glucose, d, virility, e) < S(x) : water < maxWater && water + x < maxWater  -> a(x)S(x)
-r(a, water, maxWater, glucose, d, virility, e) < S(x) : water < maxWater && water + x >= maxWater -> a(maxWater - water)S(x)
-r(a, water, maxWater, glucose, d, virility, e) < S(x) : water >= maxWater                          -> a(0.01, 0.01, 0.01)S(x)
+
+r|DIFFUSION_PARAMETERS| < S(x) : water < maxWater && water + x < maxWater  -> a(x)S(x)
+r|DIFFUSION_PARAMETERS| < S(x) : water < maxWater && water + x >= maxWater -> a(maxWater - water)S(x)
+r|DIFFUSION_PARAMETERS| < S(x) : water >= maxWater                         -> a(0.01, 0.01, 0.01)S(x)
 
 
-#symbols TFK
+#symbols TK
 #matches TK
-P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> ~f(0)T(x - 1)
-P(0.5) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .1 && glucose >= .1 && x >  0 -> T(x)
+P(0.5) | r|DIFFUSION_PARAMETERS| < T(x) : water >= .1 && glucose >= .1 && x >  0 -> ~f(0)T(x - 1)
+P(0.5) | r|DIFFUSION_PARAMETERS| < T(x) : water >= .1 && glucose >= .1 && x >  0 -> T(x)
 
-P(1 - flowerProbability) | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> /(137)[\(180)&(90)l][&(90)l][-(-35)f(0)i(0, 0, 0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxVirility)o(0)T(5)][-(35)f(0)i(0, 0, 0)r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, virility * 2, defaultMaxVirility)o(0)R(0)T(5)]
-P(flowerProbability)     | r(a, water, c, glucose, d, virility, e) < T(x) : water >= .2 && glucose >= .2 && x <= 0 -> f(0)k(0)
+#define |flowL1| (flow < 20)
+#define L1Flower 0.1
+#define |flowL2| (flow < 50)
+#define L2Flower 0.25
+#define |flowL3| (flow < 100)
+#define L3Flower 0.75
+P(1 - L1Flower) | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && |flowL1|              -> R(0)/(137)[\(180)&(90)l][&(90)l]|TreeBranchCrookMarker|[-(-35)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|o(0)T(5)][-(35)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|o(0)T(5)]
+P(L1Flower)     | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && |flowL1|              -> f(0)k(0)
+
+P(1 - L2Flower) | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| -> R(0)/(137)[\(180)&(90)l][&(90)l]|TreeBranchCrookMarker|[-(-35)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|o(0)T(5)][-(35)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|o(0)T(5)]
+P(L2Flower)     | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| -> f(0)k(0)
+
+P(1 - L3Flower) | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| -> R(0)/(137)[\(180)&(90)l][&(90)l]|TreeBranchCrookMarker|[-(-35)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|o(0)T(5)][-(35)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|o(0)T(5)]
+P(L3Flower)     | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| -> f(0)k(0)
+
+                  r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && !|flowL3| -> f(0)k(0)
 
 
 
 ## L is a leaf. parameter is the size of the leaf, and also is is the health of the leaf which decreases when receiving a small amount of sunlight
 ## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight
-#define leafMinSunlight 0.1
+#define leafMinSunlight 0.01
 #define leafMaxHealth 5
 #define leafCost 1
 ## l is a precursor to a leaf
@@ -60,28 +85,31 @@ P(flowerProbability)     | r(a, water, c, glucose, d, virility, e) < T(x) : wate
 #matches L
 P(leafProbability)     |     l -> l(0)
 P(1 - leafProbability) |     l -> 
-r(a, water, c, glucose, d, virility, e) < l(amt) : amt < leafCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)l(amt + 0.05)
-                             l(amt) : amt >= leafCost -> m(leafVirilityProduction)pi(0, 0, 0)s(0)L(leafMaxHealth)e(0)R(1)
+r|DIFFUSION_PARAMETERS| < l(amt) : amt < leafCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)l(amt + 0.05)
+                          l(amt) : amt >= leafCost -> pi(0, 0, 0)s(0)L(leafMaxHealth)e(0)
 
-r(a, water, c, glucose, d, virility, e)i(f, g, h)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
-r(a, water, c, glucose, d, virility, e)i(f, g, h)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
+r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
+r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
 
-r(a, water, c, glucose, d, virility, e)i(f, g, h)s(sunlight) < L(health) : !(water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> L(health + sunlight - leafMinSunlight)
+r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L(health) : !(water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> L(health + sunlight - leafMinSunlight)
 
-## r(a, water, c, glucose, d)i(f, g, h)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
+## r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
 
 ## f is a precursor to a stem
 #define stemCost 1
 #symbols f
 #matches f
-r(a, water, c, glucose, d, virility, e) < f(amt) : amt < stemCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)f(amt + 0.05)
-										  f(amt) : amt >= stemCost -> F
+r|DIFFUSION_PARAMETERS| < f(amt) : amt < stemCost && water >= 0.1 && glucose >= 0.1 -> a(0, -glucose/3)f(amt + glucose/3)
+						  f(amt) : amt >= stemCost -> F(1)
+
+## r|DIFFUSION_PARAMETERS| < F(s) -> F(counterFlow)
+
 
 ## k is a precursor to a flower
 #define flowerCost 1
 #symbols k
-r(a, water, c, glucose, d, virility, e) < k(amt) : amt < flowerCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)k(amt + 0.05)
-										  k(amt) : amt >= flowerCost -> K(0)
+r|DIFFUSION_PARAMETERS| < k(amt) : amt < flowerCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)k(amt + 0.05)
+						  k(amt) : amt >= flowerCost -> K(0)
 
 ## P is a pollen entity spawned from flowers
 #symbols P
@@ -91,8 +119,8 @@ r(a, water, c, glucose, d, virility, e) < k(amt) : amt < flowerCost && water >= 
 ## E is a resource transmission node, which is used to bind to a persistent DOTS entity
 #symbols E
 
-i(f, organId, plantId)r(a, water, c, glucose, d, virility, e) < K(x) : x < 10 -> K(x + 1)E(0, organId, plantId)
-i(f, organId, plantId)r(a, water, c, glucose, d, virility, e) < K(x) : x >= 10 && glucose > 0.1 -> a(0, -0.05)K(0)Pw(1)E(0.05, organId, plantId)
+i(f, organId, plantId)r|DIFFUSION_PARAMETERS| < K(x) : x < 10 -> K(x + 1)E(0, organId, plantId)
+i(f, organId, plantId)r|DIFFUSION_PARAMETERS| < K(x) : x >= 10 && glucose > 0.1 -> a(0, -0.05)K(0)Pw(1)E(0.05, organId, plantId)
 P -> 
 w(x) -> 
 E(a, b, c) -> 
@@ -102,7 +130,7 @@ E(a, b, c) ->
 #symbols Re
 #matches e
 ##e(x) < R(y) -> R(x)
-r(a, water, c, glucose, d, virility, e) < R(x) -> R(water)
+r|DIFFUSION_PARAMETERS| < R(x) -> R(counterFlow)
 ## R(x) -> 
 
 #define kinkDeviation 0.2
@@ -117,18 +145,17 @@ P(1/5) | ~ -> +(-10)
 
 #define deviationSpeedFactor (1 - (water / defaultMaxWater))
 
-
-P(1/2) | r(a, water, c, glucose, d, virility, e) < ^(x) -> ^(x, -1)
-P(1/2) | r(a, water, c, glucose, d, virility, e) < ^(x) -> ^(x,  1)
-         r(a, water, c, glucose, d, virility, e) < ^(x, s) : x >= -10 && x <= 10 -> ^(x + kinkDeviation * s * deviationSpeedFactor, s)
-         r(a, water, c, glucose, d, virility, e) < ^(x, s) : x < -10 ->             ^(x + kinkDeviation * 1.1, 1)
-         r(a, water, c, glucose, d, virility, e) < ^(x, s) : x >  10 ->             ^(x - kinkDeviation * 1.1, -1)
-
-P(1/2) | r(a, water, c, glucose, d, virility, e) < +(x) -> +(x, -1)
-P(1/2) | r(a, water, c, glucose, d, virility, e) < +(x) -> +(x,  1)
-         r(a, water, c, glucose, d, virility, e) < +(x, s) : x >= -10 && x <= 10 -> +(x + kinkDeviation * s * deviationSpeedFactor, s)
-         r(a, water, c, glucose, d, virility, e) < +(x, s) : x < -10 ->             +(x + kinkDeviation * 1.1, 1)
-         r(a, water, c, glucose, d, virility, e) < +(x, s) : x >  10 ->             +(x - kinkDeviation * 1.1, -1)
+## P(1/2) | r|DIFFUSION_PARAMETERS| < ^(x) -> ^(x, -1)
+## P(1/2) | r|DIFFUSION_PARAMETERS| < ^(x) -> ^(x,  1)
+##          r|DIFFUSION_PARAMETERS| < ^(x, s) : x >= -10 && x <= 10 -> ^(x + kinkDeviation * s * deviationSpeedFactor, s)
+##          r|DIFFUSION_PARAMETERS| < ^(x, s) : x < -10 ->             ^(x + kinkDeviation * 1.1, 1)
+##          r|DIFFUSION_PARAMETERS| < ^(x, s) : x >  10 ->             ^(x - kinkDeviation * 1.1, -1)
+## 
+## P(1/2) | r|DIFFUSION_PARAMETERS| < +(x) -> +(x, -1)
+## P(1/2) | r|DIFFUSION_PARAMETERS| < +(x) -> +(x,  1)
+##          r|DIFFUSION_PARAMETERS| < +(x, s) : x >= -10 && x <= 10 -> +(x + kinkDeviation * s * deviationSpeedFactor, s)
+##          r|DIFFUSION_PARAMETERS| < +(x, s) : x < -10 ->             +(x + kinkDeviation * 1.1, 1)
+##          r|DIFFUSION_PARAMETERS| < +(x, s) : x >  10 ->             +(x - kinkDeviation * 1.1, -1)
 
 
 ## P(1/2) | +(x) : x >= -10 && x <= 10 -> +(x + kinkDeviation)
@@ -136,29 +163,17 @@ P(1/2) | r(a, water, c, glucose, d, virility, e) < +(x) -> +(x,  1)
 ## +(x) : x < -10 -> +(x + kinkDeviation)
 ## +(x) : x >  10 -> +(x - kinkDeviation)
 
-## m is a life indicator. it produces a hormone from living, breathing branches
-## b is a life root which consumes all of the life indicator hormone
-#symbols mb
-m(x) -> a(0, 0, x)m(x)
-
-r(a, water, b, glucose, c, virility, d) < b(x) -> a(0, 0, -virility/2)b(x)
 
 
 
 ## p is a autophagic switch which waits for a leaf to become unhealthy, and then aborts it
 #symbols p
-p > i(b, c, d)s(a)L(health) : health <= 0 -> d(autophagicVirilityProduction)n
-
-## d is an autophagic organ which pumps out negative virility, to encourage this branch to die
-#symbols d
-d(x) -> a(0, 0, -x)
+p > i(b, c, d)s(a)L(health) : health <= 0 -> n
 
 ## o is an autophagic switch which will kill off a branch
 ## o looks for a decreasing virility gradient from the root towards the leaves
 #symbols o
 
-## r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o(deathAmt) > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb && deathAmt < 10 -> o(deathAmt + 1)
-## r(a, b, c, d, e, virilityRa, f)r(g, h, i, j, k, virilityRb, l) < o(deathAmt) > [r(m, n, o, p, q, virilityLa, r)][r(s, t, u, v, w, virilityLb, x)] : virilityRa > virilityRb && virilityRb > virilityLa && virilityRb > virilityLb && deathAmt >= 10 -> n
 
 
 
@@ -168,7 +183,3 @@ d(x) -> a(0, 0, -x)
 
 
 
-
-
-
-			 

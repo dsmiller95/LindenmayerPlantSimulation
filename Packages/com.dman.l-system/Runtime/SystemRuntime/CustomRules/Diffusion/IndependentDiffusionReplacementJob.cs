@@ -79,6 +79,11 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                 }
                 else if (symbol == customSymbols.diffusionAmount)
                 {
+                    if (currentNodeParent < 0)
+                    {
+                        // problem: the amount will dissapear
+                        continue;
+                    }
                     var modifiedNode = working.nodes[currentNodeParent];
                     var amountParameters = inPlaceSymbols.parameters[symbolIndex];
                     inPlaceSymbols.parameters[symbolIndex] = new JaggedIndexing
@@ -86,11 +91,6 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                         index = amountParameters.index,
                         length = 0
                     };
-                    if (currentNodeParent < 0)
-                    {
-                        // problem: the amount will dissapear
-                        continue;
-                    }
                     for (int resourceType = 0; resourceType < modifiedNode.totalResourceTypes && resourceType < amountParameters.length; resourceType++)
                     {
                         working.nodeAmountsListA[modifiedNode.indexInTempAmountList + resourceType] += inPlaceSymbols.parameters[amountParameters, resourceType];

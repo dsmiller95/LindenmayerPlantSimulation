@@ -5,6 +5,7 @@ using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
+using Dman.Utilities;
 using System;
 using System.Threading;
 using Unity.Burst;
@@ -13,7 +14,6 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
-using Dman.Utilities;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
@@ -169,7 +169,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
 
             currentJobHandle = turtleCompileJob.Schedule(currentJobHandle);
-            if(entitySpawningSystem != null)
+            if (entitySpawningSystem != null)
             {
                 entitySpawningSystem.AddJobHandleForProducer(currentJobHandle);
             }

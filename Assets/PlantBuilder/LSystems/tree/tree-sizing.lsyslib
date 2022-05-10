@@ -1,0 +1,57 @@
+#symbols +-/\&^$@!`F
+#global F
+
+#symbols ra
+#matches r
+#include diffusion (Node->r) (Amount->a)
+
+## place TreeLifeLeafNode after any diffusion node which indicates a "growth" part of the plant. should be every node except the root.
+#export TreeLifeLeafNode m
+## place TreeLifeRoot at the root of the plant, following a diffusion node
+#export TreeLifeRoot b
+
+## m is a life indicator. it produces a hormone from living, breathing branches
+#symbols m
+m -> m(1)S(1)
+r|DIFFUSION_PARAMETERS| < m(x) : x >= counterFlow/4 -> a(0, 0, x, -counterFlow/4)m(x)
+r|DIFFUSION_PARAMETERS| < m(x) : x <  counterFlow/4 -> a(0, 0, x, -x)m(x)
+
+## b is a life root which consumes all of the life indicator hormone
+#symbols b
+b -> b(1)S(1)Q(4)
+r|DIFFUSION_PARAMETERS| < b(x) -> a(0, 0, -flow, flow)b(x)
+
+## S is a scaling indicator for a specific branch
+#symbols S
+#matches S
+
+F -> F(1)
+S(scale) < F(s) -> F(scale)
+r|DIFFUSION_PARAMETERS|                                                            < S(scale) -> S(counterFlow)
+S(initialScale)r|DIFFUSION_PARAMETERS|                                             < S(scale) -> S(initialScale)
+S(initialScale)R(crossBranchNetDiff, branchN)B(scaleFactor)r|DIFFUSION_PARAMETERS| < S(scale) -> S(initialScale * scaleFactor)
+
+
+## B is a branch indicator placed at the root of a new branch wherever it occurs
+#symbols B
+#matches B
+## place TreeBranchBaseMarker directly after any branch opening symbol, before the first diffusion node of that branch
+#export TreeBranchBaseMarker B
+B -> B(1)
+
+r|DIFFUSION_PARAMETERS|S(s)R(crossBranchNetDiff, branchN) < B(branchFactor) > r(a1, water1, maxWater1, glucose1, maxGlucose1, flow1, maxFlow1, counterFlow1, maxCounterFlow1) -> B((counterFlow - counterFlow1)/crossBranchNetDiff)
+
+
+## R is a root of a branch node
+#symbols R
+#matches R
+#export TreeBranchCrookMarker R
+R -> R(1, 1)
+
+r|DIFFUSION_PARAMETERS|S(s) < R(crossBranchNetDiff, branchN) > [B(b1)r(a1, water1, maxWater1, glucose1, maxGlucose1, flow1, maxFlow1, counterFlow1, maxCounterFlow1)] -> R(counterFlow - counterFlow1, 1)
+r|DIFFUSION_PARAMETERS|S(s) < R(crossBranchNetDiff, branchN) > [B(b1)r(a1, water1, maxWater1, glucose1, maxGlucose1, flow1, maxFlow1, counterFlow1, maxCounterFlow1)][B(b2)r(a2, water2, maxWater2, glucose2, maxGlucose2, flow2, maxFlow2, counterFlow2, maxCounterFlow2)] -> R(2 * counterFlow - (counterFlow1 + counterFlow2), 2)
+
+
+#symbols Q
+Q(n) : n >  0 -> r(0.3, 200, 150, 200, 20, 0, 100000, 0, 100000)mQ(n - 1)
+Q(n) : n <= 0 ->
