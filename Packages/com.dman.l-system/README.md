@@ -27,7 +27,7 @@ cd YOUR_UNITY_PROJECT_FOLDER
 openupm add com.dman.l-system
 ```
 
-To look at examples, clone the [source repo](https://github.com/dsmiller95/plantbuilder) and look in `Assets/Demo/PlantBuilder/LSystems` for the configuration.
+To look at examples, clone the [source repo](https://github.com/dsmiller95/plantbuilder) and look in `Assets/PlantBuilder/LSystems` for the configuration.
 
 # [System Configuration](#system-configuration)
 
@@ -72,7 +72,7 @@ Example configuration:
 
 ![mesh operations example](../../DemoPhotos/turtle-mesh-operations.png)
 
-In this example, `F` is used as the most basic stem unit. In the [herbaceous plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceous-plant.lsystem) system, no mesh elements build off of the end of leaves, so the Also Move checkbox has been left unchecked.
+In this example, `F` is used as the most basic stem unit. In the [herbaceous plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/PlantBuilder/LSystems/herbaceous-plant.lsystem) system, no mesh elements build off of the end of leaves, so the Also Move checkbox has been left unchecked.
 
 ### Scale Operation
 
@@ -82,7 +82,7 @@ Also defines a thickness scaling operator, `@`. works similarly to the vector ba
 
 ### Bend Operation
 
-Bends the turtle toward a given world-space vector, scaled by the magnitude of the cross-product between the current turtle's heading and the world-space vector. This operation replicates the function of the Tropism Vector described on [page 58 of Algorithmic Beauty of Plants](http://algorithmicbotany.org/papers/abop/abop.pdf#page=70). See it in use in the [fruiting plant L-system](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/fruiting-plant.lsystem), in this case different plant organs have different bending factors which can be used to represent the stiffness of that organ.
+Bends the turtle toward a given world-space vector, scaled by the magnitude of the cross-product between the current turtle's heading and the world-space vector. This operation replicates the function of the Tropism Vector described on [page 58 of Algorithmic Beauty of Plants](http://algorithmicbotany.org/papers/abop/abop.pdf#page=70). See it in use in the [fruiting plant L-system](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/PlantBuilder/LSystems/fruiting-plant.lsystem), in this case different plant organs have different bending factors which can be used to represent the stiffness of that organ.
 
 # [L System Language](#l-system-language)
 
@@ -176,7 +176,7 @@ The Global Runtime Parameters are passed in every time the L-System steps, and c
 
 ### Compile time parameters
 
-Global Compile Time Parameters should be used to define in parameters that will not change throughout the whole life of the L-system, and function similarly to [C++ #define directives](http://www.cplusplus.com/doc/tutorial/preprocessor/), and are defined similarly: `#define branchProbabilityFactor 0.2`. Compile time parameters are ideal to modify the stochastic probability of rules, [herbaceous-plant.lsystem](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/Demo/PlantBuilder/LSystems/herbaceous-plant.lsystem) uses them like this. No other parameters can be used in the probability expression, since the probability must be known at compile-time.
+Global Compile Time Parameters should be used to define in parameters that will not change throughout the whole life of the L-system, and function similarly to [C++ #define directives](http://www.cplusplus.com/doc/tutorial/preprocessor/), and are defined similarly: `#define branchProbabilityFactor 0.2`. Compile time parameters are ideal to modify the stochastic probability of rules, [herbaceous-plant.lsystem](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/PlantBuilder/LSystems/herbaceous-plant.lsystem) uses them like this. No other parameters can be used in the probability expression, since the probability must be known at compile-time.
 
 Since `#define` defines simple string replacements, they can also be used to modify the structure and behavior of the system! They can define new replacement patterns or even whole rules which get placed into the system at compile time.
 
@@ -251,7 +251,7 @@ Since this is a rough approximation of true diffusion, there are ways to tweak t
 
 Another available option is the `independentDiffusionStep` switch, set to false by default. By default the diffusion calculation happens in parallel to the main l-system rule updates, which can make the systems slightly more performant. But the tradeoff is that resource additions and subtractions created by organs will take a full system step to propagate through, which means that the organs which interact with the resource nodes will not see their subtractions in the nodes until 2 steps after they created those subtractions. See the `LSystemCustomDiffusionTests.IndependentDiffusionStepFasterFeedbackInSystem` test for a detailed example of how this switch affects the lsystem updates. In short, this can be useful to switch to `true` when your l-system has many organs adding to and subtracting resource amounts on thin margins.
 
-The following 3 examples compare what tweaking these values can do. Trading a high diffusion coefficient for a lower coefficient and higher diffusion steps will result in a higher fidelity simulation. And the diffusion steps can be increased without changing the coefficient to increase the total volume of resources distributed per step, resulting in a more uniform distribution. All these examples are generated by the [diffusion example l-system](../../Assets/Demo/PlantBuilder/LSystems/diffusion-example/diffusionExample.lsystem)
+The following 3 examples compare what tweaking these values can do. Trading a high diffusion coefficient for a lower coefficient and higher diffusion steps will result in a higher fidelity simulation. And the diffusion steps can be increased without changing the coefficient to increase the total volume of resources distributed per step, resulting in a more uniform distribution. All these examples are generated by the [diffusion example l-system](../../Assets/PlantBuilder/LSystems/diffusion-example/diffusionExample.lsystem)
 
 | Low fidelity                                                                  | High fidelity                                                                   | High volume                                                                 |
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
@@ -287,7 +287,7 @@ Import with `#include organIdentity (Identifier->i)`. This library is used to un
   - It is unique and fixed withing the l-system and the global scope, once assigned it will never change
   - similar to the second parameter, stored as a floating point, and can be used inside the l-system
   - the second and third parameter together form a globally unique and fixed id which can be used when referencing this organ specifically from game code
-see the [Simulated Bush](../../Assets/Demo/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the sunlight library.
+see the [Simulated Bush](../../Assets/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the sunlight library.
 
 ### Sunlight
 
@@ -295,7 +295,7 @@ Import with `#include sunlight (LightAmount->s)`. This library will apply the am
 
 This library will be used automatically as long as there is a Global L System Coordinator singleton component in the scene, and it is configured with a sunlight camera pointed at the l-system's generated mesh
 
-see the [Simulated Bush](../../Assets/Demo/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the organ identity and autophagy library.
+see the [Simulated Bush](../../Assets/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the organ identity and autophagy library.
 
 ### Autophagy
 
@@ -303,7 +303,7 @@ Import with `#include autophagy (Necrose->n)`. Autophagy is a convenient way to 
 
 # [Example Showcase](#example-showcase)
 
-[Simulated Bush](../../Assets/Demo/PlantBuilder/LSystems/tree/resourceTree.lsystem)
+[Simulated Bush](../../Assets/PlantBuilder/LSystems/tree/resourceTree.lsystem)
 
 This example uses the diffusion systems to simulate the flow of water up from the base, and glucose production flowing out from the leaves. The nodes at the base of each branch segment in the first gif represent the amount of glucose in that node. The growth of the plant accelerates as more leaves grow, since each leaf will convert water into glucose, which is required for growth.
 
@@ -311,19 +311,21 @@ This example uses the diffusion systems to simulate the flow of water up from th
 
 The current version shown below uses the sunlight simulation to give energy only to leaves which sun hits, allowing those regions of the plant to grow more rapidly. Leaves which receive less sun will die eventually, leaving the center of the bush clear of leaves. Each leaf will shrink slightly as it is dying off.
 
-//TODO: better gif showcase
-
 ![bush with sunlight video](../../DemoPhotos/BUSH.gif)
 
-[Field Flower](../../Assets/Demo/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
+This plant's leaves attempt to grow in the direction of the sun. They do this by comparing the sunlight that falls on their 3 sub-leaves, and add a bent stem behind them bending them towards the sunlight. see the LSystem code here: [Light Seeker](../../Assets/PlantBuilder/LSystems/light%20seeker/light-seeker.lsystem)
+
+![plant light seeking growth](../../DemoPhotos/light_growth.gif)
+
+[Field Flower](../../Assets/PlantBuilder/LSystems/field-flower.lsystem): from [The Algorithmic Beauty Of Plants, page 39](http://algorithmicbotany.org/papers/abop/abop.pdf#page=39)
 
 ![flower generation gif](../../DemoPhotos/field-flower-system.gif)
 
-[Herbaceous Plant](../../Assets/Demo/PlantBuilder/LSystems/herbaceous-plant.lsystem)
+[Herbaceous Plant](../../Assets/PlantBuilder/LSystems/herbaceous-plant.lsystem)
 
 ![herbaceous plant gif](../../DemoPhotos/herbaceous-plant.gif)
 
-[Fruiting Plant](../../Assets/Demo/PlantBuilder/LSystems/fruiting-plant.lsystem)
+[Fruiting Plant](../../Assets/PlantBuilder/LSystems/fruiting-plant.lsystem)
 
 ![fruiting plant gif](../../DemoPhotos/fruiting-plant.gif)
 
