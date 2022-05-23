@@ -46,6 +46,7 @@
 #include autophagy (Necrose->n)
 
 
+
 r|DIFFUSION_PARAMETERS| < S(x) : water < maxWater && water + x < maxWater  -> a(x)S(x)
 r|DIFFUSION_PARAMETERS| < S(x) : water < maxWater && water + x >= maxWater -> a(maxWater - water)S(x)
 r|DIFFUSION_PARAMETERS| < S(x) : water >= maxWater                         -> a(0.01, 0.01, 0.01)S(x)

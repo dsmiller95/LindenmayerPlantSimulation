@@ -50,8 +50,10 @@ R -> R(1, 1)
 
 r|DIFFUSION_PARAMETERS|S(s) < R(crossBranchNetDiff, branchN) > [B(b1)r(a1, water1, maxWater1, glucose1, maxGlucose1, flow1, maxFlow1, counterFlow1, maxCounterFlow1)] -> R(counterFlow - counterFlow1, 1)
 r|DIFFUSION_PARAMETERS|S(s) < R(crossBranchNetDiff, branchN) > [B(b1)r(a1, water1, maxWater1, glucose1, maxGlucose1, flow1, maxFlow1, counterFlow1, maxCounterFlow1)][B(b2)r(a2, water2, maxWater2, glucose2, maxGlucose2, flow2, maxFlow2, counterFlow2, maxCounterFlow2)] -> R(2 * counterFlow - (counterFlow1 + counterFlow2), 2)
+r|DIFFUSION_PARAMETERS|S(s) < R(crossBranchNetDiff, branchN) > [B(b1)r(a1, water1, maxWater1, glucose1, maxGlucose1, flow1, maxFlow1, counterFlow1, maxCounterFlow1)][B(b2)r(a2, water2, maxWater2, glucose2, maxGlucose2, flow2, maxFlow2, counterFlow2, maxCounterFlow2)][B(b3)r(a3, water3, maxWater3, glucose3, maxGlucose3, flow3, maxFlow3, counterFlow3, maxCounterFlow3)] -> R(3 * counterFlow - (counterFlow1 + counterFlow2 + counterFlow3), 3)
+r|DIFFUSION_PARAMETERS|S(s) < R(crossBranchNetDiff, branchN) > [B(b1)r(a1, water1, maxWater1, glucose1, maxGlucose1, flow1, maxFlow1, counterFlow1, maxCounterFlow1)][B(b2)r(a2, water2, maxWater2, glucose2, maxGlucose2, flow2, maxFlow2, counterFlow2, maxCounterFlow2)][B(b3)r(a3, water3, maxWater3, glucose3, maxGlucose3, flow3, maxFlow3, counterFlow3, maxCounterFlow3)][B(b4)r(a4, water4, maxWater4, glucose4, maxGlucose4, flow4, maxFlow4, counterFlow4, maxCounterFlow4)] -> R(4 * counterFlow - (counterFlow1 + counterFlow2 + counterFlow3 + counterFlow4), 4)
 
 
 #symbols Q
-Q(n) : n >  0 -> r(0.3, 200, 150, 200, 20, 0, 100000, 0, 100000)mQ(n - 1)
+Q(n) : n >  0 -> r(0.1, 0, defaultMaxWater, 0, defaultMaxGlucose, 0, defaultMaxFlow, 0, defaultMaxFlow)mQ(n - 1)
 Q(n) : n <= 0 ->
