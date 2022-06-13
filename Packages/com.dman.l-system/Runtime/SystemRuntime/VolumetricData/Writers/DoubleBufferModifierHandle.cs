@@ -24,15 +24,15 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public NativeArray<float> oldValues => mostRecentDataInA ? valuesB : valuesA;
 
 
-        public VolumetricWorldVoxelLayout voxelLayout;
+        private VoxelVolume volume;
 
-        public DoubleBufferModifierHandle(VolumetricWorldVoxelLayout voxels, int doubleBufferedLayerIndex)
+        public DoubleBufferModifierHandle(VoxelVolume voxels, int doubleBufferedLayerIndex)
         {
-            valuesA = new NativeArray<float>(voxels.volume.totalVoxels, Allocator.Persistent);
-            valuesB = new NativeArray<float>(voxels.volume.totalVoxels, Allocator.Persistent);
+            valuesA = new NativeArray<float>(voxels.totalVoxels, Allocator.Persistent);
+            valuesB = new NativeArray<float>(voxels.totalVoxels, Allocator.Persistent);
             mostRecentDataInA = true;
 
-            this.voxelLayout = voxels;
+            this.volume = voxels;
             this.doubleBufferedLayerIndex = doubleBufferedLayerIndex;
         }
 
@@ -100,7 +100,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
             return new DoubleBufferNativeWritableHandle(
                 mostRecentVolumeData,
-                voxelLayout,
+                volume,
                 localToWorldTransform);
         }
 

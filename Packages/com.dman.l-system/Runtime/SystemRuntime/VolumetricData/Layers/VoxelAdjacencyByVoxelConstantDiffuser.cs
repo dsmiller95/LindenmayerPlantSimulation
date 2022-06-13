@@ -22,7 +22,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         ///     array if not returned.
         /// </summary>
         public static void ComputeDiffusion(
-            VolumetricWorldVoxelLayout voxelLayout,
+            VoxelVolume voxelVolume,
             DoubleBuffered<float> layerData,
             NativeArray<float> diffusionConstantMultipliers,
             float minimumDiffusionConstantMultiplier,
@@ -57,7 +57,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
                 adjacencyVectors = adjacencyVectors,
 
-                voxelLayout = voxelLayout,
+                volume = voxelVolume,
 
                 diffusionConstant = combinedDiffusionFactor
             };
@@ -82,7 +82,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             [ReadOnly]
             public NativeArray<Vector3Int> adjacencyVectors;
 
-            public VolumetricWorldVoxelLayout voxelLayout;
+            public VoxelVolume volume;
 
             public float diffusionConstant;
 
@@ -92,7 +92,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 {
                     Value = index
                 };
-                var rootCoordiante = voxelLayout.GetVoxelCoordinatesFromVoxelIndex(voxelIndex);
+                var rootCoordiante = volume.GetVoxelCoordinatesFromVoxelIndex(voxelIndex);
                 var originalSelfValue = sourceDiffusionValues[voxelIndex.Value];
                 var selfDiffusionConstantAdjustment = math.max(diffusionConstantAdjusters[voxelIndex.Value], minimumDiffusionConstantMultiplier);
 
@@ -102,7 +102,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 {
                     var offset = adjacencyVectors[adjacencyIndex];
                     var sampleCoordinate = offset + rootCoordiante;
-                    var sampleIndex = voxelLayout.GetVoxelIndexFromVoxelCoordinates(sampleCoordinate);
+                    var sampleIndex = volume.GetVoxelIndexFromVoxelCoordinates(sampleCoordinate);
 
                     if (!sampleIndex.IsValid)
                     {

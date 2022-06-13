@@ -18,7 +18,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         ///     array if not returned.
         /// </summary>
         public static NativeArray<float> ComputeDiffusion(
-            VolumetricWorldVoxelLayout voxelLayout,
+            VoxelVolume volume,
             NativeArray<float> inputArrayWithData,
             float deltaTime,
             float diffusionConstant,
@@ -36,7 +36,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
             dependecy = JobHandle.CombineDependencies(dependecy, kernelDep);
 
-            var tmpSwapSpace = new NativeArray<float>(voxelLayout.volume.totalVoxels, Allocator.TempJob);
+            var tmpSwapSpace = new NativeArray<float>(volume.totalVoxels, Allocator.TempJob);
 
             var diffuseXJob = new VoxelKernelDiffusionJob
             {
@@ -46,7 +46,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 oneDimensionalKernel = kernel,
 
                 diffuseAxis = VoxelKernelDiffusionJob.DiffusionAxis.X,
-                voxelLayout = voxelLayout,
+                volume = volume,
                 boundaryValue = 0
             };
             dependecy = diffuseXJob.Schedule(inputArrayWithData.Length, 1000, dependecy);
@@ -59,7 +59,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 oneDimensionalKernel = kernel,
 
                 diffuseAxis = VoxelKernelDiffusionJob.DiffusionAxis.Y,
-                voxelLayout = voxelLayout,
+                volume = volume,
                 boundaryValue = 0
             };
             dependecy = diffuseYJob.Schedule(inputArrayWithData.Length, 1000, dependecy);
@@ -72,7 +72,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 oneDimensionalKernel = kernel,
 
                 diffuseAxis = VoxelKernelDiffusionJob.DiffusionAxis.Z,
-                voxelLayout = voxelLayout,
+                volume = volume,
                 boundaryValue = 0
             };
             dependecy = diffuseZJob.Schedule(inputArrayWithData.Length, 1000, dependecy);
@@ -140,7 +140,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             [ReadOnly]
             public NativeArray<float> oneDimensionalKernel;
             public DiffusionAxis diffuseAxis;
-            public VolumetricWorldVoxelLayout voxelLayout;
+            public VoxelVolume volume;
 
             public float boundaryValue;
 
@@ -176,7 +176,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 {
                     Value = index
                 };
-                var rootCoordiante = voxelLayout.GetVoxelCoordinatesFromVoxelIndex(voxelIndex);
+                var rootCoordiante = volume.GetVoxelCoordinatesFromVoxelIndex(voxelIndex);
 
                 var kernelOrigin = oneDimensionalKernel.Length / 2;
                 float newValue = 0;
@@ -186,7 +186,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                     var kernelWeight = oneDimensionalKernel[kernelIndex];
 
                     var sampleCoordinate = offset + rootCoordiante;
-                    var sampleIndex = voxelLayout.GetVoxelIndexFromVoxelCoordinates(sampleCoordinate);
+                    var sampleIndex = volume.GetVoxelIndexFromVoxelCoordinates(sampleCoordinate);
 
                     float sampleValue;
                     if (!sampleIndex.IsValid)

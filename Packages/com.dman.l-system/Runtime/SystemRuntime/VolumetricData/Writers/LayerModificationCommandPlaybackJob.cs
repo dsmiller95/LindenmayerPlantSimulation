@@ -12,8 +12,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public NativeArray<LayerModificationCommand> commands;
         public VoxelWorldVolumetricLayerData dataArray;
 
-        public VolumetricWorldVoxelLayout voxelLayout;
-
         public void Execute()
         {
             for (int i = 0; i < commands.Length; i++)

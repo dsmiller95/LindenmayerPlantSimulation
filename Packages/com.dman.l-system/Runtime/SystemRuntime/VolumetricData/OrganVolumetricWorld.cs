@@ -96,13 +96,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public DoubleBufferModifierHandle GetDoubleBufferedWritableHandle(int layerIndex = 0)
         {
-            var writableHandle = new DoubleBufferModifierHandle(VoxelLayout, layerIndex);
+            var writableHandle = new DoubleBufferModifierHandle(VoxelLayout.volume, layerIndex);
             WritableHandles.Add(writableHandle);
             return writableHandle;
         }
         public CommandBufferModifierHandle GetCommandBufferWritableHandle()
         {
-            var writableHandle = new CommandBufferModifierHandle(VoxelLayout);
+            var writableHandle = new CommandBufferModifierHandle(VoxelLayout.volume);
             WritableHandles.Add(writableHandle);
             return writableHandle;
         }
@@ -258,7 +258,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             {
                 maxAmount = (Vector3.one / 4f).sqrMagnitude;
             }
-            var voxelLayout = this.VoxelLayout;
             for (int x = 0; x < voxelVolume.worldResolution.x; x++)
             {
                 for (int y = 0; y < voxelVolume.worldResolution.y; y++)
@@ -271,7 +270,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                         float amount;
                         if (NativeVolumeData != null)
                         {
-                            var voxelIndex = voxelLayout.GetVoxelIndexFromVoxelCoordinates(voxelCoordinate);
+                            var voxelIndex = voxelVolume.GetVoxelIndexFromVoxelCoordinates(voxelCoordinate);
                             amount = NativeVolumeData.openReadData[voxelIndex, layerToRender] / maxAmount;
                         }
                         else

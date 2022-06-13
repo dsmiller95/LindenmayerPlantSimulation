@@ -12,12 +12,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
     {
         public NativeArray<float> targetData;
 
-        public VolumetricWorldVoxelLayout voxelLayout;
+        private VoxelVolume voxelLayout;
         public Matrix4x4 localToWorldTransformation;
 
         public DoubleBufferNativeWritableHandle(
             NativeArray<float> targetDurabilityData,
-            VolumetricWorldVoxelLayout voxelDistribution,
+            VoxelVolume voxelDistribution,
             Matrix4x4 localToWorld)
         {
             this.targetData = targetDurabilityData;

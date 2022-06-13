@@ -11,17 +11,17 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
     {
         public NativeList<LayerModificationCommand> modificationCommandBuffer;
 
-        public VolumetricWorldVoxelLayout voxelLayout;
+        private VoxelVolume volume;
         public Matrix4x4 localToWorldTransformation;
 
         public CommandBufferNativeWritableHandle(
             NativeList<LayerModificationCommand> modificationCommandBuffer,
-            VolumetricWorldVoxelLayout voxelDistribution,
+            VoxelVolume voxelDistribution,
             Matrix4x4 localToWorld)
         {
             this.modificationCommandBuffer = modificationCommandBuffer;
 
-            this.voxelLayout = voxelDistribution;
+            this.volume = voxelDistribution;
             this.localToWorldTransformation = localToWorld;
         }
         public static CommandBufferNativeWritableHandle GetTemp(Allocator allocator = Allocator.TempJob)
@@ -29,7 +29,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             return new CommandBufferNativeWritableHandle
             {
                 modificationCommandBuffer = new NativeList<LayerModificationCommand>(0, allocator),
-                voxelLayout = default,
+                volume = default,
                 localToWorldTransformation = default
             };
         }
@@ -37,7 +37,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public VoxelIndex GetVoxelIndexFromLocalSpace(Vector3 localPosition)
         {
             var worldPosition = localToWorldTransformation.MultiplyPoint(localPosition);
-            return voxelLayout.GetVoxelIndexFromWorldPosition(worldPosition);
+            return volume.GetVoxelIndexFromWorldPosition(worldPosition);
         }
         public void AppendAmountChangeToOtherLayer(Vector3 localPosition, float change, int layerIndex)
         {

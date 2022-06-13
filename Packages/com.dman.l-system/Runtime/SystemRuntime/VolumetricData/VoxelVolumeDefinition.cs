@@ -21,6 +21,49 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public int totalVoxels => worldResolution.x * worldResolution.y * worldResolution.z;
         public int totalTiles => worldResolution.x * worldResolution.z;
 
+
+        public VoxelIndex GetVoxelIndexFromWorldPosition(Vector3 worldPosition)
+        {
+            return GetVoxelIndexFromVoxelCoordinates(GetVoxelCoordinatesFromWorldPosition(worldPosition));
+        }
+
+        public Vector3 GetWorldPositionFromVoxelIndex(VoxelIndex voxelIndex)
+        {
+            return GetWorldPositionFromVoxelCoordinates(GetVoxelCoordinatesFromVoxelIndex(voxelIndex));
+        }
+
+
+        public VoxelIndex GetVoxelIndexFromVoxelCoordinates(int x, int y, int z)
+        {
+            if (x < 0 || x >= worldResolution.x ||
+                y < 0 || y >= worldResolution.y ||
+                z < 0 || z >= worldResolution.z)
+            {
+                return new VoxelIndex
+                {
+                    Value = -1
+                };
+            }
+            return new VoxelIndex
+            {
+                Value = (x * worldResolution.y + y) * worldResolution.z + z
+            };
+        }
+
+        public VoxelIndex GetVoxelIndexFromVoxelCoordinates(Vector3Int coordiantes)
+        {
+            return GetVoxelIndexFromVoxelCoordinates(coordiantes.x, coordiantes.y, coordiantes.z);
+        }
+
+        public Vector3Int GetVoxelCoordinatesFromVoxelIndex(VoxelIndex voxelIndex)
+        {
+            var x = voxelIndex.Value / (worldResolution.y * worldResolution.z);
+            var y = (voxelIndex.Value / worldResolution.z) % worldResolution.y;
+            var z = voxelIndex.Value % worldResolution.z;
+
+            return new Vector3Int(x, y, z);
+        }
+
         public Vector3Int GetVoxelCoordinatesFromWorldPosition(Vector3 worldPosition)
         {
             var relativePos = (worldPosition - voxelOrigin);
@@ -39,6 +82,41 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             return Vector3.Scale(voxelSize, coordinate) + (voxelOrigin + (voxelSize / 2f));
         }
 
+
+
+        public TileIndex SurfaceGetTileIndexFromWorldPosition(Vector3 worldPosition)
+        {
+            return SurfaceGetTileIndexFromTileCoordinates(SurfaceGetTileCoordinatesFromWorldPosition(worldPosition));
+        }
+        public Vector2 SurfaceGetTilePositionFromTileIndex(TileIndex tileIndex)
+        {
+            return SurfaceGetTilePositionFromTileCoordinates(SurfaceGetTileCoordinatesFromTileIndex(tileIndex));
+        }
+
+
+        public TileIndex SurfaceGetTileIndexFromTileCoordinates(Vector2Int coordiantes)
+        {
+            if (coordiantes.x < 0 || coordiantes.x >= worldResolution.x ||
+                coordiantes.y < 0 || coordiantes.y >= worldResolution.z)
+            {
+                return new TileIndex
+                {
+                    Value = -1
+                };
+            }
+            return new TileIndex
+            {
+                Value = coordiantes.x * worldResolution.z + coordiantes.y
+            };
+        }
+
+        public Vector2Int SurfaceGetTileCoordinatesFromTileIndex(TileIndex tileIndex)
+        {
+            var x = tileIndex.Value / worldResolution.z;
+            var y = tileIndex.Value % worldResolution.z;
+
+            return new Vector2Int(x, y);
+        }
 
         public Vector2Int SurfaceGetTileCoordinatesFromWorldPosition(Vector3 worldPosition)
         {

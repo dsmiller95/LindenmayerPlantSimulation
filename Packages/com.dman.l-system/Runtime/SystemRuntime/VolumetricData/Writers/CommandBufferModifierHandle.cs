@@ -12,13 +12,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public JobHandle writeDependency;
         public bool newDataIsAvailable { get; private set; }
 
-        public VolumetricWorldVoxelLayout voxelLayout;
+        private VoxelVolume volume;
 
-        public CommandBufferModifierHandle(VolumetricWorldVoxelLayout voxels)
+        public CommandBufferModifierHandle(VoxelVolume voxels)
         {
             modificationCommands = new NativeList<LayerModificationCommand>(10, Allocator.Persistent);
 
-            this.voxelLayout = voxels;
+            this.volume = voxels;
         }
 
         public override bool ConsolidateChanges(VoxelWorldVolumetricLayerData layerData, ref JobHandleWrapper dependency)
@@ -32,7 +32,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             {
                 commands = modificationCommands,
                 dataArray = layerData,
-                voxelLayout = voxelLayout
             };
             dependency = commandPlaybackJob.Schedule(dependency + writeDependency);
             RegisterReadDependency(dependency);
@@ -62,7 +61,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
             return new CommandBufferNativeWritableHandle(
                 modificationCommands,
-                voxelLayout,
+                volume,
                 localToWorldTransform);
         }
 
