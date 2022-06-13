@@ -16,7 +16,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         [NonSerialized]
         public int voxelLayerId;
 
-        public virtual void SetupInternalData(VolumetricWorldVoxelLayout layout, int myLayerId)
+        public virtual void SetupInternalData(VoxelVolume layout, int myLayerId)
         {
             voxelLayerId = myLayerId;
             foreach (var effect in effects)
@@ -24,7 +24,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
                 effect.SetupInternalData(layout);
             }
         }
-        public virtual void CleanupInternalData(VolumetricWorldVoxelLayout layout)
+        public virtual void CleanupInternalData(VoxelVolume layout)
         {
             foreach (var effect in effects)
             {
@@ -40,7 +40,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             }
 
 
-            var voxelLayout = data.VoxelLayout;
+            var voxelLayout = data.VoxelLayout.volume;
             var copyInData = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
 
             var copyInJob = new CopyVoxelToWorkingDataJob

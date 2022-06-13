@@ -36,7 +36,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
             dependecy = JobHandle.CombineDependencies(dependecy, kernelDep);
 
-            var tmpSwapSpace = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
+            var tmpSwapSpace = new NativeArray<float>(voxelLayout.volume.totalVoxels, Allocator.TempJob);
 
             var diffuseXJob = new VoxelKernelDiffusionJob
             {

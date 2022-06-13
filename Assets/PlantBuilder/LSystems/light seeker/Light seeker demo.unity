@@ -951,6 +951,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1621242208}
   - component: {fileID: 1621242207}
+  - component: {fileID: 1621242209}
   m_Layer: 0
   m_Name: Volumetric world
   m_TagString: Untagged
@@ -970,8 +971,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e92d9f010aaa80b4d96a176c8fdc1af4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldSize: {x: 30, y: 20, z: 30}
-  worldResolution: {x: 15, y: 10, z: 15}
   heatmapGradient:
     serializedVersion: 2
     key0: {r: 0.03374013, g: 0.03374013, b: 0.03374013, a: 0}
@@ -1004,8 +1003,6 @@ MonoBehaviour:
   gizmos: 1
   layerToRender: 1
   minValue: 0.1
-  wireCellGizmos: 0
-  amountVisualizedGizmos: 1
   damageLayer: {fileID: 0}
   extraLayers:
   - {fileID: 11400000, guid: 2d1689397daf99c4e9821e7d05b45178, type: 2}
@@ -1023,6 +1020,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1621242209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1621242206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e886013b54d67c4992cb8c3aacbf53c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  worldSize: {x: 30, y: 20, z: 30}
+  worldResolution: {x: 15, y: 10, z: 15}
+  gizmos: 1
 --- !u!1 &1644388429
 GameObject:
   m_ObjectHideFlags: 0

@@ -28,8 +28,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public DoubleBufferModifierHandle(VolumetricWorldVoxelLayout voxels, int doubleBufferedLayerIndex)
         {
-            valuesA = new NativeArray<float>(voxels.totalVoxels, Allocator.Persistent);
-            valuesB = new NativeArray<float>(voxels.totalVoxels, Allocator.Persistent);
+            valuesA = new NativeArray<float>(voxels.volume.totalVoxels, Allocator.Persistent);
+            valuesB = new NativeArray<float>(voxels.volume.totalVoxels, Allocator.Persistent);
             mostRecentDataInA = true;
 
             this.voxelLayout = voxels;
@@ -67,7 +67,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 markerLayerIndex = doubleBufferedLayerIndex,
                 totalLayersInBase = layout.dataLayerCount
             };
-            dependency = subtractCleanupJob.Schedule(layout.totalVoxels, 1000, dependency + writeDependency);
+            dependency = subtractCleanupJob.Schedule(layout.volume.totalVoxels, 1000, dependency + writeDependency);
         }
 
         public DoubleBufferNativeWritableHandle GetNextNativeWritableHandle(

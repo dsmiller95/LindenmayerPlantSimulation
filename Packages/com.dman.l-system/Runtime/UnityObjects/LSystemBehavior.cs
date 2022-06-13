@@ -142,7 +142,6 @@ namespace Dman.LSystem.UnityObjects
 
             public void Apply(LSystemBehavior target)
             {
-                Debug.Log("l system behavior deserialized");
                 target.lastUpdateTime = 0;
                 var systemRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
                 target.systemObject = systemRegistry.GetUniqueObjectFromID(lSystemId);

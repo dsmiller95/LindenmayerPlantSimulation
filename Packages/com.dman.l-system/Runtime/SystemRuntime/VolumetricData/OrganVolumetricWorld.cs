@@ -18,12 +18,22 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         ALWAYS
     }
 
+    [RequireComponent(typeof(VoxelVolumeDefinition))]
     public class OrganVolumetricWorld : MonoBehaviour, ISaveableData
     {
-        public Vector3 voxelOrigin => transform.position;
-        public Vector3 worldSize;
 
-        public Vector3Int worldResolution;
+        private VoxelVolumeDefinition _volumeDefinition;
+        public VoxelVolumeDefinition VolumeDefinition
+        {
+            get
+            {
+                if (_volumeDefinition == null)
+                {
+                    _volumeDefinition = GetComponent<VoxelVolumeDefinition>();
+                }
+                return _volumeDefinition;
+            }
+        }
 
         public Gradient heatmapGradient;
 
@@ -31,8 +41,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
         public int layerToRender = 0;
         [Range(0.01f, 100f)]
         public float minValue = 0.01f;
-        public bool wireCellGizmos = false;
-        public bool amountVisualizedGizmos = true;
 
         public VolumetricResourceLayer damageLayer;
 
@@ -66,9 +74,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         public VolumetricWorldVoxelLayout VoxelLayout => new VolumetricWorldVoxelLayout
         {
-            voxelOrigin = voxelOrigin,
-            worldSize = worldSize,
-            worldResolution = worldResolution,
+            volume = VolumeDefinition.Volume,
             dataLayerCount = AllLayers.Length + 1
         };
 
@@ -126,7 +132,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent),
                 new VoxelWorldVolumetricLayerData(VoxelLayout, Allocator.Persistent)
                 );
-            var layout = VoxelLayout;
 
             // damage world should have a cap reached effect
             if (damageLayer == null)
@@ -145,7 +150,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             var layerId = 1;
             foreach (var layer in AllLayers)
             {
-                layer.SetupInternalData(layout, layerId);
+                layer.SetupInternalData(VolumeDefinition.Volume, layerId);
                 layerId++;
             }
         }
@@ -209,10 +214,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             NativeVolumeData.Dispose();
             NativeVolumeData = null;
 
-            var layout = VoxelLayout;
+            var volume = VolumeDefinition.Volume;
             foreach (var layer in AllLayers)
             {
-                layer.CleanupInternalData(layout);
+                layer.CleanupInternalData(volume);
             }
         }
 
@@ -233,22 +238,17 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void DrawGizmos()
         {
-            if (!wireCellGizmos && !amountVisualizedGizmos)
-            {
-                return;
-            }
-
             if (layerToRender >= AllLayers.Length + 1)
             {
                 return;
             }
 
-            var voxelLayout = this.VoxelLayout;
+            var voxelVolume = this.VolumeDefinition.Volume;
             var maxAmount = minValue; // to help prevent lag when values are low
             if (NativeVolumeData != null)
             {
                 NativeVolumeData.dataReaderDependencies.Complete();
-                for (VoxelIndex voxelIndex = default; voxelIndex.Value < voxelLayout.totalVoxels; voxelIndex.Value++)
+                for (VoxelIndex voxelIndex = default; voxelIndex.Value < voxelVolume.totalVoxels; voxelIndex.Value++)
                 {
                     var val = NativeVolumeData.openReadData[voxelIndex, layerToRender];
                     maxAmount = Mathf.Max(val, maxAmount);
@@ -258,42 +258,33 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             {
                 maxAmount = (Vector3.one / 4f).sqrMagnitude;
             }
-            var voxelSize = voxelLayout.voxelSize;
-            for (int x = 0; x < worldResolution.x; x++)
+            var voxelLayout = this.VoxelLayout;
+            for (int x = 0; x < voxelVolume.worldResolution.x; x++)
             {
-                for (int y = 0; y < worldResolution.y; y++)
+                for (int y = 0; y < voxelVolume.worldResolution.y; y++)
                 {
-                    for (int z = 0; z < worldResolution.z; z++)
+                    for (int z = 0; z < voxelVolume.worldResolution.z; z++)
                     {
                         var voxelCoordinate = new Vector3Int(x, y, z);
-                        var cubeCenter = voxelLayout.GetWorldPositionFromVoxelCoordinates(voxelCoordinate);
+                        var cubeCenter = voxelVolume.GetWorldPositionFromVoxelCoordinates(voxelCoordinate);
 
-                        if (amountVisualizedGizmos)
+                        float amount;
+                        if (NativeVolumeData != null)
                         {
-                            float amount;
-                            if (NativeVolumeData != null)
-                            {
-                                var voxelIndex = voxelLayout.GetVoxelIndexFromVoxelCoordinates(voxelCoordinate);
-                                amount = NativeVolumeData.openReadData[voxelIndex, layerToRender] / maxAmount;
-                            }
-                            else
-                            {
-                                var xScaled = ((voxelCoordinate.x + 0.5f) / (float)worldResolution.x) - 0.5f;
-                                var yScaled = ((voxelCoordinate.y + 0.5f) / (float)worldResolution.y) - 0.5f;
-                                var zScaled = ((voxelCoordinate.z + 0.5f) / (float)worldResolution.z) - 0.5f;
+                            var voxelIndex = voxelLayout.GetVoxelIndexFromVoxelCoordinates(voxelCoordinate);
+                            amount = NativeVolumeData.openReadData[voxelIndex, layerToRender] / maxAmount;
+                        }
+                        else
+                        {
+                            var xScaled = ((voxelCoordinate.x + 0.5f) / (float)voxelVolume.worldResolution.x) - 0.5f;
+                            var yScaled = ((voxelCoordinate.y + 0.5f) / (float)voxelVolume.worldResolution.y) - 0.5f;
+                            var zScaled = ((voxelCoordinate.z + 0.5f) / (float)voxelVolume.worldResolution.z) - 0.5f;
 
-                                amount = (maxAmount - new Vector3(xScaled, yScaled, zScaled).sqrMagnitude) / maxAmount;
-                            }
-
-                            Gizmos.color = heatmapGradient.Evaluate(amount);
-                            Gizmos.DrawCube(cubeCenter, voxelSize * 0.7f);
+                            amount = (maxAmount - new Vector3(xScaled, yScaled, zScaled).sqrMagnitude) / maxAmount;
                         }
 
-                        if (wireCellGizmos)
-                        {
-                            Gizmos.color = new Color(1, 0, 0, 1);
-                            Gizmos.DrawWireCube(cubeCenter, voxelSize);
-                        }
+                        Gizmos.color = heatmapGradient.Evaluate(amount);
+                        Gizmos.DrawCube(cubeCenter, voxelVolume.voxelSize * 0.7f);
                     }
                 }
             }

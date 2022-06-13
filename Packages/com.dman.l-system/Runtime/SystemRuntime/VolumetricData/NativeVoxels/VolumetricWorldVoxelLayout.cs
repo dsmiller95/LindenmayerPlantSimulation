@@ -6,16 +6,11 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 {
     public struct VolumetricWorldVoxelLayout
     {
-        public Vector3 voxelOrigin;
-        public Vector3 worldSize;
-        public Vector3Int worldResolution;
+        public VoxelVolume volume;
+        private Vector3Int worldResolution => volume.worldResolution;
         public int dataLayerCount;
 
-        public Vector3 voxelSize => new Vector3(worldSize.x / worldResolution.x, worldSize.y / worldResolution.y, worldSize.z / worldResolution.z);
-
-        public int totalDataSize => totalVoxels * dataLayerCount;
-        public int totalVoxels => worldResolution.x * worldResolution.y * worldResolution.z;
-        public int totalTiles => worldResolution.x * worldResolution.z;
+        public int totalDataSize => volume.totalVoxels * dataLayerCount;
 
 
         public int GetDataIndexForLayerAtVoxel(int voxelIndex, int layer)
@@ -25,25 +20,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 
         public VoxelIndex GetVoxelIndexFromWorldPosition(Vector3 worldPosition)
         {
-            return GetVoxelIndexFromVoxelCoordinates(GetVoxelCoordinatesFromWorldPosition(worldPosition));
+            return GetVoxelIndexFromVoxelCoordinates(volume.GetVoxelCoordinatesFromWorldPosition(worldPosition));
         }
 
         public Vector3 GetWorldPositionFromVoxelIndex(VoxelIndex voxelIndex)
         {
-            return GetWorldPositionFromVoxelCoordinates(GetVoxelCoordinatesFromVoxelIndex(voxelIndex));
-        }
-
-        public Vector3Int GetVoxelCoordinatesFromWorldPosition(Vector3 worldPosition)
-        {
-            var relativePos = (worldPosition - voxelOrigin);
-
-            var coord = new Vector3Int(
-                Mathf.FloorToInt(relativePos.x * worldResolution.x / worldSize.x),
-                Mathf.FloorToInt(relativePos.y * worldResolution.y / worldSize.y),
-                Mathf.FloorToInt(relativePos.z * worldResolution.z / worldSize.z)
-                );
-
-            return coord;
+            return volume.GetWorldPositionFromVoxelCoordinates(GetVoxelCoordinatesFromVoxelIndex(voxelIndex));
         }
 
         public VoxelIndex GetVoxelIndexFromVoxelCoordinates(int x, int y, int z)
@@ -68,11 +50,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             return GetVoxelIndexFromVoxelCoordinates(coordiantes.x, coordiantes.y, coordiantes.z);
         }
 
-        public Vector3 GetWorldPositionFromVoxelCoordinates(Vector3Int coordinate)
-        {
-            return Vector3.Scale(voxelSize, coordinate) + (voxelOrigin + (voxelSize / 2f));
-        }
-
         public Vector3Int GetVoxelCoordinatesFromVoxelIndex(VoxelIndex voxelIndex)
         {
             var x = voxelIndex.Value / (worldResolution.y * worldResolution.z);
@@ -84,24 +61,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 
         public TileIndex SurfaceGetTileIndexFromWorldPosition(Vector3 worldPosition)
         {
-            return SurfaceGetTileIndexFromTileCoordinates(SurfaceGetTileCoordinatesFromWorldPosition(worldPosition));
+            return SurfaceGetTileIndexFromTileCoordinates(volume.SurfaceGetTileCoordinatesFromWorldPosition(worldPosition));
         }
         public Vector2 SurfaceGetTilePositionFromTileIndex(TileIndex tileIndex)
         {
-            return SurfaceGetTilePositionFromTileCoordinates(SurfaceGetTileCoordinatesFromTileIndex(tileIndex));
+            return volume.SurfaceGetTilePositionFromTileCoordinates(SurfaceGetTileCoordinatesFromTileIndex(tileIndex));
         }
 
-        public Vector2Int SurfaceGetTileCoordinatesFromWorldPosition(Vector3 worldPosition)
-        {
-            var relativePos = (worldPosition - voxelOrigin);
-
-            var coord = new Vector2Int(
-                Mathf.FloorToInt(relativePos.x * worldResolution.x / worldSize.x),
-                Mathf.FloorToInt(relativePos.z * worldResolution.z / worldSize.z)
-                );
-
-            return coord;
-        }
 
         public TileIndex SurfaceGetTileIndexFromTileCoordinates(Vector2Int coordiantes)
         {
@@ -117,12 +83,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             {
                 Value = coordiantes.x * worldResolution.z + coordiantes.y
             };
-        }
-
-        public Vector2 SurfaceGetTilePositionFromTileCoordinates(Vector2Int coordinate)
-        {
-            var voxelPoint = GetWorldPositionFromVoxelCoordinates(new Vector3Int(coordinate.x, 0, coordinate.y));
-            return new Vector2(voxelPoint.x, voxelPoint.z);
         }
 
         public Vector2Int SurfaceGetTileCoordinatesFromTileIndex(TileIndex tileIndex)
@@ -142,9 +102,9 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             public int dataLayerCount;
             public Serializable(VolumetricWorldVoxelLayout source)
             {
-                origin = source.voxelOrigin;
-                size = source.voxelSize;
-                resolution = source.worldResolution;
+                origin = source.volume.voxelOrigin;
+                size = source.volume.voxelSize;
+                resolution = source.volume.worldResolution;
                 dataLayerCount = source.dataLayerCount;
             }
 
@@ -152,9 +112,12 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
             {
                 return new VolumetricWorldVoxelLayout
                 {
-                    voxelOrigin = origin,
-                    worldSize = size,
-                    worldResolution = resolution,
+                    volume = new VoxelVolume
+                    {
+                        voxelOrigin = origin,
+                        worldSize = size,
+                        worldResolution = resolution
+                    },
                     dataLayerCount = dataLayerCount
                 };
             }

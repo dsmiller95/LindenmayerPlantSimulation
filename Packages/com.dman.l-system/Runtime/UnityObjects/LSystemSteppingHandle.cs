@@ -410,7 +410,6 @@ namespace Dman.LSystem.UnityObjects
 
             if (globalResourceHandle.uniqueIdOriginPoint != lastHandle.uniqueIdOriginPoint)
             {
-                Debug.Log("global handle was changed when loading from save");
                 // the unique ID origin point changed. therefore, the l-system must step again to update the IDs based on the serialized LastState
                 //  this could be done faster with a simple ID update
                 StepSystemAsync(runtimeParameters, repeatLast: true);

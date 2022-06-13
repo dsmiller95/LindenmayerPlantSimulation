@@ -8,10 +8,10 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
     {
         public string description;
 
-        public virtual void SetupInternalData(VolumetricWorldVoxelLayout layout)
+        public virtual void SetupInternalData(VoxelVolume layout)
         {
         }
-        public virtual void CleanupInternalData(VolumetricWorldVoxelLayout layout)
+        public virtual void CleanupInternalData(VoxelVolume layout)
         {
         }
 

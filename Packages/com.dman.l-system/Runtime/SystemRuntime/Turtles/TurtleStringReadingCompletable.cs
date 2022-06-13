@@ -98,10 +98,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 tempDataToDispose = new VoxelWorldVolumetricLayerData(new VolumetricWorldVoxelLayout
                 {
-                    voxelOrigin = Vector3.zero,
+                    volume = new VoxelVolume
+                    {
+                        voxelOrigin = Vector3.zero,
+                        worldResolution = Vector3Int.zero,
+                        worldSize = Vector3.one,
+                    },
                     dataLayerCount = 0,
-                    worldResolution = Vector3Int.zero,
-                    worldSize = Vector3.one,
                 }, Allocator.TempJob);
                 volumetricHandles = new TurtleVolumetricHandles
                 {

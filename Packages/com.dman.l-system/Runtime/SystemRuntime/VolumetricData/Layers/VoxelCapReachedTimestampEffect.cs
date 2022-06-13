@@ -28,13 +28,13 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
         public JobHandle? damageDataUpdateDependency { get; private set; }
         private NativeArray<float> volumetricDestructionTimestamps;
 
-        public override void SetupInternalData(VolumetricWorldVoxelLayout layout)
+        public override void SetupInternalData(VoxelVolume layout)
         {
             base.SetupInternalData(layout);
             volumetricDestructionTimestamps = new NativeArray<float>(layout.totalVoxels, Allocator.Persistent);
         }
 
-        public override void CleanupInternalData(VolumetricWorldVoxelLayout layout)
+        public override void CleanupInternalData(VoxelVolume layout)
         {
             base.CleanupInternalData(layout);
             damageDataUpdateDependency?.Complete();
