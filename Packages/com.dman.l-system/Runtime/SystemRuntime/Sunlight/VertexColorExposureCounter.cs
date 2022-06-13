@@ -165,7 +165,9 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
                 using var nativeIdData = readbackRequest.Value.GetData<uint>();
                 var reAllocatedNativeData = new NativeArray<uint>(nativeIdData, Allocator.Persistent);
                 var dependencyTracker = uniqueSunlightAssignments.AssignPending(reAllocatedNativeData);
+#if UNITY_EDITOR
                 dependencyTracker.underlyingAllocator = Allocator.Persistent;
+#endif
 
                 uniqueSunlightAssignments.HotSwapToPending();
             }
