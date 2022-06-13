@@ -45,8 +45,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
 
         private void DrawGizmos()
         {
-            var voxelLayout = this.Volume;
-            var voxelSize = voxelLayout.voxelSize;
+            var volume = this.Volume;
+            var voxelSize = volume.voxelSize;
             for (int x = 0; x < worldResolution.x; x++)
             {
                 for (int y = 0; y < worldResolution.y; y++)
@@ -54,7 +54,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
                     for (int z = 0; z < worldResolution.z; z++)
                     {
                         var voxelCoordinate = new Vector3Int(x, y, z);
-                        var cubeCenter = voxelLayout.GetWorldPositionFromVoxelCoordinates(voxelCoordinate);
+                        var cubeCenter = volume.GetWorldPositionFromVoxelCoordinates(voxelCoordinate);
                         Gizmos.color = new Color(1, 0, 0, 1);
                         Gizmos.DrawWireCube(cubeCenter, voxelSize);
                     }

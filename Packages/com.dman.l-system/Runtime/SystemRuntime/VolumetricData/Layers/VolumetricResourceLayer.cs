@@ -40,8 +40,8 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             }
 
 
-            var voxelLayout = data.VoxelLayout.volume;
-            var copyInData = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
+            var volume = data.VoxelLayout.volume;
+            var copyInData = new NativeArray<float>(volume.totalVoxels, Allocator.TempJob);
 
             var copyInJob = new CopyVoxelToWorkingDataJob
             {
@@ -52,7 +52,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
 
             dependecy = copyInJob.Schedule(copyInData.Length, 1000, dependecy);
 
-            var swapSpace = new NativeArray<float>(voxelLayout.totalVoxels, Allocator.TempJob);
+            var swapSpace = new NativeArray<float>(volume.totalVoxels, Allocator.TempJob);
             var workingData = new DoubleBuffered<float>(copyInData, swapSpace);
 
             var changed = false;

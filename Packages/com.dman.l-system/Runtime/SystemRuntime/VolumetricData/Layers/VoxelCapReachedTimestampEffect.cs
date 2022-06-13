@@ -73,7 +73,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             {
                 voxelLayerData = voxelLayers,
                 flagCapLayerIndex = voxelResourceCapLayerId,
-                voxelLayout = voxelLayers.VoxelLayout,
 
                 volumetricDamageValues = damageValues,
                 volumetricDestructionTimestamps = volumetricDestructionTimestamps,
@@ -135,7 +134,6 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData.Layers
             [ReadOnly]
             public VoxelWorldVolumetricLayerData voxelLayerData;
             public int flagCapLayerIndex;
-            public VolumetricWorldVoxelLayout voxelLayout;
 
             public NativeArray<float> volumetricDamageValues;
             public NativeArray<float> volumetricDestructionTimestamps;
