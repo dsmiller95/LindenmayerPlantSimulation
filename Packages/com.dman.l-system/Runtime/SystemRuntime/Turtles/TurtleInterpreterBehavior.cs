@@ -5,6 +5,7 @@ using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.UnityObjects;
 using Dman.LSystem.UnityObjects.VolumetricResource;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -24,6 +25,8 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
         /// the begining scale of the turtle's transformation matrix
         /// </summary>
         public Vector3 initialScale = Vector3.one;
+
+        public event Action OnTurtleMeshUpdated;
 
         private TurtleInterpretor turtle;
         private LSystemBehavior System => GetComponent<LSystemBehavior>();
@@ -51,6 +54,11 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 System.OnSystemStateUpdated -= OnSystemStateUpdated;
                 System.OnSystemObjectUpdated -= OnSystemObjectUpdated;
             }
+            if (cancelPending != null)
+            {
+                cancelPending.Cancel();
+                cancelPending.Dispose();
+            }
             if (turtle != null)
             {
                 turtle.Dispose();
@@ -75,6 +83,7 @@ namespace Dman.LSystem.SystemRuntime.DOTSRenderer
                 meshFilter.mesh,
                 meshFilter.transform.localToWorldMatrix,
                 token);
+            OnTurtleMeshUpdated?.Invoke();
             // TOODO: do this oon startup?
 
             //UnityEngine.Profiling.Profiler.EndSample();

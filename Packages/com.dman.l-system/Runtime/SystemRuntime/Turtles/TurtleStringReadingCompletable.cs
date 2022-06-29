@@ -219,10 +219,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 currentJobHandle.Complete();
                 organInstancesBuilder.Dispose();
-                if (nativeData.IsDisposed)
-                {
-                    Debug.LogError("turtle data has been disposed before completable could finish");
-                }
                 throw new OperationCanceledException();
             }
 
