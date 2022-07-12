@@ -25,18 +25,18 @@ namespace Dman.LSystem.SystemCompiler.Linker
         public List<RuntimeParameterAndDefault> allGlobalRuntimeParams;
 
         public LinkedFileSet(
-            string originFile,
+            string originFileName,
             Dictionary<string, LinkedFile> allFilesByFullIdentifier,
             List<SymbolDefinition> allSymbolDefinitionsLeafFirst)
         {
             fileIndexesByFullIdentifier = new SerializableDictionary<string, int>();
             this.allSymbolDefinitionsLeafFirst = allSymbolDefinitionsLeafFirst;
-            this.originFile = originFile;
+            this.originFile = originFileName;
 
-            var originFileData = allFilesByFullIdentifier[originFile];
+            var originFileData = allFilesByFullIdentifier[originFileName];
             if (originFileData.isLibrary)
             {
-                throw new LinkException(LinkExceptionType.BASE_FILE_IS_LIBRARY, $"Origin file '{originFile}' is a library. origin file must be a .lsystem file");
+                throw new LinkException(LinkExceptionType.BASE_FILE_IS_LIBRARY, $"Origin file '{originFileName}' is a library. origin file must be a .lsystem file");
             }
 
             allFiles = new BinarySerialized<List<LinkedFile>>();
@@ -94,9 +94,9 @@ namespace Dman.LSystem.SystemCompiler.Linker
             }
 
 
-            if (!fileIndexesByFullIdentifier.ContainsKey(originFile))
+            if (!fileIndexesByFullIdentifier.ContainsKey(originFileName))
             {
-                throw new LinkException(LinkExceptionType.BAD_ORIGIN_FILE, $"could not find origin file '{originFile}'");
+                throw new LinkException(LinkExceptionType.BAD_ORIGIN_FILE, $"could not find origin file '{originFileName}'");
             }
         }
 

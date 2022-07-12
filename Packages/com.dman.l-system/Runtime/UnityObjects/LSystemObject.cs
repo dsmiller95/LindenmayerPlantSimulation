@@ -97,13 +97,26 @@ namespace Dman.LSystem.UnityObjects
             if (!string.IsNullOrWhiteSpace(filePath))
             {
                 var linker = new FileLinker(new FileSystemFileProvider());
-                linkedFiles = linker.LinkFiles(filePath);
-
-                // compile the system right away and throw it out to catch any compile-time errors
-                this.CompileToCached();
-                compiledSystem?.Dispose();
-                compiledSystem = null;
+                this.SetLinkedFiles(linker.LinkFiles(filePath));
             }
+        }
+
+        public static LSystemObject GetNewLSystemFromFiles(LinkedFileSet linkedFiles)
+        {
+            var systemObject = ScriptableObject.CreateInstance<LSystemObject>();
+            systemObject.SetLinkedFiles(linkedFiles);
+
+            return systemObject;
+        }
+
+        private void SetLinkedFiles(LinkedFileSet linkedFiles)
+        {
+            this.linkedFiles = linkedFiles;
+
+            // compile the system right away and throw it out to catch any compile-time errors
+            this.CompileToCached();
+            compiledSystem?.Dispose();
+            compiledSystem = null;
         }
     }
 }
