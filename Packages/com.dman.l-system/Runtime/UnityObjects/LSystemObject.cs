@@ -113,10 +113,8 @@ namespace Dman.LSystem.UnityObjects
         {
             this.linkedFiles = linkedFiles;
 
-            // compile the system right away and throw it out to catch any compile-time errors
+            // compile the system right away to the cached system
             this.CompileToCached();
-            compiledSystem?.Dispose();
-            compiledSystem = null;
         }
     }
 }

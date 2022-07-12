@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/L System Demo.unity
     guid: 4a8906830401018489aec34010e06688
+  - enabled: 1
+    path: Assets/Test resources/PERFORMANCE_TEST_SCENE.unity
+    guid: 8279f01ded47ab64ba92f9fbe8241fc1
   m_configObjects: {}

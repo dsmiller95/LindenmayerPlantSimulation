@@ -44,16 +44,19 @@ namespace Dman.LSystem.UnityObjects
             this.systemObject = mySystemObject;
             this.useSharedSystem = useSharedSystem;
 
-            if (useSharedSystem)
-            {
-                this.systemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
-            }
 
             if (GlobalLSystemCoordinator.instance == null)
             {
                 throw new Exception("No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
             }
             globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle(associatedBehavior);
+
+            if (useSharedSystem)
+            {
+                this.systemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
+                if(this.systemObject.compiledSystem != null)
+                    OnSharedSystemRecompiled();
+            }
         }
 
         private LSystemSteppingHandle()

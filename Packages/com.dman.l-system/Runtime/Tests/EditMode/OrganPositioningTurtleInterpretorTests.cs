@@ -17,7 +17,7 @@ using UnityEngine.TestTools;
 
 public class OrganPositioningTurtleInterpretorTests
 {
-    private OrganPositioningTurtleInterpretor GetInterpretor(char[] meshKeys, Action<MeshKey> meshKeyOverrides = null, Matrix4x4? organSpaceTransform = null)
+    public static TurtleMeshOperations GetDefaultMeshOperations(char[] meshKeys, Action<MeshKey> meshKeyOverrides = null)
     {
         var meshOperations = ScriptableObject.CreateInstance<TurtleMeshOperations>();
         meshOperations.meshKeys = meshKeys.Select(x =>
@@ -41,10 +41,23 @@ public class OrganPositioningTurtleInterpretorTests
             return mesh;
         }).ToArray();
 
+        return meshOperations;
+    }
+
+    public static TurtleRotateOperations GetDefaultRotateOperations(float rotateMagnitudeDegrees)
+    {
         var turnOperations = ScriptableObject.CreateInstance<TurtleRotateOperations>();
-        turnOperations.defaultRollTheta = 90;
-        turnOperations.defaultTurnTheta = 90;
-        turnOperations.defaultTiltTheta = 90;
+        turnOperations.defaultRollTheta = rotateMagnitudeDegrees;
+        turnOperations.defaultTurnTheta = rotateMagnitudeDegrees;
+        turnOperations.defaultTiltTheta = rotateMagnitudeDegrees;
+        return turnOperations;
+    }
+
+    private OrganPositioningTurtleInterpretor GetInterpretor(char[] meshKeys, Action<MeshKey> meshKeyOverrides = null, Matrix4x4? organSpaceTransform = null)
+    {
+        var meshOperations = GetDefaultMeshOperations(meshKeys, meshKeyOverrides);
+
+        var turnOperations = GetDefaultRotateOperations(90);
 
         var opSets = new List<TurtleOperationSet>() { meshOperations, turnOperations };
         var defaultState = new TurtleState

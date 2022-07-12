@@ -42,10 +42,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
         }
 
-        private void Update()
-        {
-        }
-
         private void OnDestroy()
         {
             if (System != null)

@@ -136,7 +136,7 @@ namespace Dman.LSystem.SystemRuntime.VolumetricData
             // damage world should have a cap reached effect
             if (damageLayer == null)
             {
-                Debug.LogWarning("No damage layer specified in the volumetric world, no damage effects can happen");
+                //Debug.LogWarning("No damage layer specified in the volumetric world, no damage effects can happen");
             }
             else
             {
