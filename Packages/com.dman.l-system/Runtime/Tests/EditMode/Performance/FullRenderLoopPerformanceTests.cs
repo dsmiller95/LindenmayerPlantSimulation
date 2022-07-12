@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Unity.PerformanceTesting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -20,24 +21,40 @@ public class FullRenderLoopPerformanceTests
 
     private class CustomProfileSampler
     {
-        private static Dictionary<string, SampleGroup> sampleGroup = new Dictionary<string, SampleGroup>();
+        private Dictionary<string, SampleGroup> sampleGroup = new Dictionary<string, SampleGroup>();
 
-        private static Dictionary<string, int> aggregateSamples = new Dictionary<string, int>();
+        private Dictionary<string, int> aggregateSamples = new Dictionary<string, int>();
 
-        public void AddSampleGroup(SampleGroup group)
+        public bool samplingEnabled;
+
+        public void AddSampleGroup(SampleGroup group, bool aggregator = true)
         {
             sampleGroup[group.Name] = group;
-            aggregateSamples[group.Name] = 0;
+            if (aggregator)
+            {
+                aggregateSamples[group.Name] = 0;
+            }
         }
 
         public void AddSample(string sampleName, int additionalValue)
         {
-            aggregateSamples[sampleName] += additionalValue;
+            if (samplingEnabled)
+                aggregateSamples[sampleName] += additionalValue;
+        }
+
+        public void SingleSample(string sampleName, int value)
+        {
+            if (samplingEnabled)
+                Measure.Custom(sampleGroup[sampleName], value);
         }
 
         public void ApplySamples()
         {
-            foreach (var key in sampleGroup.Keys)
+            if (!samplingEnabled)
+            {
+                return;
+            }
+            foreach (var key in aggregateSamples.Keys.ToList())
             {
                 Measure.Custom(sampleGroup[key], aggregateSamples[key]);
                 aggregateSamples[key] = 0;
@@ -48,8 +65,9 @@ public class FullRenderLoopPerformanceTests
     private static IEnumerator MeasureAcrossFrames(Func<IEnumerator> acrossFrame, int warmup, int sampleCount)
     {
         customSamples = new CustomProfileSampler();
-        customSamples.AddSampleGroup(new SampleGroup("vertex count", SampleUnit.Undefined));
-        customSamples.AddSampleGroup(new SampleGroup("Runtime", SampleUnit.Millisecond));
+        customSamples.AddSampleGroup(new SampleGroup("vertex count", SampleUnit.Undefined), false);
+        customSamples.AddSampleGroup(new SampleGroup("SingleStepLifetime", SampleUnit.Millisecond), false);
+        customSamples.samplingEnabled = false;
 
         var runNumber = 0;
 
@@ -59,18 +77,18 @@ public class FullRenderLoopPerformanceTests
             yield return acrossFrame();
         }
 
-        var stopwatch = new Stopwatch();
-        while (runNumber < (warmup + sampleCount))
+        customSamples.samplingEnabled = true;
+        using (Measure.Frames().Scope("Frame Time"))
         {
-            stopwatch.Restart();
-            yield return acrossFrame();
-            stopwatch.Stop();
+            while (runNumber < (warmup + sampleCount))
+            {
+                yield return acrossFrame();
+                customSamples.ApplySamples();
 
-            customSamples.AddSample("Runtime", (int)stopwatch.ElapsedMilliseconds);
-            customSamples.ApplySamples();
-
-            runNumber++;
+                runNumber++;
+            }
         }
+
     }
 
     private static IEnumerator AsyncCoroutine(UniTask async)
@@ -87,47 +105,81 @@ public class FullRenderLoopPerformanceTests
         }
     }
 
-    private static async UniTask FullLoopStep(LSystemBehavior behavior, TurtleInterpreterBehavior turtle, Camera camera)
+    private static async UniTask FullGardenGrowth(LSystemBehavior[] behaviors, int stepsPer)
     {
+        var primaryTask = UniTask.WhenAll(behaviors.Select(async x =>
+        {
+            for (int i = 0; i < stepsPer; i++)
+            {
+                await FullLoopStep(x, null, false);
+            }
+        }).ToList());
+
+        var running = true;
+        await UniTask.WhenAny(primaryTask, PipeJobUpdates());
+        running = false;
+
+        async UniTask PipeJobUpdates()
+        {
+            while (running)
+            {
+                JobHandleExtensions.PendingAsyncJobs.Complete();
+                await UniTask.Yield(PlayerLoopTiming.Update);
+            }
+        }
+    }
+
+    private static async UniTask FullLoopStep(LSystemBehavior behavior, Camera camera = null, bool pipeJobs = true)
+    {
+        var stopwatch = new Stopwatch();
+        stopwatch.Restart();
+
         behavior.StepSystem();
 
         var turtleTriggered = false;
         var triggeredFrame = 0;
 
+        var turtle = behavior.GetComponent<TurtleInterpreterBehavior>();
         turtle.OnTurtleMeshUpdated += OnTurtleUpdate;
 
         void OnTurtleUpdate()
         {
             turtle.OnTurtleMeshUpdated -= OnTurtleUpdate;
-            camera.Render();
+            camera?.Render();
             turtleTriggered = true;
             triggeredFrame = Time.frameCount;
-            customSamples.AddSample("vertex count", turtle.GetComponent<MeshFilter>().mesh.vertexCount);
+            customSamples.SingleSample("vertex count", turtle.GetComponent<MeshFilter>().mesh.vertexCount);
         }
 
         var startTime = DateTime.Now;
 
-        while (true) {
+        while (true)
+        {
 
-            if((DateTime.Now - startTime) >= TimeSpan.FromSeconds(1))
+            if ((DateTime.Now - startTime) >= TimeSpan.FromSeconds(10))
             {
                 throw new Exception("timeout");
             }
 
-            if(turtleTriggered && Time.frameCount >= triggeredFrame + 1)
+            if (turtleTriggered && Time.frameCount >= triggeredFrame + 1)
             {
-                return;
+                break;
             }
 
-            //JobHandleExtensions.PendingAsyncJobs.Complete();
-            //await UniTask.Yield(PlayerLoopTiming.EarlyUpdate);
-            JobHandleExtensions.PendingAsyncJobs.Complete();
+            if (pipeJobs)
+            {
+                JobHandleExtensions.PendingAsyncJobs.Complete();
+            }
+            await UniTask.Yield(PlayerLoopTiming.Update);
             await UniTask.Yield(PlayerLoopTiming.Update);
         }
+
+        stopwatch.Stop();
+        customSamples.SingleSample("SingleStepLifetime", (int)stopwatch.ElapsedMilliseconds);
     }
 
 
-    public static (LSystemBehavior system, TurtleInterpreterBehavior turtle) ConfigureNewLSystem(LSystemObject systemObject, List<TurtleOperationSet> turtleOperations)
+    public static LSystemBehavior ConfigureNewLSystem(LSystemObject systemObject, List<TurtleOperationSet> turtleOperations)
     {
         var systemRenderer = new GameObject("lsystem renderer");
         systemRenderer.SetActive(false);
@@ -143,7 +195,7 @@ public class FullRenderLoopPerformanceTests
         turtleInterpretor.initialScale = new Vector3(.3f, .3f, .3f);
         systemRenderer.SetActive(true);
 
-        return (systemBehavior, turtleInterpretor);
+        return systemBehavior;
     }
 
     public static (Camera sunlightCamera, Camera mainCamera) GetCameras()
@@ -167,7 +219,7 @@ public class FullRenderLoopPerformanceTests
     }
 
     [UnityTest, Performance]
-    public IEnumerator SimpleLineLSystemStepsAndRendersWithoutSunlight()
+    public IEnumerator SimpleLine()
     {
         yield return new EnterPlayMode();
         yield return null;
@@ -177,7 +229,7 @@ public class FullRenderLoopPerformanceTests
         yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
         yield return null;
         JobHandleExtensions.TrackPendingJobs = true;
-        
+
 
         var systemObject = GetConfiguredLSystem(@"
 #axiom aF
@@ -194,13 +246,13 @@ a -> aF
 
 
         {
-            var (systemBehavior, turtleInterpretor) = ConfigureNewLSystem(systemObject, turtleOperations);
+            var systemBehavior = ConfigureNewLSystem(systemObject, turtleOperations);
 
             var (sunlightCamera, renderingCamera) = GetCameras();
 
             yield return MeasureAcrossFrames(() =>
             {
-                return AsyncCoroutine(FullLoopStep(systemBehavior, turtleInterpretor, renderingCamera));
+                return AsyncCoroutine(FullLoopStep(systemBehavior, renderingCamera));
             }, 5, 30);
 
         }
@@ -209,7 +261,7 @@ a -> aF
     }
 
     [UnityTest, Performance]
-    public IEnumerator LargeTreeLSystemStepsAndRendersWithoutSunlight()
+    public IEnumerator LargeTree()
     {
         yield return new EnterPlayMode();
         yield return null;
@@ -236,23 +288,67 @@ a(x) : x <= 0 -> /F
 
 
         {
-            var (systemBehavior, turtleInterpretor) = ConfigureNewLSystem(systemObject, turtleOperations);
-            systemBehavior.logStates = true;
+            var systemBehavior = ConfigureNewLSystem(systemObject, turtleOperations);
 
             var (sunlightCamera, renderingCamera) = GetCameras();
             yield return MeasureAcrossFrames(() =>
             {
-                return AsyncCoroutine(FullLoopStep(systemBehavior, turtleInterpretor, renderingCamera));
-            }, 5, 30);
+                return AsyncCoroutine(FullLoopStep(systemBehavior, renderingCamera));
+            }, 5, 20);
 
         }
 
         yield return new ExitPlayMode();
     }
 
+    [UnityTest, Performance]
+    public IEnumerator ManyTrees()
+    {
+        yield return new EnterPlayMode();
+        yield return null;
+
+        // this scene will be preconfigured with all the required context to get lsystems working
+        var targetScene = EditorSceneManager.GetSceneByName("PERFORMANCE_TEST_SCENE");
+        yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        yield return null;
+        JobHandleExtensions.TrackPendingJobs = true;
+
+        var systemObject = GetConfiguredLSystem(@"
+#axiom a(6)F
+#symbols +-\/^&
+#iterations 10
+#symbols Fna
+
+P(1/3) | a(x) : x > 0 -> FFF\[+a(x - 1)][-a(x - 1)]
+P(2/3) | a(x) : x > 0 -> a(x)
+a(x) : x <= 0 -> /F
+");
+        var turtleOperations = new List<TurtleOperationSet>();
+        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultMeshOperations(new[] { 'F' }));
+        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultRotateOperations(30));
+
+        {
+            var behaviors = new LSystemBehavior[20];
+            for (int i = 0; i < behaviors.Length; i++)
+            {
+                behaviors[i] = ConfigureNewLSystem(systemObject, turtleOperations);
+                var posOnGround = UnityEngine.Random.insideUnitCircle * 8;
+                behaviors[i].transform.position += new Vector3(posOnGround.x, 0, posOnGround.y);
+            }
+
+            var (sunlightCamera, renderingCamera) = GetCameras();
+            yield return null;
+            yield return MeasureAcrossFrames(() =>
+            {
+                return AsyncCoroutine(FullGardenGrowth(behaviors, 25));
+            }, 1, 2);
+        }
+
+        yield return new ExitPlayMode();
+    }
 
     [UnityTest, Performance]
-    public IEnumerator ManySmallTreeSystemsStepAndRenderWithoutSunlight()
+    public IEnumerator LargeTreeHighVertexCount()
     {
         yield return new EnterPlayMode();
         yield return null;
@@ -274,20 +370,65 @@ a(x) : x <= 0 -> /F
 ");
 
         var turtleOperations = new List<TurtleOperationSet>();
-        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultMeshOperations(new[] { 'F' }));
+        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultMeshOperations(new[] { 'F' }, defaultMesh: Resources.GetBuiltinResource<Mesh>("Sphere.fbx")));
         turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultRotateOperations(30));
 
 
         {
-            var (systemBehavior, turtleInterpretor) = ConfigureNewLSystem(systemObject, turtleOperations);
-            systemBehavior.logStates = true;
+            var systemBehavior = ConfigureNewLSystem(systemObject, turtleOperations);
 
             var (sunlightCamera, renderingCamera) = GetCameras();
             yield return MeasureAcrossFrames(() =>
             {
-                return AsyncCoroutine(FullLoopStep(systemBehavior, turtleInterpretor, renderingCamera));
-            }, 5, 30);
+                return AsyncCoroutine(FullLoopStep(systemBehavior, renderingCamera));
+            }, 5, 20);
 
+        }
+
+        yield return new ExitPlayMode();
+    }
+
+    [UnityTest, Performance]
+    public IEnumerator ManyTreesHighVertexCount()
+    {
+        yield return new EnterPlayMode();
+        yield return null;
+
+        // this scene will be preconfigured with all the required context to get lsystems working
+        var targetScene = EditorSceneManager.GetSceneByName("PERFORMANCE_TEST_SCENE");
+        yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        yield return null;
+        JobHandleExtensions.TrackPendingJobs = true;
+
+        var systemObject = GetConfiguredLSystem(@"
+#axiom a(6)F
+#symbols +-\/^&
+#iterations 10
+#symbols Fna
+
+P(1/3) | a(x) : x > 0 -> FFF\[+a(x - 1)][-a(x - 1)]
+P(2/3) | a(x) : x > 0 -> a(x)
+a(x) : x <= 0 -> /F
+");
+        var turtleOperations = new List<TurtleOperationSet>();
+        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultMeshOperations(new[] { 'F' }, defaultMesh: Resources.GetBuiltinResource<Mesh>("Sphere.fbx")));
+        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultRotateOperations(30));
+
+        {
+            var behaviors = new LSystemBehavior[20];
+            for (int i = 0; i < behaviors.Length; i++)
+            {
+                behaviors[i] = ConfigureNewLSystem(systemObject, turtleOperations);
+                var posOnGround = UnityEngine.Random.insideUnitCircle * 8;
+                behaviors[i].transform.position += new Vector3(posOnGround.x, 0, posOnGround.y);
+            }
+
+            var (sunlightCamera, renderingCamera) = GetCameras();
+            yield return null;
+            yield return MeasureAcrossFrames(() =>
+            {
+                return AsyncCoroutine(FullGardenGrowth(behaviors, 25));
+            }, 1, 2);
         }
 
         yield return new ExitPlayMode();
