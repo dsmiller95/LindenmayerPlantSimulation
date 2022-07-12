@@ -84,6 +84,46 @@ public class FullRenderLoopPerformanceTests
         }, PlayerLoopTiming.Update);
     }
 
+
+    public static (LSystemBehavior system, TurtleInterpreterBehavior turtle) ConfigureNewLSystem(LSystemObject systemObject, List<TurtleOperationSet> turtleOperations)
+    {
+        var systemRenderer = new GameObject("lsystem renderer");
+        systemRenderer.SetActive(false);
+        systemRenderer.transform.position = Vector3.zero;
+        systemRenderer.transform.localEulerAngles = new Vector3(0, 0, 90);
+        systemRenderer.AddComponent<MeshFilter>();
+        systemRenderer.AddComponent<MeshRenderer>();
+        var systemBehavior = systemRenderer.AddComponent<LSystemBehavior>();
+        var turtleInterpretor = systemRenderer.AddComponent<TurtleInterpreterBehavior>();
+
+        systemBehavior.systemObject = systemObject;
+        turtleInterpretor.operationSets = turtleOperations;
+        turtleInterpretor.initialScale = new Vector3(.3f, .3f, .3f);
+        systemRenderer.SetActive(true);
+
+        return (systemBehavior, turtleInterpretor);
+    }
+
+    public static (Camera sunlightCamera, Camera mainCamera) GetCameras()
+    {
+        var sunlightCamera = GameObject.FindObjectOfType<SunlightCamera>().GetComponent<Camera>();
+        sunlightCamera.enabled = false;
+        var renderingCameraObject = GameObject.FindGameObjectWithTag("MainCamera");
+        var renderingCamera = renderingCameraObject.GetComponent<Camera>();
+        renderingCamera.enabled = false;
+
+        return (sunlightCamera, renderingCamera);
+    }
+
+    private static LSystemObject GetConfiguredLSystem(string rootFileText)
+    {
+        var fileSystem = new InMemoryFileProvider();
+        fileSystem.RegisterFileWithIdentifier("root.lsystem", rootFileText);
+        var linker = new FileLinker(fileSystem);
+        var linkedFiles = linker.LinkFiles("root.lsystem");
+        return LSystemObject.GetNewLSystemFromFiles(linkedFiles);
+    }
+
     [UnityTest, Performance]
     public IEnumerator SimpleLineLSystemStepsAndRendersWithoutSunlight()
     {
@@ -95,20 +135,14 @@ public class FullRenderLoopPerformanceTests
         yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
         yield return null;
 
-        var testFile = @"
+        var systemObject = GetConfiguredLSystem(@"
 #axiom aF
 #symbols +-\/^&
 #iterations 10
 #symbols Fna
 
 a -> aF
-";
-        var fileSystem = new InMemoryFileProvider();
-        fileSystem.RegisterFileWithIdentifier("root.lsystem", testFile);
-        var linker = new FileLinker(fileSystem);
-        var linkedFiles = linker.LinkFiles("root.lsystem");
-        var systemObject = LSystemObject.GetNewLSystemFromFiles(linkedFiles);
-
+");
 
         var turtleOperations = new List<TurtleOperationSet>();
         turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultMeshOperations(new[] { 'a' }));
@@ -116,27 +150,10 @@ a -> aF
 
 
         {
-            var systemRenderer = new GameObject("lsystem renderer");
-            systemRenderer.SetActive(false);
-            systemRenderer.transform.position = Vector3.zero;
-            systemRenderer.transform.localEulerAngles = new Vector3(0, 0, 90);
-            systemRenderer.AddComponent<MeshFilter>();
-            systemRenderer.AddComponent<MeshRenderer>();
-            var systemBehavior = systemRenderer.AddComponent<LSystemBehavior>();
-            var turtleInterpretor = systemRenderer.AddComponent<TurtleInterpreterBehavior>();
+            var (systemBehavior, turtleInterpretor) = ConfigureNewLSystem(systemObject, turtleOperations);
 
-            systemBehavior.systemObject = systemObject;
-            turtleInterpretor.operationSets = turtleOperations;
-            turtleInterpretor.initialScale = new Vector3(.3f, .3f, .3f);
+            var (sunlightCamera, renderingCamera) = GetCameras();
 
-            systemRenderer.SetActive(true);
-
-            var sunlightCamera = GameObject.FindObjectOfType<SunlightCamera>().GetComponent<Camera>();
-            sunlightCamera.enabled = false;
-
-            var renderingCameraObject = GameObject.FindGameObjectWithTag("MainCamera");
-            var renderingCamera = renderingCameraObject.GetComponent<Camera>();
-            renderingCamera.enabled = false;
             yield return MeasureAcrossFrames(() =>
             {
                 return AsyncCoroutine(FullLoopStep(systemBehavior, turtleInterpretor, renderingCamera));
@@ -145,11 +162,12 @@ a -> aF
         }
 
         yield return new ExitPlayMode();
-        yield return null;
-
-
-        yield return null;
     }
 
+    [UnityTest, Performance]
+    public IEnumerator LargeTreeLSystemStepsAndRendersWithoutSunlight()
+    {
+
+    }
 
 }
