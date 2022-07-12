@@ -19,6 +19,9 @@ public class OrganPositioningTurtleInterpretorTests
 {
     public static TurtleMeshOperations GetDefaultMeshOperations(char[] meshKeys, Action<MeshKey> meshKeyOverrides = null)
     {
+        var defaultMaterial = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat");
+        // AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat"),
+
         var meshOperations = ScriptableObject.CreateInstance<TurtleMeshOperations>();
         meshOperations.meshKeys = meshKeys.Select(x =>
         {
@@ -27,7 +30,7 @@ public class OrganPositioningTurtleInterpretorTests
                 Character = x,
                 MeshRef = Resources.GetBuiltinResource<Mesh>("Cube.fbx"),
                 MeshVariants = new MeshVariant[0],
-                material = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat"),
+                material = defaultMaterial,
                 IndividualScale = Vector3.one,
                 ParameterScale = false,
                 ScaleIsAdditional = false,

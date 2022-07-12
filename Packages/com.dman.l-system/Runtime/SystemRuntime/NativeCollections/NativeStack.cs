@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
@@ -33,8 +34,19 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             indexInStack++;
         }
 
+        public bool CanPop()
+        {
+            return indexInStack >= 1;
+        }
+
         public T Pop()
         {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (!CanPop())
+            {
+                throw new InvalidOperationException("Attempted to pop from an empty stack");
+            }
+#endif
             var lastVal = backingList[indexInStack - 1];
             indexInStack--;
             return lastVal;

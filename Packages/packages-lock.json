@@ -59,13 +59,12 @@
       "url": "https://package.openupm.com"
     },
     "com.dman.utilities": {
-      "version": "0.4.2",
+      "version": "file:../../DmanUtilities/Assets/UtilityScripts/com.dman.utilities",
       "depth": 0,
-      "source": "registry",
+      "source": "local",
       "dependencies": {
         "com.cysharp.unitask": "2.3.1"
-      },
-      "url": "https://package.openupm.com"
+      }
     },
     "com.neuecc.unirx": {
       "version": "7.1.0",

@@ -12,7 +12,8 @@ namespace Dman.LSystem.SystemCompiler.Linker
         GLOBAL_VARIABLE_COLLISION,
         BASE_FILE_IS_LIBRARY,
         BAD_ORIGIN_FILE,
-        BAD_GLOBAL_PARAMETER
+        BAD_GLOBAL_PARAMETER,
+        INVALID_CUSTOM_SYMBOL_CONFIGURATION,
     }
 
     public class LinkException : Exception

@@ -169,6 +169,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         //private CompletableHandle previousTurtle;
         private CancellationTokenSource cancelPending;
 
+        public UniTask turtleCompilationTask { get; private set; }
         public bool IsTurtlePending { get; private set; } = false;
 
         private void OnSystemStateUpdated()
@@ -183,8 +184,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 cancelPending = new CancellationTokenSource();
                 //if (!previousTurtle?.IsComplete() ?? false) previousTurtle.Cancel();
 
-                CompileTurtle().Forget();
-
+                turtleCompilationTask = CompileTurtle();
                 //var mesh = GetComponent<MeshFilter>().mesh;
             }
         }

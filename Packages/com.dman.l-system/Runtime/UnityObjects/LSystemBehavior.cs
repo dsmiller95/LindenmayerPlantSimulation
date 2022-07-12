@@ -73,10 +73,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public void ResetState()
         {
-            if (logStates)
-            {
-                Debug.Log(steppingHandle?.currentState?.currentSymbols?.Data);
-            }
+            LogMyState();
             var globalParams = GetComponent<ILSystemCompileTimeParameterGenerator>();
             if (globalParams != null)
             {
@@ -104,8 +101,21 @@ namespace Dman.LSystem.UnityObjects
 
         private void LSystemStateWasUpdated()
         {
+            LogMyState();
             OnSystemStateUpdated?.Invoke();
             SetLastUpdateTime();
+        }
+
+        private void LogMyState()
+        {
+            if (logStates)
+            {
+                var state = steppingHandle?.currentState?.currentSymbols?.Data;
+                if (state.HasValue)
+                {
+                    Debug.Log(systemObject.ConvertToReadableString(state.Value));
+                }
+            }
         }
 
         private void SetLastUpdateTime()

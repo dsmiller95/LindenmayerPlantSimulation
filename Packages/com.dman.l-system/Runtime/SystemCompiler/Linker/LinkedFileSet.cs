@@ -116,6 +116,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             return allSymbolDefinitionsLeafFirst[defaultSymbolDefinitionIndexBySymbol[symbol]];
         }
 
+
         public int GetIterations()
         {
             if (!fileIndexesByFullIdentifier.ContainsKey(originFile))
@@ -179,6 +180,10 @@ namespace Dman.LSystem.SystemCompiler.Linker
             foreach (var file in allFiles.data)
             {
                 file.SetCustomRuleSymbols(ref customSymbols);
+            }
+            if(customSymbols.hasSunlight && !customSymbols.hasIdentifiers)
+            {
+                throw new LinkException(LinkExceptionType.INVALID_CUSTOM_SYMBOL_CONFIGURATION, "Imported sunlight library but did not import the identifiers library. The sunlight library must be used with the identifier library");
             }
             if (allReplacementDirectives.TryGetValue("diffusionStepsPerStep", out var defineValue))
             {

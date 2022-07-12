@@ -47,6 +47,11 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             LSystemState<float> systemState,
             CustomRuleSymbols customSymbols)
         {
+            if (!customSymbols.hasSunlight)
+            {
+                return default(JobHandle);
+            }
+
             var activeSunlightCamera = ActiveCamera;
             if (activeSunlightCamera == null)
             {
@@ -66,6 +71,7 @@ namespace Dman.LSystem.SystemRuntime.Sunlight
             }
 
             UnityEngine.Profiling.Profiler.BeginSample("Sunlight result apply");
+
 
             var tmpIdentityStack = new TmpNativeStack<SunlightExposurePreProcessRule.BranchIdentity>(10, Allocator.TempJob);
             var sunlightPerPixel = activeSunlightCamera.sunlightPerPixel;

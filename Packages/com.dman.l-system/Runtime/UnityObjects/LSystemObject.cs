@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.ObjectSets;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -44,6 +45,36 @@ namespace Dman.LSystem.UnityObjects
                     OnCachedSystemUpdated?.Invoke();
                 }
             }
+        }
+
+
+        public string ConvertToReadableString(SymbolString<float> systemState)
+        {
+            var resultString = new StringBuilder();
+            for (int i = 0; i < systemState.Length; i++)
+            {
+                var symbol = linkedFiles.GetLeafMostSymbolDefinition(systemState[i]);
+                resultString.Append(symbol.characterInSourceFile);
+                var paramDetails = systemState.parameters[i];
+                if(paramDetails.length > 0)
+                {
+                    resultString.Append("(");
+                }
+                for (int p = 0; p < paramDetails.length; p++)
+                {
+                    var param = systemState.parameters[paramDetails, p];
+                    if(p == paramDetails.length - 1)
+                    {
+                        resultString.Append($"{param:F1})");
+                    }
+                    else
+                    {
+                        resultString.Append($"{param:F1}, ");
+                    }
+                }
+            }
+
+            return resultString.ToString();
         }
 
         private void OnDisable()

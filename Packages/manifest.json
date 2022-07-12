@@ -3,7 +3,7 @@
     "com.dman.object-sets": "0.1.4",
     "com.dman.reactive-variables": "0.1.8",
     "com.dman.scene-save-system": "0.2.2",
-    "com.dman.utilities": "0.4.2",
+    "com.dman.utilities": "file:../../DmanUtilities/Assets/UtilityScripts/com.dman.utilities",
     "com.dman.entity-utilities": "0.1.1",
     "com.unity.burst": "1.5.5",
     "com.unity.collab-proxy": "1.15.7",
