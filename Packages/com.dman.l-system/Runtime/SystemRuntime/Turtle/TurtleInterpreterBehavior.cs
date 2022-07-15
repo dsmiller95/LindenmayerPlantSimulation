@@ -61,6 +61,17 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         }
 
         /// <summary>
+        /// Reloads/recompiles all of the turtle configs. call this when one of the <see cref="TurtleOperationSet"/> assets has been modified
+        /// </summary>
+        public void ReloadConfig()
+        {
+            if (System != null)
+            {
+                this.InitializeWithSpecificSystem(System.systemObject);
+            }
+        }
+
+        /// <summary>
         /// iterate through <paramref name="symbols"/> and assign the generated mesh to the attached meshFilter
         /// </summary>
         /// <param name="symbols"></param>

@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e2e3403c48e95548b41ed845c65ecb1, type: 3}
+  m_Name: variegated signal visualizers
+  m_EditorClassIdentifier: 
+  meshKeys:
+  - Character: 82
+    MeshRef: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    MeshVariants: []
+    material: {fileID: 2100000, guid: dbf3708e7e0fe054782a97f8cb4bceeb, type: 2}
+    IndividualScale: {x: 0.5, y: 0.5, z: 0.5}
+    ParameterScale: 1
+    VolumetricScale: 0
+    ScalePerParameter: {x: 1, y: 1, z: 1}
+    AlsoMove: 0
+    UseThickness: 0
+  - Character: 74
+    MeshRef: {fileID: -1692108017345405815, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    MeshVariants: []
+    material: {fileID: 2100000, guid: dbf3708e7e0fe054782a97f8cb4bceeb, type: 2}
+    IndividualScale: {x: 4, y: 4, z: 4}
+    ParameterScale: 1
+    VolumetricScale: 0
+    ScalePerParameter: {x: 0.5, y: 0.5, z: 0.5}
+    AlsoMove: 0
+    UseThickness: 0

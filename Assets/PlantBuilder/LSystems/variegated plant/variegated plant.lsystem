@@ -1,0 +1,35 @@
+#axiom T(10)
+#iterations 600
+
+#symbols +-!/\&^F$`@
+#matches +-!
+
+
+## diffusion
+#define diffusionStepsPerStep 20
+#define trunkDiffusion 0.1
+#define leafDiffusion 0.1
+#include diffusion (Node->r) (Amount->a)
+#symbols ra
+#matches r
+
+#symbols i
+#include organIdentity (Identifier->i)
+#define |identity| i(0, 0, 0)
+
+
+## variables defined for utility
+#define internodeHeight 5
+
+## T is the terminal bud
+#symbols T
+T(x) : x > 0 -> |identity|I(internodeHeight)[|identity|--\(70)I(3)L][|identity|++/(70)I(3)L]\T(x - 1)
+
+
+## I is a utility internode
+#symbols I
+I(x) : x > 0 -> FI(x - 1)
+I(x) : x <= 0 -> 
+
+## L is a leaf
+#symbols L

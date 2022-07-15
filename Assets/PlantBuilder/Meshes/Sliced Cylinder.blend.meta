@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Base Pallet
+    second: {fileID: 2100000, guid: 8dd1cd2c00e8da049b04a49504321d3d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: DarkGreen
     second: {fileID: 2100000, guid: 40c078ae0f125f5468df3fd029702d21, type: 2}
   - first:

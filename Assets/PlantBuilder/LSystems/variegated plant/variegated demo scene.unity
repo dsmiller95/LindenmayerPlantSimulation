@@ -200,13 +200,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 81936039}
-  m_LocalRotation: {x: 0.18896602, y: -0.68138963, z: 0.18896602, w: 0.68138963}
-  m_LocalPosition: {x: 29.05, y: 26.23, z: -0}
+  m_LocalRotation: {x: 0.23720004, y: -0.66613525, z: 0.23720004, w: 0.66613525}
+  m_LocalPosition: {x: 1.6, y: 4.26, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 188415250}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 31, y: -90, z: 0}
+  m_LocalEulerAnglesHint: {x: 39.2, y: -90, z: 0}
 --- !u!114 &81936043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -405,13 +405,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 188415249}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a63437100a624e40909f3dc4e4eb907, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 30
-  rotate: 1
+  rotate: 0
   axis: {x: 0, y: 1, z: 0}
   camera: {fileID: 81936041}
   maxClippingPlane: 60
@@ -1451,7 +1451,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 20
-  rotate: 0
+  rotate: 1
   axis: {x: 0, y: 1, z: 0}
 --- !u!4 &940405466
 Transform:
@@ -2867,8 +2867,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   secondsPerUpdate: 0.01
-  timeBeforeRestart: 1
-  systemObject: {fileID: 378491273550888993, guid: 42bbb8b9ba230704b86c74238cafacca, type: 3}
+  timeBeforeRestart: 5
+  systemObject: {fileID: 378491273550888993, guid: b36e995ea5aa6724882c1513faf74e94, type: 3}
 --- !u!4 &2023392570
 Transform:
   m_ObjectHideFlags: 0
@@ -3074,9 +3074,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 259a8d9be24511a4e91d12752db6eb8f, type: 2}
   - {fileID: 11400000, guid: f0df8a941df89244e90f702c402ca60d, type: 2}
   - {fileID: 11400000, guid: 3a418bd9f015dd44896661013b5a06b8, type: 2}
-  - {fileID: 11400000, guid: fb7bdaf9e8a427e4e8ed6b86e125a941, type: 2}
-  - {fileID: 11400000, guid: 9e78d0822b89e7741988e75f98478313, type: 2}
-  - {fileID: 11400000, guid: 276eecea73d8f0f428582c367f60e828, type: 2}
-  - {fileID: 11400000, guid: 5f30a57f3cd67424d94a337e5cd1bb3f, type: 2}
-  - {fileID: 11400000, guid: 0f286bd0126eb154fa56423e5f4020e0, type: 2}
+  - {fileID: 11400000, guid: 580cafc995970844f9a71fe2e610f02d, type: 2}
   initialScale: {x: 0.3, y: 0.3, z: 0.3}

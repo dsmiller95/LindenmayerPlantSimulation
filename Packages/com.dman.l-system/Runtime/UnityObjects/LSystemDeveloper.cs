@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Dman.LSystem.SystemRuntime.Turtle;
+using System.IO;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -89,6 +90,8 @@ namespace Dman.LSystem.UnityObjects
                     && Time.unscaledTime > system.lastUpdateTime + timeBeforeRestart)
                 {
                     system.ResetState();
+                    var turtle = system.GetComponent<TurtleInterpreterBehavior>();
+                    turtle.ReloadConfig();
                 }
             }
         }
