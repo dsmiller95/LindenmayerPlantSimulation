@@ -2,6 +2,7 @@
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.Utilities;
+using Dman.Utilities.Math;
 using System;
 using System.Threading;
 using Unity.Burst;
@@ -145,7 +146,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32),
                 new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32),
                 new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, 4),
-                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
+                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
+                new VertexAttributeDescriptor(VertexAttribute.TexCoord3, VertexAttributeFormat.UNorm8, 4)
                 };
         }
 
@@ -156,6 +158,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             public float3 normal;
             public Color32 color;
             public float2 uv;
+            public byte4 extraData;
         }
 
         struct MyMeshData : INativeDisposable
@@ -236,6 +239,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             normal = matrixTransform.MultiplyVector(sourceVertexData.normal),
                             uv = sourceVertexData.uv,
                             color = ColorFromIdentity(organInstance.organIdentity, (uint)index),
+                            extraData = organInstance.extraData
                         };
                         vertexTargetData[i + organVertexOffset] = newVertexData;
                         submeshBounds.Encapsulate(newVertexData.pos);

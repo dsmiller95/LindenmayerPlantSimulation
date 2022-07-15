@@ -19,6 +19,9 @@
         public bool hasIdentifiers;
         public int identifier;
 
+        public bool hasExtraVertexData;
+        public int extraVertexDataSymbol;
+
         public bool hasSunlight;
         public int sunlightSymbol;
 

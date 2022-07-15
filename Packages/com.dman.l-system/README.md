@@ -14,6 +14,11 @@ An attempt to implement most of the features present in L-systems described by [
   - [Contextual Matching](#contextual-matching)
   - [Library Files](#library-files)
   - [Predefined libraries](#predefined-libraries)
+    - [Diffusion](#diffusion)
+    - [Identity](#organ-identity)
+    - [Sunlight](#sunlight)
+    - [Autophagy](#autophagy)
+    - [Extra vertex data](#extra-vertex-data)
 - [Contributing](#contributing)
 - [Examples](#example-showcase)
 
@@ -243,7 +248,7 @@ This remaps the exports `Node`, `Internode`, and `BasipetalSignal` defined in `l
 
 Some libraries are defined by default and provide additional functionality to the l-system via custom rules, implemented directly in Burst-compiled code. They can be imported in the same way as other library files, using the #include directive and remapping symbols.
 
-### Diffusion
+### [Diffusion](#diffusion)
 
 Import with `#include diffusion (Node->n) (Amount->a)`. This module will provide an efficient diffusion simulation, diffusing resources between Nodes. The amount diffused across each edge is directly proportional to the difference in resource amounts between nodes. If A and B are the amounts of resources in two nodes, the amount diffused into node A is defined as `(B - A) * (Ca + Cb) / 2`. Ca and Cb are the diffusion constants for each node.
 
@@ -274,7 +279,7 @@ The Node symbol will mark a diffusion node, and all diffusion will occur in the 
 
 The Amount symbol will mark an amount to add to the nearest diffusion node. As a signal, it will automatically disappear in a single step. The amount in the node will be added to the closest resource node found by traversing downwards through the tree. This symbol is the only way to make a modification to the total amount of resources across all Nodes, and each resource can be positive or negative. The amount node can have any number of parameters, each parameter corresponds to a unique resource amount at that index.
 
-### Organ Identity
+### [Organ Identity](#organ-identity)
 
 Import with `#include organIdentity (Identifier->i)`. This library is used to uniquely identify a region of the plant: all organ meshes which follow this symbol will be given a unique vertex color, which can be read back as a unique uint ID from a unlit vertex color output texture. This is used by other builtin libraries which need to identify physical parts of the plant, such as the Sunlight library. The imported symbol must be given exactly three parameters, in order:
 - the first parameter will be used to store the globally unique ID of this node.
@@ -289,7 +294,7 @@ Import with `#include organIdentity (Identifier->i)`. This library is used to un
   - the second and third parameter together form a globally unique and fixed id which can be used when referencing this organ specifically from game code
 see the [Simulated Bush](../../Assets/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the sunlight library.
 
-### Sunlight
+### [Sunlight](#sunlight)
 
 Import with `#include sunlight (LightAmount->s)`. This library will apply the amount of sunlight received by the organ group which contains the `LightAmount` symbol into the `LightAmount` symbol as the first and only parameter. `LightAmount` -must- be preceded by a unique `Identifier` from the Organ Identity library, otherwise it will always receive 0 sunlight.
 
@@ -297,9 +302,13 @@ This library will be used automatically as long as there is a Global L System Co
 
 see the [Simulated Bush](../../Assets/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the organ identity and autophagy library.
 
-### Autophagy
+### [Autophagy](#autophagy)
 
 Import with `#include autophagy (Necrose->n)`. Autophagy is a convenient way to abort a whole branch efficiently. Wherever the `Necrose` symbol appears, every symbol following and including that symbol in the current branching structure will be deleted. This can be useful to remove organ arrangements with many different symbols, or structures which are deeply branching, triggered from the base of the structure.
+
+### [Extra vertex data](#extra-vertex-data)
+
+Import with `#include extraVertexData (VertexData->v)`. This can be used to set up to 4 different single-byte precision values between 0..1 on every vertex, stored in the UV3 AKA TEXCOORD3 channel. This works in a similar way to OrganIdentity. anywhere a `VertexData` symbol appears, all organs following it will have that vertex data set to it until the `VertexData` is overwritten with another symbol. To set the vertex data, use up to 4 parameters. I.E. `v(0, 0.1, .5, 0)` will set all four values (x, y, z, w) in the vertex data. Only the specified values in the parameter list will be set: `v(.1, .4)` will only overwrite x and y, leaving z and w unchanged. The values are clamped between 0..1, so `v(-1, 10)` is equivalent to `v(0, 1)`.
 
 # [Example Showcase](#example-showcase)
 

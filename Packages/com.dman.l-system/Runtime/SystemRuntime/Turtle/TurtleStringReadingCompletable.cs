@@ -6,6 +6,7 @@ using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.Utilities;
+using Dman.Utilities.Math;
 using System;
 using System.Threading;
 using Unity.Burst;
@@ -28,6 +29,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         /// floating point identity. a uint value of 0, or a color of RGBA(0,0,0,0) indicates there is no organ identity
         /// </summary>
         public UIntFloatColor32 organIdentity;
+
+        /// <summary>
+        /// generic extra vertex data
+        /// </summary>
+        public byte4 extraData;
     }
 
     /// <summary>
@@ -276,6 +282,17 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     {
                         currentState.organIdentity = new UIntFloatColor32(symbols.parameters[symbolIndex, 0]);
                         continue;
+                    }
+                    if(customRules.hasExtraVertexData && customRules.extraVertexDataSymbol == symbol)
+                    {
+                        var customDataParameters = symbols.parameters[symbolIndex];
+                        var customData = currentState.customData;
+                        var len = math.min(customDataParameters.length, 4);
+                        for (int i = 0; i < len; i++)
+                        {
+                            customData[i] = (byte)math.clamp(symbols.parameters[customDataParameters, i] * 255, byte.MinValue, byte.MaxValue);
+                        }
+                        currentState.customData = customData;
                     }
                     if (operationsByKey.TryGetValue(symbol, out var operation))
                     {

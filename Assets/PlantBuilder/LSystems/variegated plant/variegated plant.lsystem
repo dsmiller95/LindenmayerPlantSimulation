@@ -1,4 +1,4 @@
-#axiom T(10)
+#axiom T(10, 0, 0)
 #iterations 600
 
 #symbols +-!/\&^F$`@
@@ -17,13 +17,16 @@
 #include organIdentity (Identifier->i)
 #define |identity| i(0, 0, 0)
 
+#symbols v
+#include extraVertexData (VertexData->v)
 
 ## variables defined for utility
-#define internodeHeight 5
+#define internodeHeight 10
 
 ## T is the terminal bud
 #symbols T
-T(x) : x > 0 -> |identity|I(internodeHeight)[|identity|--\(70)I(3)L][|identity|++/(70)I(3)L]\T(x - 1)
+T(x, i, k) : x > 0 -> |identity|v(i / 9, k / 9)I(internodeHeight)[|identity|--\(70)I(3)L][|identity|++/(70)I(3)L]\[^T(x - 1, i+1, k)][&T(x - 1, i, k+1)]
+
 
 
 ## I is a utility internode

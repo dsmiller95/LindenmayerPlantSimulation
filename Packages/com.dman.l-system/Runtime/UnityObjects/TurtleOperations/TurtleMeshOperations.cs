@@ -208,7 +208,8 @@ namespace Dman.LSystem.UnityObjects
             {
                 organIndexInAllOrgans = (ushort)selectedOrganIndex,
                 organTransform = meshTransform * selectedOrgan.baseMeshTransform,
-                organIdentity = state.organIdentity
+                organIdentity = state.organIdentity,
+                extraData = state.customData
             };
             targetOrganInstances.Add(newOrganEntry);
 

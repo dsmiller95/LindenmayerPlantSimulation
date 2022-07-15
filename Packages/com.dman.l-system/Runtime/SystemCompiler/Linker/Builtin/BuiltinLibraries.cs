@@ -15,7 +15,8 @@ namespace Dman.LSystem.SystemCompiler.Linker.Builtin
                 new DiffusionLibrary(),
                 new OrganIdentifyingLibrary(),
                 new SunlightApplicationLibrary(),
-                new AutophagyLibrary()
+                new AutophagyLibrary(),
+                new ExtraVertexDataLibrary()
             };
         }
 
