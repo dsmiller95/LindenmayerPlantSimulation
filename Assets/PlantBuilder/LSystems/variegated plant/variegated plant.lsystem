@@ -26,7 +26,7 @@
 #define primaryAdjust (0.5)^(9 - x)
 #define secondaryAdjust (0)
 
-#define baseLength 33
+#define baseLength 48
 
 ## T is the terminal bud
 #symbols T
