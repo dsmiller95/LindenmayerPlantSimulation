@@ -1445,13 +1445,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 940405464}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1772d52094d8f7409d5fe343cce576b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 20
-  rotate: 1
+  rotate: 0
   axis: {x: 0, y: 1, z: 0}
 --- !u!4 &940405466
 Transform:

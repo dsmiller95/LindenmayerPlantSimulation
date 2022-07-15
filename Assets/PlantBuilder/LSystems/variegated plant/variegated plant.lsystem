@@ -1,4 +1,4 @@
-#axiom T(10, 0, 0)
+#axiom T(8, 0, 0, 1)
 #iterations 600
 
 #symbols +-!/\&^F$`@
@@ -21,17 +21,25 @@
 #include extraVertexData (VertexData->v)
 
 ## variables defined for utility
-#define internodeHeight 10
+#define branchDescale (2^-0.5)
+
+#define primaryAdjust (0.5)^(9 - x)
+#define secondaryAdjust (0)
+
+#define baseLength 33
 
 ## T is the terminal bud
 #symbols T
-T(x, i, k) : x > 0 -> |identity|v(i / 9, k / 9)I(internodeHeight)[|identity|--\(70)I(3)L][|identity|++/(70)I(3)L]\[^T(x - 1, i+1, k)][&T(x - 1, i, k+1)]
+T(x, i, k, l) : x > 0 -> |identity|v(i, k)I(l * baseLength)[+(90)I(2)K][|identity|^(45)\(90)I(1)L][|identity|&(45)/(90)I(1)L][^(90)T(x - 1, i + primaryAdjust, k + secondaryAdjust, l * branchDescale)][&(90)T(x - 1, i + secondaryAdjust, k + primaryAdjust, l * branchDescale)]
 
+## K is a flower mesh
+#symbols K
 
 
 ## I is a utility internode
 #symbols I
-I(x) : x > 0 -> FI(x - 1)
+I(x) : x > 0 && x / 2 >  2 -> I((x - x % 2) / 2)I((x + x % 2) / 2)
+I(x) : x > 0 && x / 2 <= 2 -> FI(x - 1)
 I(x) : x <= 0 -> 
 
 ## L is a leaf
