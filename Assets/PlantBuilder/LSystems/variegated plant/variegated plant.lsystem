@@ -1,5 +1,5 @@
-#axiom T(8, 0, 0)
-#iterations 16
+#axiom T(9, 0, 0)
+#iterations 18
 
 #symbols +-!/\&^F$`@
 #matches +-!
@@ -24,13 +24,13 @@
 #define branchDescale (2^-0.5)
 #define branchScaleUp (2.2^0.5)
 
-#define primaryAdjust (0.5)^(9 - x)
+#define primaryAdjust (0.5)^(10 - x)
 #define secondaryAdjust (0)
 
 
 ## T is the terminal bud
 #symbols T
-T(x, i, k) : x > 0 -> |identity|v(i, k)S(7)[+(90)FFK][|identity|^(45)\(90)FL][|identity|&(45)/(90)FL][^(90)t(x, i, k)][&(90)t(x, i, k)]
+T(x, i, k) : x > 0 -> |identity|v(i, k)S(7)[+(90)FFkK][|identity|^(45)\(90)FL][|identity|&(45)/(90)FL][^(90)t(x, i, k)][&(90)t(x, i, k)]
 
 #symbols t
 P(0.5) | t(x, i, k) -> T(x - 1, i + primaryAdjust, k + secondaryAdjust)
@@ -38,6 +38,11 @@ P(0.5) | t(x, i, k) -> T(x - 1, i + secondaryAdjust, k + primaryAdjust)
 
 ## K is a flower mesh
 #symbols K
+
+## k is a pollen entity of some sort
+#symbols k
+k -> 
+
 
 ## S is a special stem that increases its length by a set factor every step
 #symbols S

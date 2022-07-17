@@ -13,8 +13,9 @@ GameObject:
   - component: {fileID: 5257669647133394088}
   - component: {fileID: 651890539438364982}
   - component: {fileID: 5013210833689922222}
+  - component: {fileID: 3898639548699392795}
   m_Layer: 0
-  m_Name: PollenSphere
+  m_Name: pollen cuboid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41,7 +42,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7033642088675614153}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 1569212055897181770, guid: a381acc0272832b44bdaff9265914e18, type: 3}
 --- !u!23 &5257669647133394088
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -61,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: dbf3708e7e0fe054782a97f8cb4bceeb, type: 2}
+  - {fileID: 2100000, guid: aff760f6f0e7d1746964a23fad6ce250, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -109,5 +110,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lifespanRemaining: 3
   totalLifespan: 3
-  scaleMultiplier: 0.5
-  volumeCurveScale: 3
+  scaleMultiplier: 0.3
+  volumeCurveScale: 1.5
+--- !u!114 &3898639548699392795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7033642088675614153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d719cde9750136f4f839fae9a1af4703, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
