@@ -95,9 +95,15 @@ The Instantiate Entities operation set is used to batch-instantiate DOTS entitie
 - `Unity.Transforms.Translation` and `Unity.Transforms.Rotation`
   - set to the world-space position and rotation of the organ in the l-system
   - note that Scale is not set
-- TurtleSpawnedParameters
-  - Dynamic buffer which will be filled with all parameters supplied to the spawning symbol
-  - EX: v(1, 0, 11.2) will fill the `DynamicBuffer<TurtleSpawnedParameters>` on the spawned instance with `[1, 0, 11.2]`
+- `DynamicBuffer<TurtleSpawnedParameters>` and `TurtleSpawnedState`
+  - both authored by `TurtleSpawnData` monobehavior
+  - `DynamicBuffer<TurtleSpawnedParameters>` includes parameters supplied to the spawning symbol
+    - EX: v(1, 0, 11.2) will fill the `DynamicBuffer<TurtleSpawnedParameters>` on the spawned instance with `[1, 0, 11.2]`
+  - `TurtleSpawnedState` includes the whole state of the turtle at the point of the spawned entity
+    - `transformation` : provides the local transform of the turtle at that point, inside the mesh
+    - `thickness` : provides the current thickness applied to any meshes which use thickness
+    - `vertexData` : provides the 4 byte-size values which can be set by the [Extra vertex data](#extra-vertex-data) library
+      - note that these are in byte format in the range [0, 256), when in the l-system they must be set in the range [0, 1). The values are scaled from [0, 1) to [0, 256) so they fit inside a single byte
 
 Some tips to best use this system:
 - Single-event spawns

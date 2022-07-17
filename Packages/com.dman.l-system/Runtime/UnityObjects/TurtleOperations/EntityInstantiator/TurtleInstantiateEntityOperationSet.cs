@@ -16,8 +16,6 @@ namespace Dman.LSystem.UnityObjects
     [CreateAssetMenu(fileName = "TurtleInstantiateEntity", menuName = "LSystem/TurtleInstantiateEntity")]
     public class TurtleInstantiateEntityOperationSet : TurtleOperationSet
     {
-
-
         public InstantiatableEntity[] instantiatableEntities;
         public override void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
@@ -62,6 +60,13 @@ namespace Dman.LSystem.UnityObjects
             var newbuffer = spawningCommandBuffer.SetBuffer<TurtleSpawnedParameters>(spawned);
             var parameterSlice = sourceString.parameters.data.Slice(paramIndex.index, paramIndex.length);
             newbuffer.CopyFrom(parameterSlice.SliceConvert<TurtleSpawnedParameters>());
+
+            spawningCommandBuffer.SetComponent(spawned, new TurtleSpawnedState
+            {
+                localTransform = state.transformation,
+                thickness = state.thickness,
+                customData = state.customData
+            });
 
             var totalLocalToWorld = localToWorldTransform * state.transformation * prefabTransform;
 
