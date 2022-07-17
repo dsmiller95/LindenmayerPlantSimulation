@@ -8,11 +8,11 @@
     "com.unity.jobs": "0.8.0-preview.23",
     "com.unity.collections": "0.15.0-preview.21",
     "com.unity.mathematics": "1.2.1",
-    "com.dman.utilities": "0.4.2",
-    "com.dman.entity-utilities": "0.1.1",
-    "com.dman.scene-save-system": "0.2.2",
-    "com.dman.reactive-variables": "0.1.8",
-    "com.dman.object-sets": "0.1.4",
+    "com.dman.utilities": "0.4.5",
+    "com.dman.entity-utilities": "0.1.4",
+    "com.dman.scene-save-system": "0.2.5",
+    "com.dman.reactive-variables": "0.1.10",
+    "com.dman.object-sets": "0.1.5",
     "com.cysharp.unitask": "2.3.1"
   },
   "author": {

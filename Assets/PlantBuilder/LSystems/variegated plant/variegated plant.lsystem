@@ -30,7 +30,11 @@
 
 ## T is the terminal bud
 #symbols T
-T(x, i, k, l) : x > 0 -> |identity|v(i, k)I(l * baseLength)[+(90)I(2)K][|identity|^(45)\(90)I(1)L][|identity|&(45)/(90)I(1)L][^(90)T(x - 1, i + primaryAdjust, k + secondaryAdjust, l * branchDescale)][&(90)T(x - 1, i + secondaryAdjust, k + primaryAdjust, l * branchDescale)]
+T(x, i, k, l) : x > 0 -> |identity|v(i, k)I(l * baseLength)[+(90)I(2)K][|identity|^(45)\(90)I(1)L][|identity|&(45)/(90)I(1)L][^(90)t(x, i, k, l)][&(90)t(x, i, k, l)]
+
+#symbols t
+P(0.5) | t(x, i, k, l) -> T(x - 1, i + primaryAdjust, k + secondaryAdjust, l * branchDescale)
+P(0.5) | t(x, i, k, l) -> T(x - 1, i + secondaryAdjust, k + primaryAdjust, l * branchDescale)
 
 ## K is a flower mesh
 #symbols K
