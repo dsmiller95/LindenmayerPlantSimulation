@@ -89,6 +89,24 @@ Also defines a thickness scaling operator, `@`. works similarly to the vector ba
 
 Bends the turtle toward a given world-space vector, scaled by the magnitude of the cross-product between the current turtle's heading and the world-space vector. This operation replicates the function of the Tropism Vector described on [page 58 of Algorithmic Beauty of Plants](http://algorithmicbotany.org/papers/abop/abop.pdf#page=70). See it in use in the [fruiting plant L-system](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/PlantBuilder/LSystems/fruiting-plant.lsystem), in this case different plant organs have different bending factors which can be used to represent the stiffness of that organ.
 
+### Instantiate Entities
+
+The Instantiate Entities operation set is used to batch-instantiate DOTS entities from inside the l-system. In the asset, the only configuration is to specify which character in the root file should trigger a spawn command, and which entity prefab to spawn in. Every time the turtle renders an l-system with one of these characters, a new instance of the specified prefab will be spawned, with some predefined configuration. Some components are required on the prefab:
+- `Unity.Transforms.Translation` and `Unity.Transforms.Rotation`
+  - set to the world-space position and rotation of the organ in the l-system
+  - note that Scale is not set
+- TurtleSpawnedParameters
+  - Dynamic buffer which will be filled with all parameters supplied to the spawning symbol
+  - EX: v(1, 0, 11.2) will fill the `DynamicBuffer<TurtleSpawnedParameters>` on the spawned instance with `[1, 0, 11.2]`
+
+Some tips to best use this system:
+- Single-event spawns
+  - To spawn something once, create a rule which removes the spawning symbol on the next update. Otherwise a new entity will be spawned every frame.
+- Bound entities
+  - It is possible to set up a system to bind a persistent entity to a point inside the L-system
+  - Use the [Organ Identity](#organ-identity) library to pass both the OrganID and the PlantID as parameters to the spawn command, and read them from `TurtleSpawnedParameters`
+  - Using OrganID and PlantID together, you can build a system to match up the spawned entities to existing entities
+
 # [L System Language](#l-system-language)
 
 `.lsystem` files are interpreted on a line-by-line bases. Each line is interpreted in one of 3 ways: lines starting with `##` are comments, lines starting with `#` are directives, and all other non-empty lines are parsed as Rules.
@@ -281,15 +299,17 @@ The Amount symbol will mark an amount to add to the nearest diffusion node. As a
 
 ### [Organ Identity](#organ-identity)
 
-Import with `#include organIdentity (Identifier->i)`. This library is used to uniquely identify a region of the plant: all organ meshes which follow this symbol will be given a unique vertex color, which can be read back as a unique uint ID from a unlit vertex color output texture. This is used by other builtin libraries which need to identify physical parts of the plant, such as the Sunlight library. The imported symbol must be given exactly three parameters, in order:
-- the first parameter will be used to store the globally unique ID of this node.
+Import with `#include organIdentity (Identifier->i)`. This library is used to uniquely identify a region of the plant: all organ meshes which follow this symbol will be given a unique vertex color, which can be read back as a unique uint ID from a unlit vertex color output texture. This is used by other builtin libraries which need to identify physical parts of the plant, such as the Sunlight library. The imported symbol must be given exactly three parameters, which will be filled in by the idenentity system. We'll call them GlobalID, LocalID, and PlantID
+- the first parameter GlobalID
+  - it is globally unique across all l-systems, but is volatile and will change very often
   - The id is stored internally as a uint, and all parameters are interpreted as floats. Therefore this parameter will be unusable inside the l-system itself, and will take on extremely unstable values
-  - This parameter will also be highly unstable: subject to change potentially multiple times between updates, or not at all for 100s of updates
-- the second parameter will be used to store a locally unique ID of this organ.
-  - It is unique and fixed within the l-system, therefore once assigned it will never change
+  - May change multiple times between updates, or not at all for 100s of updates
+- the second parameter LocalID
+  - think of it as the organ-ID within the l-system
+  - it is locally unique within the l-system and will never change once set
   - unlike the first parameter, this is stored as a floating point, and can be used inside the l-system
-- the third parameter will be used to store a globally unique ID of the entire plant
-  - It is unique and fixed withing the l-system and the global scope, once assigned it will never change
+- the third parameter PlantID
+  - is the globally unique ID of the entire plant, and will never change once set
   - similar to the second parameter, stored as a floating point, and can be used inside the l-system
   - the second and third parameter together form a globally unique and fixed id which can be used when referencing this organ specifically from game code
 see the [Simulated Bush](../../Assets/PlantBuilder/LSystems/tree/resourceTree.lsystem) as an example of how to use this builtin together with the sunlight library.
