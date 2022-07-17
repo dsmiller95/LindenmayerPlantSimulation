@@ -1,5 +1,5 @@
-#axiom T(8, 0, 0, 1)
-#iterations 600
+#axiom T(8, 0, 0)
+#iterations 16
 
 #symbols +-!/\&^F$`@
 #matches +-!
@@ -22,23 +22,31 @@
 
 ## variables defined for utility
 #define branchDescale (2^-0.5)
+#define branchScaleUp (2.2^0.5)
 
 #define primaryAdjust (0.5)^(9 - x)
 #define secondaryAdjust (0)
 
-#define baseLength 48
 
 ## T is the terminal bud
 #symbols T
-T(x, i, k, l) : x > 0 -> |identity|v(i, k)I(l * baseLength)[+(90)I(2)K][|identity|^(45)\(90)I(1)L][|identity|&(45)/(90)I(1)L][^(90)t(x, i, k, l)][&(90)t(x, i, k, l)]
+T(x, i, k) : x > 0 -> |identity|v(i, k)S(7)[+(90)FFK][|identity|^(45)\(90)FL][|identity|&(45)/(90)FL][^(90)t(x, i, k)][&(90)t(x, i, k)]
 
 #symbols t
-P(0.5) | t(x, i, k, l) -> T(x - 1, i + primaryAdjust, k + secondaryAdjust, l * branchDescale)
-P(0.5) | t(x, i, k, l) -> T(x - 1, i + secondaryAdjust, k + primaryAdjust, l * branchDescale)
+P(0.5) | t(x, i, k) -> T(x - 1, i + primaryAdjust, k + secondaryAdjust)
+P(0.5) | t(x, i, k) -> T(x - 1, i + secondaryAdjust, k + primaryAdjust)
 
 ## K is a flower mesh
 #symbols K
 
+## S is a special stem that increases its length by a set factor every step
+#symbols S
+S(x) -> S(x, 1)
+S(x, y) -> S(x * branchScaleUp)
+
+## I(netTotal, ) : (x * branchScaleUp - 1) > 2 -> FI((x * branchScaleUp - 1) / 2)I((x * branchScaleUp - 1) / 2)
+## I(x) : (x * branchScaleUp - 1) > 1 -> FI(x * branchScaleUp - 1)
+## I(x) -> I(x * branchScaleUp)
 
 ## I is a utility internode
 #symbols I
