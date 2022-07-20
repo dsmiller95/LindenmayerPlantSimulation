@@ -1,3 +1,4 @@
+using Dman.LSystem.SystemRuntime.GlobalCoordinator;
 using Dman.ObjectSets;
 using Dman.SceneSaveSystem;
 using System;
@@ -32,7 +33,7 @@ namespace Dman.LSystem.UnityObjects
         private void Awake()
         {
             SetLastUpdateTime();
-            if (systemObject != null)
+            if(GlobalLSystemCoordinator.instance != null && systemObject != null)
             {
                 SetSystem(systemObject);
             }

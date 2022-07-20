@@ -146,13 +146,18 @@ namespace Dman.LSystem.UnityObjects
             return compiledSystem;
         }
 
+        public bool HasCompletedIterations()
+        {
+            return totalSteps >= systemObject.iterations;
+        }
+
         public bool HasValidSystem()
         {
-            return compiledSystem != null && !isDisposed;// && !globalResourceHandle.isDisposed;
+            return compiledSystem != null && !isDisposed;
         }
         public bool CanStep()
         {
-            return lSystemPendingCompletable == null && !isDisposed;// && !globalResourceHandle.isDisposed;
+            return lSystemPendingCompletable == null && HasValidSystem();
         }
         /// <summary>
         /// step the Lsystem forward one tick. when CompleteInLateUpdate is true, be very careful with changes to the L-system
