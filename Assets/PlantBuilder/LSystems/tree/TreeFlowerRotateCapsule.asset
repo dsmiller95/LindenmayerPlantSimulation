@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8d83ad5985ed4bc47b63b41377261dfc, type: 3}
-  m_Name: TreeFlowerPollen
+  m_Name: TreeFlowerRotateCapsule
   m_EditorClassIdentifier: 
   instantiatableEntities:
-  - characterToSpawnFrom: 80
-    prefab: {fileID: 651890539438364982, guid: 628b1843b0a8ae8469faf6df34f8ffb1, type: 3}
+  - characterToSpawnFrom: 69
+    prefab: {fileID: 651890539438364982, guid: 72785b83a30575446bd9467d2c247619, type: 3}

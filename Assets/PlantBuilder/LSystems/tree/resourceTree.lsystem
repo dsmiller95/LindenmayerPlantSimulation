@@ -57,11 +57,11 @@ r|DIFFUSION_PARAMETERS| < S(x) : water >= maxWater                         -> a(
 P(0.5) | r|DIFFUSION_PARAMETERS| < T(x) : water >= .1 && glucose >= .1 && x >  0 -> ~f(0)T(x - 1)
 P(0.5) | r|DIFFUSION_PARAMETERS| < T(x) : water >= .1 && glucose >= .1 && x >  0 -> T(x)
 
-#define |flowL1| (flow < 20)
+#define |flowL1| (flow < 40)
 #define L1Flower 0.1
-#define |flowL2| (flow < 50)
-#define L2Flower 0.25
-#define |flowL3| (flow < 100)
+#define |flowL2| (flow < 200)
+#define L2Flower 0.4
+#define |flowL3| (flow < 1000)
 #define L3Flower 0.75
 P(1 - L1Flower) | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && |flowL1|              -> R(0)/(137)[\(180)&(90)l][&(90)l]|TreeBranchCrookMarker|[-(-35)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|o(0)T(5)][-(35)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|o(0)T(5)]
 P(L1Flower)     | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 && x <= 0 && |flowL1|              -> f(0)k(0)

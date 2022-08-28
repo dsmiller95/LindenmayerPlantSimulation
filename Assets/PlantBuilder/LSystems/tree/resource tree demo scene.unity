@@ -410,13 +410,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a63437100a624e40909f3dc4e4eb907, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 30
+  rotationSpeed: 5
   rotate: 1
   axis: {x: 0, y: 1, z: 0}
   camera: {fileID: 81936041}
   maxClippingPlane: 60
   timeToDoMri: 2
-  timeBetweenMris: 10
+  timeBetweenMris: 100000
 --- !u!1 &199973299
 GameObject:
   m_ObjectHideFlags: 0
@@ -1450,7 +1450,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1772d52094d8f7409d5fe343cce576b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 20
+  rotationSpeed: 5
   rotate: 0
   axis: {x: 0, y: 1, z: 0}
 --- !u!4 &940405466
@@ -2514,6 +2514,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1905895032}
   - component: {fileID: 1905895031}
+  - component: {fileID: 1905895033}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -2543,8 +2544,8 @@ Light:
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
+    m_Bias: 1
+    m_NormalBias: 1
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
       e00: 1
@@ -2597,6 +2598,19 @@ Transform:
   m_Father: {fileID: 732488160}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1905895033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905895030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UsePipelineSettings: 1
 --- !u!4 &1910226589 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9089396037661369505, guid: d1667c798eafc734f9cdbaa1f070375c, type: 3}
