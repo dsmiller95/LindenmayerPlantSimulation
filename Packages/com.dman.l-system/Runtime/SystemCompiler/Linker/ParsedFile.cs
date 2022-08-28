@@ -258,7 +258,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     };
                     if (includeDirective.Groups["remapping"].Success)
                     {
-                        var remaps = Regex.Matches(includeDirective.Groups["remapping"].Value, @"\((?<name>\w+)->(?<symbol>\w)\)");
+                        var remaps = Regex.Matches(includeDirective.Groups["remapping"].Value, @"\((?<name>\w+)->(?<symbol>.)\)");
                         foreach (Match match in remaps)
                         {
                             link.importedSymbols.Add(new IncludeImportRemap

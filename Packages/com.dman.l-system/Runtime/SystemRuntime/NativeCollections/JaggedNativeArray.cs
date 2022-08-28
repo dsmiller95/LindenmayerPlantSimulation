@@ -157,16 +157,20 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
 
         public bool Equals(JaggedNativeArray<TData> other)
         {
-            for (int i = 0; i < data.Length; i++)
+            if(other.Length != this.Length)
             {
-                if (!other.data[i].Equals(data[i]))
-                {
-                    return false;
-                }
+                return false;
             }
             for (int i = 0; i < indexing.Length; i++)
             {
                 if (!other.indexing[i].Equals(indexing[i]))
+                {
+                    return false;
+                }
+            }
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (!other.data[i].Equals(data[i]))
                 {
                     return false;
                 }
