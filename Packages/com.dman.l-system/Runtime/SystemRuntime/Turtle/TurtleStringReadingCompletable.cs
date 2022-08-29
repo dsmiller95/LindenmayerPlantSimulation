@@ -65,10 +65,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public class TurtleMeshBuildingInstructions : IDisposable
         {
             public NativeList<TurtleOrganInstance> organInstances;
+            public NativeList<TurtleStemInstance> stemInstances;
 
             public void Dispose()
             {
                 organInstances.Dispose();
+                stemInstances.Dispose();
             }
         }
 
@@ -126,6 +128,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var tmpHelperStack = new TmpNativeStack<TurtleState>(50, Allocator.TempJob);
 
             var organInstancesBuilder = new NativeList<TurtleOrganInstance>(100, Allocator.TempJob);
+            var stemInstancesBuilder = new NativeList<TurtleStemInstance>(100, Allocator.TempJob);
 
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -162,6 +165,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 organData = nativeData.Data.allOrganData,
 
                 organInstances = organInstancesBuilder,
+                stemInstances = stemInstancesBuilder,
                 spawnEntityBuffer = entitySpawnBuffer,
 
                 nativeTurtleStack = tmpHelperStack,
@@ -212,6 +216,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 var postProcessJob = new TurtleOrganPostProcessJob
                 {
                     organInstances = organInstancesBuilder,
+                    stemInstances = stemInstancesBuilder,
                     transformOrgans = postReadTransform.Value
                 };
                 currentJobHandle = postProcessJob.Schedule(currentJobHandle);
@@ -225,12 +230,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 currentJobHandle.Complete();
                 organInstancesBuilder.Dispose();
+                stemInstancesBuilder.Dispose();
                 throw new OperationCanceledException();
             }
 
             return new TurtleMeshBuildingInstructions
             {
-                organInstances = organInstancesBuilder
+                organInstances = organInstancesBuilder,
+                stemInstances = stemInstancesBuilder
             };
         }
 
@@ -246,6 +253,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             // Outputs
             public NativeList<TurtleOrganInstance> organInstances;
+            public NativeList<TurtleStemInstance> stemInstances;
             public EntityCommandBuffer spawnEntityBuffer;
 
             // volumetric info
@@ -302,6 +310,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                             symbols,
                             organData,
                             organInstances,
+                            stemInstances,
                             volumetricHandles,
                             spawnEntityBuffer);
                         if (hasVolumetricDestruction && customRules.hasAutophagy && operation.operationType == TurtleOperationType.ADD_ORGAN)
@@ -327,24 +336,34 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public struct TurtleOrganPostProcessJob : IJob
         {
             public NativeList<TurtleOrganInstance> organInstances;
+            public NativeList<TurtleStemInstance> stemInstances;
 
             public Matrix4x4 transformOrgans;
 
-            public void Execute(int index)
+            public void ExecuteA(int index)
             {
                 var organ = organInstances[index];
-                organ.organTransform = (transformOrgans * (Matrix4x4)organ.organTransform);
+                organ.organTransform = transformOrgans * (Matrix4x4)organ.organTransform;
                 organInstances[index] = organ;
+            }
+            public void ExecuteB(int index)
+            {
+                var stem = stemInstances[index];
+                stem.orientation = transformOrgans * stem.orientation;
+                stemInstances[index] = stem;
             }
 
             public void Execute()
             {
                 for (int i = 0; i < organInstances.Length; i++)
                 {
-                    Execute(i);
+                    ExecuteA(i);
+                }
+                for (int i = 0; i < stemInstances.Length; i++)
+                {
+                    ExecuteB(i);
                 }
             }
         }
-
     }
 }
