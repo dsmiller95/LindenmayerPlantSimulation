@@ -16,7 +16,7 @@ namespace Dman.LSystem.UnityObjects
     }
 
     [System.Serializable]
-    public class MeshKey
+    public class MeshKey : ITurtleNativeDataWritable
     {
         public char Character;
         public Mesh MeshRef;
@@ -46,7 +46,7 @@ namespace Dman.LSystem.UnityObjects
         /// </summary>
         public bool useAsDummyMesh = false;
 
-        public TurtleDataRequirements RequiredDataSpace => CachedOrganTemplates.Select(x => x.DataReqs).Sum();
+        public TurtleDataRequirements DataReqs => CachedOrganTemplates.Select(x => x.DataReqs).Sum();
 
         public TurtleOrganTemplate[] CachedOrganTemplates;
         public void InteralCacheOrganTemplates()
@@ -87,13 +87,46 @@ namespace Dman.LSystem.UnityObjects
         {
             return $"{Character} : {MeshRef.name}";
         }
+
+        public void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
+        {
+            var organIndexes = new JaggedIndexing
+            {
+                index = writer.indexInOrganTemplates
+            };
+            foreach (var templateWriter in CachedOrganTemplates)
+            {
+                templateWriter.WriteIntoNativeData(nativeData, writer);
+            }
+
+            organIndexes.length = (ushort)(writer.indexInOrganTemplates - organIndexes.index);
+
+            writer.operators.Add(new TurtleOperationWithCharacter
+            {
+                characterInRootFile = Character,
+                operation = new TurtleOperation
+                {
+                    operationType = TurtleOperationType.ADD_ORGAN,
+                    meshOperation = new TurtleOrganOperation
+                    {
+                        extraNonUniformScaleForOrgan = ScalePerParameter,
+                        scaleIsAdditional = ScaleIsAdditional,
+                        isVolumetricScale = VolumetricScale,
+                        doScale = ParameterScale,
+                        doApplyThiccness = UseThickness,
+                        organIndexRange = organIndexes,
+                        volumetricValue = volumetricDurabilityValue
+                    }
+                }
+            });
+        }
     }
     [CreateAssetMenu(fileName = "TurtleMeshOperations", menuName = "LSystem/TurtleMeshOperations")]
     public class TurtleMeshOperations : TurtleOperationSet
     {
         public MeshKey[] meshKeys;
 
-        public override TurtleDataRequirements DataReqs => meshKeys.Select(x => x.RequiredDataSpace).Sum();
+        public override TurtleDataRequirements DataReqs => meshKeys.Select(x => x.DataReqs).Sum();
 
         public override void InternalCacheOperations()
         {
@@ -107,43 +140,15 @@ namespace Dman.LSystem.UnityObjects
         {
             foreach (var meshKey in meshKeys)
             {
-                var organIndexes = new JaggedIndexing
-                {
-                    index = writer.indexInOrganTemplates
-                };
-                foreach (var templateWriter in meshKey.CachedOrganTemplates)
-                {
-                    templateWriter.WriteIntoNativeData(nativeData, writer);
-                }
-
-                organIndexes.length = (ushort)(writer.indexInOrganTemplates - organIndexes.index);
-
-                writer.operators.Add(new TurtleOperationWithCharacter
-                {
-                    characterInRootFile = meshKey.Character,
-                    operation = new TurtleOperation
-                    {
-                        operationType = TurtleOperationType.ADD_ORGAN,
-                        meshOperation = new TurtleMeshOperation
-                        {
-                            extraNonUniformScaleForOrgan = meshKey.ScalePerParameter,
-                            scaleIsAdditional = meshKey.ScaleIsAdditional,
-                            isVolumetricScale = meshKey.VolumetricScale,
-                            doScaleMesh = meshKey.ParameterScale,
-                            doApplyThiccness = meshKey.UseThickness,
-                            organIndexRange = organIndexes,
-                            volumetricValue = meshKey.volumetricDurabilityValue
-                        }
-                    }
-                });
+                meshKey.WriteIntoNativeData(nativeData, writer);
             }
         }
     }
 
-    public struct TurtleMeshOperation
+    public struct TurtleOrganOperation
     {
         public float3 extraNonUniformScaleForOrgan;
-        public bool doScaleMesh;
+        public bool doScale;
         public bool scaleIsAdditional;
         public bool isVolumetricScale;
         public bool doApplyThiccness;
@@ -176,7 +181,7 @@ namespace Dman.LSystem.UnityObjects
             var turtleTranslate = selectedOrgan.translation;
             var scaleIndex = organIndexRange.length <= 1 ? 0 : 1;
             float scale = 1f;
-            if (doScaleMesh && pIndex.length > scaleIndex)
+            if (doScale && pIndex.length > scaleIndex)
             {
                 scale = sourceString.parameters[pIndex, scaleIndex];
                 if (isVolumetricScale)

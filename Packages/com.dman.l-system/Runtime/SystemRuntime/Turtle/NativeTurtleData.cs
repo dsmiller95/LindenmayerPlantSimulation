@@ -80,6 +80,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public int indexInOrganTemplates = 0;
         public List<TurtleOperationWithCharacter> operators = new List<TurtleOperationWithCharacter>();
         public List<Material> materialsInOrder = new List<Material>();
+
+        /// <summary>
+        /// gets an index for this material. will add it to existing material list if not already present
+        /// </summary>
+        /// <param name="mat"></param>
+        /// <returns></returns>
+        public int GetMaterialIndex(Material mat)
+        {
+            var existingMaterialIndex = materialsInOrder.IndexOf(mat);
+            if (existingMaterialIndex >= 0) return existingMaterialIndex;
+            materialsInOrder.Add(mat);
+            return materialsInOrder.Count - 1;
+        }
     }
 
     public class TurtleOperationWithCharacter

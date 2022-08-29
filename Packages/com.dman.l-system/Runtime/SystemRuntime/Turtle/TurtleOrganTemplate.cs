@@ -63,12 +63,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
             writer.indexInTriangles += triangleCount.length;
 
-            var existingMaterialIndex = writer.materialsInOrder.IndexOf(material);
-            if (existingMaterialIndex == -1)
-            {
-                existingMaterialIndex = writer.materialsInOrder.Count;
-                writer.materialsInOrder.Add(material);
-            }
+            var existingMaterialIndex = writer.GetMaterialIndex(material);
             var blittable = new Blittable
             {
                 translation = translation,
