@@ -116,16 +116,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 // TODO: extract custom symbols w/o a full system compilation
                 systemObject.CompileToCached(silent: true);
             }
+            var defaultTurtle = TurtleState.DEFAULT;
+            defaultTurtle.transformation = Matrix4x4.Scale(initialScale);
+
             var volumetricWorld = GameObject.FindObjectOfType<OrganVolumetricWorld>();
             var damageWorld = volumetricWorld?.damageLayer?.effects.OfType<VoxelCapReachedTimestampEffect>().FirstOrDefault();
             turtle = new TurtleInterpretor(
                 operationSets,
-                new TurtleState
-                {
-                    transformation = Matrix4x4.Scale(initialScale),
-                    thickness = 1f,
-                    organIdentity = new UIntFloatColor32(0)
-                },
+                defaultTurtle,
                 systemObject.linkedFiles,
                 systemObject.compiledSystem.customSymbols,
                 volumetricWorld,
@@ -156,14 +154,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var filteredOperators = turtleOperations.Where(x =>
                 !(x is TurtleInstantiateEntityOperationSet) &&
                 !(x is TurtleVolumetricResourceDiffusionOperationSet)).ToList();
+            var defaultTurtle = TurtleState.DEFAULT;
+            defaultTurtle.transformation = Matrix4x4.Scale(initialScale) * rootTransformation;
             var positionProvider = new OrganPositioningTurtleInterpretor(
                 filteredOperators,
-                new TurtleState
-                {
-                    transformation = Matrix4x4.Scale(initialScale) * rootTransformation,
-                    thickness = 1f,
-                    organIdentity = new UIntFloatColor32(0)
-                },
+                defaultTurtle,
                 System.systemObject.linkedFiles,
                 System.systemObject.compiledSystem.customSymbols);
             return positionProvider;

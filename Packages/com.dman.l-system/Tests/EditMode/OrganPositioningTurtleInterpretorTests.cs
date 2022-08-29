@@ -62,12 +62,8 @@ public class OrganPositioningTurtleInterpretorTests
         var turnOperations = GetDefaultRotateOperations(90);
 
         var opSets = new List<TurtleOperationSet>() { meshOperations, turnOperations };
-        var defaultState = new TurtleState
-        {
-            transformation = organSpaceTransform ?? Matrix4x4.identity,
-            thickness = 1,
-            organIdentity = new UIntFloatColor32(0)
-        };
+        var defaultState = TurtleState.DEFAULT;
+        if (organSpaceTransform != null) defaultState.transformation = organSpaceTransform.Value;
         var simpleRemapper = new SimpleSymbolRemapper();
 
         var customSymbols = new CustomRuleSymbols
