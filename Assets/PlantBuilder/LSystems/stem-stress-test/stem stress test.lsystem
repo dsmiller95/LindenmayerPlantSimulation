@@ -78,8 +78,6 @@ P(L3Flower)     | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 
 
 ## L is a leaf. parameter is the size of the leaf, and also is is the health of the leaf which decreases when receiving a small amount of sunlight
 ## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight
-#define leafMinSunlight 0.01
-#define leafMaxHealth 5
 #define leafCost 1
 ## l is a precursor to a leaf
 #symbols lL
@@ -87,12 +85,9 @@ P(L3Flower)     | r|DIFFUSION_PARAMETERS| < T(x) : water >= .2 && glucose >= .2 
 P(leafProbability)     |     l -> l(0)
 P(1 - leafProbability) |     l -> 
 r|DIFFUSION_PARAMETERS| < l(amt) : amt < leafCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)l(amt + 0.05)
-                          l(amt) : amt >= leafCost -> pi(0, 0, 0)s(0)L(leafMaxHealth)e(0)
+                          l(amt) : amt >= leafCost -> pi(0, 0, 0)s(0)Le(0)
 
-r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health + sunlight - leafMinSunlight)
-r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L(health) :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) &&  (health >= leafMaxHealth && sunlight - leafMinSunlight > 0)                                             -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(health - 0.01)
-
-r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L(health) : !(water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) && ((health > 0 && health < leafMaxHealth) || (health >= leafMaxHealth && sunlight - leafMinSunlight <= 0)) -> L(health + sunlight - leafMinSunlight)
+r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L :  (water >= sunlight * leafSunlightMultiplier / 2 && glucose <= maxGlucoseFromLeaf) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L
 
 ## r|DIFFUSION_PARAMETERS|i(f, g, h)s(sunlight) < L(health) : health <= 0                                                                                                                                                                                    -> 
 
@@ -130,9 +125,7 @@ E(a, b, c) ->
 ## e is the volumetric diffuser accompanying R
 #symbols Re
 #matches e
-##e(x) < R(y) -> R(x)
 r|DIFFUSION_PARAMETERS| < R(x) -> R(counterFlow)
-## R(x) -> 
 
 #define kinkDeviation 0.2
 
@@ -143,29 +136,6 @@ P(1/5) | ~ -> ^(10)
 P(1/5) | ~ -> ^(-10)
 P(1/5) | ~ -> +(10)
 P(1/5) | ~ -> +(-10)
-
-#define deviationSpeedFactor (1 - (water / defaultMaxWater))
-
-## P(1/2) | r|DIFFUSION_PARAMETERS| < ^(x) -> ^(x, -1)
-## P(1/2) | r|DIFFUSION_PARAMETERS| < ^(x) -> ^(x,  1)
-##          r|DIFFUSION_PARAMETERS| < ^(x, s) : x >= -10 && x <= 10 -> ^(x + kinkDeviation * s * deviationSpeedFactor, s)
-##          r|DIFFUSION_PARAMETERS| < ^(x, s) : x < -10 ->             ^(x + kinkDeviation * 1.1, 1)
-##          r|DIFFUSION_PARAMETERS| < ^(x, s) : x >  10 ->             ^(x - kinkDeviation * 1.1, -1)
-## 
-## P(1/2) | r|DIFFUSION_PARAMETERS| < +(x) -> +(x, -1)
-## P(1/2) | r|DIFFUSION_PARAMETERS| < +(x) -> +(x,  1)
-##          r|DIFFUSION_PARAMETERS| < +(x, s) : x >= -10 && x <= 10 -> +(x + kinkDeviation * s * deviationSpeedFactor, s)
-##          r|DIFFUSION_PARAMETERS| < +(x, s) : x < -10 ->             +(x + kinkDeviation * 1.1, 1)
-##          r|DIFFUSION_PARAMETERS| < +(x, s) : x >  10 ->             +(x - kinkDeviation * 1.1, -1)
-
-
-## P(1/2) | +(x) : x >= -10 && x <= 10 -> +(x + kinkDeviation)
-## P(1/2) | +(x) : x >= -10 && x <= 10 -> +(x - kinkDeviation)
-## +(x) : x < -10 -> +(x + kinkDeviation)
-## +(x) : x >  10 -> +(x - kinkDeviation)
-
-
-
 
 ## p is a autophagic switch which waits for a leaf to become unhealthy, and then aborts it
 #symbols p
