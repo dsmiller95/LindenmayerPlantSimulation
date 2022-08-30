@@ -15,7 +15,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         /// <summary>
         /// organ addition operation
         /// </summary>
-        [FieldOffset(1)] public TurtleMeshOperation meshOperation;
+        [FieldOffset(1)] public TurtleOrganOperation meshOperation;
         /// <summary>
         /// ECS entity spawning operation
         /// </summary>
@@ -24,6 +24,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         /// bend towards operations
         /// </summary>
         [FieldOffset(1)] public TurtleBendTowardsOperation bendTowardsOperation;
+        [FieldOffset(1)] public TurtleOrientTowardsOperation orientTowardsOperation;
         /// <summary>
         /// thickness operation
         /// </summary>
@@ -55,6 +56,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 case TurtleOperationType.BEND_TOWARDS:
                     bendTowardsOperation.Operate(ref currentState, indexInString, sourceString);
+                    break;
+                case TurtleOperationType.ORIENT_TOWARDS:
+                    orientTowardsOperation.Operate(ref currentState, indexInString, sourceString);
                     break;
                 case TurtleOperationType.ADD_ORGAN:
                     meshOperation.Operate(ref currentState, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricHandles);
@@ -92,6 +96,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     public enum TurtleOperationType : byte
     {
         BEND_TOWARDS,
+        ORIENT_TOWARDS,
         ADD_ORGAN,
         INSTANTIATE_ENTITY,
         ROTATE,

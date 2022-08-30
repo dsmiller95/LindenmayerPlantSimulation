@@ -33,7 +33,7 @@ public class OrganPositioningTurtleInterpretorTests
                 IndividualScale = Vector3.one,
                 ParameterScale = false,
                 ScaleIsAdditional = false,
-                VolumetricScale = false,
+                ScalePower = 1,
                 ScalePerParameter = Vector3.one,
                 AlsoMove = true,
                 UseThickness = false,

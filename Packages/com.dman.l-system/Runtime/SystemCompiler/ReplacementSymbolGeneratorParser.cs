@@ -46,14 +46,23 @@ namespace Dman.LSystem.SystemRuntime
             {
                 throw new SyntaxException("Cannot use parentheses as a symbol", currentIndexInStream);
             }
+            int remapped;
+            try
+            {
+                remapped = symbolRemapper(nextSymbol);
+            }
+            catch (LSystemRuntimeException e)
+            {
+                throw new SyntaxException($"error when remapping a symbol '{nextSymbol}'", currentIndexInStream, innerException: e);
+            }
             currentIndexInStream++;
             if (!symbols.MoveNext())
             {
-                return (new ReplacementSymbolGenerator(symbolRemapper(nextSymbol)), false);
+                return (new ReplacementSymbolGenerator(remapped), false);
             }
             if (symbols.Current != '(')
             {
-                return (new ReplacementSymbolGenerator(symbolRemapper(nextSymbol)), true);
+                return (new ReplacementSymbolGenerator(remapped), true);
             }
             var delegates = new List<DynamicExpressionData>();
             while (symbols.Current != ')')
@@ -98,7 +107,7 @@ namespace Dman.LSystem.SystemRuntime
 
 
             currentIndexInStream++;
-            return (new ReplacementSymbolGenerator(symbolRemapper(nextSymbol), delegates), symbols.MoveNext());
+            return (new ReplacementSymbolGenerator(remapped, delegates), symbols.MoveNext());
         }
 
         /// <summary>

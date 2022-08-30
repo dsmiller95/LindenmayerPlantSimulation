@@ -31,7 +31,7 @@ namespace Dman.LSystem.UnityObjects
         public bool ParameterScale;
         public bool ScaleIsAdditional;
         [Tooltip("If set to true, will scale based on the parameter as if it were a definition of additional volume. It does this by taking a cube root")]
-        public bool VolumetricScale = false;
+        public float ScalePower = 1;
         public Vector3 ScalePerParameter;
 
         public bool AlsoMove;
@@ -111,7 +111,7 @@ namespace Dman.LSystem.UnityObjects
                     {
                         extraNonUniformScaleForOrgan = ScalePerParameter,
                         scaleIsAdditional = ScaleIsAdditional,
-                        isVolumetricScale = VolumetricScale,
+                        scalePower = Mathf.Max(ScalePower, 1),
                         doScale = ParameterScale,
                         doApplyThiccness = UseThickness,
                         organIndexRange = organIndexes,
@@ -150,7 +150,7 @@ namespace Dman.LSystem.UnityObjects
         public float3 extraNonUniformScaleForOrgan;
         public bool doScale;
         public bool scaleIsAdditional;
-        public bool isVolumetricScale;
+        public float scalePower;
         public bool doApplyThiccness;
         public JaggedIndexing organIndexRange;
 
@@ -184,9 +184,9 @@ namespace Dman.LSystem.UnityObjects
             if (doScale && pIndex.length > scaleIndex)
             {
                 scale = sourceString.parameters[pIndex, scaleIndex];
-                if (isVolumetricScale)
+                if (scalePower != 1)
                 {
-                    scale = Mathf.Pow(scale, 1f / 3f);
+                    scale = Mathf.Pow(scale, 1f / scalePower);
                 }
                 var scaleVector = (scaleIsAdditional ? new float3(1, 1, 1) : new float3(0, 0, 0)) + (extraNonUniformScaleForOrgan * scale);
 

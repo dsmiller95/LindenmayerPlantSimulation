@@ -43,11 +43,21 @@ namespace Dman.LSystem.UnityObjects
         {
             var paramIndex = sourceString.parameters[indexInString];
             float bendFactor = defaultBendFactor;
-            if (paramIndex.length == 1)
+            var hasBendFactor = paramIndex.length == 1 || paramIndex.length == 4;
+            if (hasBendFactor)
             {
                 bendFactor = sourceString.parameters[paramIndex, 0];
             }
-            var localBendDirection = state.transformation.inverse.MultiplyVector(defaultBendDirection);
+            var bendDirection = defaultBendDirection;
+            if(paramIndex.length == 3 || paramIndex.length == 4)
+            {
+                var offset = hasBendFactor ? 1 : 0;
+                bendDirection = new float3(
+                    sourceString.parameters[paramIndex, offset],
+                    sourceString.parameters[paramIndex, offset + 1],
+                    sourceString.parameters[paramIndex, offset + 2]);
+            }
+            var localBendDirection = state.transformation.inverse.MultiplyVector(bendDirection);
             var adjustment = (bendFactor) * (Vector3.Cross(localBendDirection, Vector3.right));
             state.transformation *= Matrix4x4.Rotate(
                 Quaternion.Slerp(

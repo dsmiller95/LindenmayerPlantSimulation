@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 
 namespace Dman.LSystem.SystemCompiler
 {
@@ -20,7 +21,8 @@ namespace Dman.LSystem.SystemCompiler
             string description,
             int startIndex = 0,
             int errorLength = 1,
-            string ruleText = "") : base()
+            string ruleText = "",
+            Exception innerException = null) : base(description, innerException)
         {
             this.ruleText = ruleText;
             errorStartIndex = startIndex;
