@@ -21,7 +21,7 @@ MonoBehaviour:
     UseMeshOrigin: 0
     ParameterScale: 0
     ScaleIsAdditional: 0
-    VolumetricScale: 0
+    ScalePower: 1
     ScalePerParameter: {x: 0.1, y: 0.1, z: 0.1}
     AlsoMove: 0
     UseThickness: 0
@@ -31,11 +31,11 @@ MonoBehaviour:
     MeshRef: {fileID: 2042079279535638571, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants: []
     material: {fileID: 2100000, guid: 8dd1cd2c00e8da049b04a49504321d3d, type: 2}
-    IndividualScale: {x: 3, y: 3, z: 3}
+    IndividualScale: {x: 0.6, y: 0.6, z: 0.6}
     UseMeshOrigin: 0
     ParameterScale: 1
     ScaleIsAdditional: 1
-    VolumetricScale: 0
+    ScalePower: 1
     ScalePerParameter: {x: 0.1, y: 0.1, z: 0.1}
     AlsoMove: 0
     UseThickness: 0

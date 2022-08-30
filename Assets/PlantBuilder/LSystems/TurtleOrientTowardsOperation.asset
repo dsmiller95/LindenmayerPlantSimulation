@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b9c4d506620c4bb9d7233d88f9cad, type: 3}
-  m_Name: TurtleBendTowardsOperation
+  m_Script: {fileID: 11500000, guid: 8bc5ebda8236dcf409a25212be6c79ec, type: 3}
+  m_Name: TurtleOrientTowardsOperation
   m_EditorClassIdentifier: 
-  bendTowardsOperator: 36
-  defaultBendDirection: {x: -1, y: 0.0001, z: 0.00001}
-  defaultBendFactor: 0.229
+  orientTowardsOperator: 42
+  defaultOrientDirection: {x: 1, y: 0, z: 0}
+  defaultOrientFactor: 0.1

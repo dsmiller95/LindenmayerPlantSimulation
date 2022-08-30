@@ -10,27 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e2e3403c48e95548b41ed845c65ecb1, type: 3}
-  m_Name: StemStress Stem
+  m_Name: StemStress stem debug
   m_EditorClassIdentifier: 
   meshKeys:
   - Character: 70
-    MeshRef: {fileID: 3557837105413461654, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    MeshRef: {fileID: 3910452026922366632, guid: ebd93c63c45f3d447b55d3b5cd046b17, type: 3}
     MeshVariants: []
-    material: {fileID: 2100000, guid: 8dd1cd2c00e8da049b04a49504321d3d, type: 2}
-    IndividualScale: {x: 0.3, y: 0.01, z: 0.01}
+    material: {fileID: 6036545723828146659, guid: ebd93c63c45f3d447b55d3b5cd046b17, type: 3}
+    IndividualScale: {x: 0.3, y: 0.02, z: 0.02}
     UseMeshOrigin: 0
     ParameterScale: 1
     ScaleIsAdditional: 1
-    ScalePower: 1.5
+    ScalePower: 2
     ScalePerParameter: {x: 0.02, y: 8, z: 8}
     AlsoMove: 1
     UseThickness: 1
     volumetricDurabilityValue: 1
     useAsDummyMesh: 0
   - Character: 102
-    MeshRef: {fileID: 3557837105413461654, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    MeshRef: {fileID: 3910452026922366632, guid: ebd93c63c45f3d447b55d3b5cd046b17, type: 3}
     MeshVariants: []
-    material: {fileID: 2100000, guid: 8dd1cd2c00e8da049b04a49504321d3d, type: 2}
+    material: {fileID: 6036545723828146659, guid: ebd93c63c45f3d447b55d3b5cd046b17, type: 3}
     IndividualScale: {x: 0.2, y: 0.1, z: 0.1}
     UseMeshOrigin: 0
     ParameterScale: 1
