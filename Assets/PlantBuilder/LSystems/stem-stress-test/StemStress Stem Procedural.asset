@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0990d3e0e5c4154ead73cd86f8348d8, type: 3}
-  m_Name: StemStress Procedural Stem
+  m_Name: StemStress Stem Procedural
   m_EditorClassIdentifier: 
   stemKeys:
   - Character: 70
     radialResolution: 5
     material: {fileID: 2100000, guid: e520c19c21eba8f47ba404904f4f10ba, type: 2}
     AlsoMove: 1
-    baseRadius: 0.02
+    baseRadius: 0.01
     radiusScaleFactor: 8
     baseLength: 0.3
     lengthScaleFactor: 0.02
     scaleIsAdditional: 1
     scalingSource: -1
-    scalePower: 2
+    scalePower: 1.5
     useAsDummyMesh: 0
