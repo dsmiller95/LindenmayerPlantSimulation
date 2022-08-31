@@ -17,27 +17,13 @@ MonoBehaviour:
     MeshRef: {fileID: 3910452026922366632, guid: ebd93c63c45f3d447b55d3b5cd046b17, type: 3}
     MeshVariants: []
     material: {fileID: 6036545723828146659, guid: ebd93c63c45f3d447b55d3b5cd046b17, type: 3}
-    IndividualScale: {x: 0.3, y: 0.02, z: 0.02}
+    IndividualScale: {x: 0.3, y: 0.01, z: 0.01}
     UseMeshOrigin: 0
     ParameterScale: 1
     ScaleIsAdditional: 1
-    ScalePower: 2
+    ScalePower: 1.5
     ScalePerParameter: {x: 0.02, y: 8, z: 8}
     AlsoMove: 1
-    UseThickness: 1
-    volumetricDurabilityValue: 1
-    useAsDummyMesh: 0
-  - Character: 102
-    MeshRef: {fileID: 3910452026922366632, guid: ebd93c63c45f3d447b55d3b5cd046b17, type: 3}
-    MeshVariants: []
-    material: {fileID: 6036545723828146659, guid: ebd93c63c45f3d447b55d3b5cd046b17, type: 3}
-    IndividualScale: {x: 0.2, y: 0.1, z: 0.1}
-    UseMeshOrigin: 0
-    ParameterScale: 1
-    ScaleIsAdditional: 0
-    ScalePower: 1
-    ScalePerParameter: {x: 1, y: 1, z: 1}
-    AlsoMove: 0
     UseThickness: 1
     volumetricDurabilityValue: 1
     useAsDummyMesh: 0
