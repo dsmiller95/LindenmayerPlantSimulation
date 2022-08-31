@@ -1,9 +1,8 @@
-#axiom /(-50)@(1)i(0, 0, 0)r(0.3, 0, 20, 200, 20, 0, 100000, 0, 100000)bS(10)FT(5, 0)
+#axiom /(-50)@(1)i(0, 0, 0)r(0.3, 0, 20, 200, 20, 0, 100000, 0, 100000)bS(10)F(0)T(5, 0)
 #iterations 3000
 
 #symbols +-/\&^$@!`*F
 #global F
-#matches @!`
 
 ## K is a flower. unused in this file at this time.
 #symbols K
@@ -56,11 +55,13 @@ r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .1 && x >  0 -> $(depth * 0.0
 #define L2Flower 0.4
 #define |flowL3| (depth < 8)
 #define L3Flower 0.75
-P(1 - L1Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL1|              -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)]
+#define TreeSegmentLength 5
+
+P(1 - L1Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL1|              -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1)]
 P(L1Flower)     | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL1|              -> |Petiole|
-P(1 - L2Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)]
+P(1 - L2Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1)]
 P(L2Flower)     | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| -> |Petiole|
-P(1 - L3Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)]
+P(1 - L3Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1)]
 P(L3Flower)     | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| -> |Petiole|
                   r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && !|flowL3|             -> |Petiole|
 
@@ -68,19 +69,19 @@ P(L3Flower)     | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 
 ## L is a leaf. parameter is the size of the leaf, and also is is the health of the leaf which decreases when receiving a small amount of sunlight
 ## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight
 #define leafCost 1
+#define |Leaf| l
 ## l is a precursor to a leaf
 #symbols lL
 #matches L
-l -> l(0)
-r|DIFFUSION_PARAMETERS| < l(amt) : amt < leafCost && glucose >= 0.1 -> a(0, -.05)l(amt + 0.05)
-                          l(amt) : amt >= leafCost -> i(0, 0, 0)L
+r|DIFFUSION_PARAMETERS| < l(scale, finalScale, amt) : amt < leafCost && glucose >= 0.1 -> a(0, -.05)l(finalScale * amt, finalScale, amt + 0.05)
+                          l(scale, finalScale, amt) : amt >= leafCost -> i(0, 0, 0)L(finalScale)
 
 ## f is a precursor to a stem
 #define stemCost 1
 #symbols f
 #matches f
 r|DIFFUSION_PARAMETERS| < f(amt) : amt < stemCost && glucose >= 0.1 -> a(0, -glucose/3)f(amt + glucose/3)
-						  f(amt) : amt >= stemCost -> F(1)
+						  f(amt) : amt >= stemCost -> F(0)
 
 ## R is the resource visualizer
 #symbols R
@@ -101,12 +102,10 @@ P(1/5) | ~ -> +(-10)
 #define |Petiole| P
 #define (Alternator) ((x % 2) * 2 - 1)
 
+#define (PetioleLength) 8
+#define (PetioleScale) (0.5 ^ (1/(PetioleLength)))
 ## orient the y-axis towards world-space "up"
-r|DIFFUSION_PARAMETERS| < P -> |TreeBranchCrookMarker||TreeBranchBaseMarker||TERMINATOR_DIFFUSION_NODE|*(0.3, 1, 0, 0)P(5)
-r|DIFFUSION_PARAMETERS| < P(x) : glucose >= .1 && x >= 0 -> $(0.03)*(0.2, 1, 0, 0)f(0)\((Alternator) * 10)[+(90)l]f(0)[-(90)l]P(x - 1)
+r|DIFFUSION_PARAMETERS| < P -> |TreeBranchCrookMarker||TreeBranchBaseMarker||TERMINATOR_DIFFUSION_NODE|*(0.8, 1, 0, 0)P((PetioleLength))
+r|DIFFUSION_PARAMETERS| < P(x) : glucose >= .1 && x >= 0 -> $(0.03)*(0.1, 1, 0, 0)^(((1 - x/(PetioleLength))^0.5) * 70)!((PetioleScale))f(0)\((Alternator) * 10)[+(90)|Leaf|(0, (x+1)/(PetioleLength), 0)]f(0)[-(90)|Leaf|(0, (x+1)/(PetioleLength), 0)]P(x - 1)
 P(x) : x < 0 ->
-
-
-
-
 
