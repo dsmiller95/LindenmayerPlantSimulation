@@ -25,8 +25,13 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
 
         public bool AlsoMove;
         public float baseRadius;
+        public float radiusScaleFactor;
         public float baseLength;
+        public float lengthScaleFactor;
+        public bool scaleIsAdditional;
         public ScaleSource scalingSource;
+
+        public float scalePower = 1;
 
         /// <summary>
         /// usable to reconfigure this operation to only move the turtle by how much it would be moved
@@ -63,8 +68,10 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                         willMove = AlsoMove,
                         radialResolution = (ushort)radialResolution,
                         scaleSource = scalingSource,
-                        baseLength = baseLength,
-                        baseRadius = baseRadius
+                        lengthRadiusBase = new float2(baseLength, baseRadius),
+                        lengthRadiusScale = new float2(lengthScaleFactor, radiusScaleFactor),
+                        scaleIsAdditional = scaleIsAdditional,
+                        scalePower = Mathf.Max(1, scalePower)
                     }
                 }
             });
@@ -103,9 +110,11 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
         public ushort radialResolution;
         public ScaleSource scaleSource;
 
-        public float baseLength;
-        public float baseRadius;
+        public float2 lengthRadiusBase;
+        public float2 lengthRadiusScale;
+        public bool scaleIsAdditional;
 
+        public float scalePower;
         public void Operate(
             ref TurtleState state,
             int indexInString,
@@ -114,24 +123,26 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
         {
             var pIndex = sourceString.parameters[indexInString];
 
-            var turtleTranslation = new Vector3(baseLength, 0, 0);
-            var stemScale = new float3(1, baseRadius, baseRadius);
-            if (scaleSource == ScaleSource.PARAMETER && pIndex.length > 0)
+            var localLengthRadius = lengthRadiusBase;
+            if ((scaleSource & ScaleSource.PARAMETER) != 0 && pIndex.length > 0)
             {
                 var scale = sourceString.parameters[pIndex, 0];
-                turtleTranslation *= scale;
-                stemScale *= scale;
+                if (scalePower != 1)
+                {
+                    scale = Mathf.Pow(scale, 1f / scalePower);
+                }
+                localLengthRadius *= (scaleIsAdditional ? new float2(1, 1) : float2.zero) + scale * lengthRadiusScale;
             }
-            if (scaleSource == ScaleSource.THICKNESS)
+            if ((scaleSource & ScaleSource.THICKNESS) != 0)
             {
-                stemScale *= new float3(1, state.thickness, state.thickness);
+                localLengthRadius *= new float2(1, state.thickness);
             }
 
             var newStemEntry = new TurtleStemInstance
             {
                 materialIndex = materialIndex,
                 radialResolution = radialResolution,
-                orientation = state.transformation * Matrix4x4.Scale(stemScale),
+                orientation = state.transformation * Matrix4x4.Scale(new Vector3(localLengthRadius.x, localLengthRadius.y, localLengthRadius.y)),
                 parentIndex = state.indexInStemTree,
                 organIdentity = state.organIdentity,
             };
@@ -140,7 +151,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
 
             if (willMove)
             {
-                state.transformation *= Matrix4x4.Translate(turtleTranslation);
+                state.transformation *= Matrix4x4.Translate(new Vector3(localLengthRadius.x, 0, 0));
             }
         }
     }

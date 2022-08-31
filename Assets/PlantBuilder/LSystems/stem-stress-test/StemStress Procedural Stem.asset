@@ -17,7 +17,11 @@ MonoBehaviour:
     radialResolution: 5
     material: {fileID: 2100000, guid: e520c19c21eba8f47ba404904f4f10ba, type: 2}
     AlsoMove: 1
-    baseRadius: 0.1
-    baseLength: 0.2
-    scalingSource: 1
+    baseRadius: 0.02
+    radiusScaleFactor: 8
+    baseLength: 0.3
+    lengthScaleFactor: 0.02
+    scaleIsAdditional: 1
+    scalingSource: -1
+    scalePower: 2
     useAsDummyMesh: 0
