@@ -39,11 +39,13 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             for (int theta = 0; theta < stemInstance.radialResolution; theta++)
             {
                 var radians = theta * angleMultiplier;
-                var point = new float3(0, math.sin(radians), math.cos(radians));
+                var normal = new float3(0, math.sin(radians), math.cos(radians));
+                var point = normal;
+                point.x = 0.5f;
                 vertexTargetData[theta + vertexOffset] = new MeshVertexLayout
                 {
                     pos = pointTransform.MultiplyPoint3x4(point),
-                    normal = pointTransform.MultiplyVector(point),
+                    normal = pointTransform.MultiplyVector(normal),
                     uv = float2.zero,
                     color = ColorFromIdentity(stemInstance.organIdentity, (uint)stemIndex),
                     extraData = byte4.ZERO
