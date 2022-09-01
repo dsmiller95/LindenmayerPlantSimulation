@@ -68,16 +68,6 @@ r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flow
 r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| && (((|L3Flower| * (depth+offset)) % 1) - (|L3Flower| * (depth+offset+1)) % 1 + |L3Flower|) >= 0.99)          -> |Petiole|
 r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && !|flowL3|                                                                                                     -> |Petiole|
 
-
-## P(1 - L1Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL1|              -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1)]
-## P(L1Flower)     | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL1|              -> |Petiole|
-## P(1 - L2Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1)]
-## P(L2Flower)     | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| -> |Petiole|
-## P(1 - L3Flower) | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| -> R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(5, depth + 1)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1)]
-## P(L3Flower)     | r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| -> |Petiole|
-##                   r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && !|flowL3|             -> |Petiole|
-
-
 ## L is a leaf. parameter is the size of the leaf, and also is is the health of the leaf which decreases when receiving a small amount of sunlight
 ## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight
 #define leafCost 1
