@@ -144,9 +144,18 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                 radialResolution = radialResolution,
                 orientation = state.transformation * Matrix4x4.Scale(new Vector3(localLengthRadius.x, localLengthRadius.y, localLengthRadius.y)),
                 parentIndex = state.indexInStemTree,
+                depth = state.stemDepth,
                 organIdentity = state.organIdentity,
+                extraData = state.customData
             };
             state.indexInStemTree = targetStemInstances.Length;
+            //if(state.indexInStemTree >= 0)
+            //{ TODO: convert the uv length calculation in this job. or write a new pre-process job to compute and propigate.
+            //    var parentPoint = targetStemInstances[state.indexInStemTree];
+            //    var distance = (parentPoint.orientation.MultiplyPoint3x4(float3.zero) - state.transformation.MultiplyPoint3x4(float3.zero)).magnitude;
+            //    state.stemDepth += distance;
+            //}
+            state.stemDepth++;
             targetStemInstances.Add(newStemEntry);
 
             if (willMove)

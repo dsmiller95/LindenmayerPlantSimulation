@@ -40,6 +40,9 @@
 #symbols n
 #include autophagy (Necrose->n)
 
+#symbols v
+#include extraVertexData (VertexData->v)
+
 #symbols S
 #define |Shoot| S
 
@@ -60,13 +63,13 @@ r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .1 && x >  0 -> $(dep
 
 #define |NewTreeSegment| R(0)/(137)|TreeBranchCrookMarker|[-(10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1, offset*2)][-(-10)i(0, 0, 0)|TreeBranchBaseMarker||DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1, offset*2 + 1)]
 
-r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL1| &&              (((|L1Flower| * (depth+offset)) % 1) - (|L1Flower| * (depth+offset+1)) % 1 + |L1Flower|) <  0.99)          -> |NewTreeSegment|
-r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL1| &&              (((|L1Flower| * (depth+offset)) % 1) - (|L1Flower| * (depth+offset+1)) % 1 + |L1Flower|) >= 0.99)          -> |Petiole|
-r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| && (((|L2Flower| * (depth+offset)) % 1) - (|L2Flower| * (depth+offset+1)) % 1 + |L2Flower|) <  0.99)          -> |NewTreeSegment|
-r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| && (((|L2Flower| * (depth+offset)) % 1) - (|L2Flower| * (depth+offset+1)) % 1 + |L2Flower|) >= 0.99)          -> |Petiole|
-r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| && (((|L3Flower| * (depth+offset)) % 1) - (|L3Flower| * (depth+offset+1)) % 1 + |L3Flower|) <  0.99)          -> |NewTreeSegment|
-r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| && (((|L3Flower| * (depth+offset)) % 1) - (|L3Flower| * (depth+offset+1)) % 1 + |L3Flower|) >= 0.99)          -> |Petiole|
-r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && !|flowL3|                                                                                                     -> |Petiole|
+r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL1| &&              (((|L1Flower| * (depth+offset)) % 1) - (|L1Flower| * (depth+offset+1)) % 1 + |L1Flower|) <  0.99)          -> v(0.5/4, 0.4)|NewTreeSegment|
+r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL1| &&              (((|L1Flower| * (depth+offset)) % 1) - (|L1Flower| * (depth+offset+1)) % 1 + |L1Flower|) >= 0.99)          -> v(3.5/4, 0.4)|Petiole|
+r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| && (((|L2Flower| * (depth+offset)) % 1) - (|L2Flower| * (depth+offset+1)) % 1 + |L2Flower|) <  0.99)          -> v(1.5/4, 0.3)|NewTreeSegment|
+r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL2| && !|flowL1| && (((|L2Flower| * (depth+offset)) % 1) - (|L2Flower| * (depth+offset+1)) % 1 + |L2Flower|) >= 0.99)          -> v(3.5/4, 0.3)|Petiole|
+r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| && (((|L3Flower| * (depth+offset)) % 1) - (|L3Flower| * (depth+offset+1)) % 1 + |L3Flower|) <  0.99)          -> v(2.5/4, 0.2)|NewTreeSegment|
+r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && |flowL3| && !|flowL2| && (((|L3Flower| * (depth+offset)) % 1) - (|L3Flower| * (depth+offset+1)) % 1 + |L3Flower|) >= 0.99)          -> v(3.5/4, 0.2)|Petiole|
+r|DIFFUSION_PARAMETERS| < T(x, depth, offset) : glucose >= .2 && x <= 0 && !|flowL3|                                                                                                     -> v(3.5/4, 0.1)|Petiole|
 
 ## L is a leaf. parameter is the size of the leaf, and also is is the health of the leaf which decreases when receiving a small amount of sunlight
 ## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight

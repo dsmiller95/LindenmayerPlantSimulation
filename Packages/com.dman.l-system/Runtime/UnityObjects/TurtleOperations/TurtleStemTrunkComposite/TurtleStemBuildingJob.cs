@@ -35,10 +35,19 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
 
             var vertexOffset = submeshData.indexInVertexes + meshMemorySpace.vertexMemorySpace.index;
 
-            var angleMultiplier = math.PI * 2f / stemInstance.radialResolution;
-            for (int theta = 0; theta < stemInstance.radialResolution; theta++)
+            float uvLengthFromParent = 0;
+            TurtleStemInstance parentStem = default;
+            if (stemInstance.parentIndex >= 0)
             {
-                var radians = theta * angleMultiplier;
+                parentStem = stemInstances[stemInstance.parentIndex];
+                var lengthToCircumferanceRatio = pointTransform.MultiplyVector(new float3(1, 0, 0)).magnitude / (pointTransform.MultiplyVector(new float3(0, 1, 0)).magnitude * 2 * math.PI);
+                var distanceFromParent = (pointTransform.MultiplyPoint3x4(float3.zero) - parentStem.orientation.MultiplyPoint3x4(float3.zero)).magnitude;
+                uvLengthFromParent = 1 * lengthToCircumferanceRatio * distanceFromParent + stemInstance.depth;
+            }
+            for (int theta = 0; theta <= stemInstance.radialResolution; theta++)
+            {
+                var normalized = theta / (float)stemInstance.radialResolution;
+                var radians = normalized * math.PI * 2f;
                 var normal = new float3(0, math.sin(radians), math.cos(radians));
                 var point = normal;
                 point.x = 0.5f;
@@ -46,9 +55,9 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                 {
                     pos = pointTransform.MultiplyPoint3x4(point),
                     normal = pointTransform.MultiplyVector(normal),
-                    uv = float2.zero,
+                    uv = new float2(normalized, uvLengthFromParent),
                     color = ColorFromIdentity(stemInstance.organIdentity, (uint)stemIndex),
-                    extraData = byte4.ZERO
+                    extraData = stemInstance.extraData
                 };
             }
             if (stemInstance.parentIndex < 0)
@@ -56,7 +65,6 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                 return;
             }
             var triangleOffset = submeshData.indexInTriangles + meshMemorySpace.trianglesMemorySpace.index;
-            var parentStem = stemInstances[stemInstance.parentIndex];
             if (parentStem.radialResolution != stemInstance.radialResolution || parentStem.materialIndex != stemInstance.materialIndex)
             {
                 for (int i = 0; i < meshMemorySpace.trianglesMemorySpace.length; i++)
@@ -70,18 +78,20 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             // create the rectangle strip. only supported when equal radial vertex count and same submesh
             var parentVertexOffset = submeshData.indexInVertexes + parentStemMeshMemory.vertexMemorySpace.index;
 
-            var myCircleIndexOffset = (GetNormalizedCircleOffset(parentStem.orientation, pointTransform) + 1) * stemInstance.radialResolution;
+            var myCircleIndexOffset = (int)math.round((GetNormalizedCircleOffset(parentStem.orientation, pointTransform) + 1) * stemInstance.radialResolution);
 
 
             for (int rectIndex = 0; rectIndex < stemInstance.radialResolution; rectIndex++)
             {
-                var nextIndex = (rectIndex + 1) % stemInstance.radialResolution;
+                // intentionally avoid using modulo here. this is since the circle is not complete, there is a duplicate vertex
+                //  at index 0 and index n
+                var nextIndex = rectIndex + 1;
                 var p1 = (uint)(rectIndex + parentVertexOffset);
                 var p2 = (uint)(nextIndex + parentVertexOffset);
 
                 // offset child indexes by index offset, determined by angular difference with the parent
                 var childIndex = (rectIndex + myCircleIndexOffset) % stemInstance.radialResolution;
-                var childNextIndex = (rectIndex + myCircleIndexOffset + 1) % stemInstance.radialResolution;
+                var childNextIndex = childIndex + 1; // (rectIndex + myCircleIndexOffset + 1) % stemInstance.radialResolution;
                 var c1 = (uint)(childIndex + vertexOffset);
                 var c2 = (uint)(childNextIndex + vertexOffset);
 

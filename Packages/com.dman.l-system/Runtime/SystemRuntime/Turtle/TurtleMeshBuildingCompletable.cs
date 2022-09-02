@@ -184,7 +184,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 for (int i = 0; i < stemInstances.Length; i++)
                 {
                     var stemInstance = stemInstances[i];
-                    var vertexCount = (ushort)stemInstance.radialResolution;
+                    var vertexCount = (ushort)(stemInstance.radialResolution + 1);
                     var triangleCount = (ushort)(vertexCount * 2 * 3);
                     AllocateMeshSpace(vertexCount, triangleCount, stemInstance.materialIndex, i + organInstances.Length);
                 }

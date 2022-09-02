@@ -10,7 +10,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             transformation = Matrix4x4.identity,
             thickness = 1,
             organIdentity = new UIntFloatColor32(0),
-            indexInStemTree = -1
+            indexInStemTree = -1,
+            stemDepth = 0
         };
 
         public Matrix4x4 transformation;
@@ -18,5 +19,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public UIntFloatColor32 organIdentity;
         public byte4 customData;
         public int indexInStemTree;
+        public int stemDepth;
     }
 }
