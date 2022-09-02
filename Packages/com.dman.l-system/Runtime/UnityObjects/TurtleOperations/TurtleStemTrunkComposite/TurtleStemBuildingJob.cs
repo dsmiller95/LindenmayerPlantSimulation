@@ -107,25 +107,25 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
         }
 
         /// <summary>
-        /// returns a value representing the rotation required to align the y axis of <paramref name="next"/> up as closely as posslbe to the y axis of <paramref name="parent"/>
+        /// returns a value representing the rotation required to align the y axis of <paramref name="next"/> up as closely as possible to the y axis of <paramref name="parent"/>
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="next"></param>
+        /// <param name="parent">the previous-stem orientation</param>
+        /// <param name="next">the next-stem orientation</param>
         /// <returns>a value between -0.5 and 0.5, representing rotations about the x-axis from -180 to 180 degrees</returns>
-        private float GetNormalizedCircleOffset(Matrix4x4 parent, Matrix4x4 next)
+        private static float GetNormalizedCircleOffset(Matrix4x4 parent, Matrix4x4 next)
         {
-            var parentBasisPlaneX = parent.MultiplyVector(Vector3.forward);
-            var parentBasisPlaneY = parent.MultiplyVector(Vector3.up);
-            var parentBasisPlaneNormal = parent.MultiplyVector(Vector3.right);
+            var parentBasisPlaneX = parent.MultiplyVector(new Vector3(0, 0, 1));
+            var parentBasisPlaneY = parent.MultiplyVector(new Vector3(0, 1, 0));
+            var parentBasisPlaneNormal = parent.MultiplyVector(new Vector3(1, 0, 0));
 
-            var nextY = next.MultiplyVector(Vector3.up);
+            var nextY = next.MultiplyVector(new Vector3(0, 1, 0));
             var nextYProjectedOnParentBasisPlane = ProjectOntoPlane(nextY, parentBasisPlaneX, parentBasisPlaneY);
 
             var angleOffset = Vector3.SignedAngle(parentBasisPlaneY, nextYProjectedOnParentBasisPlane, parentBasisPlaneNormal);
             return angleOffset / 360f;
         }
 
-        private Vector3 ProjectOntoPlane(Vector3 projectionVector, Vector3 planeBasisX, Vector3 planeBasisY)
+        private static Vector3 ProjectOntoPlane(Vector3 projectionVector, Vector3 planeBasisX, Vector3 planeBasisY)
         {
             var projectedX = planeBasisX * (Vector3.Dot(planeBasisX, projectionVector));
             var projectedY = planeBasisY * (Vector3.Dot(planeBasisY, projectionVector));
