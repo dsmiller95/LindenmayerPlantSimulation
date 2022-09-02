@@ -16,7 +16,7 @@ MonoBehaviour:
   - Character: 70
     MeshRef: {fileID: 3557837105413461654, guid: a381acc0272832b44bdaff9265914e18, type: 3}
     MeshVariants: []
-    material: {fileID: 2100000, guid: 8dd1cd2c00e8da049b04a49504321d3d, type: 2}
+    material: {fileID: 2100000, guid: e520c19c21eba8f47ba404904f4f10ba, type: 2}
     IndividualScale: {x: 0.3, y: 0.01, z: 0.01}
     UseMeshOrigin: 0
     ParameterScale: 1
