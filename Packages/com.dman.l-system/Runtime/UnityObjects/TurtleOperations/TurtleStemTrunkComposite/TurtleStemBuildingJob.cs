@@ -91,7 +91,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
 
                 // offset child indexes by index offset, determined by angular difference with the parent
                 var childIndex = (rectIndex + myCircleIndexOffset) % stemInstance.radialResolution;
-                var childNextIndex = childIndex + 1; // (rectIndex + myCircleIndexOffset + 1) % stemInstance.radialResolution;
+                var childNextIndex = childIndex + 1;
                 var c1 = (uint)(childIndex + vertexOffset);
                 var c2 = (uint)(childNextIndex + vertexOffset);
 
