@@ -1,6 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.LSystem.UnityObjects;
+using Dman.LSystem.UnityObjects.StemTrunk;
 using Dman.LSystem.UnityObjects.VolumetricResource;
 using System.Runtime.InteropServices;
 using Unity.Collections;
@@ -12,6 +13,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     public struct TurtleOperation
     {
         [FieldOffset(0)] public TurtleOperationType operationType;
+        /// <summary>
+        /// organ addition operation
+        /// </summary>
+        [FieldOffset(1)] public TurtleStemPlacementOperation stemOperation;
         /// <summary>
         /// organ addition operation
         /// </summary>
@@ -49,6 +54,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             SymbolString<float> sourceString,
             NativeArray<TurtleOrganTemplate.Blittable> allOrgans,
             NativeList<TurtleOrganInstance> targetOrganInstances,
+            NativeList<TurtleStemInstance> targetStemInstances,
             TurtleVolumetricHandles volumetricHandles,
             EntityCommandBuffer spawningEntityBuffer)
         {
@@ -62,6 +68,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                     break;
                 case TurtleOperationType.ADD_ORGAN:
                     meshOperation.Operate(ref currentState, indexInString, sourceString, allOrgans, targetOrganInstances, volumetricHandles);
+                    break;
+                case TurtleOperationType.ADD_STEM:
+                    stemOperation.Operate(ref currentState, indexInString, sourceString, targetStemInstances);
                     break;
                 case TurtleOperationType.INSTANTIATE_ENTITY: // TODO: get the local to world transform from somewhere other than the volumetric handles
                     instantiateOperator.Operate(ref currentState, indexInString, sourceString, spawningEntityBuffer, volumetricHandles.durabilityWriter.localToWorldTransformation);
@@ -98,6 +107,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         BEND_TOWARDS,
         ORIENT_TOWARDS,
         ADD_ORGAN,
+        ADD_STEM,
         INSTANTIATE_ENTITY,
         ROTATE,
         SCALE_TRANSFORM,

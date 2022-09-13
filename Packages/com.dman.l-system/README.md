@@ -79,6 +79,10 @@ Example configuration:
 
 In this example, `F` is used as the most basic stem unit. In the [herbaceous plant](https://github.com/dsmiller95/plantbuilder/blob/master/Assets/PlantBuilder/LSystems/herbaceous-plant.lsystem) system, no mesh elements build off of the end of leaves, so the Also Move checkbox has been left unchecked.
 
+### Stem Operations
+
+Much like Mesh operations, Stem Operations are used to build the central stem of a mesh. It is an efficient and more visually pleasing alternative to using copies of a cylinder mesh to build a plant's trunk. Most of the options provided for mesh operations apply to this operation as well, in the same way. As a not, most examples in this document do -not- use this system yet. But to see more information on how this works, and how it looks, this [blog post is a good reference](https://www.fraculation.com/blog/trunk-generation/)
+
 ### Scale Operation
 
 Defines one character to be used to scale the turtle's current transformation. This will multiply the scale of everything done by the turtle, such as the size of meshes and as the distance traveled when translating the turtle. The character can also be parameterized in three ways:`!` will scale by the default configured scale in the scriptable object, `!(x)` will scale every dimension by x exactly, and `!(x, y, z)` will scale by the vector <x, y, z>
