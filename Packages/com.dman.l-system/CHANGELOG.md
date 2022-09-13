@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0] - 2022-09-13
+
+### Added
+
+- new native support for Stems as a new turtle operation. will generate a spline-like bonded cylinder mesh for stems when used, with mapping onto a tileable uv texture
+
+
 ## [0.2.1] - 2021-03-27
 
 ### Added
