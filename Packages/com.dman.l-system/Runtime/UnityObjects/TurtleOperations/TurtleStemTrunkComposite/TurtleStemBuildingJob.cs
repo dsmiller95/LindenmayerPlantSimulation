@@ -17,6 +17,8 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
         [ReadOnly]
         public NativeArray<TurtleStemInstance> stemInstances;
         [ReadOnly]
+        public NativeArray<TurtleStemGenerationData> generationData;
+        [ReadOnly]
         public NativeArray<OrganMeshMemorySpaceAllocation> organMeshAllocations;
 
         public int meshMemoryOffset;
@@ -29,21 +31,13 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             var triangleIndexes = targetMesh.indices;
 
             var stemInstance = stemInstances[stemIndex];
+            var generationParameters = generationData[stemIndex];
             var pointTransform = stemInstance.orientation;
             var meshMemorySpace = organMeshAllocations[stemIndex + meshMemoryOffset];
             var submeshData = submeshSizes[stemInstance.materialIndex];
 
             var vertexOffset = submeshData.indexInVertexes + meshMemorySpace.vertexMemorySpace.index;
 
-            float uvLengthFromParent = 0;
-            TurtleStemInstance parentStem = default;
-            if (stemInstance.parentIndex >= 0)
-            {
-                parentStem = stemInstances[stemInstance.parentIndex];
-                var lengthToCircumferanceRatio = pointTransform.MultiplyVector(new float3(1, 0, 0)).magnitude / (pointTransform.MultiplyVector(new float3(0, 1, 0)).magnitude * 2 * math.PI);
-                var distanceFromParent = (pointTransform.MultiplyPoint3x4(float3.zero) - parentStem.orientation.MultiplyPoint3x4(float3.zero)).magnitude;
-                uvLengthFromParent = 1 * lengthToCircumferanceRatio * distanceFromParent + stemInstance.depth;
-            }
             for (int theta = 0; theta <= stemInstance.radialResolution; theta++)
             {
                 var normalized = theta / (float)stemInstance.radialResolution;
@@ -55,7 +49,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                 {
                     pos = pointTransform.MultiplyPoint3x4(point),
                     normal = pointTransform.MultiplyVector(normal),
-                    uv = new float2(normalized, uvLengthFromParent),
+                    uv = new float2(normalized, generationParameters.uvDepth),
                     color = ColorFromIdentity(stemInstance.organIdentity, (uint)stemIndex),
                     extraData = stemInstance.extraData
                 };
@@ -64,6 +58,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             {
                 return;
             }
+            var parentStem = stemInstances[stemInstance.parentIndex];
             var triangleOffset = submeshData.indexInTriangles + meshMemorySpace.trianglesMemorySpace.index;
             if (parentStem.radialResolution != stemInstance.radialResolution || parentStem.materialIndex != stemInstance.materialIndex)
             {

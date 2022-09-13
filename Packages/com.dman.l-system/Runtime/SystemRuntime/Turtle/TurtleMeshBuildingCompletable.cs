@@ -76,19 +76,31 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 targetMesh = meshData
             };
 
-            currentJobHandle = meshBuildingJob.Schedule(meshBuilding.organInstances.Length, 100, currentJobHandle);
+            var meshBuldingJobHandle = meshBuildingJob.Schedule(meshBuilding.organInstances.Length, 100, currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
+
+            var stemGenerationData = new NativeArray<TurtleStemGenerationData>(meshBuilding.stemInstances.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var stemPeprocessJob = new TurtleStemPreprocessJob
+            {
+                generationData = stemGenerationData,
+                stemInstances = meshBuilding.stemInstances
+            };
+            // preprocess job can run in parallel with the mesh building job
+            currentJobHandle =  JobHandle.CombineDependencies(stemPeprocessJob.Schedule(currentJobHandle), meshBuldingJobHandle);
+
 
             var stemBuildingJob = new TurtleStemBuildingJob
             {
                 submeshSizes = meshSizePerSubmesh,
                 stemInstances = meshBuilding.stemInstances,
+                generationData = stemGenerationData,
                 organMeshAllocations = organMeshSizeAllocations,
                 meshMemoryOffset = stemMeshSizeOffset,
                 targetMesh = meshData
             };
 
             currentJobHandle = stemBuildingJob.Schedule(meshBuilding.stemInstances.Length, 100, currentJobHandle);
+            currentJobHandle = stemGenerationData.Dispose(currentJobHandle);
 
             var meshBoundsJob = new TurtleMeshBoundsJob
             {
