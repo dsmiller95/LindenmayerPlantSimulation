@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e2e3403c48e95548b41ed845c65ecb1, type: 3}
+  m_Name: sunflower Foliage
+  m_EditorClassIdentifier: 
+  meshKeys:
+  - Character: 75
+    MeshRef: {fileID: -8233340004779243719, guid: a381acc0272832b44bdaff9265914e18, type: 3}
+    MeshVariants: []
+    material: {fileID: 2100000, guid: 8dd1cd2c00e8da049b04a49504321d3d, type: 2}
+    IndividualScale: {x: 2, y: 2, z: 2}
+    UseMeshOrigin: 0
+    ParameterScale: 0
+    ScaleIsAdditional: 0
+    ScalePower: 1
+    ScalePerParameter: {x: 0.1, y: 0.1, z: 0.1}
+    AlsoMove: 0
+    UseThickness: 0
+    volumetricDurabilityValue: 0
+    useAsDummyMesh: 0
+  - Character: 76
+    MeshRef: {fileID: -2054254877247102683, guid: bf125403613b9f943abbbbea92473929, type: 3}
+    MeshVariants: []
+    material: {fileID: 2100000, guid: 50b504c025fe00346b3600d25545d354, type: 2}
+    IndividualScale: {x: 0.6, y: 0.6, z: 0.6}
+    UseMeshOrigin: 0
+    ParameterScale: 1
+    ScaleIsAdditional: 0
+    ScalePower: 2
+    ScalePerParameter: {x: 1, y: 1, z: 1}
+    AlsoMove: 0
+    UseThickness: 0
+    volumetricDurabilityValue: 0
+    useAsDummyMesh: 0
+  - Character: 108
+    MeshRef: {fileID: -2054254877247102683, guid: bf125403613b9f943abbbbea92473929, type: 3}
+    MeshVariants: []
+    material: {fileID: 2100000, guid: 50b504c025fe00346b3600d25545d354, type: 2}
+    IndividualScale: {x: 0.6, y: 0.6, z: 0.6}
+    UseMeshOrigin: 0
+    ParameterScale: 1
+    ScaleIsAdditional: 0
+    ScalePower: 2
+    ScalePerParameter: {x: 1, y: 1, z: 1}
+    AlsoMove: 0
+    UseThickness: 0
+    volumetricDurabilityValue: 0
+    useAsDummyMesh: 0

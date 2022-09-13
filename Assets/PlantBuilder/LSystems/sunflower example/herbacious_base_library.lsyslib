@@ -1,0 +1,50 @@
+
+#symbols i
+#include organIdentity (Identifier->i)
+
+#symbols s
+#matches s
+#include sunlight (LightAmount->s)
+
+#symbols ra
+#matches r
+#define diffusionStepsPerStep 5
+#define independentDiffusionStep true
+#include diffusion (Node->r) (Amount->a)
+
+
+## the Leaf symbol will produce glucose from water based on sunlight falling on it. it will grow up to leafMaxScale,, based on how much sunlight falls directly on it
+## it will not atrophy
+#define leafMinSunlight 0.01
+#define leafMaxScale 5
+## leafCost defines the cost to grow up to the full size of the leaf
+#define leafFullGrownCost 1
+## leafCost defines the cost to grow the initial "seed" leaf, up to scale 1
+#define leafCost 1
+
+#define leafGrowthSpeed 0.05
+
+#define leafSunlightMultiplier 4
+#define maxGlucoseFromLeaf 2.5
+
+## l is a precursor to a leaf
+#symbols lL
+#matches L
+#export Leaf l
+#export LeafGrown L
+
+l -> l(0)
+r|DIFFUSION_PARAMETERS| < l(amt) : amt < leafCost && water >= (leafGrowthSpeed * 2) && glucose >= (leafGrowthSpeed * 2) -> a(-leafGrowthSpeed, -leafGrowthSpeed)l(amt + leafGrowthSpeed)
+                          l(amt) : amt >= leafCost -> i(0, 0, 0)s(0)L(1)
+
+#define hasEnoughWater (water >= sunlight * leafSunlightMultiplier / 2)
+#define glucoseIsUnsaturated (glucose <= maxGlucoseFromLeaf)
+#define canPhotosynthesize (hasEnoughWater && glucoseIsUnsaturated)
+
+r|DIFFUSION_PARAMETERS|s(sunlight) < L(scale) :  canPhotosynthesize && (scale <  leafMaxScale) && (sunlight >= leafMinSunlight) -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(scale + (sunlight - leafMinSunlight) * leafSunlightMultiplier * leafGrowthSpeed)
+r|DIFFUSION_PARAMETERS|s(sunlight) < L(scale) :  canPhotosynthesize && (scale >= leafMaxScale)                                  -> a(-sunlight * leafSunlightMultiplier / 2, sunlight * leafSunlightMultiplier)L(leafMaxScale)
+
+
+
+
+

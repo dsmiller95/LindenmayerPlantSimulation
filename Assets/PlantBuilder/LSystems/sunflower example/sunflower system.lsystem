@@ -1,0 +1,86 @@
+#axiom /(-50)@(1)i(0, 0, 0)r(0.3, 0, 20, 200, 20, 0, 100000, 0, 100000)buS(10)F(0)T(5, 0)
+#iterations 350
+
+#symbols +-/\&^$@!`*F
+#global F
+
+## K is a flower. unused in this file at this time.
+#symbols K
+
+#symbols WQB
+
+#symbols ra
+#matches r
+#include diffusion (Node->r) (Amount->a)
+
+
+#define |TreeLifeLeafNode| m
+#define |TreeLifeLeafTerminatorNode| M
+#define |TreeLifeRoot| b
+#define |TreeBranchBaseMarker| O
+#define |TreeBranchCrookMarker| u
+#symbols MmbOu
+#include ../tree-sizing.lsyslib (TreeLifeLeafNode->m) (TreeLifeLeafTerminatorNode->M) (TreeLifeRoot->b) (TreeBranchBaseMarker->O) (TreeBranchCrookMarker->u)
+
+#define defaultMaxWater 20
+#define defaultMaxGlucose 20
+#define defaultMaxFlow 10000
+#define defaultMaxCounterFlow 10000
+#define |DEFAULT_DIFFUSION_NODE| |TreeBranchBaseMarker|r(.3, 0, defaultMaxWater, 0, defaultMaxGlucose, flow, defaultMaxFlow, counterFlow, defaultMaxCounterFlow)|TreeLifeLeafNode||TreeBranchCrookMarker|
+#define |TERMINATOR_DIFFUSION_NODE| |TreeBranchBaseMarker|r(.3, 0, defaultMaxWater, 0, defaultMaxGlucose, flow, defaultMaxFlow, counterFlow, defaultMaxCounterFlow)|TreeLifeLeafTerminatorNode|
+#define |DIFFUSION_PARAMETERS| (a, water, maxWater, glucose, maxGlucose, flow, maxFlow, counterFlow, maxCounterFlow)
+
+
+
+#symbols i
+#matches i
+#include organIdentity (Identifier->i)
+
+#symbols n
+#include autophagy (Necrose->n)
+
+#symbols S
+#define |Shoot| S
+
+r|DIFFUSION_PARAMETERS| < |Shoot|(x) : glucose < maxGlucose -> a(x, x)|Shoot|(x)
+
+#symbols T
+#matches T
+r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .1 && x >  0 -> $(depth * 0.005)f(0)T(x - 1, depth)
+
+#define TreeSegmentLength 5
+
+#define |TreeSegment| i(0, 0, 0)|DEFAULT_DIFFUSION_NODE|T(TreeSegmentLength, depth + 1)
+#define |NewTreeSegment| /(137)[-(10)|TreeSegment|][-(-10)|TreeSegment|]
+
+
+r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && depth <= 4 -> /(137)[|TreeSegment|][-(110)|Petiole|][+(110)|Petiole|]
+r|DIFFUSION_PARAMETERS| < T(x, depth) : glucose >= .2 && x <= 0 && depth >  4 -> |Petiole|
+
+
+## L is a leaf. parameter is the size of the leaf, and also is is the health of the leaf which decreases when receiving a small amount of sunlight
+## the leaf health decreases directly proportional the the difference between the actual sunlight and the min sunlight
+#define |Leaf| l(0)
+#symbols lL
+#include ./herbacious_base_library.lsyslib (Leaf->l) (LeafGrown->L)
+
+## f is a precursor to a stem
+#define stemCost 1
+#symbols f
+#matches f
+r|DIFFUSION_PARAMETERS| < f(amt) : amt < stemCost && glucose >= 0.1 -> a(0, -glucose/3)f(amt + glucose/3)
+						  f(amt) : amt >= stemCost -> F(0)
+
+
+#symbols P
+#define |Petiole| P
+#define (Alternator) ((x % 2) * 2 - 1)
+
+#define (PetioleLength) 8
+#define (PetioleScale) (0.5 ^ (1/(PetioleLength)))
+## orient the y-axis towards world-space "up"
+r|DIFFUSION_PARAMETERS| < P -> |TERMINATOR_DIFFUSION_NODE|*(0.8, 1, 0, 0)P((PetioleLength))
+r|DIFFUSION_PARAMETERS| < P(x) : glucose >= .1 && x >= 0 -> $(0.03)*(0.1, 1, 0, 0)^(((1 - x/(PetioleLength))^0.5) * 70)!((PetioleScale))f(0)\((Alternator) * 10)[+(90)|Leaf|]f(0)[-(90)|Leaf|]P(x - 1)
+P(x) : x < 0 ->
+
+

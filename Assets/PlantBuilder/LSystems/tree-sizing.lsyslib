@@ -36,6 +36,7 @@ r|DIFFUSION_PARAMETERS| < b(x) -> a(0, 0, -flow, flow)b(x)
 
 F -> F(1)
 S(scale) < F(s) -> F(scale)
+S(scale)R(crossBranchNetDiff, branchN) < F(s) -> F(scale)
 r|DIFFUSION_PARAMETERS|                                                            < S(scale) -> S(counterFlow * 0.9)
 S(initialScale)r|DIFFUSION_PARAMETERS|                                             < S(scale) -> S(initialScale)
 S(initialScale)R(crossBranchNetDiff, branchN)B(scaleFactor)r|DIFFUSION_PARAMETERS| < S(scale) -> S(initialScale * scaleFactor)
