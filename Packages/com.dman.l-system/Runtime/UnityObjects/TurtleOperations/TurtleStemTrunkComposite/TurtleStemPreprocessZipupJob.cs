@@ -1,6 +1,7 @@
 ﻿using Dman.LSystem.SystemRuntime.Turtle;
 using Dman.Utilities.Math;
 using Unity.Burst;
+using Unity.Burst.CompilerServices;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -9,12 +10,14 @@ using UnityEngine;
 namespace Dman.LSystem.UnityObjects.StemTrunk
 {
     [BurstCompile]
-    internal struct TurtleStemPreprocessJob : IJob
+    internal struct TurtleStemPreprocessZipupJob : IJob
     {
         public NativeArray<TurtleStemGenerationData> generationData;
 
         [ReadOnly]
         public NativeArray<TurtleStemInstance> stemInstances;
+        [ReadOnly]
+        public NativeArray<TurtleStemPreprocessParallelData> parallelData;
 
         public void Execute()
         {
@@ -27,27 +30,23 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
         public TurtleStemGenerationData GetGenerationData(int stemIndex)
         {
             var instance = stemInstances[stemIndex];
+            var instanceData = parallelData[stemIndex];
 
-            if(instance.parentIndex < 0)
+            if (Hint.Unlikely(instance.parentIndex < 0))
             {
                 return new TurtleStemGenerationData
                 {
-                    uvDepth = 0
+                    uvDepth = 0,
+                    normalizedTriangleIndexOffset = instanceData.normalizedTriangleIndexOffset
                 };
             }
-
-            var currentTransform = instance.orientation;
-            var circumference = currentTransform.MultiplyVector(new float3(0, 1, 0)).magnitude * 2 * math.PI;
-
+            
             var parentGenData = generationData[instance.parentIndex];
-            var parentTransform = stemInstances[instance.parentIndex].orientation;
-            var distanceFromParent = (currentTransform.MultiplyPoint3x4(float3.zero) - parentTransform.MultiplyPoint3x4(float3.zero)).magnitude;
-
-            var uvLength = distanceFromParent * (1f / circumference);
 
             return new TurtleStemGenerationData
             {
-                uvDepth = parentGenData.uvDepth + uvLength,
+                uvDepth = parentGenData.uvDepth + instanceData.uvLength,
+                normalizedTriangleIndexOffset = instanceData.normalizedTriangleIndexOffset
             };
         }
     }

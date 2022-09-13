@@ -79,28 +79,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var meshBuldingJobHandle = meshBuildingJob.Schedule(meshBuilding.organInstances.Length, 100, currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
-            var stemGenerationData = new NativeArray<TurtleStemGenerationData>(meshBuilding.stemInstances.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var stemPeprocessJob = new TurtleStemPreprocessJob
-            {
-                generationData = stemGenerationData,
-                stemInstances = meshBuilding.stemInstances
-            };
-            // preprocess job can run in parallel with the mesh building job
-            currentJobHandle =  JobHandle.CombineDependencies(stemPeprocessJob.Schedule(currentJobHandle), meshBuldingJobHandle);
-
-
-            var stemBuildingJob = new TurtleStemBuildingJob
-            {
-                submeshSizes = meshSizePerSubmesh,
-                stemInstances = meshBuilding.stemInstances,
-                generationData = stemGenerationData,
-                organMeshAllocations = organMeshSizeAllocations,
-                meshMemoryOffset = stemMeshSizeOffset,
-                targetMesh = meshData
-            };
-
-            currentJobHandle = stemBuildingJob.Schedule(meshBuilding.stemInstances.Length, 100, currentJobHandle);
-            currentJobHandle = stemGenerationData.Dispose(currentJobHandle);
+            currentJobHandle = ScheduleStemBuldingJobs(
+                meshBuldingJobHandle,
+                currentJobHandle,
+                meshBuilding,
+                meshSizePerSubmesh,
+                organMeshSizeAllocations,
+                ref meshData);
 
             var meshBoundsJob = new TurtleMeshBoundsJob
             {
@@ -129,6 +114,50 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             meshData.Dispose();
             meshSizePerSubmesh.Dispose();
             organMeshSizeAllocations.Dispose();
+        }
+
+        private static JobHandle ScheduleStemBuldingJobs(
+            JobHandle meshBuildingJob, 
+            JobHandle globalDeps,
+            TurtleMeshBuildingInstructions meshBuilding,
+            NativeArray<TurtleMeshAllocationCounter> meshSizePerSubmesh,
+            NativeArray<OrganMeshMemorySpaceAllocation> organMeshSizeAllocations,
+            ref TurtleMeshData meshData)
+        {
+            var stemGenerationParallelData = new NativeArray<TurtleStemPreprocessParallelData>(meshBuilding.stemInstances.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var stemParallelProcessJob = new TurtleStemPreprocessParallelJob
+            {
+                parallelData = stemGenerationParallelData,
+                stemInstances = meshBuilding.stemInstances
+            };
+
+            globalDeps = stemParallelProcessJob.Schedule(meshBuilding.stemInstances.Length, 100, globalDeps);
+
+            var stemGenerationZipupData = new NativeArray<TurtleStemGenerationData>(meshBuilding.stemInstances.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var stemPeprocessJob = new TurtleStemPreprocessZipupJob
+            {
+                parallelData = stemGenerationParallelData,
+                generationData = stemGenerationZipupData,
+                stemInstances = meshBuilding.stemInstances
+            };
+            // preprocess job can run in parallel with the mesh building job
+            globalDeps = stemPeprocessJob.Schedule(globalDeps);
+            var altDeps = stemGenerationParallelData.Dispose(globalDeps);
+
+            var stemBuildingJob = new TurtleStemBuildingJob
+            {
+                submeshSizes = meshSizePerSubmesh,
+                stemInstances = meshBuilding.stemInstances,
+                generationData = stemGenerationZipupData,
+                organMeshAllocations = organMeshSizeAllocations,
+                meshMemoryOffset = meshBuilding.organInstances.Length,
+                targetMesh = meshData
+            };
+
+            globalDeps = stemBuildingJob.Schedule(meshBuilding.stemInstances.Length, 100, JobHandle.CombineDependencies(globalDeps, meshBuildingJob, altDeps));
+            globalDeps = stemGenerationZipupData.Dispose(globalDeps);
+            return globalDeps;
+
         }
 
         private static void SetDataToMesh(UnityEngine.Mesh mesh, TurtleMeshData meshData, NativeArray<TurtleMeshAllocationCounter> submeshSizes)
