@@ -49,7 +49,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             var circumference = currentTransform.MultiplyVector(new float3(0, 1, 0)).magnitude * 2 * math.PI;
             var distanceFromParent = (currentTransform.MultiplyPoint3x4(float3.zero) - parentTransform.MultiplyPoint3x4(float3.zero)).magnitude;
             var uvLength = distanceFromParent * (1f / circumference);
-            var normalizedOffset = GetNormalizedCircleOffset(parentTransform, currentTransform);
+            var normalizedOffset = GetNormalizedCircleOffset(parentTransform, currentTransform) + 1;
 
             return new TurtleStemPreprocessParallelData
             {

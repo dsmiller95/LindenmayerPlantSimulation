@@ -14,7 +14,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     public struct TurtleStemGenerationData
     {
         public float uvDepth;
-        public float normalizedTriangleIndexOffset;
+        public float normalizedVertexAngleOffset;
     }
 
     public struct TurtleStemPreprocessParallelData

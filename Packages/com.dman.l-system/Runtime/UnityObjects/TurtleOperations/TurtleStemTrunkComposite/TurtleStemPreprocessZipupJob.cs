@@ -37,7 +37,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                 return new TurtleStemGenerationData
                 {
                     uvDepth = 0,
-                    normalizedTriangleIndexOffset = instanceData.normalizedTriangleIndexOffset
+                    normalizedVertexAngleOffset = 0
                 };
             }
             
@@ -46,7 +46,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             return new TurtleStemGenerationData
             {
                 uvDepth = parentGenData.uvDepth + instanceData.uvLength,
-                normalizedTriangleIndexOffset = instanceData.normalizedTriangleIndexOffset
+                normalizedVertexAngleOffset = parentGenData.normalizedVertexAngleOffset + instanceData.normalizedTriangleIndexOffset, // just add, the rotation must loop
             };
         }
     }
