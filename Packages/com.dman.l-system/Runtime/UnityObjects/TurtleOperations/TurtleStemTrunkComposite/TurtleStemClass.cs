@@ -16,6 +16,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public byte materialIndex;
         public ushort radialResolution;
         public bool constrainUvs;
+        public bool flipUvs;
         public Rect uvRect;
 
         public bool Equals(TurtleStemClass other)
@@ -23,7 +24,26 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             return materialIndex == other.materialIndex &&
                 radialResolution == other.radialResolution &&
                 constrainUvs == other.constrainUvs &&
+                flipUvs == other.flipUvs &&
                 uvRect == other.uvRect;
+        }
+
+        public float MaxUvYHeight()
+        {
+            return uvRect.height / uvRect.width;
+        }
+
+        public float2 RemapUv(float2 uv)
+        {
+            if (!constrainUvs) return uv;
+            var originedUvs = new float2(
+                uv.x * uvRect.width,
+                uv.y * uvRect.width);
+            if (flipUvs)
+            {
+                originedUvs = new float2(originedUvs.y + (uvRect.width - uvRect.height)/2f, originedUvs.x + (uvRect.height - uvRect.width)/2f);
+            }
+            return originedUvs + new float2(uvRect.xMin, uvRect.yMin);
         }
     }
 }

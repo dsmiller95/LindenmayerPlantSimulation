@@ -20,8 +20,6 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
     public class StemKey : ITurtleNativeDataWritable
     {
         public char Character;
-        public int radialResolution;
-        public Material material;
 
         public bool AlsoMove;
         public float baseRadius;
@@ -33,7 +31,11 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
 
         public float scalePower = 1;
 
+        public int radialResolution;
+        public Material material;
         public bool constrainUVs = false;
+        [Tooltip("When checked, the long-axis of the trunk is aligned with the x-axis on UV. otherwise y-axis")]
+        public bool flipUvs = false;
         public Rect uvRectMaper = new Rect(new Vector2(.25f, .25f), new Vector2(.5f, .5f));
 
         /// <summary>
@@ -64,6 +66,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                 materialIndex = (byte)writer.GetMaterialIndex(material),
                 radialResolution = (ushort)radialResolution,
                 constrainUvs = constrainUVs,
+                flipUvs = flipUvs,
                 uvRect = uvRectMaper
             });
             writer.operators.Add(new TurtleOperationWithCharacter

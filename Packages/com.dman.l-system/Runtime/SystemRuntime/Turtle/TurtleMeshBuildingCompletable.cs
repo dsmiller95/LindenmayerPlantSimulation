@@ -141,7 +141,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 parallelData = stemGenerationParallelData,
                 generationData = stemGenerationZipupData,
-                stemInstances = meshBuilding.stemInstances
+                stemInstances = meshBuilding.stemInstances,
+                stemClasses = nativeData.Data.stemClasses
             };
             // preprocess job can run in parallel with the mesh building job
             globalDeps = stemPeprocessJob.Schedule(globalDeps);

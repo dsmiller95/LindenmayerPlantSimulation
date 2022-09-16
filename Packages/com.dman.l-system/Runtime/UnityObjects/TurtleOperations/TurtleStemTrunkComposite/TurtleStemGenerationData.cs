@@ -15,6 +15,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     {
         public float uvDepth;
         public float normalizedVertexAngleOffset;
+        public bool uvPositiveRun;
     }
 
     public struct TurtleStemPreprocessParallelData

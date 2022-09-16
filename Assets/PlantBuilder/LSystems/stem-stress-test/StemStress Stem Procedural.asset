@@ -24,4 +24,11 @@ MonoBehaviour:
     scaleIsAdditional: 1
     scalingSource: -1
     scalePower: 1.5
+    constrainUVs: 1
+    uvRectMaper:
+      serializedVersion: 2
+      x: 0.375
+      y: 0
+      width: 0.25
+      height: 1
     useAsDummyMesh: 0

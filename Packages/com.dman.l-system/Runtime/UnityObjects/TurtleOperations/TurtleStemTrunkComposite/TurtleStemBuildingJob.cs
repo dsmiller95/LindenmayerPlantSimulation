@@ -36,6 +36,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             var stemInstance = stemInstances[stemIndex];
             var stemClass = stemClasses[stemInstance.stemClassIndex];
             var generationParameters = generationData[stemIndex];
+
             var pointTransform = stemInstance.orientation;
             var meshMemorySpace = organMeshAllocations[stemIndex + meshMemoryOffset];
             var submeshData = submeshSizes[stemClass.materialIndex];
@@ -56,7 +57,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                 {
                     pos = pointTransform.MultiplyPoint3x4(point),
                     normal = pointTransform.MultiplyVector(normal),
-                    uv = new float2(normalized, generationParameters.uvDepth),
+                    uv = stemClass.RemapUv(new float2(normalized, generationParameters.uvDepth)),
                     color = ColorFromIdentity(stemInstance.organIdentity, (uint)stemIndex),
                     extraData = stemInstance.extraData
                 };
