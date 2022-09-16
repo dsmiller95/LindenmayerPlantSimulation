@@ -20,6 +20,8 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
         [ReadOnly]
         public NativeArray<TurtleStemGenerationData> generationData;
         [ReadOnly]
+        public NativeArray<TurtleStemClass> stemClasses;
+        [ReadOnly]
         public NativeArray<OrganMeshMemorySpaceAllocation> organMeshAllocations;
 
         public int meshMemoryOffset;
@@ -32,18 +34,19 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             var triangleIndexes = targetMesh.indices;
 
             var stemInstance = stemInstances[stemIndex];
+            var stemClass = stemClasses[stemInstance.stemClassIndex];
             var generationParameters = generationData[stemIndex];
             var pointTransform = stemInstance.orientation;
             var meshMemorySpace = organMeshAllocations[stemIndex + meshMemoryOffset];
-            var submeshData = submeshSizes[stemInstance.materialIndex];
+            var submeshData = submeshSizes[stemClass.materialIndex];
 
             var vertexOffset = submeshData.indexInVertexes + meshMemorySpace.vertexMemorySpace.index;
 
             var normalizedAccumulateRotationalOffset = generationParameters.normalizedVertexAngleOffset;
 
-            for (int theta = 0; theta <= stemInstance.radialResolution; theta++)
+            for (int theta = 0; theta <= stemClass.radialResolution; theta++)
             {
-                var normalized = theta / (float)stemInstance.radialResolution;
+                var normalized = theta / (float)stemClass.radialResolution;
                 // rotate the vertexes themselves based on rotation of the parent, if any
                 var radians = (normalized + normalizedAccumulateRotationalOffset) * math.PI * 2f;
                 var normal = new float3(0, math.sin(radians), math.cos(radians));
@@ -64,7 +67,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             }
             var parentStem = stemInstances[stemInstance.parentIndex];
             var triangleOffset = submeshData.indexInTriangles + meshMemorySpace.trianglesMemorySpace.index;
-            if (Hint.Unlikely(parentStem.radialResolution != stemInstance.radialResolution || parentStem.materialIndex != stemInstance.materialIndex))
+            if (Hint.Unlikely(stemInstance.stemClassIndex != parentStem.stemClassIndex))
             {
                 for (int i = 0; i < meshMemorySpace.trianglesMemorySpace.length; i++)
                 {
@@ -76,7 +79,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
             var parentStemMeshMemory = organMeshAllocations[stemInstance.parentIndex + meshMemoryOffset];
             // create the rectangle strip. only supported when equal radial vertex count and same submesh
             var parentVertexOffset = submeshData.indexInVertexes + parentStemMeshMemory.vertexMemorySpace.index;
-            for (int rectIndex = 0; rectIndex < stemInstance.radialResolution; rectIndex++)
+            for (int rectIndex = 0; rectIndex < stemClass.radialResolution; rectIndex++)
             {
                 // intentionally avoid using modulo here. this is since the circle is not complete, there is a duplicate vertex
                 //  at index 0 and index n

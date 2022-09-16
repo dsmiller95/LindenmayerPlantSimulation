@@ -84,7 +84,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var meshFilter = GetComponent<MeshFilter>();
             var meshRenderer = GetComponent<MeshRenderer>();
             meshRenderer.materials = turtle.submeshMaterials;
-            await turtle.CompileStringToTransformsWithMeshIds(
+            await turtle.CompileStringToMesh(
                 symbols,
                 meshFilter.mesh,
                 meshFilter.transform.localToWorldMatrix,
@@ -156,11 +156,15 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 !(x is TurtleVolumetricResourceDiffusionOperationSet)).ToList();
             var defaultTurtle = TurtleState.DEFAULT;
             defaultTurtle.transformation = Matrix4x4.Scale(initialScale) * rootTransformation;
+
+            var customSymbols = System.systemObject.compiledSystem.customSymbols;
+            customSymbols.hasAutophagy = false;
+
             var positionProvider = new OrganPositioningTurtleInterpretor(
                 filteredOperators,
                 defaultTurtle,
                 System.systemObject.linkedFiles,
-                System.systemObject.compiledSystem.customSymbols);
+                customSymbols);
             return positionProvider;
         }
 

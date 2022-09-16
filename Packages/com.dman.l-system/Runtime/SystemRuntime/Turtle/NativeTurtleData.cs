@@ -15,6 +15,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public NativeArray<TurtleOrganTemplate.Blittable> allOrganData;
         public NativeArray<NativeVertexDatum> vertexData;
         public NativeArray<int> triangleData;
+        public NativeArray<TurtleStemClass> stemClasses;
 
         private NativeArray<bool> _hasEntitySpawning;
         public bool HasEntitySpawning
@@ -26,6 +27,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             TurtleDataRequirements memReqs)
         {
             operationsByKey = default;
+            stemClasses = default;
             allOrganData = new NativeArray<TurtleOrganTemplate.Blittable>(memReqs.organTemplateSize, Allocator.Persistent);
             vertexData = new NativeArray<NativeVertexDatum>(memReqs.vertextDataSize, Allocator.Persistent);
             triangleData = new NativeArray<int>(memReqs.triangleDataSize, Allocator.Persistent);
@@ -36,8 +38,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public JobHandle Dispose(JobHandle inputDeps)
         {
             return JobHandle.CombineDependencies(
-                operationsByKey.Dispose(inputDeps),
-                allOrganData.Dispose(inputDeps),
+                JobHandle.CombineDependencies(
+                    operationsByKey.Dispose(inputDeps),
+                    stemClasses.Dispose(inputDeps),
+                    allOrganData.Dispose(inputDeps)
+                ),
                 JobHandle.CombineDependencies(
                     vertexData.Dispose(inputDeps),
                     triangleData.Dispose(inputDeps),
@@ -49,6 +54,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         {
             _hasEntitySpawning.Dispose();
             operationsByKey.Dispose();
+            stemClasses.Dispose();
             allOrganData.Dispose();
             vertexData.Dispose();
             triangleData.Dispose();
@@ -80,6 +86,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public int indexInOrganTemplates = 0;
         public List<TurtleOperationWithCharacter> operators = new List<TurtleOperationWithCharacter>();
         public List<Material> materialsInOrder = new List<Material>();
+        public List<TurtleStemClass> stemClasses = new List<TurtleStemClass>();
 
         /// <summary>
         /// gets an index for this material. will add it to existing material list if not already present
@@ -92,6 +99,13 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             if (existingMaterialIndex >= 0) return existingMaterialIndex;
             materialsInOrder.Add(mat);
             return materialsInOrder.Count - 1;
+        }
+        public int GetStemClassIndex(TurtleStemClass stemClass)
+        {
+            var existingIndex = stemClasses.IndexOf(stemClass);
+            if (existingIndex >= 0) return existingIndex;
+            stemClasses.Add(stemClass);
+            return stemClasses.Count - 1;
         }
     }
 

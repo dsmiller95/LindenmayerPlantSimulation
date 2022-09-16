@@ -12,8 +12,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
     /// </summary>
     public struct TurtleStemInstance
     {
-        public byte materialIndex;
-        public ushort radialResolution;
+        public ushort stemClassIndex;
         public Matrix4x4 orientation;
         public int parentIndex;
         /// <summary>

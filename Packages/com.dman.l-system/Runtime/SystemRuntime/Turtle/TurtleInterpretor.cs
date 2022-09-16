@@ -13,15 +13,8 @@ using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {
-    public class TurtleInterpretor : IDisposable
+    public class TurtleInterpretor : OrganPositioningTurtleInterpretor
     {
-        private DependencyTracker<NativeTurtleData> nativeDataTracker;
-        public Material[] submeshMaterials;
-
-        private TurtleState defaultState;
-        private CustomRuleSymbols customSymbols;
-
-
         private OrganVolumetricWorld volumetricWorld;
         private DoubleBufferModifierHandle durabilityWriterHandle;
         private CommandBufferModifierHandle commandBufferWriter;
@@ -32,40 +25,11 @@ namespace Dman.LSystem.SystemRuntime.Turtle
         public TurtleInterpretor(
             List<TurtleOperationSet> operationSets,
             TurtleState defaultState,
-            LinkedFileSet linkedFiles,
+            ISymbolRemapper symbolRemapper,
             CustomRuleSymbols customSymbols,
             OrganVolumetricWorld volumetricWorld,
-            VoxelCapReachedTimestampEffect damageCapFlags)
+            VoxelCapReachedTimestampEffect damageCapFlags) : base(operationSets, defaultState, symbolRemapper, customSymbols)
         {
-            foreach (var operationSet in operationSets)
-            {
-                operationSet.InternalCacheOperations();
-            }
-
-            var totalRequirements = operationSets.Select(x => x.DataReqs).Aggregate(new TurtleDataRequirements(), (agg, req) => agg + req);
-            var nativeData = new NativeTurtleData(totalRequirements);
-            var nativeWriter = new TurtleNativeDataWriter();
-
-            foreach (var operationSet in operationSets)
-            {
-                operationSet.WriteIntoNativeData(nativeData, nativeWriter);
-            }
-
-            submeshMaterials = nativeWriter.materialsInOrder.ToArray();
-
-            nativeData.operationsByKey = new NativeHashMap<int, TurtleOperation>(nativeWriter.operators.Count(), Allocator.Persistent);
-            foreach (var ops in nativeWriter.operators)
-            {
-                var realSymbol = linkedFiles.GetSymbolFromRoot(ops.characterInRootFile);
-                nativeData.operationsByKey[realSymbol] = ops.operation;
-            }
-
-            this.customSymbols = customSymbols;
-
-
-            nativeDataTracker = new DependencyTracker<NativeTurtleData>(nativeData);
-            this.defaultState = defaultState;
-
             this.volumetricWorld = volumetricWorld;
             this.damageCapFlags = damageCapFlags;
             RefreshVolumetricWriters();
@@ -91,7 +55,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
         }
 
-        public async UniTask CompileStringToTransformsWithMeshIds(
+        public async UniTask CompileStringToMesh(
             DependencyTracker<SymbolString<float>> symbols,
             Mesh targetMesh,
             Matrix4x4 localToWorldTransform,
@@ -112,33 +76,19 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             };
 
 
-            using var meshResult = await TurtleStringReadingCompletable.ReadString(
+            using var meshResult = await this.CompileToInstances(
                 symbols,
-                nativeDataTracker,
-                defaultState,
-                customSymbols,
-                volumeWorldReferences,
-                localToWorldTransform,
-                token);
+                token,
+                volumetricLocalToWorld: localToWorldTransform,
+                volumeWorldReferences: volumeWorldReferences);
 
-            await TurtleMeshBuildingCompletable.BuildMesh(
-                targetMesh,
-                submeshMaterials.Length,
-                meshResult,
-                nativeDataTracker,
-                token);
+            await this.RenderOrganInstancesToMesh(meshResult, targetMesh, token);
         }
 
-        private bool IsDisposed = false;
 
-        public void Dispose()
+        public override void Dispose()
         {
-            if (IsDisposed)
-            {
-                throw new InvalidOperationException("Cannot dispose turtle, has already been disposed");
-            }
-            IsDisposed = true;
-            nativeDataTracker.Dispose();
+            base.Dispose();
             if (volumetricWorld == null)
             {
                 durabilityWriterHandle?.Dispose();

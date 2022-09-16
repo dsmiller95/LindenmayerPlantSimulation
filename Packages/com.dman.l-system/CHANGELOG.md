@@ -6,6 +6,9 @@
 
 - new native support for Stems as a new turtle operation. will generate a spline-like bonded cylinder mesh for stems when used, with mapping onto a tileable uv texture
 
+### Breaking changes
+
+- changed "VolumetricScale" parameter on Turtle mesh operations to "ScalePower" -- set this to 3 to mimic the cube root effect when VolumetricScale was set. otherwise 1. this new feature allows us to more closely control the scaling curve of individual organs
 
 ## [0.2.1] - 2021-03-27
 

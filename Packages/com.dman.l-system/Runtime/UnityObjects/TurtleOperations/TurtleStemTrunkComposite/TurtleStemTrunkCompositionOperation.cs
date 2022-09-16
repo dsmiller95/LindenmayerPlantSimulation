@@ -33,6 +33,9 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
 
         public float scalePower = 1;
 
+        public bool constrainUVs = false;
+        public Rect uvRectMaper = new Rect(new Vector2(.25f, .25f), new Vector2(.5f, .5f));
+
         /// <summary>
         /// usable to reconfigure this operation to only move the turtle by how much it would be moved
         ///     by this organ. but; it will generate no mesh vertexes
@@ -56,6 +59,13 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
         }
         public void WriteIntoNativeData(NativeTurtleData nativeData, TurtleNativeDataWriter writer)
         {
+            var classIndex = (ushort)writer.GetStemClassIndex(new TurtleStemClass
+            {
+                materialIndex = (byte)writer.GetMaterialIndex(material),
+                radialResolution = (ushort)radialResolution,
+                constrainUvs = constrainUVs,
+                uvRect = uvRectMaper
+            });
             writer.operators.Add(new TurtleOperationWithCharacter
             {
                 characterInRootFile = Character,
@@ -64,9 +74,8 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
                     operationType = TurtleOperationType.ADD_STEM,
                     stemOperation = new TurtleStemPlacementOperation
                     {
-                        materialIndex = (byte)writer.GetMaterialIndex(material),
+                        stemClassIndex = classIndex,
                         willMove = AlsoMove,
-                        radialResolution = (ushort)radialResolution,
                         scaleSource = scalingSource,
                         lengthRadiusBase = new float2(baseLength, baseRadius),
                         lengthRadiusScale = new float2(lengthScaleFactor, radiusScaleFactor),
@@ -104,10 +113,9 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
 
     public struct TurtleStemPlacementOperation
     {
-        public byte materialIndex;
         public bool willMove;
 
-        public ushort radialResolution;
+        public ushort stemClassIndex;
         public ScaleSource scaleSource;
 
         public float2 lengthRadiusBase;
@@ -140,8 +148,7 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
 
             var newStemEntry = new TurtleStemInstance
             {
-                materialIndex = materialIndex,
-                radialResolution = radialResolution,
+                stemClassIndex = stemClassIndex,
                 orientation = state.transformation * Matrix4x4.Scale(new Vector3(localLengthRadius.x, localLengthRadius.y, localLengthRadius.y)),
                 parentIndex = state.indexInStemTree,
                 organIdentity = state.organIdentity,

@@ -18,12 +18,12 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 {
     public class OrganPositioningTurtleInterpretor : IDisposable
     {
-        private DependencyTracker<NativeTurtleData> nativeDataTracker;
+        protected DependencyTracker<NativeTurtleData> nativeDataTracker;
         public Material[] submeshMaterials;
 
-        private TurtleState defaultState;
-        private CustomRuleSymbols customSymbols;
-        private ISymbolRemapper symbolRemapper;
+        protected TurtleState defaultState;
+        protected CustomRuleSymbols customSymbols;
+        protected ISymbolRemapper symbolRemapper;
 
         public OrganPositioningTurtleInterpretor(
             List<TurtleOperationSet> operationSets,
@@ -46,6 +46,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             }
 
             submeshMaterials = nativeWriter.materialsInOrder.ToArray();
+            nativeData.stemClasses = new NativeArray<TurtleStemClass>(nativeWriter.stemClasses.ToArray(), Allocator.Persistent);
 
             nativeData.operationsByKey = new NativeHashMap<int, TurtleOperation>(nativeWriter.operators.Count(), Allocator.Persistent);
             foreach (var ops in nativeWriter.operators)
@@ -54,7 +55,6 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 nativeData.operationsByKey[realSymbol] = ops.operation;
             }
 
-            customSymbols.hasAutophagy = false;
             this.customSymbols = customSymbols;
 
             // TODO: don't need the vertex, triangle, or material data in here
@@ -72,18 +72,28 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 throw new ObjectDisposedException("Turtle has been disposed and cannot be used");
             }
-            var meshResult = await TurtleStringReadingCompletable.ReadString(
+            return await CompileToInstances(symbols, token, postReadTransform);
+        }
+
+        protected async UniTask<TurtleMeshBuildingInstructions> CompileToInstances(
+            DependencyTracker<SymbolString<float>> symbols,
+            CancellationToken token,
+            Matrix4x4? postReadTransform = null,
+            Matrix4x4? volumetricLocalToWorld = null, // this is only used for volumetrics
+            TurtleVolumeWorldReferences volumeWorldReferences = null)
+        {
+            return await TurtleStringReadingCompletable.ReadString(
                 symbols,
                 nativeDataTracker,
                 defaultState,
                 customSymbols,
-                null,
-                Matrix4x4.identity, // this is only used for volumetrics
+                volumeWorldReferences,
+                volumetricLocalToWorld.Value,
                 token,
                 postReadTransform);
-
-            return meshResult;
         }
+
+
         public async UniTask<Mesh> RenderOrganInstancesToMesh(
             TurtleMeshBuildingInstructions organInstances,
             Mesh targetMesh,
@@ -156,9 +166,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             return null;
         }
 
-        private bool IsDisposed = false;
-
-        public void Dispose()
+        protected bool IsDisposed { get; private set; } = false;
+        public virtual void Dispose()
         {
             if (IsDisposed)
             {

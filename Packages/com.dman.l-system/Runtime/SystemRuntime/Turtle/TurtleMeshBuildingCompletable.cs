@@ -37,6 +37,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             {
                 allOrgans = nativeData.Data.allOrganData,
                 organInstances = meshBuilding.organInstances,
+                stemClasses = nativeData.Data.stemClasses,
                 stemInstances = meshBuilding.stemInstances,
                 organMeshAllocations = organMeshSizeAllocations,
                 meshSizeCounterPerSubmesh = meshSizePerSubmesh,
@@ -85,6 +86,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 meshBuilding,
                 meshSizePerSubmesh,
                 organMeshSizeAllocations,
+                nativeData,
                 ref meshData);
 
             var meshBoundsJob = new TurtleMeshBoundsJob
@@ -122,6 +124,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             TurtleMeshBuildingInstructions meshBuilding,
             NativeArray<TurtleMeshAllocationCounter> meshSizePerSubmesh,
             NativeArray<OrganMeshMemorySpaceAllocation> organMeshSizeAllocations,
+            DependencyTracker<NativeTurtleData> nativeData,
             ref TurtleMeshData meshData)
         {
             var stemGenerationParallelData = new NativeArray<TurtleStemPreprocessParallelData>(meshBuilding.stemInstances.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -149,12 +152,14 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 submeshSizes = meshSizePerSubmesh,
                 stemInstances = meshBuilding.stemInstances,
                 generationData = stemGenerationZipupData,
+                stemClasses = nativeData.Data.stemClasses,
                 organMeshAllocations = organMeshSizeAllocations,
                 meshMemoryOffset = meshBuilding.organInstances.Length,
                 targetMesh = meshData
             };
 
             globalDeps = stemBuildingJob.Schedule(meshBuilding.stemInstances.Length, 100, JobHandle.CombineDependencies(globalDeps, meshBuildingJob, altDeps));
+            nativeData.RegisterDependencyOnData(globalDeps);
             globalDeps = stemGenerationZipupData.Dispose(globalDeps);
             return globalDeps;
 
@@ -208,6 +213,8 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             [ReadOnly]
             public NativeArray<TurtleOrganInstance> organInstances;
             [ReadOnly]
+            public NativeArray<TurtleStemClass> stemClasses;
+            [ReadOnly]
             public NativeArray<TurtleStemInstance> stemInstances;
 
             // outputs
@@ -225,9 +232,10 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 for (int i = 0; i < stemInstances.Length; i++)
                 {
                     var stemInstance = stemInstances[i];
-                    var vertexCount = (ushort)(stemInstance.radialResolution + 1);
+                    var stemClass = stemClasses[stemInstance.stemClassIndex];
+                    var vertexCount = (ushort)(stemClass.radialResolution + 1);
                     var triangleCount = (ushort)(vertexCount * 2 * 3);
-                    AllocateMeshSpace(vertexCount, triangleCount, stemInstance.materialIndex, i + organInstances.Length);
+                    AllocateMeshSpace(vertexCount, triangleCount, stemClass.materialIndex, i + organInstances.Length);
                 }
 
                 var totalVertexes = 0;
