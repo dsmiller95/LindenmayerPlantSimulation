@@ -12,6 +12,7 @@ using System.Linq;
 using Unity.PerformanceTesting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 public class FullRenderLoopPerformanceTests
@@ -225,8 +226,8 @@ public class FullRenderLoopPerformanceTests
         yield return null;
 
         // this scene will be preconfigured with all the required context to get lsystems working
-        var targetScene = EditorSceneManager.GetSceneByName("PERFORMANCE_TEST_SCENE");
-        yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        var targetSceneIndex = SceneUtility.GetBuildIndexByScenePath("Test resources/PERFORMANCE_TEST_SCENE");
+        yield return EditorSceneManager.LoadSceneAsync(targetSceneIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
         yield return null;
         JobHandleExtensions.TrackPendingJobs = true;
 
@@ -267,8 +268,8 @@ a -> aF
         yield return null;
 
         // this scene will be preconfigured with all the required context to get lsystems working
-        var targetScene = EditorSceneManager.GetSceneByName("PERFORMANCE_TEST_SCENE");
-        yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        var targetSceneIndex = SceneUtility.GetBuildIndexByScenePath("Test resources/PERFORMANCE_TEST_SCENE");
+        yield return EditorSceneManager.LoadSceneAsync(targetSceneIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
         yield return null;
         JobHandleExtensions.TrackPendingJobs = true;
 
@@ -308,8 +309,8 @@ a(x) : x <= 0 -> /F
         yield return null;
 
         // this scene will be preconfigured with all the required context to get lsystems working
-        var targetScene = EditorSceneManager.GetSceneByName("PERFORMANCE_TEST_SCENE");
-        yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        var targetSceneIndex = SceneUtility.GetBuildIndexByScenePath("Test resources/PERFORMANCE_TEST_SCENE");
+        yield return EditorSceneManager.LoadSceneAsync(targetSceneIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
         yield return null;
         JobHandleExtensions.TrackPendingJobs = true;
 
@@ -354,8 +355,8 @@ a(x) : x <= 0 -> /F
         yield return null;
 
         // this scene will be preconfigured with all the required context to get lsystems working
-        var targetScene = EditorSceneManager.GetSceneByName("PERFORMANCE_TEST_SCENE");
-        yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        var targetSceneIndex = SceneUtility.GetBuildIndexByScenePath("Test resources/PERFORMANCE_TEST_SCENE");
+        yield return EditorSceneManager.LoadSceneAsync(targetSceneIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
         yield return null;
         JobHandleExtensions.TrackPendingJobs = true;
 
@@ -395,8 +396,8 @@ a(x) : x <= 0 -> /F
         yield return null;
 
         // this scene will be preconfigured with all the required context to get lsystems working
-        var targetScene = EditorSceneManager.GetSceneByName("PERFORMANCE_TEST_SCENE");
-        yield return EditorSceneManager.LoadSceneAsync(targetScene.buildIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        var targetSceneIndex = SceneUtility.GetBuildIndexByScenePath("Test resources/PERFORMANCE_TEST_SCENE");
+        yield return EditorSceneManager.LoadSceneAsync(targetSceneIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
         yield return null;
         JobHandleExtensions.TrackPendingJobs = true;
 

@@ -88,7 +88,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 defaultState,
                 customSymbols,
                 volumeWorldReferences,
-                volumetricLocalToWorld.Value,
+                volumetricLocalToWorld ?? Matrix4x4.identity,
                 token,
                 postReadTransform);
         }
