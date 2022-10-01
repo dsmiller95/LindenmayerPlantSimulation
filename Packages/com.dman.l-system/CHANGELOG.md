@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.1] - 2022-10-01
+
+### Added
+
+- whitespace stripping from inside contextual matches and replacements symbols
+
 ## [0.9.0] - 2022-09-13
 
 ### Added
