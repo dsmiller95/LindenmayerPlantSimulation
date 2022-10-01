@@ -23,22 +23,22 @@ namespace Dman.LSystem.UnityObjects
         [Tooltip("a list of variants available. If populated, indexed by the first parameter of the symbol")]
         public MeshVariant[] MeshVariants;
         public Material material;
-        public Vector3 IndividualScale;
+        public Vector3 IndividualScale = Vector3.one;
         [Tooltip("Force using the mesh's intrinsic origin as the root of this organ, instead of automatically shifting the origin based on the bounding box")]
         public bool UseMeshOrigin = false;
 
         [Tooltip("Whether or not to scale the mesh based on an input parameter. Will accept the first parameter, unless mesh variants are used. In which case it will use the second parameter.")]
-        public bool ParameterScale;
-        public bool ScaleIsAdditional;
+        public bool ParameterScale = false;
+        public bool ScaleIsAdditional = false;
         [Tooltip("If set to true, will scale based on the parameter as if it were a definition of additional volume. It does this by taking a cube root")]
         public float ScalePower = 1;
-        public Vector3 ScalePerParameter;
+        public Vector3 ScalePerParameter = Vector3.one;
 
-        public bool AlsoMove;
+        public bool AlsoMove = true;
         [Tooltip("When checked, scale the mesh along the non-primary axises based on the thickness state")]
-        public bool UseThickness;
+        public bool UseThickness = true;
 
-        public float volumetricDurabilityValue;
+        public float volumetricDurabilityValue = 0;
 
         /// <summary>
         /// usable to reconfigure this operation to only move the turtle by how much it would be moved

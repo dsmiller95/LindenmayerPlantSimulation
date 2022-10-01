@@ -6,7 +6,24 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
 {
     public class CompletableExecutor : MonoBehaviour
     {
-        public static CompletableExecutor Instance { get; private set; }
+
+        private static CompletableExecutor _instance;
+        public static CompletableExecutor Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = GameObject.FindObjectOfType<CompletableExecutor>();
+                    if(_instance == null)
+                    {
+                        Debug.LogError("No completable executor found. create a completable executor in the scene");
+                    }
+                }
+                return _instance;
+            }
+        }
+
         public bool forceUpdates = true;
         private IList<CompletableHandle> PendingCompletables = new List<CompletableHandle>();
 
@@ -21,11 +38,6 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
             var handle = new CompletableHandle(completable);
             PendingCompletables.Add(handle);
             return handle;
-        }
-
-        private void Awake()
-        {
-            Instance = this;
         }
 
         private void Update()

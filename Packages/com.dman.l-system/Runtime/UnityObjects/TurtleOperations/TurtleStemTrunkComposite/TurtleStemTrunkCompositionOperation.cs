@@ -21,17 +21,17 @@ namespace Dman.LSystem.UnityObjects.StemTrunk
     {
         public char Character;
 
-        public bool AlsoMove;
-        public float baseRadius;
-        public float radiusScaleFactor;
-        public float baseLength;
-        public float lengthScaleFactor;
-        public bool scaleIsAdditional;
-        public ScaleSource scalingSource;
+        public bool AlsoMove = true;
+        public float baseRadius = 1;
+        public float radiusScaleFactor = 1;
+        public float baseLength = 1;
+        public float lengthScaleFactor = 1;
+        public bool scaleIsAdditional = false;
+        public ScaleSource scalingSource = ScaleSource.THICKNESS;
 
         public float scalePower = 1;
 
-        public int radialResolution;
+        public int radialResolution = 5;
         public Material material;
         public bool constrainUVs = false;
         [Tooltip("When checked, the long-axis of the trunk is aligned with the x-axis on UV. otherwise y-axis")]
