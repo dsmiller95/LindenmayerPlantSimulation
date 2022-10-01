@@ -12,6 +12,30 @@ public class RuleParserTests
         Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
     }
     [Test]
+    public void ParsedRuleParsesStringDefinitionStripsSpaces()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A -> A B");
+
+        Assert.AreEqual("A", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
+    public void ParsedRuleParsesStringDefinitionStripsTabs()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A -> A\tB");
+
+        Assert.AreEqual("A", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("AB", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
+    public void ParsedRuleParsesStringDefinitionDoesNotStripNewline()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A -> A\nB");
+
+        Assert.AreEqual("A", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
     public void ParsedRuleParsesStringDefinitionWithExoticCharacter()
     {
         var ruleFromString = RuleParser.ParseToRule("- -> AB");
@@ -38,6 +62,16 @@ public class RuleParserTests
         Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
     }
     [Test]
+    public void ParsesRuleWithPrefixCharacterMatchStripsSpaces()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A C < B -> A");
+
+        Assert.AreEqual(2, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual(0, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual("AC < B", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
     public void ParsesRuleWithSuffixCharacterMatch()
     {
         var ruleFromString = RuleParser.ParseToRule("A > B -> A");
@@ -48,6 +82,16 @@ public class RuleParserTests
         Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
     }
     [Test]
+    public void ParsesRuleWithSuffixCharacterMatchStripsSpaces()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A > B C -> A");
+
+        Assert.AreEqual(0, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual(2, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual("A > BC", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
     public void ParsesRuleWithFullContextCharacterMatch()
     {
         var ruleFromString = RuleParser.ParseToRule("A < B > C -> A");
@@ -55,6 +99,16 @@ public class RuleParserTests
         Assert.AreEqual(1, ruleFromString.forwardsMatch.Length);
         Assert.AreEqual(1, ruleFromString.backwardsMatch.Length);
         Assert.AreEqual("A < B > C", ruleFromString.TargetSymbolString());
+        Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
+    }
+    [Test]
+    public void ParsesRuleWithFullContextCharacterMatchStripsSpacesFromAll()
+    {
+        var ruleFromString = RuleParser.ParseToRule("A  F < B > C  F -> A");
+
+        Assert.AreEqual(2, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual(2, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual("AF < B > CF", ruleFromString.TargetSymbolString());
         Assert.AreEqual("A", ruleFromString.ReplacementSymbolString());
     }
     [Test]

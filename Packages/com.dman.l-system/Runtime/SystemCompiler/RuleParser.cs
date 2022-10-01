@@ -31,7 +31,7 @@ namespace Dman.LSystem.SystemCompiler
             {
                 symbolRemapper = x => x;
             }
-            var centralDelimimiterMatch = Regex.Match(ruleString.Trim(), @"(?<matcher>.*)->\s*(?<replacement>.*)\s*");
+            var centralDelimimiterMatch = Regex.Match(ruleString.Trim(), @"(?<matcher>.*)->\s*(?<replacement>.*)");
             if (!centralDelimimiterMatch.Success || !centralDelimimiterMatch.Groups["matcher"].Success || !centralDelimimiterMatch.Groups["replacement"].Success)
             {
                 throw new SyntaxException(

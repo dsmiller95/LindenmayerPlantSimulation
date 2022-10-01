@@ -21,7 +21,7 @@ namespace Dman.LSystem.SystemRuntime
             bool hasNextMatch;
             do
             {
-                var nextMatch = ParseOutSymbolExpression(symbolRemapper, charEnumerator, validParameters, ref currentIndexInStream);
+                var nextMatch = ParseOutSymbolExpression(symbolRemapper, allsymbols, charEnumerator, validParameters, ref currentIndexInStream);
                 hasNextMatch = nextMatch.Item2;
                 yield return nextMatch.Item1;
             } while (hasNextMatch);
@@ -37,6 +37,7 @@ namespace Dman.LSystem.SystemRuntime
         /// <returns></returns>
         private static (ReplacementSymbolGenerator, bool) ParseOutSymbolExpression(
             Func<char, int> symbolRemapper,
+            string symbolReference,
             CharEnumerator symbols,
             string[] validParameters,
             ref int currentIndexInStream)
@@ -55,8 +56,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 throw new SyntaxException($"error when remapping a symbol '{nextSymbol}'", currentIndexInStream, innerException: e);
             }
-            currentIndexInStream++;
-            if (!symbols.MoveNext())
+            if (!MoveNextIgnoreWhitespace(symbols, ref currentIndexInStream))
             {
                 return (new ReplacementSymbolGenerator(remapped), false);
             }
@@ -69,7 +69,7 @@ namespace Dman.LSystem.SystemRuntime
             {
                 AttemptMoveNext(symbols, ref currentIndexInStream);
                 var indentationDepth = 0;
-                var expressionString = new StringBuilder();
+                var originExpressionIndex = currentIndexInStream;
                 while (symbols.Current != ',')
                 {
                     switch (symbols.Current)
@@ -87,10 +87,9 @@ namespace Dman.LSystem.SystemRuntime
                     {
                         break;
                     }
-                    expressionString.Append(symbols.Current);
                     AttemptMoveNext(symbols, ref currentIndexInStream);
                 }
-                var expressionToParse = expressionString.ToString();
+                var expressionToParse = symbolReference.Substring(originExpressionIndex, currentIndexInStream - originExpressionIndex);
                 try
                 {
                     delegates.Add(ExpressionCompiler.CompileExpressionToDelegateWithParameters(
@@ -105,9 +104,17 @@ namespace Dman.LSystem.SystemRuntime
             }
             // reset to next char to stay consistent
 
+            return (new ReplacementSymbolGenerator(remapped, delegates), MoveNextIgnoreWhitespace(symbols, ref currentIndexInStream));
+        }
 
-            currentIndexInStream++;
-            return (new ReplacementSymbolGenerator(remapped, delegates), symbols.MoveNext());
+        private static bool MoveNextIgnoreWhitespace(CharEnumerator enumerator, ref int indexInStream)
+        {
+            while (true)
+            {
+                indexInStream++;
+                if (!enumerator.MoveNext()) return false;
+                if (!char.IsWhiteSpace(enumerator.Current)) return true;
+            }
         }
 
         /// <summary>
@@ -116,10 +123,9 @@ namespace Dman.LSystem.SystemRuntime
         /// <typeparam name="T"></typeparam>
         /// <param name="enumerator"></param>
         /// <param name="currentIndexInStream"></param>
-        private static void AttemptMoveNext<T>(IEnumerator<T> enumerator, ref int currentIndexInStream)
+        private static void AttemptMoveNext(CharEnumerator enumerator, ref int currentIndexInStream)
         {
-            currentIndexInStream++;
-            if (!enumerator.MoveNext())
+            if (!MoveNextIgnoreWhitespace(enumerator, ref currentIndexInStream))
             {
                 throw new SyntaxException("Unexpected end of input. Are you missing a parentheses?", currentIndexInStream);
             }

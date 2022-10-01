@@ -86,7 +86,7 @@ namespace Dman.LSystem.SystemCompiler
         public void ParseContextualMatches(Capture contextualMatchInput, Func<char, int> symbolRemapper)
         {
             var contextualMatchSection = contextualMatchInput.Value;
-            var contextualMatch = Regex.Match(contextualMatchSection, @"(?:(?<prefix>[^<>]+)\s*<\s*)?(?<target>[^<>]+)(?:\s*>(?<suffix>[^<>]+))?");
+            var contextualMatch = Regex.Match(contextualMatchSection, @"(?:(?<prefix>[^<>]+)<)?(?<target>[^<>]+)(?:>(?<suffix>[^<>]+))?");
 
             if (!contextualMatch.Success || !contextualMatch.Groups["target"].Success)
             {

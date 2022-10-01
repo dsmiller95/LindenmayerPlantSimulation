@@ -9,6 +9,9 @@ namespace Dman.LSystem.SystemRuntime
         /// <summary>
         /// parses strings in the format of "B(x, y)E(x)B" . extracts the symbols, and the names of the parameters in the inputs
         /// </summary>
+        /// <remarks>
+        /// Will trim any whitespace out of the string, around and between other symbols
+        /// </remarks>
         /// <param name="symbolSeries"></param>
         /// <returns></returns>
         public static InputSymbol[] ParseInputSymbols(string symbolSeries, Func<char, int> symbolRemapper)
