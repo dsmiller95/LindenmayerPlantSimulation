@@ -225,7 +225,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
 
 
-            var cancelled = await currentJobHandle.ToUniTaskImmediateCompleteOnCancel(token, maxFameDelay: 1);
+            var cancelled = await currentJobHandle.ToUniTaskImmediateCompleteOnCancel(token, maxFameDelay: 2);
             if (cancelled || nativeData.IsDisposed)
             {
                 currentJobHandle.Complete();
