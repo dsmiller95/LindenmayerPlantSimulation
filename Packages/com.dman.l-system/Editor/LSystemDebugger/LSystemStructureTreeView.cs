@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Dman.LSystem.Editor.LSystemDebugger
 {
-    public class LSystemStructureTreeView : TreeView
+    public class LSystemStructureTreeView : TreeView, IDisposable
     {
         bool showAllSymbols;
         public LSystemStructureTreeView(TreeViewState treeViewState, bool showAll)
@@ -110,6 +110,15 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 EditorGUI.DrawRect(rect, backgroundColoring);
             }
             base.RowGUI(args);
+        }
+
+        public void Dispose()
+        {
+            if (inspectedMachine != null)
+            {
+                inspectedMachine.OnSystemStateUpdated -= LSystemStateWasUpdated;
+                inspectedMachine = null;
+            }
         }
     }
 }

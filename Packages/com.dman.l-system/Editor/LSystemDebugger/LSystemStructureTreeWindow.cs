@@ -21,9 +21,15 @@ namespace Dman.LSystem.Editor.LSystemDebugger
             // that survived assembly reloading)
             if (m_TreeViewState == null)
                 m_TreeViewState = new TreeViewState();
+            m_BehaviorTree?.Dispose();
 
             m_BehaviorTree = new LSystemStructureTreeView(m_TreeViewState, showAllSymbols);
             UpdateTreeViewTargetSystem();
+        }
+        private void OnDisable()
+        {
+            m_BehaviorTree?.Dispose();
+            m_BehaviorTree = null;
         }
 
         private void OnSelectionChange()
