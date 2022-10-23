@@ -4,6 +4,7 @@
 #symbols +-/\&^$@!`F
 #global F
 #matches @!`
+#immature L
 
 #define leafProbability 1
 
@@ -13,7 +14,7 @@
 #define autophagicVirilityProduction .4
 
 
-#symbols SWQB
+#symbols WQB
 
 #symbols ra
 #matches r
@@ -25,14 +26,16 @@
 #define |TreeLifeRoot| b
 #define |TreeBranchBaseMarker| O
 #define |TreeBranchCrookMarker| u
-#symbols mbOu
-#include ../tree-sizing.lsyslib (TreeLifeLeafNode->m) (TreeLifeRoot->b) (TreeBranchBaseMarker->O) (TreeBranchCrookMarker->u)
+#define |TreeLifeLeafTerminatorNode| M
+#symbols mbOuM
+#include ../tree-sizing.lsyslib (TreeLifeLeafNode->m) (TreeLifeRoot->b) (TreeBranchBaseMarker->O) (TreeBranchCrookMarker->u) (TreeLifeLeafTerminatorNode->M)
 
 #define defaultMaxWater 150
 #define defaultMaxGlucose 20
 #define defaultMaxFlow 10000
 #define defaultMaxCounterFlow 10000
 #define |DEFAULT_DIFFUSION_NODE| r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, flow, defaultMaxFlow, counterFlow, defaultMaxCounterFlow)|TreeLifeLeafNode|
+#define |TERMINATOR_DIFFUSION_NODE| r(.1, 0, defaultMaxWater, 0, defaultMaxGlucose, flow, defaultMaxFlow, counterFlow, defaultMaxCounterFlow)|TreeLifeLeafTerminatorNode|
 #define |DIFFUSION_PARAMETERS| (a, water, maxWater, glucose, maxGlucose, flow, maxFlow, counterFlow, maxCounterFlow)
 
 #symbols i
@@ -47,6 +50,7 @@
 
 
 
+#symbols S
 r|DIFFUSION_PARAMETERS| < S(x) : water < maxWater && water + x < maxWater  -> a(x)S(x)
 r|DIFFUSION_PARAMETERS| < S(x) : water < maxWater && water + x >= maxWater -> a(maxWater - water)S(x)
 r|DIFFUSION_PARAMETERS| < S(x) : water >= maxWater                         -> a(0.01, 0.01, 0.01)S(x)
@@ -110,7 +114,7 @@ r|DIFFUSION_PARAMETERS| < f(amt) : amt < stemCost && water >= 0.1 && glucose >= 
 #define flowerCost 1
 #symbols k
 r|DIFFUSION_PARAMETERS| < k(amt) : amt < flowerCost && water >= 0.1 && glucose >= 0.1 -> a(-.05, -.05)k(amt + 0.05)
-						  k(amt) : amt >= flowerCost -> K(0)
+r|DIFFUSION_PARAMETERS| < k(amt) : amt >= flowerCost ->	|TERMINATOR_DIFFUSION_NODE|K(0)
 
 ## P is a pollen entity spawned from flowers
 #symbols P

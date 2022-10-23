@@ -41,7 +41,9 @@ namespace Dman.LSystem.Editor.LSystemDebugger
 
         private void LSystemStateWasUpdated()
         {
+            UnityEngine.Profiling.Profiler.BeginSample("L-System inspector tree view");
             Reload();
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         protected override TreeViewItem BuildRoot()

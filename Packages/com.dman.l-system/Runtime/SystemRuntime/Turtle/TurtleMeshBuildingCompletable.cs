@@ -46,7 +46,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             var currentJobHandle = meshCountingJob.Schedule();
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
-            var cancelled = await currentJobHandle.ToUniTaskImmediateCompleteOnCancel(token);
+            var cancelled = await currentJobHandle.ToUniTaskImmediateCompleteOnCancel(token, maxFameDelay: 1);
             if (cancelled || token.IsCancellationRequested || nativeData.IsDisposed)
             {
                 meshSizePerSubmesh.Dispose();
@@ -99,7 +99,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             UnityEngine.Profiling.Profiler.EndSample();
 
 
-            cancelled = await currentJobHandle.ToUniTaskImmediateCompleteOnCancel(token);
+            cancelled = await currentJobHandle.ToUniTaskImmediateCompleteOnCancel(token, maxFameDelay: 2);
 
             if (cancelled || token.IsCancellationRequested)
             {

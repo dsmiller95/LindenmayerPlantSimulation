@@ -21,7 +21,7 @@ MonoBehaviour:
     UseMeshOrigin: 0
     ParameterScale: 1
     ScaleIsAdditional: 1
-    VolumetricScale: 1
+    ScalePower: 2
     ScalePerParameter: {x: 2, y: 2, z: 2}
     AlsoMove: 1
     UseThickness: 1
@@ -35,7 +35,7 @@ MonoBehaviour:
     UseMeshOrigin: 0
     ParameterScale: 1
     ScaleIsAdditional: 0
-    VolumetricScale: 0
+    ScalePower: 2
     ScalePerParameter: {x: 1, y: 1, z: 1}
     AlsoMove: 0
     UseThickness: 1

@@ -274,7 +274,9 @@ namespace Dman.LSystem.UnityObjects
 
                 lSystemPendingCompletable = null;
                 UnityEngine.Profiling.Profiler.EndSample();
+                UnityEngine.Profiling.Profiler.BeginSample("notifying system state listeners");
                 OnSystemStateUpdated?.Invoke();
+                UnityEngine.Profiling.Profiler.EndSample();
             };
         }
 

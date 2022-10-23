@@ -81,6 +81,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
 
             //var createNewOrgansCommandBuffer = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
+
             var meshFilter = GetComponent<MeshFilter>();
             var meshRenderer = GetComponent<MeshRenderer>();
             meshRenderer.materials = turtle.submeshMaterials;
@@ -89,7 +90,9 @@ namespace Dman.LSystem.SystemRuntime.Turtle
                 meshFilter.mesh,
                 meshFilter.transform.localToWorldMatrix,
                 token);
+            UnityEngine.Profiling.Profiler.BeginSample("notifying turtle mesh listeners");
             OnTurtleMeshUpdated?.Invoke();
+            UnityEngine.Profiling.Profiler.EndSample();
             // TOODO: do this oon startup?
 
             //UnityEngine.Profiling.Profiler.EndSample();
