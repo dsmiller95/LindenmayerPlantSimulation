@@ -9,7 +9,7 @@
     },
     "com.dman.entity-utilities": {
       "version": "0.1.4",
-      "depth": 1,
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.entities": "0.17.0-preview.42"
@@ -25,7 +25,7 @@
         "com.unity.burst": "1.5.5",
         "com.unity.collections": "0.15.0-preview.21",
         "com.unity.mathematics": "1.2.1",
-        "com.dman.utilities": "0.4.5",
+        "com.dman.utilities": "0.5.0",
         "com.dman.entity-utilities": "0.1.4",
         "com.dman.scene-save-system": "0.2.5",
         "com.dman.reactive-variables": "0.1.10",
@@ -35,14 +35,14 @@
     },
     "com.dman.object-sets": {
       "version": "0.1.5",
-      "depth": 1,
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
     "com.dman.reactive-variables": {
       "version": "0.1.10",
-      "depth": 1,
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.neuecc.unirx": "7.1.0"
@@ -51,7 +51,7 @@
     },
     "com.dman.scene-save-system": {
       "version": "0.2.5",
-      "depth": 1,
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.dman.object-sets": "0.1.5",
@@ -60,12 +60,13 @@
       "url": "https://package.openupm.com"
     },
     "com.dman.utilities": {
-      "version": "file:../../DmanUtilities/Assets/UtilityScripts/com.dman.utilities",
+      "version": "0.5.0",
       "depth": 0,
-      "source": "local",
+      "source": "registry",
       "dependencies": {
         "com.cysharp.unitask": "2.3.1"
-      }
+      },
+      "url": "https://package.openupm.com"
     },
     "com.neuecc.unirx": {
       "version": "7.1.0",
