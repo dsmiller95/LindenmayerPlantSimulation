@@ -1,18 +1,19 @@
 #axiom P
 #iterations 5
 
+#symbols BRVTDJX
 
-#symbols /\+-^&`
+#symbols /\+-^&`$!@f
 #symbols PILYQESWFlK
 #matches PILYQESWF
 
-P -> I+[P+Y]--//[--L]I[++L]-[PY]++P
+P -> I+[P+Y]--//[/(90)&&L]I[/(-90)&&L]-[PY]++P
 I -> FSWFS
 L -> `l
 Y -> [QE]
 Q -> FFF
-E -> ``K
+E -> ``f(0.1)K
 P(0.6) | S -> S
 P(0.2) | S -> SFS
 P(0.2) | S -> SWFS
-W -> [//&&L][//^^//////////L]
+W -> [&&L][/(180)&&L]

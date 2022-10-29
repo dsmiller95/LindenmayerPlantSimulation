@@ -405,13 +405,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 188415249}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a63437100a624e40909f3dc4e4eb907, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 5
-  rotate: 1
+  rotate: 0
   axis: {x: 0, y: 1, z: 0}
   camera: {fileID: 81936041}
   maxClippingPlane: 60
