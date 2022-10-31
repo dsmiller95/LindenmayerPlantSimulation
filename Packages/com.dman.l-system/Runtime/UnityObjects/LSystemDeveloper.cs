@@ -47,6 +47,11 @@ namespace Dman.LSystem.UnityObjects
             systemObject.CompileToCached();
         }
 
+        public void ForceRestartAll()
+        {
+            recompileTriggered = true;
+        }
+
         private bool recompileTriggered = false;
         private void AssetUpdated(object sender, FileSystemEventArgs e)
         {
