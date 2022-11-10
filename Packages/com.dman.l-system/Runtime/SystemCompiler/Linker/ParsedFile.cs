@@ -152,7 +152,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     {
                         throw new SyntaxException($"iterations cannot be defined in a library file", directiveMatch.Groups["directive"]);
                     }
-                    if (!int.TryParse(directiveMatch.Groups["parameter"].Value, out int iterations))
+                    if (!int.TryParse(directiveMatch.Groups["parameter"].Value, System.Globalization.NumberStyles.Integer, GlobalParsingCultureConfig.numberFormat, out int iterations))
                     {
                         throw new SyntaxException($"iterations must be an integer", directiveMatch.Groups["parameter"]);
                     }
@@ -164,7 +164,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
                     {
                         throw new SyntaxException($"runtime directive requires 2 parameters", directiveMatch.Groups["parameter"]);
                     }
-                    if (!float.TryParse(nameValueMatch.Groups["value"].Value, out var runtimeDefault))
+                    if (!float.TryParse(nameValueMatch.Groups["value"].Value, System.Globalization.NumberStyles.Float, GlobalParsingCultureConfig.numberFormat, out var runtimeDefault))
                     {
                         throw new SyntaxException($"runtime parameter must default to a number", nameValueMatch.Groups["value"]);
                     }

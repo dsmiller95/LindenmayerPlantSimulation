@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Dman.LSystem.SystemCompiler
@@ -52,7 +53,7 @@ namespace Dman.LSystem.SystemCompiler
                     {
                         return new Token(operatorToken, seg.context);
                     }
-                    if (float.TryParse(seg.value, out var floatConst))
+                    if (float.TryParse(seg.value, NumberStyles.Float, GlobalParsingCultureConfig.numberFormat, out var floatConst))
                     {
                         return new Token(floatConst, seg.context);
                     }

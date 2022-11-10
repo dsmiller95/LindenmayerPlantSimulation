@@ -1,6 +1,9 @@
 using Dman.LSystem.SystemCompiler;
+using Dman.Utilities;
 using NUnit.Framework;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 
 public class TokenizerTests
 {
@@ -59,6 +62,38 @@ public class TokenizerTests
             new Token(TokenType.GREATER_THAN_OR_EQ, new CompilerContext(30, 32)),
             new Token(3, new CompilerContext(33, 34)),
             new Token(TokenType.RIGHT_PAREN, new CompilerContext(34, 35))
+        }, tokens);
+    }
+
+    [Test]
+    public void TokenizesNumericExpressionCultureInvariantAcrossAllCultures()
+    {
+        var oldThreadCulture = (CultureInfo)Thread.CurrentThread.CurrentCulture.Clone();
+        using var restoreThread = new DisposableAbuse.LambdaDispose(() =>
+        {
+            Thread.CurrentThread.CurrentCulture = oldThreadCulture;
+        });
+        foreach (CultureInfo ci in CultureInfo.GetCultures(CultureTypes.AllCultures))
+        {
+            Thread.CurrentThread.CurrentCulture = ci;
+            TokenizesNumericExpressionCultureInvariant();
+        }
+    }
+    private void TokenizesNumericExpressionCultureInvariant()
+    {
+        var expressionString = "(2 + 0.4 - 1000000.09 * 0.001)";
+        var tokens = Tokenizer.Tokenize(expressionString).ToArray();
+        Assert.AreEqual(new Token[]
+        {
+            new Token(TokenType.LEFT_PAREN, new CompilerContext(0, 1)),
+            new Token(2, new CompilerContext(1, 2)),
+            new Token(TokenType.ADD, new CompilerContext(3, 4)),
+            new Token(0.4f, new CompilerContext(5, 8)),
+            new Token(TokenType.SUBTRACT, new CompilerContext(9, 10)),
+            new Token(1000000.09f, new CompilerContext(11, 21)),
+            new Token(TokenType.MULTIPLY, new CompilerContext(22, 23)),
+            new Token(0.001f, new CompilerContext(24, 29)),
+            new Token(TokenType.RIGHT_PAREN, new CompilerContext(29, 30))
         }, tokens);
     }
 }

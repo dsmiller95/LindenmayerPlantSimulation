@@ -1,5 +1,8 @@
 using Dman.LSystem.SystemCompiler;
+using Dman.Utilities;
 using NUnit.Framework;
+using System.Globalization;
+using System.Threading;
 
 public class RuleParserTests
 {
@@ -311,6 +314,49 @@ public class RuleParserTests
         Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3, 2) > 0);
         Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5f, 2) > 0);
         Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2, 3) > 0);
+    }
+
+    [Test]
+    public void ParsesRuleWithCulturizedNumbersAcrossAllCultures()
+    {
+        var oldThreadCulture = (CultureInfo)Thread.CurrentThread.CurrentCulture.Clone();
+        using var restoreThread = new DisposableAbuse.LambdaDispose(() =>
+        {
+            Thread.CurrentThread.CurrentCulture = oldThreadCulture;
+        });
+        foreach (CultureInfo ci in CultureInfo.GetCultures(CultureTypes.AllCultures))
+        {
+            Thread.CurrentThread.CurrentCulture = ci;
+            ParsesRuleWithCulturizedNumbers();
+        }
+    }
+
+    private void ParsesRuleWithCulturizedNumbers()
+    {
+        var ruleFromString = RuleParser.ParseToRule("P(0.800 - (1/2)) | B(y) : y < (global + 1000.001) -> A(100 - 1.100111)", globalParameters: new string[] { "global" });
+
+        Assert.AreEqual(0, ruleFromString.forwardsMatch.Length);
+        Assert.AreEqual(0, ruleFromString.backwardsMatch.Length);
+        Assert.AreEqual("B(y)", ruleFromString.TargetSymbolString());
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+
+        Assert.IsInstanceOf<ParsedStochasticRule>(ruleFromString);
+        var stochastic = ruleFromString as ParsedStochasticRule;
+
+        Assert.AreEqual(0.3f, stochastic.probability, 1e-5);
+
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(3 - 1000.001f, 2) > 0);
+        Assert.AreEqual(true, ruleFromString.conditionalMatch.DynamicInvoke(2.5f - 1000.001f, 2) > 0);
+        Assert.AreEqual(false, ruleFromString.conditionalMatch.DynamicInvoke(2 - 1000.001f, 3) > 0);
+
+
+        Assert.AreEqual(1, ruleFromString.replacementSymbols.Length);
+        Assert.AreEqual('A', ruleFromString.replacementSymbols[0].targetSymbol);
+        Assert.AreEqual(1, ruleFromString.replacementSymbols[0].evaluators.Length);
+        Assert.AreEqual(
+            expected: 100 - 1.100111,
+            actual: ruleFromString.replacementSymbols[0].evaluators[0].DynamicInvoke(),
+            delta: 1e-5);
     }
 
 

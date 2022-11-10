@@ -187,7 +187,7 @@ namespace Dman.LSystem.SystemCompiler.Linker
             }
             if (allReplacementDirectives.TryGetValue("diffusionStepsPerStep", out var defineValue))
             {
-                if (!int.TryParse(defineValue, out var stepsPerStep))
+                if (!int.TryParse(defineValue, System.Globalization.NumberStyles.Integer, GlobalParsingCultureConfig.numberFormat, out var stepsPerStep))
                 {
                     throw new LinkException(LinkExceptionType.BAD_GLOBAL_PARAMETER, $"global parameter 'diffusionStepsPerStep' is defined, but is not an integer. this parameter must be an integer: '{defineValue}'");
                 }
