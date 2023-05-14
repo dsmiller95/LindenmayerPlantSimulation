@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
+# shellcheck disable=SC2164
+# shellcheck disable=SC2039
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
+
 cargo build
 
 LIB_PATH_DEST=../../../Packages/com.dman.l-system/External/Lib
