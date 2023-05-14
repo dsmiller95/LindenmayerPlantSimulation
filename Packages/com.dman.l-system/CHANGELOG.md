@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.0] - 2023-05-14
+
+### Added
+
+- external rust lib to begin offloading tight memory managed tasks to rust
+
 ## [0.9.1] - 2022-10-01
 
 ### Added
