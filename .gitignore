@@ -31,3 +31,4 @@ Thumbs.db
 # Rider #
 #########
 .idea
+Assets/Plugins/Editor/JetBrains*
