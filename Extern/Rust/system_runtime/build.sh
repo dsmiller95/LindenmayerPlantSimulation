@@ -7,7 +7,7 @@ cd "$parent_path"
 
 cargo build
 
-LIB_PATH_DEST=../../../Packages/com.dman.l-system/External/Lib
+LIB_PATH_DEST=../../../Packages/com.dman.l-system/External/RustSubsystem
 
 cp target/dotnet/* ../../../Packages/com.dman.l-system/External
 

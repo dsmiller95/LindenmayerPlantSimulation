@@ -9,7 +9,9 @@ cd "$parent_path"
 
 cd ../Packages/com.dman.l-system
 
-git update-index --no-assume-unchanged External/Lib/system_runtime_rustlib.dll
-git add -f External/Lib/system_runtime_rustlib.dll
+LIB_DLL_PATH=External/RustSubsystem/system_runtime_rustlib.dll
+
+git update-index --no-assume-unchanged $LIB_DLL_PATH
+git add -f $LIB_DLL_PATH
 git commit -m "Release commit. updated system_runtime_rustlib.dll"
-git update-index --assume-unchanged External/Lib/system_runtime_rustlib.dll
+git update-index --assume-unchanged $LIB_DLL_PATH
