@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Dman.LSystem.Extern;
 using Unity.Collections;
-using OperatorDefinition = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorDefinition;
 
 namespace Dman.LSystem.SystemRuntime
 {
@@ -90,8 +89,7 @@ namespace Dman.LSystem.SystemRuntime
                 for (int i = 0; i < structExpressionSpace.length; i++)
                 {
                     var structExp = structExpressionData[i + structExpressionSpace.index];
-                    targetParams[targetSpace, i] = structExp.EvaluateExpression(
-                        matchedParameters,
+                    targetParams[targetSpace, i] = StructExpression.EvaluateExpression(structExp, matchedParameters,
                         parameterSpace,
                         operatorData);
                 }

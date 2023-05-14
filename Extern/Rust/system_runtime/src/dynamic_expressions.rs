@@ -1,10 +1,9 @@
-use crate::{Expression, JaggedIndexing, OperatorDefinition, OperatorType};
+use crate::{JaggedIndexing, OperatorDefinition, OperatorType};
 use crate::dynamic_expressions::struct_expression::Indexes;
 
 pub mod struct_expression;
 
 pub fn evaluate_expression(
-    expression: Expression,
     operation_data: *const OperatorDefinition,
     operation_space: JaggedIndexing,
     parameter_values: *const f32,
@@ -13,7 +12,6 @@ pub fn evaluate_expression(
     parameter_space_2: JaggedIndexing,
 ) -> f32 {
     let evaluator = DynamicExpressionEvaluator {
-        expression,
         operation_data,
         operation_data_index: operation_space,
         parameter_values,
@@ -26,14 +24,12 @@ pub fn evaluate_expression(
 }
 
 pub struct DynamicExpressionEvaluator {
-    expression: Expression,
     operation_data: *const OperatorDefinition,
     operation_data_index: JaggedIndexing,
     parameter_values: *const f32,
     parameter_values_index: JaggedIndexing,
     parameter_values_2: *const f32,
     parameter_values_index_2: JaggedIndexing,
-
 }
 
 impl DynamicExpressionEvaluator {
@@ -55,32 +51,32 @@ impl DynamicExpressionEvaluator {
                     *parameter
                 }
             }
-            OperatorType::MULTIPLY => {
+            OperatorType::Multiply => {
                 let lhs = self.evaluate(operation.lhs as usize);
                 let rhs = self.evaluate(operation.rhs as usize);
                 lhs * rhs
             }
-            OperatorType::DIVIDE => {
+            OperatorType::Divide => {
                 let lhs = self.evaluate(operation.lhs as usize);
                 let rhs = self.evaluate(operation.rhs as usize);
                 lhs / rhs
             }
-            OperatorType::ADD => {
+            OperatorType::Add => {
                 let lhs = self.evaluate(operation.lhs as usize);
                 let rhs = self.evaluate(operation.rhs as usize);
                 lhs + rhs
             }
-            OperatorType::SUBTRACT => {
+            OperatorType::Subtract => {
                 let lhs = self.evaluate(operation.lhs as usize);
                 let rhs = self.evaluate(operation.rhs as usize);
                 lhs - rhs
             }
-            OperatorType::REMAINDER => {
+            OperatorType::Remainder => {
                 let lhs = self.evaluate(operation.lhs as usize);
                 let rhs = self.evaluate(operation.rhs as usize);
                 lhs % rhs
             }
-            OperatorType::EXPONENT => {
+            OperatorType::Exponent => {
                 let lhs = self.evaluate(operation.lhs as usize);
                 let rhs = self.evaluate(operation.rhs as usize);
                 lhs.powf(rhs)
@@ -105,7 +101,7 @@ impl DynamicExpressionEvaluator {
                 let rhs = self.evaluate(operation.rhs as usize);
                 if lhs <= rhs { 1.0 } else { 0.0 }
             }
-            OperatorType::EQUAL => {
+            OperatorType::Equal => {
                 let lhs = self.evaluate(operation.lhs as usize);
                 let rhs = self.evaluate(operation.rhs as usize);
                 if lhs == rhs { 1.0 } else { 0.0 }
@@ -127,7 +123,7 @@ impl DynamicExpressionEvaluator {
             }
             OperatorType::BooleanNot => {
                 let rhs = self.evaluate(operation.rhs as usize);
-                if rhs > 0.1 { 1.0 } else { 0.0 }
+                if rhs > 0.1 { 0.0 } else { 1.0 }
             }
             OperatorType::NegateUnary => {
                 let rhs = self.evaluate(operation.rhs as usize);

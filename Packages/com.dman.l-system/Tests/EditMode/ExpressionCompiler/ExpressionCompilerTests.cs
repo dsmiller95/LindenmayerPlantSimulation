@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Dman.LSystem.Extern;
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Unity.Collections;
 using UnityEngine;
-using OperatorDefinition = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorDefinition;
 
 public class ExpressionCompilerTests
 {
@@ -82,8 +82,7 @@ public class ExpressionCompilerTests
             {
                 inputParams[param] = calls[call, param];
             }
-            var result = expression.EvaluateExpression(
-                inputParams,
+            var result = StructExpression.EvaluateExpression(expression, inputParams,
                 new JaggedIndexing
                 {
                     index = 0,

@@ -5,9 +5,6 @@ using NUnit.Framework;
 using System.Linq.Expressions;
 using Dman.LSystem.Extern;
 using Unity.Collections;
-using Expression = System.Linq.Expressions.Expression;
-using OperatorDefinition = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorDefinition;
-using OperatorType = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorType;
 
 public class DynamicExpressionEvaluationTest
 {
@@ -19,19 +16,19 @@ public class DynamicExpressionEvaluationTest
         {
             new OperatorDefinition
             {
-                operatorType = OperatorType.MULTIPLY,
+                operator_type = OperatorType.Multiply,
                 rhs = 1,
                 lhs = 2
             },
             new OperatorDefinition
             {
-                operatorType = OperatorType.CONSTANT_VALUE,
-                nodeValue = 1.5f
+                operator_type = OperatorType.ConstantValue,
+                node_value = 1.5f
             },
             new OperatorDefinition
             {
-                operatorType = OperatorType.PARAMETER_VALUE,
-                parameterIndex = 0
+                operator_type = OperatorType.ParameterValue,
+                parameter_index = 0
             },
         }, Allocator.Persistent);
 
@@ -44,8 +41,7 @@ public class DynamicExpressionEvaluationTest
             }
         };
 
-        var result = expression.EvaluateExpression(
-            inputParams,
+        var result = StructExpression.EvaluateExpression(expression, inputParams,
             new JaggedIndexing
             {
                 index = 0,
@@ -60,7 +56,7 @@ public class DynamicExpressionEvaluationTest
     public void BuildsLinqExpressionFromBuilderTree()
     {
         var paramInput = Expression.Parameter(typeof(float), "testP");
-        var operatorData = OperatorBuilder.Binary(OperatorType.MULTIPLY,
+        var operatorData = OperatorBuilder.Binary(OperatorType.Multiply,
             OperatorBuilder.ConstantValue(1.5f),
             OperatorBuilder.ParameterReference(paramInput));
 
@@ -76,7 +72,7 @@ public class DynamicExpressionEvaluationTest
     public void BuildsStructExpressionFromBuilderTree()
     {
         var paramInput = Expression.Parameter(typeof(float), "testP");
-        var operatorData = OperatorBuilder.Binary(OperatorType.MULTIPLY,
+        var operatorData = OperatorBuilder.Binary(OperatorType.Multiply,
             OperatorBuilder.ConstantValue(1.5f),
             OperatorBuilder.ParameterReference(paramInput));
 
@@ -93,7 +89,8 @@ public class DynamicExpressionEvaluationTest
             nativeOpData,
             opDataSpace);
 
-        var result = expression.EvaluateExpression(
+        var result = StructExpression.EvaluateExpression(
+            expression,
             inputParams,
             new JaggedIndexing
             {

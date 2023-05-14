@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.LSystem.Extern;
 
 namespace Dman.LSystem.SystemCompiler
 {
@@ -81,10 +82,10 @@ namespace Dman.LSystem.SystemCompiler
                 switch (op.type)
                 {
                     case TokenType.SUBTRACT:
-                        tokenSeries[unaryIndex] = new TokenExpression(OperatorBuilder.Unary(OperatorType.NEGATE_UNARY, valuesExpression), op.context);
+                        tokenSeries[unaryIndex] = new TokenExpression(OperatorBuilder.Unary(OperatorType.NegateUnary, valuesExpression), op.context);
                         break;
                     case TokenType.BOOLEAN_NOT:
-                        tokenSeries[unaryIndex] = new TokenExpression(OperatorBuilder.Unary(OperatorType.BOOLEAN_NOT, valuesExpression), op.context);
+                        tokenSeries[unaryIndex] = new TokenExpression(OperatorBuilder.Unary(OperatorType.BooleanNot, valuesExpression), op.context);
                         break;
 
                     default:
@@ -146,49 +147,49 @@ namespace Dman.LSystem.SystemCompiler
             switch (op.type)
             {
                 case TokenType.MULTIPLY:
-                    newOpType = OperatorType.MULTIPLY;
+                    newOpType = OperatorType.Multiply;
                     break;
                 case TokenType.DIVIDE:
-                    newOpType = OperatorType.DIVIDE;
+                    newOpType = OperatorType.Divide;
                     break;
                 case TokenType.REMAINDER:
-                    newOpType = OperatorType.REMAINDER;
+                    newOpType = OperatorType.Remainder;
                     break;
                 case TokenType.EXPONENT:
-                    newOpType = OperatorType.EXPONENT;
+                    newOpType = OperatorType.Exponent;
                     break;
                 case TokenType.ADD:
-                    newOpType = OperatorType.ADD;
+                    newOpType = OperatorType.Add;
                     break;
                 case TokenType.SUBTRACT:
-                    newOpType = OperatorType.SUBTRACT;
+                    newOpType = OperatorType.Subtract;
                     break;
 
                 case TokenType.GREATER_THAN:
-                    newOpType = OperatorType.GREATER_THAN;
+                    newOpType = OperatorType.GreaterThan;
                     break;
                 case TokenType.LESS_THAN:
-                    newOpType = OperatorType.LESS_THAN;
+                    newOpType = OperatorType.LessThan;
                     break;
                 case TokenType.GREATER_THAN_OR_EQ:
-                    newOpType = OperatorType.GREATER_THAN_OR_EQ;
+                    newOpType = OperatorType.GreaterThanOrEq;
                     break;
                 case TokenType.LESS_THAN_OR_EQ:
-                    newOpType = OperatorType.LESS_THAN_OR_EQ;
+                    newOpType = OperatorType.LessThanOrEq;
                     break;
 
                 case TokenType.EQUAL:
-                    newOpType = OperatorType.EQUAL;
+                    newOpType = OperatorType.Equal;
                     break;
                 case TokenType.NOT_EQUAL:
-                    newOpType = OperatorType.NOT_EQUAL;
+                    newOpType = OperatorType.NotEqual;
                     break;
 
                 case TokenType.BOOLEAN_AND:
-                    newOpType = OperatorType.BOOLEAN_AND;
+                    newOpType = OperatorType.BooleanAnd;
                     break;
                 case TokenType.BOOLEAN_OR:
-                    newOpType = OperatorType.BOOLEAN_OR;
+                    newOpType = OperatorType.BooleanOr;
                     break;
                 default:
                     throw op.context.ExceptionHere($"Invalid binary operator symbol: {Enum.GetName(typeof(TokenType), op.type)}");

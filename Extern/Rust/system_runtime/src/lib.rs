@@ -11,14 +11,10 @@ pub extern "C" fn triple_input(input: i32) -> i32 {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct JaggedIndexing {
     pub index: i32,
     pub length: u16,
-}
-
-#[repr(C)]
-pub struct Expression {
-    pub operation_data_slice: JaggedIndexing,
 }
 
 #[repr(u8)]
@@ -29,19 +25,19 @@ pub enum OperatorType
     ParameterValue,
 
     // binary ops
-    MULTIPLY,
-    DIVIDE,
+    Multiply,
+    Divide,
 
-    ADD,
-    SUBTRACT,
-    REMAINDER,
-    EXPONENT,
+    Add,
+    Subtract,
+    Remainder,
+    Exponent,
 
     GreaterThan,
     LessThan,
     GreaterThanOrEq,
     LessThanOrEq,
-    EQUAL,
+    Equal,
     NotEqual,
 
     BooleanAnd,
@@ -64,29 +60,38 @@ pub struct OperatorDefinition {
 
     /// used when operator is unary or binary op. index of the right hand side value in the operator
     ///     data array
-    pub rhs: i16,
+    pub rhs: u16,
     /// used when operator is binary op. index of the left hand side value in the operator
     ///     data array
-    pub lhs: i16,
+    pub lhs: u16,
+}
+
+#[repr(C)]
+pub union NodeProperty {
+    /// is set when the node has a constant value
+    pub node_value: f32,
+    /// used when operator is PARAMETER_VALUE. carries an index in input parameters
+    ///     from which to pull the value for this operator
+    pub parameter_index: i32,
 }
 
 #[no_mangle]
 pub extern "C" fn evaluate_expression(
-    expression: Expression,
     operation_data: *const OperatorDefinition,
-    operation_space: JaggedIndexing,
+    operation_space: *const JaggedIndexing,
     parameter_values: *const f32,
-    parameter_space: JaggedIndexing,
+    parameter_space: *const JaggedIndexing,
     parameter_values_2: *const f32,
-    parameter_space_2: JaggedIndexing,
+    parameter_space_2: *const JaggedIndexing
 ) -> f32 {
-    dynamic_expressions::evaluate_expression(
-        expression,
-        operation_data,
-        operation_space,
-        parameter_values,
-        parameter_space,
-        parameter_values_2,
-        parameter_space_2,
-    )
+    unsafe {
+        dynamic_expressions::evaluate_expression(
+            operation_data,
+            *operation_space,
+            parameter_values,
+            *parameter_space,
+            parameter_values_2,
+            *parameter_space_2,
+        )
+    }
 }

@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.LSystem.Extern;
 using Unity.Collections;
 using Unity.Jobs;
 

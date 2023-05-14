@@ -3,8 +3,6 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Linq;
 using Dman.LSystem.Extern;
 using Unity.Collections;
-using OperatorDefinition = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorDefinition;
-
 namespace Dman.LSystem.SystemRuntime
 {
     public class RuleOutcome

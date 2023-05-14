@@ -20,7 +20,7 @@ namespace Dman.LSystem.Extern
         public static extern int triple_input(int input);
 
         [DllImport(__DllName, EntryPoint = "evaluate_expression", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern float evaluate_expression(Expression expression, OperatorDefinition* operation_data, JaggedIndexing operation_space, float* parameter_values, JaggedIndexing parameter_space, float* parameter_values_2, JaggedIndexing parameter_space_2);
+        public static extern float evaluate_expression(OperatorDefinition* operation_data, JaggedIndexing* operation_space, float* parameter_values, JaggedIndexing* parameter_space, float* parameter_values_2, JaggedIndexing* parameter_space_2);
 
 
     }
@@ -33,19 +33,13 @@ namespace Dman.LSystem.Extern
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe partial struct Expression
-    {
-        public JaggedIndexing operation_data_slice;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct OperatorDefinition
     {
         public OperatorType operator_type;
         public float node_value;
         public int parameter_index;
-        public short rhs;
-        public short lhs;
+        public ushort rhs;
+        public ushort lhs;
     }
 
 
@@ -53,17 +47,17 @@ namespace Dman.LSystem.Extern
     {
         ConstantValue,
         ParameterValue,
-        MULTIPLY,
-        DIVIDE,
-        ADD,
-        SUBTRACT,
-        REMAINDER,
-        EXPONENT,
+        Multiply,
+        Divide,
+        Add,
+        Subtract,
+        Remainder,
+        Exponent,
         GreaterThan,
         LessThan,
         GreaterThanOrEq,
         LessThanOrEq,
-        EQUAL,
+        Equal,
         NotEqual,
         BooleanAnd,
         BooleanOr,

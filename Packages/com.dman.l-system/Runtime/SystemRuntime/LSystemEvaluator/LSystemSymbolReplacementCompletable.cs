@@ -8,7 +8,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
-using OperatorDefinition = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorDefinition;
 
 namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 {
