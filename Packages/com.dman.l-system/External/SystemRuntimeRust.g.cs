@@ -19,6 +19,9 @@ namespace Dman.LSystem.Extern
         [DllImport(__DllName, EntryPoint = "triple_input", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int triple_input(int input);
 
+        [DllImport(__DllName, EntryPoint = "square_input", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int square_input(int input);
+
         [DllImport(__DllName, EntryPoint = "evaluate_expression", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern float evaluate_expression(OperatorDefinition* operation_data, JaggedIndexing* operation_space, float* parameter_values, JaggedIndexing* parameter_space, float* parameter_values_2, JaggedIndexing* parameter_space_2);
 
