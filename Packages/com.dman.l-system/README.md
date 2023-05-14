@@ -374,3 +374,8 @@ If you encounter any problems using this library, open an issue on the [github h
 
 Before contributing to the code base you should open an issue and describe it as either a feature request or bug. This is to make sure that the proposed addition is compatible with the project's goals.
 
+Setup:
+- clone the repository
+- open the project in unity 2020.1
+- This project includes external rust code, to build run the build script:
+  - Extern/Rust/system_runtime/build.sh

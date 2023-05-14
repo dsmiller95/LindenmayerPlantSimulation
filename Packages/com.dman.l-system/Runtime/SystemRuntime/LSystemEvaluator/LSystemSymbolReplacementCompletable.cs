@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.CustomRules;
+﻿using Dman.LSystem.Extern;
+using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.CustomRules.Diffusion;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
@@ -7,6 +8,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using OperatorDefinition = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorDefinition;
 
 namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 {

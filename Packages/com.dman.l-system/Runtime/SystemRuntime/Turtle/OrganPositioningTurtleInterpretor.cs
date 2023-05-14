@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Dman.LSystem.Extern;
 using Unity.Collections;
 using UnityEngine;
 using static Dman.LSystem.SystemRuntime.Turtle.TurtleStringReadingCompletable;

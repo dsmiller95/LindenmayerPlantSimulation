@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using Dman.LSystem.Extern;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
@@ -212,67 +213,4 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         }
         #endregion
     }
-
-    [Serializable]
-    public struct JaggedIndexing : IEquatable<JaggedIndexing>
-    {
-        /// <summary>
-        /// -1 is used for invalid/not populated
-        /// </summary>
-        public int index;
-        public ushort length;
-        public int Start => index;
-        public int End => index + length;
-
-        public static JaggedIndexing INVALID = new JaggedIndexing
-        {
-            index = -1,
-            length = 0,
-        };
-
-        public static JaggedIndexing GetWithNoLength(int index)
-        {
-            return new JaggedIndexing
-            {
-                index = index,
-                length = 0
-            };
-        }
-        public static JaggedIndexing GetWithOnlyLength(ushort length)
-        {
-            return new JaggedIndexing
-            {
-                index = -1,
-                length = length
-            };
-        }
-
-        public T GetValue<T>(NativeArray<T> array, ushort indexInSelf) where T : unmanaged
-        {
-            return array[indexInSelf + index];
-        }
-
-        public bool ContainsIndex(int index)
-        {
-            return index >= this.Start && index < this.End;
-        }
-
-        public bool Equals(JaggedIndexing other)
-        {
-            return other.index == index && other.length == length;
-        }
-        public override bool Equals(object obj)
-        {
-            if (obj is JaggedIndexing indexing)
-            {
-                return Equals(indexing);
-            }
-            return false;
-        }
-        public override int GetHashCode()
-        {
-            return index << 31 | length;
-        }
-    }
-
 }

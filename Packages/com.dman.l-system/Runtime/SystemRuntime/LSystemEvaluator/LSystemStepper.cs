@@ -199,7 +199,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             nativeRuleData.maxParameterMemoryRequirementsPerSymbol = maxMemoryRequirementsPerSymbol;
             this.nativeRuleData = new DependencyTracker<SystemLevelRuleNativeData>(nativeRuleData);
         }
-        public LSystemState<float> StepSystem(LSystemState<float> systemState, float[] globalParameters = null, bool disposeOldSystem = true)
+        
+        public LSystemState<float> StepSystem(
+            LSystemState<float> systemState,
+            float[] globalParameters = null,
+            bool disposeOldSystem = true)
         {
 #if UNITY_EDITOR
             try

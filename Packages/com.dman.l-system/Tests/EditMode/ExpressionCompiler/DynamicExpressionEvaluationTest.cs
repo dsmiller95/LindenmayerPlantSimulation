@@ -3,7 +3,11 @@ using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using System.Linq.Expressions;
+using Dman.LSystem.Extern;
 using Unity.Collections;
+using Expression = System.Linq.Expressions.Expression;
+using OperatorDefinition = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorDefinition;
+using OperatorType = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorType;
 
 public class DynamicExpressionEvaluationTest
 {

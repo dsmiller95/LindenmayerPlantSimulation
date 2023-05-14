@@ -1,12 +1,13 @@
 using Dman.LSystem.SystemCompiler;
-using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Dman.LSystem.Extern;
 using Unity.Collections;
 using UnityEngine;
+using OperatorDefinition = Dman.LSystem.SystemRuntime.DynamicExpressions.OperatorDefinition;
 
 public class ExpressionCompilerTests
 {

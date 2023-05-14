@@ -1,9 +1,14 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
+﻿using Dman.LSystem.Extern;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using Unity.Collections;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.DynamicExpressions
 {
+    /// <summary>
+    /// StructExpression represents a slice over packed list of OperatorDefinitions. Index 0 is the root operator,
+    /// and all other contained operators in the slice are the children of the root operator.
+    /// </summary>
     public struct StructExpression
     {
         public JaggedIndexing operationDataSlice;
