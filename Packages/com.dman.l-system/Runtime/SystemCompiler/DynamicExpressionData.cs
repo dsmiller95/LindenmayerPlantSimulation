@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.NativeCollections;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Dman.LSystem.Extern;
 using Unity.Collections;
 
 namespace Dman.LSystem.SystemCompiler
@@ -25,21 +26,21 @@ namespace Dman.LSystem.SystemCompiler
             while (builderQueue.Count > 0)
             {
                 var nextNode = builderQueue.Dequeue();
-                if (nextNode.type == OperatorType.CONSTANT_VALUE)
+                if (nextNode.type == OperatorType.ConstantValue)
                 {
                     definitionList.Add(new OperatorDefinition
                     {
-                        operatorType = OperatorType.CONSTANT_VALUE,
-                        nodeValue = nextNode.nodeValue
+                        operator_type = OperatorType.ConstantValue,
+                        node_value = nextNode.nodeValue
                     });
                 }
-                else if (nextNode.type == OperatorType.PARAMETER_VALUE)
+                else if (nextNode.type == OperatorType.ParameterValue)
                 {
                     var paramIndex = Array.IndexOf(orderedParameters, nextNode.parameter);
                     definitionList.Add(new OperatorDefinition
                     {
-                        operatorType = OperatorType.PARAMETER_VALUE,
-                        parameterIndex = paramIndex
+                        operator_type = OperatorType.ParameterValue,
+                        parameter_index = paramIndex
                     });
                 }
                 else if (nextNode.IsUnary)
@@ -47,7 +48,7 @@ namespace Dman.LSystem.SystemCompiler
                     var rhsIndex = definitionList.Count + builderQueue.Count + 1;
                     definitionList.Add(new OperatorDefinition
                     {
-                        operatorType = nextNode.type,
+                        operator_type = nextNode.type,
                         rhs = (ushort)rhsIndex
                     });
                     builderQueue.Enqueue(nextNode.rhs);
@@ -58,7 +59,7 @@ namespace Dman.LSystem.SystemCompiler
                     var rhsIndex = definitionList.Count + builderQueue.Count + 2;
                     definitionList.Add(new OperatorDefinition
                     {
-                        operatorType = nextNode.type,
+                        operator_type = nextNode.type,
                         lhs = (ushort)lhsIndex,
                         rhs = (ushort)rhsIndex
                     });
@@ -104,8 +105,7 @@ namespace Dman.LSystem.SystemCompiler
                 }
             };
 
-            return structExp.EvaluateExpression(
-                inputParams,
+            return StructExpression.EvaluateExpression(structExp, inputParams,
                 new JaggedIndexing
                 {
                     index = 0,
@@ -133,7 +133,7 @@ namespace Dman.LSystem.SystemCompiler
         {
             return new OperatorBuilder
             {
-                type = OperatorType.CONSTANT_VALUE,
+                type = OperatorType.ConstantValue,
                 nodeValue = constant
             };
         }
@@ -141,13 +141,13 @@ namespace Dman.LSystem.SystemCompiler
         {
             return new OperatorBuilder
             {
-                type = OperatorType.PARAMETER_VALUE,
+                type = OperatorType.ParameterValue,
                 parameter = parameterIndex
             };
         }
         public static OperatorBuilder Unary(OperatorType opType, OperatorBuilder single)
         {
-            if (opType != OperatorType.BOOLEAN_NOT && opType != OperatorType.NEGATE_UNARY)
+            if (opType != OperatorType.BooleanNot && opType != OperatorType.NegateUnary)
             {
                 throw new SyntaxException($"Unsupported Unary Operator {Enum.GetName(typeof(OperatorType), opType)}");
             }
@@ -159,10 +159,10 @@ namespace Dman.LSystem.SystemCompiler
         }
         public static OperatorBuilder Binary(OperatorType opType, OperatorBuilder lhs, OperatorBuilder rhs)
         {
-            if (opType == OperatorType.BOOLEAN_NOT
-                || opType == OperatorType.NEGATE_UNARY
-                || opType == OperatorType.CONSTANT_VALUE
-                || opType == OperatorType.PARAMETER_VALUE)
+            if (opType == OperatorType.BooleanNot
+                || opType == OperatorType.NegateUnary
+                || opType == OperatorType.ConstantValue
+                || opType == OperatorType.ParameterValue)
             {
                 throw new SyntaxException($"Unsupported Binary Operator {Enum.GetName(typeof(OperatorType), opType)}");
             }
@@ -181,21 +181,21 @@ namespace Dman.LSystem.SystemCompiler
             var lhsComp = lhs?.CompileToLinqExpression() ?? null;
             switch (type)
             {
-                case OperatorType.CONSTANT_VALUE:
+                case OperatorType.ConstantValue:
                     return Expression.Constant(nodeValue);
-                case OperatorType.PARAMETER_VALUE:
+                case OperatorType.ParameterValue:
                     return parameter;
-                case OperatorType.MULTIPLY:
+                case OperatorType.Multiply:
                     return Expression.Multiply(lhsComp, rhsComp);
-                case OperatorType.DIVIDE:
+                case OperatorType.Divide:
                     return Expression.Divide(lhsComp, rhsComp);
-                case OperatorType.ADD:
+                case OperatorType.Add:
                     return Expression.AddChecked(lhsComp, rhsComp);
-                case OperatorType.SUBTRACT:
+                case OperatorType.Subtract:
                     return Expression.SubtractChecked(lhsComp, rhsComp);
-                case OperatorType.REMAINDER:
+                case OperatorType.Remainder:
                     return Expression.Modulo(lhsComp, rhsComp);
-                case OperatorType.EXPONENT:
+                case OperatorType.Exponent:
                     return Expression.Convert( // cast to double and then back, because Expression.Power is a proxy for Math.Pow
                         Expression.Power(
                             Expression.Convert(lhsComp, typeof(double)),
@@ -203,26 +203,26 @@ namespace Dman.LSystem.SystemCompiler
                         ),
                         typeof(float)
                     );
-                case OperatorType.GREATER_THAN:
+                case OperatorType.GreaterThan:
                     return Expression.GreaterThan(lhsComp, rhsComp);
-                case OperatorType.LESS_THAN:
+                case OperatorType.LessThan:
                     return Expression.LessThan(lhsComp, rhsComp);
-                case OperatorType.GREATER_THAN_OR_EQ:
+                case OperatorType.GreaterThanOrEq:
                     return Expression.GreaterThanOrEqual(lhsComp, rhsComp);
-                case OperatorType.LESS_THAN_OR_EQ:
+                case OperatorType.LessThanOrEq:
                     return Expression.LessThanOrEqual(lhsComp, rhsComp);
-                case OperatorType.EQUAL:
+                case OperatorType.Equal:
                     return Expression.Equal(lhsComp, rhsComp);
-                case OperatorType.NOT_EQUAL:
+                case OperatorType.NotEqual:
                     return Expression.NotEqual(lhsComp, rhsComp);
-                case OperatorType.BOOLEAN_AND:
+                case OperatorType.BooleanAnd:
                     return Expression.AndAlso(lhsComp, rhsComp);
-                case OperatorType.BOOLEAN_OR:
+                case OperatorType.BooleanOr:
                     return Expression.OrElse(lhsComp, rhsComp);
 
-                case OperatorType.BOOLEAN_NOT:
+                case OperatorType.BooleanNot:
                     return Expression.Not(rhsComp);
-                case OperatorType.NEGATE_UNARY:
+                case OperatorType.NegateUnary:
                     return Expression.NegateChecked(rhsComp);
 
                 default:
@@ -233,11 +233,11 @@ namespace Dman.LSystem.SystemCompiler
 
         public override string ToString()
         {
-            if (type == OperatorType.CONSTANT_VALUE)
+            if (type == OperatorType.ConstantValue)
             {
                 return nodeValue.ToString("f1");
             }
-            if (type == OperatorType.PARAMETER_VALUE)
+            if (type == OperatorType.ParameterValue)
             {
                 return $"PARAMAT({parameter})";
             }

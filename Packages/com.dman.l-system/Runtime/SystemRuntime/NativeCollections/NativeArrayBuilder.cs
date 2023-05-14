@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using Dman.LSystem.Extern;
+using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections
 {

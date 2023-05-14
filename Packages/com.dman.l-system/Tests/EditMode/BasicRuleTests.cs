@@ -6,6 +6,7 @@ using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.LSystem.Extern;
 using Unity.Collections;
 
 public class BasicRuleTests

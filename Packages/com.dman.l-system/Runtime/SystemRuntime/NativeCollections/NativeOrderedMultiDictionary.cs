@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.LSystem.Extern;
 using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime.NativeCollections

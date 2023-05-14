@@ -3,6 +3,7 @@ using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.LSystem.Extern;
 using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
@@ -239,7 +240,8 @@ namespace Dman.LSystem.SystemRuntime
                 };
                 if (conditional.IsValid)
                 {
-                    var conditionalMatch = conditional.EvaluateExpression(
+                    var conditionalMatch = StructExpression.EvaluateExpression(
+                        conditional,
                         globalParams,
                         new JaggedIndexing { index = 0, length = (ushort)globalParams.Length },
                         parameterMemory,

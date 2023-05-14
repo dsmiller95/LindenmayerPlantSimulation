@@ -1,10 +1,11 @@
 using Dman.LSystem.SystemCompiler;
-using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Dman.LSystem.Extern;
+using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Unity.Collections;
 using UnityEngine;
 
@@ -81,8 +82,7 @@ public class ExpressionCompilerTests
             {
                 inputParams[param] = calls[call, param];
             }
-            var result = expression.EvaluateExpression(
-                inputParams,
+            var result = StructExpression.EvaluateExpression(expression, inputParams,
                 new JaggedIndexing
                 {
                     index = 0,

@@ -374,3 +374,12 @@ If you encounter any problems using this library, open an issue on the [github h
 
 Before contributing to the code base you should open an issue and describe it as either a feature request or bug. This is to make sure that the proposed addition is compatible with the project's goals.
 
+Setup:
+- clone the repository
+- install rust
+- This project includes external rust code, after installing rust run this build script:
+  - Extern/Rust/system_runtime/build.sh
+  - this will build the rust project and copy the artifacts to the unity project
+- open the project in unity 2020.1
+- to generate a release, run Extern/release.sh.
+  - This will commit the generated .dll to the repository, allowing for the project to be published to openupm

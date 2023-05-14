@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
+﻿using Dman.LSystem.Extern;
+using Dman.LSystem.SystemRuntime.NativeCollections;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
