@@ -11,10 +11,6 @@ pub extern "C" fn double_input(input: i32) -> i32 {
 pub extern "C" fn triple_input(input: i32) -> i32 {
     input * 3
 }
-#[no_mangle]
-pub extern "C" fn quad_input(input: i32) -> i32 {
-    input * 4
-}
 
 #[repr(C)]
 #[derive(Copy, Clone)]
