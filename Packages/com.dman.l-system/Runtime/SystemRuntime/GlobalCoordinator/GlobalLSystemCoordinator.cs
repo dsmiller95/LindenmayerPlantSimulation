@@ -29,15 +29,34 @@ namespace Dman.LSystem.SystemRuntime.GlobalCoordinator
         [Tooltip("when set to true, no existing l system reservations will be moved or re allocated over")]
         public bool reservationsLocked;
 
-        public static GlobalLSystemCoordinator instance;
+        //public static GlobalLSystemCoordinator instance;
+
+
+        private static GlobalLSystemCoordinator _instance;
+        public static GlobalLSystemCoordinator instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = GameObject.FindObjectOfType<GlobalLSystemCoordinator>();
+                }
+                return _instance;
+            }
+        }
 
         private List<LSystemGlobalResourceHandle> allResourceReservations;
 
         private void Awake()
         {
+            // TODO: bad
+            if(RegistryRegistry.Instance == null)
+            {
+                RegistryRegistry.Instance = GameObject.FindObjectOfType<RegistryRegistry>();
+            }
             var systemRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
             systemRegistry.AssignAllIDs();
-            instance = this;
+            _instance = this;
             allResourceReservations = new List<LSystemGlobalResourceHandle>();
         }
 
