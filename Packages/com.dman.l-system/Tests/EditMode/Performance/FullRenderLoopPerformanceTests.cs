@@ -262,7 +262,7 @@ a -> aF
     }
 
     [UnityTest, Performance]
-    public IEnumerator LargeTree()
+    public IEnumerator LargeTreeLowVertexCount()
     {
         yield return new EnterPlayMode();
         yield return null;
@@ -297,52 +297,6 @@ a(x) : x <= 0 -> /F
                 return AsyncCoroutine(FullLoopStep(systemBehavior, renderingCamera));
             }, 5, 20);
 
-        }
-
-        yield return new ExitPlayMode();
-    }
-
-    [UnityTest, Performance]
-    public IEnumerator ManyTrees()
-    {
-        yield return new EnterPlayMode();
-        yield return null;
-
-        // this scene will be preconfigured with all the required context to get lsystems working
-        var targetSceneIndex = SceneUtility.GetBuildIndexByScenePath("Test resources/PERFORMANCE_TEST_SCENE");
-        yield return EditorSceneManager.LoadSceneAsync(targetSceneIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
-        yield return null;
-        JobHandleExtensions.TrackPendingJobs = true;
-
-        var systemObject = GetConfiguredLSystem(@"
-#axiom a(6)F
-#symbols +-\/^&
-#iterations 10
-#symbols Fna
-
-P(1/3) | a(x) : x > 0 -> FFF\[+a(x - 1)][-a(x - 1)]
-P(2/3) | a(x) : x > 0 -> a(x)
-a(x) : x <= 0 -> /F
-");
-        var turtleOperations = new List<TurtleOperationSet>();
-        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultMeshOperations(new[] { 'F' }));
-        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultRotateOperations(30));
-
-        {
-            var behaviors = new LSystemBehavior[20];
-            for (int i = 0; i < behaviors.Length; i++)
-            {
-                behaviors[i] = ConfigureNewLSystem(systemObject, turtleOperations);
-                var posOnGround = UnityEngine.Random.insideUnitCircle * 8;
-                behaviors[i].transform.position += new Vector3(posOnGround.x, 0, posOnGround.y);
-            }
-
-            var (sunlightCamera, renderingCamera) = GetCameras();
-            yield return null;
-            yield return MeasureAcrossFrames(() =>
-            {
-                return AsyncCoroutine(FullGardenGrowth(behaviors, 25));
-            }, 1, 2);
         }
 
         yield return new ExitPlayMode();
@@ -389,6 +343,52 @@ a(x) : x <= 0 -> /F
         yield return new ExitPlayMode();
     }
 
+    [UnityTest, Performance]
+    public IEnumerator ManyTreesLowVertexCount()
+    {
+        yield return new EnterPlayMode();
+        yield return null;
+
+        // this scene will be preconfigured with all the required context to get lsystems working
+        var targetSceneIndex = SceneUtility.GetBuildIndexByScenePath("Test resources/PERFORMANCE_TEST_SCENE");
+        yield return EditorSceneManager.LoadSceneAsync(targetSceneIndex, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        yield return null;
+        JobHandleExtensions.TrackPendingJobs = true;
+
+        var systemObject = GetConfiguredLSystem(@"
+#axiom a(6)F
+#symbols +-\/^&
+#iterations 10
+#symbols Fna
+
+P(1/3) | a(x) : x > 0 -> FFF\[+a(x - 1)][-a(x - 1)]
+P(2/3) | a(x) : x > 0 -> a(x)
+a(x) : x <= 0 -> /F
+");
+        var turtleOperations = new List<TurtleOperationSet>();
+        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultMeshOperations(new[] { 'F' }));
+        turtleOperations.Add(OrganPositioningTurtleInterpretorTests.GetDefaultRotateOperations(30));
+
+        {
+            var behaviors = new LSystemBehavior[20];
+            for (int i = 0; i < behaviors.Length; i++)
+            {
+                behaviors[i] = ConfigureNewLSystem(systemObject, turtleOperations);
+                var posOnGround = UnityEngine.Random.insideUnitCircle * 8;
+                behaviors[i].transform.position += new Vector3(posOnGround.x, 0, posOnGround.y);
+            }
+
+            var (sunlightCamera, renderingCamera) = GetCameras();
+            yield return null;
+            yield return MeasureAcrossFrames(() =>
+            {
+                return AsyncCoroutine(FullGardenGrowth(behaviors, 25));
+            }, 1, 2);
+        }
+
+        yield return new ExitPlayMode();
+    }
+    
     [UnityTest, Performance]
     public IEnumerator ManyTreesHighVertexCount()
     {
