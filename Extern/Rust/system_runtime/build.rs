@@ -7,6 +7,6 @@ fn main() {
         .csharp_class_name("SystemRuntimeRust")
         .csharp_class_accessibility("public")
         .csharp_namespace("Dman.LSystem.Extern")
-        .generate_csharp_file("../../dotnet/SystemRuntimeRust.g.cs")
+        .generate_csharp_file("target/dotnet/SystemRuntimeRust.g.cs")
         .unwrap();
 }

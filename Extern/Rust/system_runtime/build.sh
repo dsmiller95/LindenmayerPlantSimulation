@@ -2,10 +2,11 @@
 
 cargo build
 
-rm -f ../../../Packages/com.dman.l-system/External/Lib/*.dll
+LIB_PATH_DEST=../../../Packages/com.dman.l-system/External/Lib
 
-cp ../../dotnet/* ../../../Packages/com.dman.l-system/External
+cp target/dotnet/* ../../../Packages/com.dman.l-system/External
 
-mkdir -p ../../../Packages/com.dman.l-system/External/Lib
-cp target/debug/system_runtime_rustlib.* ../../../Packages/com.dman.l-system/External/Lib
+mkdir -p $LIB_PATH_DEST
+rm -f $LIB_PATH_DEST/*.dll
+cp target/debug/system_runtime_rustlib.* $LIB_PATH_DEST
 
