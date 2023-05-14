@@ -381,3 +381,5 @@ Setup:
   - Extern/Rust/system_runtime/build.sh
   - this will build the rust project and copy the artifacts to the unity project
 - open the project in unity 2020.1
+- to generate a release, run Extern/release.sh.
+  - This will commit the generated .dll to the repository, allowing for the project to be published to openupm
