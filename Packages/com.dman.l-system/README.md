@@ -376,6 +376,8 @@ Before contributing to the code base you should open an issue and describe it as
 
 Setup:
 - clone the repository
-- open the project in unity 2020.1
-- This project includes external rust code, to build run the build script:
+- install rust
+- This project includes external rust code, after installing rust run this build script:
   - Extern/Rust/system_runtime/build.sh
+  - this will build the rust project and copy the artifacts to the unity project
+- open the project in unity 2020.1

@@ -1,3 +1,5 @@
+use crate::dynamic_expressions::indexes_in::IndexesIn;
+
 mod dynamic_expressions;
 
 #[no_mangle]
@@ -84,14 +86,12 @@ pub extern "C" fn evaluate_expression(
     parameter_values_2: *const f32,
     parameter_space_2: *const JaggedIndexing
 ) -> f32 {
-    unsafe {
-        dynamic_expressions::evaluate_expression(
-            operation_data,
-            *operation_space,
-            parameter_values,
-            *parameter_space,
-            parameter_values_2,
-            *parameter_space_2,
+    let (operations, param1, param2) = unsafe {
+        (
+            (*operation_space).to_slice(operation_data),
+            (*parameter_space).to_slice(parameter_values),
+            (*parameter_space_2).to_slice(parameter_values_2),
         )
-    }
+    };
+    dynamic_expressions::evaluate_expression(operations, param1, param2)
 }

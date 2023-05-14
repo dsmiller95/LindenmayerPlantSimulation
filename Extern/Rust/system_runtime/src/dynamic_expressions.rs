@@ -1,40 +1,30 @@
-use crate::{JaggedIndexing, OperatorDefinition, OperatorType};
-use crate::dynamic_expressions::struct_expression::Indexes;
+use crate::{OperatorDefinition, OperatorType};
 
-pub mod struct_expression;
+pub mod indexes_in;
 
 pub fn evaluate_expression(
-    operation_data: *const OperatorDefinition,
-    operation_space: JaggedIndexing,
-    parameter_values: *const f32,
-    parameter_space: JaggedIndexing,
-    parameter_values_2: *const f32,
-    parameter_space_2: JaggedIndexing,
+    operation_data: &[OperatorDefinition],
+    parameter_values: &[f32],
+    parameter_values_2: &[f32],
 ) -> f32 {
     let evaluator = DynamicExpressionEvaluator {
         operation_data,
-        operation_data_index: operation_space,
         parameter_values,
-        parameter_values_index: parameter_space,
         parameter_values_2,
-        parameter_values_index_2: parameter_space_2,
     };
 
-    unsafe { evaluator.evaluate(0) }
+    evaluator.evaluate(0)
 }
 
-pub struct DynamicExpressionEvaluator {
-    operation_data: *const OperatorDefinition,
-    operation_data_index: JaggedIndexing,
-    parameter_values: *const f32,
-    parameter_values_index: JaggedIndexing,
-    parameter_values_2: *const f32,
-    parameter_values_index_2: JaggedIndexing,
+pub struct DynamicExpressionEvaluator<'a> {
+    operation_data: &'a[OperatorDefinition],
+    parameter_values: &'a[f32],
+    parameter_values_2: &'a[f32],
 }
 
-impl DynamicExpressionEvaluator {
-    pub unsafe fn evaluate(&self, index: usize) -> f32 {
-        let operation = &*self.operation_data_index.index_in(self.operation_data, index);
+impl DynamicExpressionEvaluator<'_> {
+    pub fn evaluate(&self, index: usize) -> f32 {
+        let operation = &self.operation_data[index];
 
         match operation.operator_type {
             OperatorType::ConstantValue => {
@@ -42,13 +32,13 @@ impl DynamicExpressionEvaluator {
             }
             OperatorType::ParameterValue => {
                 let parameter_index = operation.parameter_index as usize;
-                if parameter_index >= self.parameter_values_index.length as usize {
-                    let parameter_index = parameter_index - self.parameter_values_index.length as usize;
-                    let parameter = self.parameter_values_index_2.index_in(self.parameter_values_2, parameter_index);
-                    *parameter
+                if parameter_index >= self.parameter_values.len() as usize {
+                    let parameter_index = parameter_index - self.parameter_values.len() as usize;
+                    let parameter = self.parameter_values_2[parameter_index];
+                    parameter
                 } else {
-                    let parameter = self.parameter_values_index.index_in(self.parameter_values, parameter_index);
-                    *parameter
+                    let parameter = self.parameter_values[parameter_index];
+                    parameter
                 }
             }
             OperatorType::Multiply => {
