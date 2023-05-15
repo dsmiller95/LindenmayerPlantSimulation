@@ -16,4 +16,3 @@ impl<T> IndexesIn<T> for JaggedIndexing {
         }
     }
 }
-

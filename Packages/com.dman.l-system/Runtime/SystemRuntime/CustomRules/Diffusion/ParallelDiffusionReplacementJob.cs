@@ -55,8 +55,8 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                     {
                         var newEdge = new DiffusionEdge
                         {
-                            nodeAIndex = currentNodeParent,
-                            nodeBIndex = working.nodes.Length
+                            node_a_index = currentNodeParent,
+                            node_b_index = working.nodes.Length
                         };
                         working.allEdges.Add(newEdge);
                     }
@@ -67,18 +67,18 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
 
                     var newNode = new DiffusionNode
                     {
-                        indexInTarget = nodeSingleton.replacementSymbolIndexing.index,
-                        targetParameters = nodeSingleton.replacementParameterIndexing,
+                        index_in_target = nodeSingleton.replacementSymbolIndexing.index,
+                        target_parameters = nodeSingleton.replacementParameterIndexing,
 
-                        indexInTempAmountList = working.nodeAmountsListA.Length,
+                        index_in_temp_amount_list = working.nodeAmountsListA.Length,
 
-                        totalResourceTypes = (nodeParams.length - 1) / 2,
-                        diffusionConstant = sourceData.parameters[nodeParams, 0],
+                        total_resource_types = (nodeParams.length - 1) / 2,
+                        diffusion_constant = sourceData.parameters[nodeParams, 0],
                     };
-                    newNode.targetParameters.length = nodeParams.length;
+                    newNode.target_parameters.length = nodeParams.length;
                     working.nodes.Add(newNode);
 
-                    for (int resourceType = 0; resourceType < newNode.totalResourceTypes; resourceType++)
+                    for (int resourceType = 0; resourceType < newNode.total_resource_types; resourceType++)
                     {
                         var currentAmount = sourceData.parameters[nodeParams, resourceType * 2 + 1];
                         var maxCapacity = sourceData.parameters[nodeParams, resourceType * 2 + 1 + 1];
@@ -111,9 +111,9 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                         // problem: the amount will dissapear
                         continue;
                     }
-                    for (int resourceType = 0; resourceType < modifiedNode.totalResourceTypes && resourceType < amountParameters.length; resourceType++)
+                    for (int resourceType = 0; resourceType < modifiedNode.total_resource_types && resourceType < amountParameters.length; resourceType++)
                     {
-                        working.nodeAmountsListA[modifiedNode.indexInTempAmountList + resourceType] += sourceData.parameters[amountParameters, resourceType];
+                        working.nodeAmountsListA[modifiedNode.index_in_temp_amount_list + resourceType] += sourceData.parameters[amountParameters, resourceType];
                     }
                 }
                 else if (symbol == customSymbols.branchOpenSymbol)

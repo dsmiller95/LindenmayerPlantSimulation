@@ -84,7 +84,7 @@ pub extern "C" fn evaluate_expression(
     parameter_values: *const f32,
     parameter_space: *const JaggedIndexing,
     parameter_values_2: *const f32,
-    parameter_space_2: *const JaggedIndexing
+    parameter_space_2: *const JaggedIndexing,
 ) -> f32 {
     let (operations, param1, param2) = unsafe {
         (
@@ -94,4 +94,71 @@ pub extern "C" fn evaluate_expression(
         )
     };
     dynamic_expressions::evaluate_expression(operations, param1, param2)
+}
+
+mod diffusion_job;
+
+#[repr(C)]
+pub struct DiffusionEdge{
+    pub node_a_index: i32,
+    pub node_b_index: i32,
+}
+
+#[repr(C)]
+pub struct DiffusionNode{
+    pub index_in_target: i32,
+    pub target_parameters: JaggedIndexing,
+    pub index_in_temp_amount_list: i32,
+
+    pub total_resource_types: i32,
+    pub diffusion_constant: f32
+}
+
+#[no_mangle]
+pub extern "C" fn diffuse_between(
+    edges: *const DiffusionEdge,
+    edges_len: i32,
+    nodes: *const DiffusionNode,
+    node_capacities: *const f32,
+    node_amount_list_a: *mut f32,
+    node_amount_list_b: *mut f32,
+    total_nodes: i32,
+    
+    diffusion_steps: i32,
+    diffusion_global_multiplier: f32,
+) -> bool {
+    let (
+        edges,
+        nodes, 
+        node_capacities,
+        node_amounts_slice_a,
+        node_amounts_slice_b) = unsafe {
+        (
+            std::slice::from_raw_parts(edges, edges_len as usize),
+            std::slice::from_raw_parts(nodes, total_nodes as usize),
+            std::slice::from_raw_parts(node_capacities, total_nodes as usize),
+            std::slice::from_raw_parts_mut(node_amount_list_a, total_nodes as usize),
+            std::slice::from_raw_parts_mut(node_amount_list_b, total_nodes as usize),
+        )
+    };
+    
+    let diffusion_job = diffusion_job::DiffusionJob {
+        edges,
+        nodes,
+        node_max_capacities: node_capacities,
+        
+        diffusion_global_multiplier,
+    };
+    
+    let double_buffered_amounts = & mut diffusion_job::DiffusionAmountData{
+        node_amount_list_a: node_amounts_slice_a,
+        node_amount_list_b: node_amounts_slice_b,
+        latest_in_a: true,
+    };
+    
+    diffusion_job.diffuse_between(
+        double_buffered_amounts,
+        diffusion_steps);
+    
+    double_buffered_amounts.latest_in_a
 }

@@ -1,45 +1,28 @@
 ﻿using Dman.LSystem.Extern;
-using Dman.LSystem.SystemRuntime.NativeCollections;
+using Dman.LSystem.Extern.Adapters;
 using Unity.Collections;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
 {
-
-    internal struct DiffusionEdge
-    {
-        public int nodeAIndex;
-        public int nodeBIndex;
-    }
-
-    internal struct DiffusionNode
-    {
-        public int indexInTarget;
-        public JaggedIndexing targetParameters;
-
-        public int indexInTempAmountList;
-
-        public int totalResourceTypes;
-        public float diffusionConstant;
-    }
     internal struct DiffusionWorkingDataPack : INativeDisposable
     {
-        [NativeDisableParallelForRestriction]
-        public NativeList<DiffusionEdge> allEdges;
-        [NativeDisableParallelForRestriction]
-        public NativeList<DiffusionNode> nodes;
+        [NativeDisableParallelForRestriction] public NativeList<DiffusionEdge> allEdges;
+        [NativeDisableParallelForRestriction] public NativeList<DiffusionNode> nodes;
 
-        [NativeDisableParallelForRestriction]
-        public NativeList<float> nodeMaxCapacities;
-        [NativeDisableParallelForRestriction]
-        public NativeList<float> nodeAmountsListA;
-        [NativeDisableParallelForRestriction]
-        public NativeList<float> nodeAmountsListB;
+        [NativeDisableParallelForRestriction] public NativeList<float> nodeMaxCapacities;
+        [NativeDisableParallelForRestriction] public NativeList<float> nodeAmountsListA;
+        [NativeDisableParallelForRestriction] public NativeList<float> nodeAmountsListB;
 
         public CustomRuleSymbols customSymbols;
         public bool IsCreated;
 
-        public DiffusionWorkingDataPack(int estimatedEdges, int estimatedNodes, int estimatedUniqueResources, CustomRuleSymbols customSymbols, Allocator allocator = Allocator.TempJob)
+        public DiffusionWorkingDataPack(
+            int estimatedEdges,
+            int estimatedNodes,
+            int estimatedUniqueResources,
+            CustomRuleSymbols customSymbols,
+            Allocator allocator = Allocator.TempJob)
         {
             this.customSymbols = customSymbols;
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
@@ -55,14 +38,32 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
 
         public void PerformDiffusionOnDataAndApply(SymbolString<float> targetSymbols)
         {
-            var latestDataInA = true;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            bool latestDataInA;
+
+#if RUST_SUBSYSTEM
+            latestDataInA = NativeDiffusion.DiffuseBetween(
+                allEdges,
+                nodes,
+                nodeMaxCapacities,
+                nodeAmountsListA,
+                nodeAmountsListB,
+                customSymbols.diffusionStepsPerStep,
+                customSymbols.diffusionConstantRuntimeGlobalMultiplier
+            );
+#else
+            latestDataInA = true;
             for (int i = 0; i < customSymbols.diffusionStepsPerStep; i++)
             {
                 DiffuseBetween(latestDataInA);
                 latestDataInA = !latestDataInA;
             }
+#endif
+
+
             ApplyDiffusionResults(latestDataInA, targetSymbols);
         }
+
         private void DiffuseBetween(bool diffuseAtoB)
         {
             var sourceDiffuseAmounts = diffuseAtoB ? nodeAmountsListA : nodeAmountsListB;
@@ -82,22 +83,23 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
             DiffusionEdge edge,
             NativeList<float> sourceAmounts,
             NativeList<float> targetAmounts
-            )
+        )
         {
-            var nodeA = nodes[edge.nodeAIndex];
-            var nodeB = nodes[edge.nodeBIndex];
+            var nodeA = nodes[edge.node_a_index];
+            var nodeB = nodes[edge.node_b_index];
 
-            var diffusionConstant = customSymbols.diffusionConstantRuntimeGlobalMultiplier * (nodeA.diffusionConstant + nodeB.diffusionConstant) / 2f;
+            var diffusionConstant = customSymbols.diffusionConstantRuntimeGlobalMultiplier *
+                (nodeA.diffusion_constant + nodeB.diffusion_constant) / 2f;
             for (
                 int resource = 0;
-                resource < nodeA.totalResourceTypes && resource < nodeB.totalResourceTypes;
+                resource < nodeA.total_resource_types && resource < nodeB.total_resource_types;
                 resource++)
             {
-                var oldNodeAValue = sourceAmounts[nodeA.indexInTempAmountList + resource];
-                var nodeAValueCap = nodeMaxCapacities[nodeA.indexInTempAmountList + resource];
+                var oldNodeAValue = sourceAmounts[nodeA.index_in_temp_amount_list + resource];
+                var nodeAValueCap = nodeMaxCapacities[nodeA.index_in_temp_amount_list + resource];
 
-                var oldNodeBValue = sourceAmounts[nodeB.indexInTempAmountList + resource];
-                var nodeBValueCap = nodeMaxCapacities[nodeB.indexInTempAmountList + resource];
+                var oldNodeBValue = sourceAmounts[nodeB.index_in_temp_amount_list + resource];
+                var nodeBValueCap = nodeMaxCapacities[nodeB.index_in_temp_amount_list + resource];
 
                 var aToBTransferredAmount = diffusionConstant * (oldNodeBValue - oldNodeAValue);
 
@@ -105,19 +107,21 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                 {
                     continue;
                 }
+
                 if (aToBTransferredAmount < 0 && oldNodeBValue >= nodeBValueCap)
                 {
                     // the direction of flow is towards node B, and also node B is above its value cap. skip updating the resource on this connection completely.
                     continue;
                 }
+
                 if (aToBTransferredAmount > 0 && oldNodeAValue >= nodeAValueCap)
                 {
                     // the direction of flow is towards node A, and also node A is above its value cap. skip updating the resource on this connection completely.
                     continue;
                 }
 
-                targetAmounts[nodeA.indexInTempAmountList + resource] += aToBTransferredAmount;
-                targetAmounts[nodeB.indexInTempAmountList + resource] -= aToBTransferredAmount;
+                targetAmounts[nodeA.index_in_temp_amount_list + resource] += aToBTransferredAmount;
+                targetAmounts[nodeB.index_in_temp_amount_list + resource] -= aToBTransferredAmount;
             }
         }
 
@@ -127,15 +131,17 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
             for (int nodeIndex = 0; nodeIndex < nodes.Length; nodeIndex++)
             {
                 var node = nodes[nodeIndex];
-                targetSymbols[node.indexInTarget] = customSymbols.diffusionNode;
+                targetSymbols[node.index_in_target] = customSymbols.diffusionNode;
 
-                targetSymbols.parameters[node.indexInTarget] = node.targetParameters;
+                targetSymbols.parameters[node.index_in_target] = node.target_parameters;
 
-                targetSymbols.parameters[node.targetParameters, 0] = node.diffusionConstant;
-                for (int resourceType = 0; resourceType < node.totalResourceTypes; resourceType++)
+                targetSymbols.parameters[node.target_parameters, 0] = node.diffusion_constant;
+                for (int resourceType = 0; resourceType < node.total_resource_types; resourceType++)
                 {
-                    targetSymbols.parameters[node.targetParameters, resourceType * 2 + 1] = amountData[node.indexInTempAmountList + resourceType];
-                    targetSymbols.parameters[node.targetParameters, resourceType * 2 + 2] = nodeMaxCapacities[node.indexInTempAmountList + resourceType];
+                    targetSymbols.parameters[node.target_parameters, resourceType * 2 + 1] =
+                        amountData[node.index_in_temp_amount_list + resourceType];
+                    targetSymbols.parameters[node.target_parameters, resourceType * 2 + 2] =
+                        nodeMaxCapacities[node.index_in_temp_amount_list + resourceType];
                 }
             }
         }
