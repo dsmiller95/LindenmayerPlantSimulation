@@ -1,6 +1,6 @@
 {
   "name": "com.dman.l-system",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "displayName": "L-system",
   "description": "An attempt to implement most of the features present in L-systems described by 'The Algorithmic Beauty Of Plants' http://algorithmicbotany.org/papers/abop/abop.pdf",
   "unity": "2020.1",
