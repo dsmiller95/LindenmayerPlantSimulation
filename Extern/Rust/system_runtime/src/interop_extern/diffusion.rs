@@ -1,4 +1,4 @@
-﻿use crate::diffusion_job;
+﻿use crate::diffusion::diffusion_job::{DiffusionAmountData, DiffusionJob};
 use crate::interop_extern::data::{JaggedIndexing, NativeArrayInteropf32, NativeArrayInteropi32, NativeArrayInteropJaggedIndexing};
 
 #[repr(C)]
@@ -46,7 +46,7 @@ pub extern "C" fn diffuse_between(
         )
     };
 
-    let diffusion_job = diffusion_job::DiffusionJob {
+    let diffusion_job = DiffusionJob {
         edges,
         nodes,
         node_max_capacities: node_capacities,
@@ -54,7 +54,7 @@ pub extern "C" fn diffuse_between(
         diffusion_global_multiplier,
     };
 
-    let double_buffered_amounts = & mut diffusion_job::DiffusionAmountData{
+    let double_buffered_amounts = & mut DiffusionAmountData{
         node_amount_list_a: node_amounts_slice_a,
         node_amount_list_b: node_amounts_slice_b,
         latest_in_a: true,
