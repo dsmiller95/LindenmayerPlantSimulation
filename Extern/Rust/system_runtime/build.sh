@@ -5,6 +5,8 @@
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"
 
+cargo expand interop_extern > expanded.rs.tmp
+
 cargo build
 
 LIB_PATH_DEST=../../../Packages/com.dman.l-system/External/RustSubsystem

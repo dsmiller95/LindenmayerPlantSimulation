@@ -55,8 +55,8 @@ public class BasicRuleTests
         var random = new Unity.Mathematics.Random();
         var matchSingleData = new LSystemSingleSymbolMatchData
         {
-            isTrivial = false,
-            tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(ruleParamMemoryStartIndex)
+            is_trivial = false,
+            tmp_parameter_memory_space = JaggedIndexing.GetWithNoLength(ruleParamMemoryStartIndex)
         };
 
         var potentialMatch = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
@@ -64,7 +64,7 @@ public class BasicRuleTests
             symbols.Data,
             matchIndex,
             paramMemory,
-            matchSingleData.tmpParameterMemorySpace.index,
+            matchSingleData.tmp_parameter_memory_space.index,
             ref matchSingleData,
             new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
             globalNative,
@@ -74,13 +74,13 @@ public class BasicRuleTests
             );
 
         Assert.IsTrue(potentialMatch);
-        Assert.AreEqual(expectedReplacementPatternIndex, matchSingleData.selectedReplacementPattern);
-        Assert.AreEqual(paramTempMemorySize, matchSingleData.tmpParameterMemorySpace.length, "parameter temp memory size mismatch");
-        Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacementSymbolIndexing.length, "replacement symbols size mismatch");
-        Assert.AreEqual(expectedReplacement.parameters.data.Length, matchSingleData.replacementParameterIndexing.length, "replacement parameter size mismatch");
+        Assert.AreEqual(expectedReplacementPatternIndex, matchSingleData.selected_replacement_pattern);
+        Assert.AreEqual(paramTempMemorySize, matchSingleData.tmp_parameter_memory_space.length, "parameter temp memory size mismatch");
+        Assert.AreEqual(expectedReplacement.symbols.Length, matchSingleData.replacement_symbol_indexing.length, "replacement symbols size mismatch");
+        Assert.AreEqual(expectedReplacement.parameters.data.Length, matchSingleData.replacement_parameter_indexing.length, "replacement parameter size mismatch");
 
-        matchSingleData.replacementSymbolIndexing.index = 0;
-        matchSingleData.replacementParameterIndexing.index = 0;
+        matchSingleData.replacement_symbol_indexing.index = 0;
+        matchSingleData.replacement_parameter_indexing.index = 0;
 
         using var resultSymbols = new SymbolString<float>(
                 expectedReplacement.symbols.Length,
@@ -136,8 +136,8 @@ public class BasicRuleTests
         var random = new Unity.Mathematics.Random();
         var matchSingleData = new LSystemSingleSymbolMatchData
         {
-            isTrivial = false,
-            tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(ruleParamMemoryStartIndex)
+            is_trivial = false,
+            tmp_parameter_memory_space = JaggedIndexing.GetWithNoLength(ruleParamMemoryStartIndex)
         };
 
         var potentialMatch = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
@@ -145,7 +145,7 @@ public class BasicRuleTests
             symbols.Data,
             matchIndex,
             paramMemory,
-            matchSingleData.tmpParameterMemorySpace.index,
+            matchSingleData.tmp_parameter_memory_space.index,
             ref matchSingleData,
             new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
             globalNative,
@@ -181,8 +181,8 @@ public class BasicRuleTests
             var random = new Unity.Mathematics.Random();
             var matchSingleData = new LSystemSingleSymbolMatchData
             {
-                isTrivial = false,
-                tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(0)
+                is_trivial = false,
+                tmp_parameter_memory_space = JaggedIndexing.GetWithNoLength(0)
             };
 
             var preMatchSuccess = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
@@ -190,7 +190,7 @@ public class BasicRuleTests
                 symbols.Data,
                 0,
                 paramMemory,
-                matchSingleData.tmpParameterMemorySpace.index,
+                matchSingleData.tmp_parameter_memory_space.index,
                 ref matchSingleData,
                 new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
                 globalNative,
@@ -199,10 +199,10 @@ public class BasicRuleTests
                 ruleNativeData.ruleOutcomeMemorySpace
                 );
             Assert.IsTrue(preMatchSuccess);
-            Assert.AreEqual(0, matchSingleData.selectedReplacementPattern);
-            Assert.AreEqual(0, matchSingleData.tmpParameterMemorySpace.length);
-            Assert.AreEqual(2, matchSingleData.replacementSymbolIndexing.length);
-            Assert.AreEqual(0, matchSingleData.replacementParameterIndexing.length);
+            Assert.AreEqual(0, matchSingleData.selected_replacement_pattern);
+            Assert.AreEqual(0, matchSingleData.tmp_parameter_memory_space.length);
+            Assert.AreEqual(2, matchSingleData.replacement_symbol_indexing.length);
+            Assert.AreEqual(0, matchSingleData.replacement_parameter_indexing.length);
 
             var symbolRawData = symbols.Data;
             symbolRawData.parameters[0] = new JaggedIndexing
@@ -213,15 +213,15 @@ public class BasicRuleTests
 
             matchSingleData = new LSystemSingleSymbolMatchData
             {
-                isTrivial = false,
-                tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(0)
+                is_trivial = false,
+                tmp_parameter_memory_space = JaggedIndexing.GetWithNoLength(0)
             };
             preMatchSuccess = ruleFromString.AsBlittable().PreMatchCapturedParametersWithoutConditional(
                 branchCache,
                 symbols.Data,
                 0,
                 paramMemory,
-                matchSingleData.tmpParameterMemorySpace.index,
+                matchSingleData.tmp_parameter_memory_space.index,
                 ref matchSingleData,
                 new TmpNativeStack<SymbolStringBranchingCache.BranchEventData>(5),
                 globalNative,

@@ -67,8 +67,8 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
 
                     var newNode = new DiffusionNode
                     {
-                        index_in_target = nodeSingleton.replacementSymbolIndexing.index,
-                        target_parameters = nodeSingleton.replacementParameterIndexing,
+                        index_in_target = nodeSingleton.replacement_symbol_indexing.index,
+                        target_parameters = nodeSingleton.replacement_parameter_indexing,
 
                         index_in_temp_amount_list = working.nodeAmountsListA.Length,
 
@@ -100,12 +100,12 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
 
                     // clear out the parameters in the target string, and write the symbol over
                     var nodeSingleton = matchSingletonData[symbolIndex];
-                    targetData.parameters[nodeSingleton.replacementSymbolIndexing.index] = new JaggedIndexing
+                    targetData.parameters[nodeSingleton.replacement_symbol_indexing.index] = new JaggedIndexing
                     {
-                        index = nodeSingleton.replacementParameterIndexing.index,
+                        index = nodeSingleton.replacement_parameter_indexing.index,
                         length = 0
                     };
-                    targetData[nodeSingleton.replacementSymbolIndexing.index] = customSymbols.diffusionAmount;
+                    targetData[nodeSingleton.replacement_symbol_indexing.index] = customSymbols.diffusionAmount;
                     if (currentNodeParent < 0)
                     {
                         // problem: the amount will dissapear

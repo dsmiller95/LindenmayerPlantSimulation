@@ -233,7 +233,7 @@ namespace Dman.LSystem.SystemRuntime
                     matchedParameterNum += copiedParameters;
                 }
 
-                matchSingletonData.tmpParameterMemorySpace = new JaggedIndexing
+                matchSingletonData.tmp_parameter_memory_space = new JaggedIndexing
                 {
                     index = startIndexInParameterMemory,
                     length = matchedParameterNum
@@ -245,7 +245,7 @@ namespace Dman.LSystem.SystemRuntime
                         globalParams,
                         new JaggedIndexing { index = 0, length = (ushort)globalParams.Length },
                         parameterMemory,
-                        matchSingletonData.tmpParameterMemorySpace,
+                        matchSingletonData.tmp_parameter_memory_space,
                         globalOperatorData) > 0;
                     if (!conditionalMatch)
                     {
@@ -253,12 +253,12 @@ namespace Dman.LSystem.SystemRuntime
                     }
                 }
 
-                matchSingletonData.selectedReplacementPattern = SelectOutcomeIndex(ref random, outcomes, possibleOutcomeIndexing);
-                var outcomeObject = outcomes[matchSingletonData.selectedReplacementPattern + possibleOutcomeIndexing.index];
+                matchSingletonData.selected_replacement_pattern = SelectOutcomeIndex(ref random, outcomes, possibleOutcomeIndexing);
+                var outcomeObject = outcomes[matchSingletonData.selected_replacement_pattern + possibleOutcomeIndexing.index];
 
 
-                matchSingletonData.replacementSymbolIndexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.replacementSymbolSize);
-                matchSingletonData.replacementParameterIndexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.replacementParameterCount);
+                matchSingletonData.replacement_symbol_indexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.replacementSymbolSize);
+                matchSingletonData.replacement_parameter_indexing = JaggedIndexing.GetWithOnlyLength(outcomeObject.replacementParameterCount);
 
 
                 return true;
@@ -296,11 +296,11 @@ namespace Dman.LSystem.SystemRuntime
                 NativeArray<RuleOutcome.Blittable> ruleOutcomeMemorySpace,
                 NativeArray<StructExpression> structExpressionSpace)
             {
-                var selectedReplacementPattern = matchSingletonData.selectedReplacementPattern;
+                var selectedReplacementPattern = matchSingletonData.selected_replacement_pattern;
 
-                var matchedParametersIndexing = matchSingletonData.tmpParameterMemorySpace;
-                var replacementSymbolsIndexing = matchSingletonData.replacementSymbolIndexing;
-                var replacementParameterIndexing = matchSingletonData.replacementParameterIndexing;
+                var matchedParametersIndexing = matchSingletonData.tmp_parameter_memory_space;
+                var replacementSymbolsIndexing = matchSingletonData.replacement_symbol_indexing;
+                var replacementParameterIndexing = matchSingletonData.replacement_parameter_indexing;
 
                 var orderedMatchedParameters = new NativeArray<float>(globalParameters.Length + matchedParametersIndexing.length, Allocator.Temp);
                 for (int i = 0; i < globalParameters.Length; i++)

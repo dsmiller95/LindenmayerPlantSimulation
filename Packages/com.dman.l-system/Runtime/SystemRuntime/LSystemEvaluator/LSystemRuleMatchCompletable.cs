@@ -241,7 +241,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             ref Unity.Mathematics.Random random)
         {
             var matchSingleton = matchSingletonData[indexInSymbols];
-            if (matchSingleton.isTrivial)
+            if (matchSingleton.is_trivial)
             {
                 // if match is trivial, then no parameters are captured. the rest of the algo will read directly from the source index
                 //  and no transformation will take place.
@@ -252,13 +252,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             if (!blittableRulesByTargetSymbol.TryGetValue(symbol, out var ruleIndexing) || ruleIndexing.length <= 0)
             {
-                matchSingleton.errorCode = LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_MATCH_TIME;
+                matchSingleton.error_code = LSystemMatchErrorCode.TrivialSymbolNotIndicatedAtMatchTime;
                 matchSingletonData[indexInSymbols] = matchSingleton;
                 return;
             }
 
             var anyRuleMatched = false;
-            var currentIndexInParameterMemory = matchSingleton.tmpParameterMemorySpace.index;
+            var currentIndexInParameterMemory = matchSingleton.tmp_parameter_memory_space.index;
             for (byte i = 0; i < ruleIndexing.length; i++)
             {
                 var rule = blittableRulesByTargetSymbol[ruleIndexing, i];
@@ -278,13 +278,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 if (success)
                 {
                     anyRuleMatched = true;
-                    matchSingleton.matchedRuleIndexInPossible = i;
+                    matchSingleton.matched_rule_index_in_possible = i;
                     break;
                 }
             }
             if (anyRuleMatched == false)
             {
-                matchSingleton.isTrivial = true;
+                matchSingleton.is_trivial = true;
             }
             matchSingletonData[indexInSymbols] = matchSingleton;
         }
@@ -308,13 +308,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             for (int i = 0; i < matchSingletonData.Length; i++)
             {
                 var singleton = matchSingletonData[i];
-                singleton.replacementSymbolIndexing.index = totalResultSymbolSize;
-                singleton.replacementParameterIndexing.index = totalResultParamSize;
+                singleton.replacement_symbol_indexing.index = totalResultSymbolSize;
+                singleton.replacement_parameter_indexing.index = totalResultParamSize;
                 matchSingletonData[i] = singleton;
-                if (!singleton.isTrivial)
+                if (!singleton.is_trivial)
                 {
-                    totalResultSymbolSize += singleton.replacementSymbolIndexing.length;
-                    totalResultParamSize += singleton.replacementParameterIndexing.length;
+                    totalResultSymbolSize += singleton.replacement_symbol_indexing.length;
+                    totalResultParamSize += singleton.replacement_parameter_indexing.length;
                     continue;
                 }
                 // custom rules

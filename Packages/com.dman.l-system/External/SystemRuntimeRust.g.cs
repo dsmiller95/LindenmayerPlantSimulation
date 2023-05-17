@@ -13,18 +13,22 @@ namespace Dman.LSystem.Extern
     {
         const string __DllName = "system_runtime_rustlib";
 
+        [DllImport(__DllName, EntryPoint = "diffuse_between", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool diffuse_between(DiffusionEdge* edges, int edges_len, DiffusionNode* nodes, float* node_capacities, float* node_amount_list_a, float* node_amount_list_b, int total_nodes, int diffusion_steps, float diffusion_global_multiplier);
+
+        [DllImport(__DllName, EntryPoint = "perform_parallel_diffusion", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool perform_parallel_diffusion(SymbolStringInterop* _source_data, SymbolStringInterop* _target_data, LSystemSingleSymbolMatchData* _match_singleton_data, int _match_singleton_data_len);
+
+        [DllImport(__DllName, EntryPoint = "evaluate_expression", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern float evaluate_expression(OperatorDefinition* operation_data, JaggedIndexing* operation_space, float* parameter_values, JaggedIndexing* parameter_space, float* parameter_values_2, JaggedIndexing* parameter_space_2);
+
         [DllImport(__DllName, EntryPoint = "double_input", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int double_input(int input);
 
         [DllImport(__DllName, EntryPoint = "triple_input", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int triple_input(int input);
-
-        [DllImport(__DllName, EntryPoint = "evaluate_expression", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern float evaluate_expression(OperatorDefinition* operation_data, JaggedIndexing* operation_space, float* parameter_values, JaggedIndexing* parameter_space, float* parameter_values_2, JaggedIndexing* parameter_space_2);
-
-        [DllImport(__DllName, EntryPoint = "diffuse_between", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool diffuse_between(DiffusionEdge* edges, int edges_len, DiffusionNode* nodes, float* node_capacities, float* node_amount_list_a, float* node_amount_list_b, int total_nodes, int diffusion_steps, float diffusion_global_multiplier);
 
 
     }
@@ -37,13 +41,24 @@ namespace Dman.LSystem.Extern
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe partial struct OperatorDefinition
+    public unsafe partial struct NativeArrayInteropi32
     {
-        public OperatorType operator_type;
-        public float node_value;
-        public int parameter_index;
-        public ushort rhs;
-        public ushort lhs;
+        public int* data;
+        public int len;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct NativeArrayInteropf32
+    {
+        public float* data;
+        public int len;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct NativeArrayInteropJaggedIndexing
+    {
+        public JaggedIndexing* data;
+        public int len;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -63,6 +78,44 @@ namespace Dman.LSystem.Extern
         public float diffusion_constant;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct SymbolStringInterop
+    {
+        public NativeArrayInteropi32 symbols;
+        public NativeArrayInteropJaggedIndexing parameter_indexing;
+        public NativeArrayInteropf32 parameters;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct LSystemSingleSymbolMatchData
+    {
+        public JaggedIndexing tmp_parameter_memory_space;
+        [MarshalAs(UnmanagedType.U1)] public bool is_trivial;
+        public byte matched_rule_index_in_possible;
+        public byte selected_replacement_pattern;
+        public JaggedIndexing replacement_symbol_indexing;
+        public JaggedIndexing replacement_parameter_indexing;
+        public LSystemMatchErrorCode error_code;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct OperatorDefinition
+    {
+        public OperatorType operator_type;
+        public float node_value;
+        public int parameter_index;
+        public ushort rhs;
+        public ushort lhs;
+    }
+
+
+    public enum LSystemMatchErrorCode : byte
+    {
+        None = 0,
+        TooManyParameters = 1,
+        TrivialSymbolNotIndicatedAtMatchTime = 2,
+        TrivialSymbolNotIndicatedAtReplacementTime = 3,
+    }
 
     public enum OperatorType : byte
     {

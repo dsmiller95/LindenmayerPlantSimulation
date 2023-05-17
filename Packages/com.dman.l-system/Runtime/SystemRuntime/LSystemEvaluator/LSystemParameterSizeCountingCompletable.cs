@@ -170,17 +170,17 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 var symbol = sourceSymbolString[i];
                 var matchData = new LSystemSingleSymbolMatchData()
                 {
-                    tmpParameterMemorySpace = JaggedIndexing.GetWithNoLength(totalParametersAlocated)
+                    tmp_parameter_memory_space = JaggedIndexing.GetWithNoLength(totalParametersAlocated)
                 };
                 if (memoryRequirementsPerSymbol.TryGetValue(symbol, out var memoryRequirements))
                 {
                     totalParametersAlocated += memoryRequirements.maxParameters;
-                    matchData.isTrivial = false;
+                    matchData.is_trivial = false;
                 }
                 else
                 {
-                    matchData.isTrivial = true;
-                    matchData.tmpParameterMemorySpace.length = 0;
+                    matchData.is_trivial = true;
+                    matchData.tmp_parameter_memory_space.length = 0;
                 }
                 matchSingletonData[i] = matchData;
             }

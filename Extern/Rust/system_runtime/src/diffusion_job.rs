@@ -1,4 +1,4 @@
-﻿use crate::{DiffusionEdge, DiffusionNode};
+﻿use crate::interop_extern::diffusion::{DiffusionEdge, DiffusionNode};
 
 pub struct DiffusionJob<'a> {
     pub edges: &'a [DiffusionEdge],

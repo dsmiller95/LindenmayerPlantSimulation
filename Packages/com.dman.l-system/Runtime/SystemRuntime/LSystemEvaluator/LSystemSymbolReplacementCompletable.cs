@@ -309,9 +309,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             var matchSingleton = matchSingletonData[indexInSymbols];
             var symbol = sourceData.symbols[indexInSymbols];
-            if (matchSingleton.isTrivial)
+            if (matchSingleton.is_trivial)
             {
-                var targetIndex = matchSingleton.replacementSymbolIndexing.index;
+                var targetIndex = matchSingleton.replacement_symbol_indexing.index;
                 // check for custom rules
                 if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
                 {
@@ -327,7 +327,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 var sourceParamIndexer = sourceData.parameters[indexInSymbols];
                 var targetDataIndexer = new JaggedIndexing
                 {
-                    index = matchSingleton.replacementParameterIndexing.index,
+                    index = matchSingleton.replacement_parameter_indexing.index,
                     length = sourceParamIndexer.length
                 };
                 targetData.parameters[targetIndex] = targetDataIndexer;
@@ -347,7 +347,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 return;
             }
 
-            var rule = blittableRulesByTargetSymbol[ruleList, matchSingleton.matchedRuleIndexInPossible];
+            var rule = blittableRulesByTargetSymbol[ruleList, matchSingleton.matched_rule_index_in_possible];
 
             rule.WriteReplacementSymbols(
                 globalParametersArray,
