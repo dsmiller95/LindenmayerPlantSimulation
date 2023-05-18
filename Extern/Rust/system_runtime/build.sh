@@ -7,7 +7,7 @@ cd "$parent_path"
 
 cargo expand interop_extern > expanded.rs.tmp
 
-cargo build
+cargo build --release
 
 LIB_PATH_DEST=../../../Packages/com.dman.l-system/External/RustSubsystem
 
@@ -15,5 +15,5 @@ cp target/dotnet/* ../../../Packages/com.dman.l-system/External
 
 mkdir -p $LIB_PATH_DEST
 rm -f $LIB_PATH_DEST/*.dll
-cp target/debug/system_runtime_rustlib.* $LIB_PATH_DEST
+cp target/release/system_runtime_rustlib.* $LIB_PATH_DEST
 

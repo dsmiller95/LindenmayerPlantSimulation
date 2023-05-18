@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.SystemCompiler.Linker;
+﻿using System;
+using Dman.LSystem.SystemCompiler.Linker;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.UnityObjects;
@@ -6,6 +7,7 @@ using NUnit.Framework;
 using System.Linq;
 using Unity.PerformanceTesting;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class LSystemPerformanceTests
 {
@@ -168,9 +170,47 @@ public class LSystemPerformanceTests
         using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
         Assert.AreEqual("n(0.5, 50, 100)[n(0.5, -25, 100)[n(0.5, 25, 100)][n(0.5, 25, 100)]][n(0.5, -25, 100)[n(0.5, 25, 100)][n(0.5, 25, 100)]]", nextState.Data.ToString());
         Measure.Method(() =>
+            {
+                using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+            })
+            .WarmupCount(10)
+            .MeasurementCount(25)
+            .IterationsPerMeasurement(10)
+            .GC()
+            .Run();
+        state.currentSymbols.Data.Dispose();
+    }
+    [Test, Performance]
+    public void LargeDiffusionNetworkPerformance()
+    {
+        var nodeA = "n(0.5, 0, 100)";
+        var nodeB = "n(0.5, 50, 100)";
+
+        var initialState = Random.value > 0.5 ? nodeA : nodeB;
+        for (int i = 0; i < 10; i++)
         {
-            using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
-        })
+            var nextNode = $"n(0.5, {i * 25}, 100)";
+            initialState = $"{nextNode}[{initialState}][{initialState}]";
+        }
+        
+        LSystemState<float> state = new DefaultLSystemState(initialState);
+        using var basicLSystem = LSystemCustomDiffusionTests.BuildSystem(
+            new string[] { },
+            customSymbols: new Dman.LSystem.SystemRuntime.CustomRules.CustomRuleSymbols
+            {
+                hasDiffusion = true,
+                diffusionAmount = 'a',
+                diffusionNode = 'n',
+                diffusionStepsPerStep = 1,
+                diffusionConstantRuntimeGlobalMultiplier = 1f,
+                branchOpenSymbol = '[',
+                branchCloseSymbol = ']',
+            });
+        using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+        Measure.Method(() =>
+            {
+                using var nextState = basicLSystem.StepSystem(state, disposeOldSystem: false).currentSymbols;
+            })
             .WarmupCount(10)
             .MeasurementCount(10)
             .IterationsPerMeasurement(10)
