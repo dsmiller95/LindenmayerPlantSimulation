@@ -36,12 +36,24 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
             get
             {
                 var jagged = indexing[index];
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if (indexInJagged >= jagged.length)
+                {
+                    throw new IndexOutOfRangeException("index outside of jagged size");
+                }
+#endif
                 var realIndex = jagged.index + indexInJagged;
                 return data[realIndex];
             }
             set
             {
                 var jagged = indexing[index];
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if (indexInJagged >= jagged.length)
+                {
+                    throw new IndexOutOfRangeException("index outside of jagged size");
+                }
+#endif
                 var realIndex = jagged.index + indexInJagged;
                 data[realIndex] = value;
             }
@@ -50,11 +62,23 @@ namespace Dman.LSystem.SystemRuntime.NativeCollections
         {
             get
             {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if (indexInJagged >= jagged.length)
+                {
+                    throw new IndexOutOfRangeException("index outside of jagged size");
+                }
+#endif
                 var realIndex = jagged.index + indexInJagged;
                 return data[realIndex];
             }
             set
             {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if (indexInJagged >= jagged.length)
+                {
+                    throw new IndexOutOfRangeException("index outside of jagged size");
+                }
+#endif
                 var realIndex = jagged.index + indexInJagged;
                 data[realIndex] = value;
             }

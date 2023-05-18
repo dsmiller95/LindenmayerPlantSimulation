@@ -1,5 +1,9 @@
-﻿use crate::diffusion::diffusion_job::{DiffusionAmountData, DiffusionJob};
-use crate::interop_extern::data::{JaggedIndexing, NativeArrayInteropf32, NativeArrayInteropi32, NativeArrayInteropJaggedIndexing};
+﻿use std::fs::File;
+use std::io::Write;
+use crate::diffusion::apply_results::apply_diffusion_results;
+use crate::diffusion::diffusion_job::{DiffusionAmountData, DiffusionJob};
+use crate::diffusion::extract_graph::{extract_edges_and_nodes, SymbolString, SymbolStringMut};
+use crate::interop_extern::data::{JaggedIndexing, native_array_interop, NativeArrayInteropf32, NativeArrayInteropf32Mut, NativeArrayInteropi32, NativeArrayInteropi32Mut, NativeArrayInteropJaggedIndexing, NativeArrayInteropJaggedIndexingMut};
 
 #[repr(C)]
 pub struct DiffusionEdge{
@@ -71,10 +75,54 @@ pub extern "C" fn diffuse_between(
 pub struct SymbolStringInterop{
     pub symbols: NativeArrayInteropi32,
     pub parameter_indexing: NativeArrayInteropJaggedIndexing,
-    pub parameters: NativeArrayInteropf32,
+    pub parameters: NativeArrayInteropf32
+}
+
+impl<'a> SymbolStringInterop {
+    pub fn to_symbol_str(&self) -> SymbolString<'a>{
+        let (
+            symbols,
+            param_indexing,
+            parameters) = (
+                self.symbols.to_slice(),
+                self.parameter_indexing.to_slice(),
+                self.parameters.to_slice(),
+        );
+        
+        SymbolString {
+            symbols,
+            param_indexing,
+            parameters
+        }
+    }
+}
+#[repr(C)]
+pub struct SymbolStringInteropMut{
+    pub symbols: NativeArrayInteropi32Mut,
+    pub parameter_indexing: NativeArrayInteropJaggedIndexingMut,
+    pub parameters: NativeArrayInteropf32Mut
+}
+impl<'a> SymbolStringInteropMut {
+    pub fn to_symbol_str(&self) -> SymbolStringMut<'a>{
+        let (
+            symbols,
+            param_indexing,
+            parameters) = (
+            self.symbols.to_slice(),
+            self.parameter_indexing.to_slice(),
+            self.parameters.to_slice(),
+        );
+
+        SymbolStringMut {
+            symbols,
+            param_indexing,
+            parameters
+        }
+    }
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct LSystemSingleSymbolMatchData{
     ////// #1 memory allocation step //////
 
@@ -122,7 +170,10 @@ pub struct LSystemSingleSymbolMatchData{
     pub error_code: LSystemMatchErrorCode,
 }
 
+native_array_interop!(LSystemSingleSymbolMatchData, NativeArrayInteropLSystemSingleSymbolMatchData, NativeArrayInteropLSystemSingleSymbolMatchDataMut);
+
 #[repr(u8)]
+#[derive(Debug)]
 pub enum LSystemMatchErrorCode
 {
     None = 0,
@@ -131,14 +182,82 @@ pub enum LSystemMatchErrorCode
     TrivialSymbolNotIndicatedAtReplacementTime = 3
 }
 
+#[no_mangle]
 pub extern "C" fn perform_parallel_diffusion(
-    _source_data: *mut SymbolStringInterop,
-    _target_data: *mut SymbolStringInterop,
-    _match_singleton_data: *mut LSystemSingleSymbolMatchData,
-    _match_singleton_data_len: i32,
+    source_data: *mut SymbolStringInterop,
+    target_data: *mut SymbolStringInteropMut,
+    match_singleton_data: *mut NativeArrayInteropLSystemSingleSymbolMatchData,
+    diffusion_node_symbol: i32,
+    diffusion_amount_symbol: i32,
+    branch_open_symbol: i32,
+    branch_close_symbol: i32,
+    diffusion_steps: i32,
+    diffusion_global_multiplier: f32,
 ) -> bool{
 
-    //let sum = add!(1, 2);
+    let (
+        source_data_safe,
+        mut target_data_safe,
+        match_singleton_data_safe) =
+    unsafe {(
+        source_data.as_ref().unwrap().to_symbol_str(),
+        target_data.as_ref().unwrap().to_symbol_str(),
+        match_singleton_data.as_ref().unwrap().to_slice()
+        )};
 
-    false
+    // let first_symbol = source_data_safe.symbols[0];
+    // let first_index_param = source_data_safe.param_indexing[0];
+    // let first_param = source_data_safe.parameters[0];
+    // let first_singleton = &match_singleton_data_safe[0];
+    // let debug_info = format!("diffusion_steps: {diffusion_steps},\
+    //  first_source_symbol: {first_symbol},\
+    //   first_source_param_indexing: {first_index_param:?},\
+    //    first_source_param: {first_param},\
+    //     first singleton: {first_singleton:?}\n");
+    // 
+    // let debug_file = "C:/Users/Dan Miller/AppData/Local/Unity/Editor/tmpLog.txt";
+    // // write the debug info string to the file
+    // 
+    // let mut file = File::create(debug_file);
+    // match file {
+    //     Ok(mut file) => {
+    //         match file.write_all(debug_info.as_bytes()) {
+    //             Ok(_) => {
+    //                 true
+    //             },
+    //             Err(_) => {
+    //                 false
+    //             }
+    //         }
+    //     },
+    //     Err(_) => {
+    //         false
+    //     }
+    // };
+    
+    
+    let (mut diffusion_config, mut diffusion_amounts) = extract_edges_and_nodes(
+        &source_data_safe,
+        &mut target_data_safe,
+        &match_singleton_data_safe,
+        diffusion_node_symbol,
+        diffusion_amount_symbol,
+        branch_open_symbol,
+        branch_close_symbol
+    );
+    diffusion_config.diffusion_global_multiplier = diffusion_global_multiplier;
+    let diffuse_job_ref = diffusion_config.borrowed();
+    let mut_diffuse_amount_data = &mut diffusion_amounts.borrowed_mut();
+
+    diffuse_job_ref.diffuse_between(
+        mut_diffuse_amount_data,
+        diffusion_steps);
+
+    apply_diffusion_results(
+        diffuse_job_ref,
+        mut_diffuse_amount_data,
+        &mut target_data_safe,
+        diffusion_node_symbol);
+    
+    true
 }

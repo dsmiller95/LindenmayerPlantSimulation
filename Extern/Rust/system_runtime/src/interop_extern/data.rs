@@ -1,6 +1,5 @@
-﻿
-#[repr(C)]
-#[derive(Copy, Clone)]
+﻿#[repr(C)]
+#[derive(Copy, Clone, Debug)]
 pub struct JaggedIndexing {
     pub index: i32,
     pub length: u16,
@@ -24,14 +23,26 @@ impl<T> IndexesIn<T> for JaggedIndexing {
 }
 
 macro_rules! native_array_interop {
-    ($typ:ident, $struct_name:ident) => {
+    ($typ:ident, $struct_name:ident, $struct_name_mut:ident) => {
         #[repr(C)]
-        pub struct $struct_name{
+        pub struct $struct_name_mut{
             pub data: *mut $typ,
             pub len: i32,
         }
-        impl $struct_name{
-            pub fn to_slice(&self) -> &[$typ]{
+        impl<'a> $struct_name_mut{
+            pub fn to_slice(&self) -> &'a mut [$typ]{
+                unsafe{
+                    std::slice::from_raw_parts_mut(self.data, self.len as usize)
+                }
+            }
+        }
+        #[repr(C)]
+        pub struct $struct_name{
+            pub data: *const $typ,
+            pub len: i32,
+        }
+        impl<'a> $struct_name{
+            pub fn to_slice(&self) -> &'a [$typ]{
                 unsafe{
                     std::slice::from_raw_parts(self.data, self.len as usize)
                 }
@@ -40,6 +51,8 @@ macro_rules! native_array_interop {
     };
 }
 
-native_array_interop!(i32, NativeArrayInteropi32);
-native_array_interop!(f32, NativeArrayInteropf32);
-native_array_interop!(JaggedIndexing, NativeArrayInteropJaggedIndexing);
+pub(crate) use native_array_interop;
+
+native_array_interop!(i32, NativeArrayInteropi32, NativeArrayInteropi32Mut);
+native_array_interop!(f32, NativeArrayInteropf32, NativeArrayInteropf32Mut);
+native_array_interop!(JaggedIndexing, NativeArrayInteropJaggedIndexing, NativeArrayInteropJaggedIndexingMut);

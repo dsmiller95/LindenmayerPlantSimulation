@@ -1,5 +1,6 @@
 ﻿use crate::interop_extern::diffusion::{DiffusionEdge, DiffusionNode};
 
+#[derive(Copy, Clone)]
 pub struct DiffusionJob<'a> {
     pub edges: &'a [DiffusionEdge],
     pub nodes: &'a [DiffusionNode],
@@ -28,8 +29,8 @@ impl DiffusionAmountData<'_> {
 
 impl DiffusionJob<'_> {
     pub fn diffuse_between(
-        &self,
-        double_buffered_data: & mut DiffusionAmountData,
+        self,
+        double_buffered_data: &mut DiffusionAmountData,
         diffuse_steps: i32) -> bool {
         for _ in 0..diffuse_steps
         {
@@ -44,7 +45,7 @@ impl DiffusionJob<'_> {
         false
     }
 
-    fn diffuse_across_edge(&self, edge: &DiffusionEdge, source_amounts: &[f32], target_amounts: &mut [f32]) {
+    fn diffuse_across_edge(self, edge: &DiffusionEdge, source_amounts: &[f32], target_amounts: &mut [f32]) {
         let node_a = &self.nodes[edge.node_a_index as usize];
         let node_b = &self.nodes[edge.node_b_index as usize];
 

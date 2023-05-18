@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.Extern;
+using Dman.LSystem.Extern.Adapters;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Unity.Burst;
 using Unity.Collections;
@@ -35,9 +36,23 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
         {
             if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
             {
+#if RUST_SUBSYSTEM
+                NativeDiffusion.ParallelDiffusion(
+                    Interop.From(sourceData),
+                    Interop.FromMut(targetData),
+                    matchSingletonData,
+                    customSymbols.diffusionNode,
+                    customSymbols.diffusionAmount,
+                    customSymbols.branchOpenSymbol,
+                    customSymbols.branchCloseSymbol,
+                    customSymbols.diffusionStepsPerStep,
+                    customSymbols.diffusionConstantRuntimeGlobalMultiplier
+                );
+#else
                 ExtractEdgesAndNodes();
 
                 working.PerformDiffusionOnDataAndApply(targetData);
+#endif
             }
         }
 

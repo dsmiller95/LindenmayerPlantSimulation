@@ -19,7 +19,7 @@ namespace Dman.LSystem.Extern
 
         [DllImport(__DllName, EntryPoint = "perform_parallel_diffusion", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool perform_parallel_diffusion(SymbolStringInterop* _source_data, SymbolStringInterop* _target_data, LSystemSingleSymbolMatchData* _match_singleton_data, int _match_singleton_data_len);
+        public static extern bool perform_parallel_diffusion(SymbolStringInterop* source_data, SymbolStringInteropMut* target_data, NativeArrayInteropLSystemSingleSymbolMatchData* match_singleton_data, int diffusion_node_symbol, int diffusion_amount_symbol, int branch_open_symbol, int branch_close_symbol, int diffusion_steps, float diffusion_global_multiplier);
 
         [DllImport(__DllName, EntryPoint = "evaluate_expression", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern float evaluate_expression(OperatorDefinition* operation_data, JaggedIndexing* operation_space, float* parameter_values, JaggedIndexing* parameter_space, float* parameter_values_2, JaggedIndexing* parameter_space_2);
@@ -41,6 +41,13 @@ namespace Dman.LSystem.Extern
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct NativeArrayInteropi32Mut
+    {
+        public int* data;
+        public int len;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct NativeArrayInteropi32
     {
         public int* data;
@@ -48,9 +55,23 @@ namespace Dman.LSystem.Extern
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct NativeArrayInteropf32Mut
+    {
+        public float* data;
+        public int len;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct NativeArrayInteropf32
     {
         public float* data;
+        public int len;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct NativeArrayInteropJaggedIndexingMut
+    {
+        public JaggedIndexing* data;
         public int len;
     }
 
@@ -87,6 +108,14 @@ namespace Dman.LSystem.Extern
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct SymbolStringInteropMut
+    {
+        public NativeArrayInteropi32Mut symbols;
+        public NativeArrayInteropJaggedIndexingMut parameter_indexing;
+        public NativeArrayInteropf32Mut parameters;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct LSystemSingleSymbolMatchData
     {
         public JaggedIndexing tmp_parameter_memory_space;
@@ -96,6 +125,13 @@ namespace Dman.LSystem.Extern
         public JaggedIndexing replacement_symbol_indexing;
         public JaggedIndexing replacement_parameter_indexing;
         public LSystemMatchErrorCode error_code;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct NativeArrayInteropLSystemSingleSymbolMatchData
+    {
+        public LSystemSingleSymbolMatchData* data;
+        public int len;
     }
 
     [StructLayout(LayoutKind.Sequential)]

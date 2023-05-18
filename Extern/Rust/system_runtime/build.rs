@@ -1,5 +1,8 @@
 
 fn main() {
+    
+    println!("cargo:rerun-if-changed=expanded.rs.tmp");
+    println!("cargo:rerun-if-changed=cargo.lock");
     csbindgen::Builder::default()
         .input_extern_file("expanded.rs.tmp")
         .csharp_dll_name("system_runtime_rustlib")

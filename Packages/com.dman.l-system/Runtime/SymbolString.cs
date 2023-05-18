@@ -127,7 +127,18 @@ namespace Dman.LSystem
 
         public void ToString(int index, StringBuilder builder, Dictionary<int, char> symbolMapping = null)
         {
-            var mappedSymbol = symbolMapping == null ? (char)symbols[index] : symbolMapping[symbols[index]];
+            char mappedSymbol;
+            if (symbolMapping == null)
+            {
+                mappedSymbol = (char)symbols[index];
+            }else if (symbolMapping.TryGetValue(symbols[index], out mappedSymbol))
+            {
+                // do nothing
+            }
+            else
+            {
+                mappedSymbol = (char)symbols[index];
+            }
             builder.Append(mappedSymbol);
             WriteParamString(index, builder);
         }
