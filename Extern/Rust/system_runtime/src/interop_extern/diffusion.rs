@@ -1,9 +1,6 @@
-﻿use std::fs::File;
-use std::io::Write;
-use crate::diffusion::apply_results::apply_diffusion_results;
+﻿use crate::diffusion::apply_results::apply_diffusion_results;
 use crate::diffusion::diffusion_job::{DiffusionAmountData, DiffusionJob};
 use crate::diffusion::extract_graph::{extract_edges_and_nodes, SymbolString, SymbolStringMut};
-use crate::diffusion::symbol_element_remap::to_elements;
 use crate::interop_extern::data::{JaggedIndexing, native_array_interop, NativeArrayInteropf32, NativeArrayInteropf32Mut, NativeArrayInteropi32, NativeArrayInteropi32Mut, NativeArrayInteropJaggedIndexing, NativeArrayInteropJaggedIndexingMut};
 
 #[repr(C)]
@@ -123,7 +120,7 @@ impl<'a> SymbolStringInteropMut {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LSystemSingleSymbolMatchData{
     ////// #1 memory allocation step //////
 
@@ -174,7 +171,7 @@ pub struct LSystemSingleSymbolMatchData{
 native_array_interop!(LSystemSingleSymbolMatchData, NativeArrayInteropLSystemSingleSymbolMatchData, NativeArrayInteropLSystemSingleSymbolMatchDataMut);
 
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LSystemMatchErrorCode
 {
     None = 0,
@@ -240,10 +237,35 @@ pub extern "C" fn perform_parallel_diffusion(
     //  its more ergonomic, but not ready for doing this conversion yet.
     //let source_elements = to_elements(&source_data_safe);
     
-    let (mut diffusion_config, mut diffusion_amounts) = extract_edges_and_nodes(
+    perform_parallel_diffusion_internal(
         &source_data_safe,
         &mut target_data_safe,
         &match_singleton_data_safe,
+        diffusion_node_symbol,
+        diffusion_amount_symbol,
+        branch_open_symbol,
+        branch_close_symbol,
+        diffusion_steps,
+        diffusion_global_multiplier,
+    )
+}
+
+pub fn perform_parallel_diffusion_internal(
+    source_data: &SymbolString,
+    target_data: &mut SymbolStringMut,
+    match_singleton_data: &[LSystemSingleSymbolMatchData],
+    diffusion_node_symbol: i32,
+    diffusion_amount_symbol: i32,
+    branch_open_symbol: i32,
+    branch_close_symbol: i32,
+    diffusion_steps: i32,
+    diffusion_global_multiplier: f32,
+) -> bool {
+
+    let (mut diffusion_config, mut diffusion_amounts) = extract_edges_and_nodes(
+        source_data,
+        target_data,
+        match_singleton_data,
         diffusion_node_symbol,
         diffusion_amount_symbol,
         branch_open_symbol,
@@ -260,8 +282,7 @@ pub extern "C" fn perform_parallel_diffusion(
     apply_diffusion_results(
         diffuse_job_ref,
         mut_diffuse_amount_data,
-        &mut target_data_safe,
+        target_data,
         diffusion_node_symbol);
-    
     true
 }
