@@ -54,17 +54,21 @@ impl DiffusionJob<'_> {
             self.diffusion_global_multiplier *
                 (node_a.diffusion_constant + node_b.diffusion_constant) / 2.0;
 
-        let blended_resource_num = node_a.total_resource_types.min(node_b.total_resource_types);
+        let source_slice_a = node_a.get_resource_slice(source_amounts);
+        let source_slice_b = node_b.get_resource_slice(source_amounts);
+        let source_iter = source_slice_a.iter().zip(source_slice_b.iter());
 
-        // let source_slice_a = node_a.get_resource_slice(source_amounts, blended_resource_num);
-        // let source_slice_b = node_b.get_resource_slice(source_amounts, blended_resource_num);
-
-        for resource in 0..blended_resource_num {
-            let old_node_a_value = source_amounts[(node_a.index_in_temp_amount_list + resource) as usize];
-            let node_a_value_cap = self.node_max_capacities[(node_a.index_in_temp_amount_list + resource) as usize];
-
-            let old_node_b_value = source_amounts[(node_b.index_in_temp_amount_list + resource) as usize];
-            let node_b_value_cap = self.node_max_capacities[(node_b.index_in_temp_amount_list + resource) as usize];
+        let capacities_slice_a = node_a.get_resource_slice(self.node_max_capacities);
+        let capacities_slice_b = node_b.get_resource_slice(self.node_max_capacities);
+        let capacities_iter = capacities_slice_a.iter().zip(capacities_slice_b.iter());
+        
+        let (target_slice_a, target_slice_b) = get_exclusive_slices(node_a, node_b, target_amounts);
+        let target_iter = target_slice_a.iter_mut().zip(target_slice_b.iter_mut());
+        
+        for (
+            ((old_node_a_value, old_node_b_value),
+            (node_a_value_cap, node_b_value_cap)),
+            (target_a, target_b)) in source_iter.zip(capacities_iter).zip(target_iter){
 
             let a_to_b_transferred_amount = diffusion_constant * (old_node_b_value - old_node_a_value);
 
@@ -80,16 +84,39 @@ impl DiffusionJob<'_> {
                 continue;
             }
 
-            target_amounts[(node_a.index_in_temp_amount_list + resource) as usize] += a_to_b_transferred_amount;
-            target_amounts[(node_b.index_in_temp_amount_list + resource) as usize] -= a_to_b_transferred_amount;
+            *target_a += a_to_b_transferred_amount;
+            *target_b -= a_to_b_transferred_amount;
         }
     }
 }
 
 impl DiffusionNode {
-    pub fn get_resource_slice<'a>(&'a self, source_amounts: &'a [f32], resource_count: i32) -> &[f32] {
+    pub fn get_resource_slice<'a>(&'a self, data: &'a [f32]) -> &[f32] {
         let index_in_list = self.index_in_temp_amount_list as usize;
-        let resource_count = resource_count as usize;
-        &source_amounts[index_in_list..index_in_list + resource_count]
+        &data[index_in_list..index_in_list + self.total_resource_types as usize]
+    }
+    pub fn get_resource_slice_mut<'a>(&'a self, data: &'a mut [f32]) -> &mut [f32] {
+        let index_in_list = self.index_in_temp_amount_list as usize;
+        &mut data[index_in_list..index_in_list + self.total_resource_types as usize]
+    }
+}
+
+fn get_exclusive_slices<'a>(node_a: &DiffusionNode, node_b: &DiffusionNode, data: &'a mut [f32]) -> (&'a mut [f32], &'a mut [f32]) {
+    let a_range = node_a.index_in_temp_amount_list as usize..node_a.index_in_temp_amount_list as usize + node_a.total_resource_types as usize; 
+    let b_range = node_b.index_in_temp_amount_list as usize..node_b.index_in_temp_amount_list as usize + node_b.total_resource_types as usize;
+    
+    // we assume no overlapping ranges
+    let a_is_lower = a_range.end < b_range.end;
+    let (lower, higher) = if a_is_lower { (a_range, b_range) } else { (b_range, a_range) };
+    let (lower_slice, higher_slice) = data.split_at_mut(lower.end);
+
+    let trunc_higher = &mut higher_slice[higher.start - lower.end..higher.end - lower.end];
+    let trunc_lower = &mut lower_slice[lower];
+    
+    
+    if a_is_lower {
+        (trunc_lower, trunc_higher)
+    }else {
+        (trunc_higher, trunc_lower)
     }
 }
