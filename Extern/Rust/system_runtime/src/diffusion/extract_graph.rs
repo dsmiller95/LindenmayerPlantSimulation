@@ -1,4 +1,5 @@
 use std::collections::vec_deque::VecDeque;
+use std::io::SeekFrom::End;
 use crate::diffusion::diffusion_job::{DiffusionAmountData, DiffusionJob};
 use crate::interop_extern::data::JaggedIndexing;
 use crate::interop_extern::diffusion::{DiffusionEdge, DiffusionNode, LSystemSingleSymbolMatchData};
@@ -151,6 +152,8 @@ pub fn extract_edges_and_nodes<'a>(
                 diffusion_constant: source_symbols.param_for(node_params, 0),
             };
 
+            node_amounts.reserve(new_node.total_resource_types as usize);
+            node_capacities.reserve(new_node.total_resource_types as usize);
             for resource_type in 0..new_node.total_resource_types {
                 let current_amount =
                     source_symbols.param_for(node_params, (resource_type * 2 + 1) as usize);
@@ -185,9 +188,12 @@ pub fn extract_edges_and_nodes<'a>(
                 continue;
             }
             
-            for resource_type in 0..modified_node.total_resource_types.min(amount_parameters.length as i32) {
-                node_amounts[(modified_node.index_in_temp_amount_list + resource_type) as usize] +=
-                    source_symbols.param_for(amount_parameters, resource_type as usize);
+            let resource_number = modified_node.total_resource_types.min(amount_parameters.length as i32) as usize;
+            let start_index = modified_node.index_in_temp_amount_list as usize;
+            let end_index = start_index + resource_number;
+            
+            for (resource_type, resource_amount) in node_amounts[start_index..end_index].iter_mut().enumerate() {
+                *resource_amount += source_symbols.param_for(amount_parameters, resource_type);
             }
         } else if symbol == branch_open_symbol {
             branch_symbol_parent_stack.push_back(BranchEvent {
