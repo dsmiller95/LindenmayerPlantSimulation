@@ -62,16 +62,12 @@ impl DiffusionJob<'_> {
         let capacities_slice_b = node_b.get_resource_slice(self.node_max_capacities);
         let capacities_iter = capacities_slice_a.iter().zip(capacities_slice_b.iter());
         
-        let (target_slice_a, target_slice_b) = get_exclusive_slices(node_a, node_b, target_amounts);
-        let target_iter = target_slice_a.iter_mut().zip(target_slice_b.iter_mut());
+        for (resource, (
+            (old_node_a_value, old_node_b_value),
+            (node_a_value_cap, node_b_value_cap))) in source_iter.zip(capacities_iter).enumerate(){
         
-        for (
-            ((old_node_a_value, old_node_b_value),
-            (node_a_value_cap, node_b_value_cap)),
-            (target_a, target_b)) in source_iter.zip(capacities_iter).zip(target_iter){
-
             let a_to_b_transferred_amount = diffusion_constant * (old_node_b_value - old_node_a_value);
-
+        
             if a_to_b_transferred_amount == 0.0 {
                 continue;
             }
@@ -84,8 +80,8 @@ impl DiffusionJob<'_> {
                 continue;
             }
 
-            *target_a += a_to_b_transferred_amount;
-            *target_b -= a_to_b_transferred_amount;
+            target_amounts[node_a.index_in_temp_amount_list as usize + resource] += a_to_b_transferred_amount;
+            target_amounts[node_b.index_in_temp_amount_list as usize + resource] -= a_to_b_transferred_amount;
         }
     }
 }
