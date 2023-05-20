@@ -188,6 +188,7 @@ dependencies = [
 [[package]]
 name = "csbindgen"
 version = "1.7.2"
+source = "git+https://github.com/dsmiller95/csbindgen.git#ef86e0c3ab251093a09cda099a3c6f5d5239f55a"
 dependencies = [
  "regex",
  "syn 1.0.109",
