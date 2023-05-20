@@ -87,7 +87,7 @@ fn benchmark_diffusion_variant(c: &mut Criterion, depth: u8, resources_per_node:
     let id = format!("diffusion_{}_deep_{}_resource", depth, resources_per_node);
 
     let mut group = c.benchmark_group(id);
-    for diffuse_steps in [1, 10, 25].iter() {
+    for diffuse_steps in [1, 10].iter() {
         group.bench_with_input(BenchmarkId::from_parameter(diffuse_steps), diffuse_steps, |b, &diffuse_steps| {
             b.iter(|| {
                 perform_parallel_diffusion_internal(
@@ -110,7 +110,6 @@ fn benchmark_diffusion_variant(c: &mut Criterion, depth: u8, resources_per_node:
 
 fn criterion_benchmark_diffusion(c: &mut Criterion) {
     benchmark_diffusion_variant(c, 10, 10);
-    benchmark_diffusion_variant(c, 4, 10);
     benchmark_diffusion_variant(c, 10, 1);
 }
 
