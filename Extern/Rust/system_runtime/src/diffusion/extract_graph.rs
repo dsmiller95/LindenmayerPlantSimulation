@@ -124,10 +124,18 @@ pub fn extract_edges_and_nodes<'a>(
     branch_open_symbol: i32,
     branch_close_symbol: i32) -> (DiffusionJobOwned, DiffusionAmountDataOwned) {
     
-    let mut edges = Vec::new();
-    let mut nodes = Vec::new();
-    let mut node_capacities = Vec::new();
-    let mut node_amounts = Vec::new();
+    let mut total_resource_need = 0 as u32;
+    let mut total_nodes = 0 as u32;
+    for (symbol, indexing) in source_symbols.symbols.iter().zip(source_symbols.param_indexing){
+        let is_node = (*symbol == diffusion_node_symbol) as u32;
+        total_resource_need += indexing.length as u32 * is_node;
+        total_nodes += is_node;
+    }
+    
+    let mut edges = Vec::with_capacity(total_nodes as usize);
+    let mut nodes = Vec::with_capacity(total_nodes as usize);
+    let mut node_capacities = Vec::with_capacity(total_resource_need as usize);
+    let mut node_amounts = Vec::with_capacity(total_resource_need as usize);
     
     let mut branch_symbol_parent_stack = VecDeque::with_capacity(5);
     let mut current_node_parent: i32 = -1;
@@ -161,9 +169,6 @@ pub fn extract_edges_and_nodes<'a>(
                 diffusion_constant: params_slice[0],
             };
 
-            node_amounts   .reserve(new_node.total_resource_types as usize);
-            node_capacities.reserve(new_node.total_resource_types as usize);
-            
             for i in 0..new_node.total_resource_types as usize {
                 node_amounts   .push(params_slice[i * 2 + 1]);
                 node_capacities.push(params_slice[i * 2 + 1 + 1]);
