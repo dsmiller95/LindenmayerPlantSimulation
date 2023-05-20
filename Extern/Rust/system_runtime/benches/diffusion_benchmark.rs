@@ -109,7 +109,7 @@ fn benchmark_diffusion_variant(c: &mut Criterion, depth: u8, resources_per_node:
 }
 
 fn criterion_benchmark_diffusion(c: &mut Criterion) {
-    benchmark_diffusion_variant(c, 10, 10);
+    benchmark_diffusion_variant(c, 10, 6);
     benchmark_diffusion_variant(c, 10, 1);
 }
 
