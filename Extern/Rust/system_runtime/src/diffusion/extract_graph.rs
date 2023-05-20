@@ -161,12 +161,12 @@ pub fn extract_edges_and_nodes<'a>(
                 diffusion_constant: params_slice[0],
             };
 
-            node_amounts.reserve(new_node.total_resource_types as usize);
+            node_amounts   .reserve(new_node.total_resource_types as usize);
             node_capacities.reserve(new_node.total_resource_types as usize);
             
-            for ch in params_slice.split_at(1).1.chunks(2) {
-                node_amounts.push(ch[0]);
-                node_capacities.push(ch[1]);
+            for i in 0..new_node.total_resource_types as usize {
+                node_amounts   .push(params_slice[i * 2 + 1]);
+                node_capacities.push(params_slice[i * 2 + 1 + 1]);
             }
             
             nodes.push(new_node);
