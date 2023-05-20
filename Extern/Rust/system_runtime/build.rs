@@ -4,6 +4,7 @@ fn main() {
     if !Path::new("expanded.rs.tmp").exists() {
         return;
     }
+    
     println!("cargo:rerun-if-changed=expanded.rs.tmp");
     println!("cargo:rerun-if-changed=cargo.lock");
     csbindgen::Builder::default()
