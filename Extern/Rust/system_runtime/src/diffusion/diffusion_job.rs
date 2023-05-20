@@ -54,18 +54,28 @@ impl DiffusionJob<'_> {
             self.diffusion_global_multiplier *
                 (node_a.diffusion_constant + node_b.diffusion_constant) / 2.0;
 
-        let source_slice_a = node_a.get_resource_slice(source_amounts);
-        let source_slice_b = node_b.get_resource_slice(source_amounts);
-        let source_iter = source_slice_a.iter().zip(source_slice_b.iter());
+        let blended_resource_num = node_a.total_resource_types.min(node_b.total_resource_types);
+        
+        // let source_slice_a = node_a.get_resource_slice(source_amounts);
+        // let source_slice_b = node_b.get_resource_slice(source_amounts);
+        // 
+        // let capacities_slice_a = node_a.get_resource_slice(self.node_max_capacities);
+        // let capacities_slice_b = node_b.get_resource_slice(self.node_max_capacities);
+        // 
+        // let blended_resource_num = source_slice_a.len().min(source_slice_b.len());
+        
+        for resource in 0..blended_resource_num as usize {
+            // let old_node_a_value = source_slice_a[resource];
+            // let old_node_b_value = source_slice_b[resource];
+            // let node_a_value_cap = capacities_slice_a[resource];
+            // let node_b_value_cap = capacities_slice_b[resource];
 
-        let capacities_slice_a = node_a.get_resource_slice(self.node_max_capacities);
-        let capacities_slice_b = node_b.get_resource_slice(self.node_max_capacities);
-        let capacities_iter = capacities_slice_a.iter().zip(capacities_slice_b.iter());
-        
-        for (resource, (
-            (old_node_a_value, old_node_b_value),
-            (node_a_value_cap, node_b_value_cap))) in source_iter.zip(capacities_iter).enumerate(){
-        
+            let old_node_a_value = source_amounts[node_a.index_in_temp_amount_list as usize + resource];
+            let node_a_value_cap = self.node_max_capacities[node_a.index_in_temp_amount_list as usize + resource];
+
+            let old_node_b_value = source_amounts[node_b.index_in_temp_amount_list as usize + resource];
+            let node_b_value_cap = self.node_max_capacities[node_b.index_in_temp_amount_list as usize + resource];
+            
             let a_to_b_transferred_amount = diffusion_constant * (old_node_b_value - old_node_a_value);
         
             if a_to_b_transferred_amount == 0.0 {
