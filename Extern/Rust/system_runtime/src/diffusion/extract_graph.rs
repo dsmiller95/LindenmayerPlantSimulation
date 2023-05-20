@@ -132,6 +132,9 @@ pub fn extract_edges_and_nodes<'a>(
         total_nodes += is_node;
     }
     
+    // edges is the only one which will be potentially off by a small amount
+    //  we assume there is 1 edge per node.
+    //  for a tree this is mostly true, but for a graph it is not.
     let mut edges = Vec::with_capacity(total_nodes as usize);
     let mut nodes = Vec::with_capacity(total_nodes as usize);
     let mut node_capacities = Vec::with_capacity(total_resource_need as usize);
