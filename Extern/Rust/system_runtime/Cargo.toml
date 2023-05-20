@@ -11,16 +11,13 @@ name = "system_runtime_rustlib" # the name of the library that will be generated
 crate-type = ["rlib", "dylib"]
 
 [build-dependencies]
-csbindgen = {path = "C:/source/rust/csbindgen/csbindgen"}
+csbindgen = {git = "https://github.com/dsmiller95/csbindgen.git"}
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
 
 [[bench]]
 name = "diffusion_benchmark"
-harness = false
-[[bench]]
-name = "my_benchmark"
 harness = false
 
 [dependencies]
