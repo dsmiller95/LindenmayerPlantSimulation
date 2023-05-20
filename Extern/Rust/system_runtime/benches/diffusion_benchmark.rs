@@ -1,4 +1,4 @@
-﻿use criterion::{criterion_group, criterion_main, Criterion, black_box};
+﻿use criterion::{criterion_group, criterion_main, Criterion, black_box, BenchmarkId};
 use system_runtime_rustlib::diffusion::symbol_element_remap::{from_elements, SymbolElementOwned, SymbolStringOwned};
 use system_runtime_rustlib::interop_extern::data::JaggedIndexing;
 
@@ -13,7 +13,7 @@ fn get_diffuse_node_parameters(diffuse_constant: f32, amount: f32, max: f32, res
     params
 }
 
-fn benchmark_diffusion_variant(c: &mut Criterion, depth: u8, resources_per_node: u8, diffusion_steps: u8) {
+fn benchmark_diffusion_variant(c: &mut Criterion, depth: u8, resources_per_node: u8) {
 
     let open_branch_symbol = 0;
     let close_branch_symbol = 1;
@@ -84,30 +84,34 @@ fn benchmark_diffusion_variant(c: &mut Criterion, depth: u8, resources_per_node:
         });
     }
     
-    let id = format!("diffusion_{}_deep_{}_resource_{}_steps", depth, resources_per_node, diffusion_steps);
-    
-    c.bench_function(&*id, |b| b.iter(|| {
-        perform_parallel_diffusion_internal(
-            black_box(&source_symbol_string.borrow()),
-            black_box(&mut target_symbol_string.borrow_mut()),
-            black_box(&match_singleton_data),
-            black_box(diffusion_node_symbol),
-            black_box(diffusion_amount_symbol),
-            black_box(open_branch_symbol),
-            black_box(close_branch_symbol),
-            black_box(diffusion_steps as i32),
-            black_box(1.0),
-        );
-        black_box(target_symbol_string.symbols[0]);
-    }));
+    let id = format!("diffusion_{}_deep_{}_resource", depth, resources_per_node);
+
+    let mut group = c.benchmark_group(id);
+    for diffuse_steps in [1, 10, 25].iter() {
+        group.bench_with_input(BenchmarkId::from_parameter(diffuse_steps), diffuse_steps, |b, &diffuse_steps| {
+            b.iter(|| {
+                perform_parallel_diffusion_internal(
+                    black_box(&source_symbol_string.borrow()),
+                    black_box(&mut target_symbol_string.borrow_mut()),
+                    black_box(&match_singleton_data),
+                    black_box(diffusion_node_symbol),
+                    black_box(diffusion_amount_symbol),
+                    black_box(open_branch_symbol),
+                    black_box(close_branch_symbol),
+                    black_box(diffuse_steps),
+                    black_box(1.0),
+                );
+                black_box(target_symbol_string.symbols[0]);
+            });
+        });
+    }
+    group.finish();
 }
 
 fn criterion_benchmark_diffusion(c: &mut Criterion) {
-    benchmark_diffusion_variant(c, 10, 10, 10);
-    benchmark_diffusion_variant(c, 2, 10, 10);
-    benchmark_diffusion_variant(c, 10, 1, 10);
-    benchmark_diffusion_variant(c, 10, 1, 50);
-    benchmark_diffusion_variant(c, 10, 10, 50);
+    benchmark_diffusion_variant(c, 10, 10);
+    benchmark_diffusion_variant(c, 4, 10);
+    benchmark_diffusion_variant(c, 10, 1);
 }
 
 criterion_group!(benches, criterion_benchmark_diffusion);
