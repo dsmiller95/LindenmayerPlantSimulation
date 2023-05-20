@@ -58,7 +58,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             nativeData = lSystemNativeData;
 
             // 1.
-            UnityEngine.Profiling.Profiler.BeginSample("Paramter counts");
+            UnityEngine.Profiling.Profiler.BeginSample("Parameter counts");
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
             matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
