@@ -6,6 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: copy cargo.ci.toml on top of cargo.toml
+        run: cp Extern/Rust/system_runtime/Cargo.ci.toml Extern/Rust/system_runtime/Cargo.toml
+      - name: copy build.ci.rs on top of build.rs
+        run: cp Extern/Rust/system_runtime/build.ci.rs Extern/Rust/system_runtime/build.rs
       - uses: boa-dev/criterion-compare-action@v3
         with:
           cwd: "Extern/Rust/system_runtime"
