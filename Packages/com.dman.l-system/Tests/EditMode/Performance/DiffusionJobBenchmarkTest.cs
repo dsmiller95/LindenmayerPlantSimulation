@@ -149,21 +149,29 @@ public class DiffusionJobBenchmarkTest
         
         Measure.Method(() =>
             {
-                using var diffusionHelper = new DiffusionWorkingDataPack(
+                var diffusionHelper = new DiffusionWorkingDataPack();
+#if !RUST_SUBSYSTEM
+                diffusionHelper = new DiffusionWorkingDataPack(
                     10,
                     5,
                     2,
                     customSymbols,
                     Allocator.TempJob);
+#endif
                 var diffusionJob = new ParallelDiffusionReplacementJob
                 {
                     matchSingletonData = matchSingletonData,
                     sourceData = sourceString,
                     targetData = targetString,
                     customSymbols = customSymbols,
+#if !RUST_SUBSYSTEM
                     working = diffusionHelper
+#endif
                 };
                 diffusionJob.Schedule().Complete();
+#if !RUST_SUBSYSTEM
+                diffusionHelper.Dispose();
+#endif
             })
             .WarmupCount(10)
             .MeasurementCount(25)
