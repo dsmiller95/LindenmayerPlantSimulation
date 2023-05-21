@@ -13,6 +13,7 @@ pub trait SymbolStringRead {
 
 pub trait SymbolStringWrite {
     fn set_param_for(&mut self, param_index: JaggedIndexing, index_in_param: usize, new_value: f32) -> ();
+    fn take_param_slice_mut(&mut self, symbol_index: usize) -> &mut [f32];
 }
 
 pub struct SymbolString<'a> {
@@ -91,6 +92,11 @@ impl SymbolStringWrite for SymbolStringMut<'_>{
         let true_index = param_index.index as usize + index_in_param;
         self.parameters[true_index] = new_value
     }
+    fn take_param_slice_mut(&mut self, symbol_index: usize) -> &mut [f32] {
+        let param_index = self.param_indexing[symbol_index];
+        let true_index = param_index.index as usize;
+        & mut self.parameters[true_index..true_index + param_index.length as usize]
+    }
 }
 
 
@@ -107,7 +113,6 @@ pub struct DiffusionNode{
     pub total_resource_types: i32,
     pub diffusion_constant: f32
 }
-
 
 pub struct DiffusionJobOwned {
     pub nodes: Vec<DiffusionNode>,
