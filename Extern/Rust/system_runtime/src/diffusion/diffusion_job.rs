@@ -1,8 +1,7 @@
-﻿use crate::diffusion::extract_graph::{DiffusionEdge, DiffusionNode};
+﻿use crate::diffusion::extract_graph::{DiffusionNode};
 
 #[derive(Copy, Clone)]
 pub struct DiffusionJob<'a> {
-    pub edges: &'a [DiffusionEdge],
     pub nodes: &'a [DiffusionNode],
     pub node_max_capacities: &'a [f32],
     pub diffusion_global_multiplier: f32,
@@ -37,16 +36,19 @@ impl DiffusionJob<'_> {
 
             (*target_amounts).copy_from_slice(source_amounts);
 
-            for edge in self.edges {
-                self.diffuse_across_edge(edge, source_amounts, target_amounts);
+            for node in self.nodes {
+                self.diffuse_across_edge(node, source_amounts, target_amounts);
             }
         }
         false
     }
 
-    fn diffuse_across_edge(self, edge: &DiffusionEdge, source_amounts: &[f32], target_amounts: &mut [f32]) {
-        let node_a = &self.nodes[edge.node_a_index as usize];
-        let node_b = &self.nodes[edge.node_b_index as usize];
+    fn diffuse_across_edge(self, node: &DiffusionNode, source_amounts: &[f32], target_amounts: &mut [f32]) {
+        if node.parent_node_index < 0 {
+            return;
+        }
+        let node_a = &node;
+        let node_b = &self.nodes[node.parent_node_index as usize];
 
 
         let diffusion_constant =

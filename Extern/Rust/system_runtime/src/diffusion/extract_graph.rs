@@ -94,12 +94,12 @@ impl SymbolStringWrite for SymbolStringMut<'_>{
 }
 
 
-pub struct DiffusionEdge{
-    pub node_a_index: i32,
-    pub node_b_index: i32,
-}
 
 pub struct DiffusionNode{
+    /// assume this is a acyclic tree graph. for L-systems, this will always be true.
+    /// will be negative if there is no parent node
+    pub parent_node_index: i32,
+    
     pub index_in_target: i32,
     pub target_parameters: JaggedIndexing,
     pub index_in_temp_amount_list: i32,
@@ -110,7 +110,6 @@ pub struct DiffusionNode{
 
 
 pub struct DiffusionJobOwned {
-    pub edges: Vec<DiffusionEdge>,
     pub nodes: Vec<DiffusionNode>,
     pub node_max_capacities: Vec<f32>,
     pub diffusion_global_multiplier: f32,
@@ -119,7 +118,6 @@ pub struct DiffusionJobOwned {
 impl DiffusionJobOwned {
     pub fn borrowed(&self) -> DiffusionJob{
         DiffusionJob {
-            edges: &self.edges,
             nodes: &self.nodes,
             node_max_capacities: &self.node_max_capacities,
             diffusion_global_multiplier: self.diffusion_global_multiplier,
@@ -250,10 +248,6 @@ fn extract_edges_and_nodes<'a, FDiffusionAmountCaptured, FGetSymbolAndParamIndex
     get_symbol_and_param_index: FGetSymbolAndParamIndex) -> (DiffusionJobOwned, DiffusionAmountDataOwned) 
 where FDiffusionAmountCaptured: FnMut(usize) -> (), FGetSymbolAndParamIndex: Fn(usize, JaggedIndexing) -> (i32, JaggedIndexing){
     
-    // edges is the only one which will be potentially off by a small amount
-    //  we assume there is 1 edge per node.
-    //  for a tree this is mostly true, but for a graph it is not.
-    let mut edges = Vec::with_capacity(graph_estimate.node_count);
     let mut nodes = Vec::with_capacity(graph_estimate.node_count);
     let mut node_capacities = Vec::with_capacity(graph_estimate.param_count);
     let mut node_amounts = Vec::with_capacity(graph_estimate.param_count);
@@ -265,13 +259,7 @@ where FDiffusionAmountCaptured: FnMut(usize) -> (), FGetSymbolAndParamIndex: Fn(
         let symbol: i32 = source_symbols.symbol_at(symbol_index);
 
         if symbol == diffusion_node_symbol {
-            if current_node_parent >= 0 {
-                let new_edge = DiffusionEdge {
-                    node_a_index: current_node_parent,
-                    node_b_index: nodes.len() as i32,
-                };
-                edges.push(new_edge);
-            }
+            let parent_node_index = current_node_parent;
             current_node_parent = nodes.len() as i32;
 
             let node_params = source_symbols.param_indexing[symbol_index];
@@ -279,6 +267,8 @@ where FDiffusionAmountCaptured: FnMut(usize) -> (), FGetSymbolAndParamIndex: Fn(
             let (symbol_in_target, param_in_target) = get_symbol_and_param_index(symbol_index, node_params);
 
             let new_node = DiffusionNode {
+                parent_node_index,
+                
                 index_in_target: symbol_in_target,
                 target_parameters: param_in_target,
                 index_in_temp_amount_list: node_amounts.len() as i32,
@@ -330,7 +320,6 @@ where FDiffusionAmountCaptured: FnMut(usize) -> (), FGetSymbolAndParamIndex: Fn(
 
     (
         DiffusionJobOwned {
-            edges,
             nodes,
             node_max_capacities: node_capacities,
             diffusion_global_multiplier: 1.0,
