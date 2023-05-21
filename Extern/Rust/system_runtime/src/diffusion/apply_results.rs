@@ -6,6 +6,8 @@ pub fn apply_diffusion_results<'a>(
     double_buffered_data: &DiffusionAmountData,
     target_symbols: &mut SymbolStringMut,
     diffusion_node_symbol: i32,
+    diffusion_amount_symbol: i32,
+    clear_amounts: bool,
 ) -> Option<()>{
     
     let amount_data = if double_buffered_data.latest_in_a {
@@ -33,6 +35,14 @@ pub fn apply_diffusion_results<'a>(
                 (resource_type * 2 + 2) as usize,
                 diffusion_job.node_max_capacities[(node.index_in_temp_amount_list + resource_type) as usize]);
         }
+    }
+    if clear_amounts {
+        for symbol_index in 0..target_symbols.symbols.len() {
+            let symbol: i32 = target_symbols.symbols[symbol_index];
+            if symbol == diffusion_amount_symbol {
+                target_symbols.param_indexing[symbol_index].length = 0;
+            }
+        }   
     }
 
     Some(())

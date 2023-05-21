@@ -107,7 +107,7 @@ impl DiffusionNode {
     }
 }
 
-fn get_exclusive_slices<'a>(node_a: &DiffusionNode, node_b: &DiffusionNode, data: &'a mut [f32]) -> (&'a mut [f32], &'a mut [f32]) {
+fn _get_exclusive_slices<'a>(node_a: &DiffusionNode, node_b: &DiffusionNode, data: &'a mut [f32]) -> (&'a mut [f32], &'a mut [f32]) {
     let a_range = node_a.index_in_temp_amount_list as usize..node_a.index_in_temp_amount_list as usize + node_a.total_resource_types as usize; 
     let b_range = node_b.index_in_temp_amount_list as usize..node_b.index_in_temp_amount_list as usize + node_b.total_resource_types as usize;
     

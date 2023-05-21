@@ -1,6 +1,6 @@
 ﻿use crate::diffusion::apply_results::apply_diffusion_results;
 use crate::diffusion::diffusion_job::{DiffusionAmountData, DiffusionJob};
-use crate::diffusion::extract_graph::{extract_edges_and_nodes, SymbolString, SymbolStringMut};
+use crate::diffusion::extract_graph::{extract_edges_and_nodes_in_parallel, extract_edges_and_nodes_in_place, SymbolString, SymbolStringMut};
 use crate::interop_extern::data::{JaggedIndexing, native_array_interop, NativeArrayInteropf32, NativeArrayInteropf32Mut, NativeArrayInteropi32, NativeArrayInteropi32Mut, NativeArrayInteropJaggedIndexing, NativeArrayInteropJaggedIndexingMut};
 
 #[repr(C)]
@@ -202,36 +202,6 @@ pub extern "C" fn perform_parallel_diffusion(
         target_data.as_ref().unwrap().to_symbol_str(),
         match_singleton_data.as_ref().unwrap().to_slice()
         )};
-
-    // let first_symbol = source_data_safe.symbols[0];
-    // let first_index_param = source_data_safe.param_indexing[0];
-    // let first_param = source_data_safe.parameters[0];
-    // let first_singleton = &match_singleton_data_safe[0];
-    // let debug_info = format!("diffusion_steps: {diffusion_steps},\
-    //  first_source_symbol: {first_symbol},\
-    //   first_source_param_indexing: {first_index_param:?},\
-    //    first_source_param: {first_param},\
-    //     first singleton: {first_singleton:?}\n");
-    // 
-    // let debug_file = "C:/Users/Dan Miller/AppData/Local/Unity/Editor/tmpLog.txt";
-    // // write the debug info string to the file
-    // 
-    // let mut file = File::create(debug_file);
-    // match file {
-    //     Ok(mut file) => {
-    //         match file.write_all(debug_info.as_bytes()) {
-    //             Ok(_) => {
-    //                 true
-    //             },
-    //             Err(_) => {
-    //                 false
-    //             }
-    //         }
-    //     },
-    //     Err(_) => {
-    //         false
-    //     }
-    // };
     
     // TODO: doing this remap costs a lot, likely in alloc time.
     //  its more ergonomic, but not ready for doing this conversion yet.
@@ -262,7 +232,7 @@ pub fn perform_parallel_diffusion_internal(
     diffusion_global_multiplier: f32,
 ) -> bool {
 
-    let (mut diffusion_config, mut diffusion_amounts) = extract_edges_and_nodes(
+    let (mut diffusion_config, mut diffusion_amounts) = extract_edges_and_nodes_in_parallel(
         source_data,
         target_data,
         match_singleton_data,
@@ -283,6 +253,76 @@ pub fn perform_parallel_diffusion_internal(
         diffuse_job_ref,
         mut_diffuse_amount_data,
         target_data,
-        diffusion_node_symbol);
+        diffusion_node_symbol,
+        diffusion_amount_symbol,
+        false);
+    true
+}
+
+
+#[no_mangle]
+pub extern "C" fn perform_in_place_diffusion(
+    source_data: *mut SymbolStringInteropMut,
+    diffusion_node_symbol: i32,
+    diffusion_amount_symbol: i32,
+    branch_open_symbol: i32,
+    branch_close_symbol: i32,
+    diffusion_steps: i32,
+    diffusion_global_multiplier: f32,
+) -> bool{
+
+    let (
+        mut source_data_safe,) =
+        unsafe {(
+            source_data.as_ref().unwrap().to_symbol_str(),
+        )};
+
+    // TODO: doing this remap costs a lot, likely in alloc time.
+    //  its more ergonomic, but not ready for doing this conversion yet.
+    //let source_elements = to_elements(&source_data_safe);
+
+    perform_in_place_diffusion_internal(
+        &mut source_data_safe,
+        diffusion_node_symbol,
+        diffusion_amount_symbol,
+        branch_open_symbol,
+        branch_close_symbol,
+        diffusion_steps,
+        diffusion_global_multiplier,
+    )
+}
+
+pub fn perform_in_place_diffusion_internal(
+    source_data: &mut SymbolStringMut,
+    diffusion_node_symbol: i32,
+    diffusion_amount_symbol: i32,
+    branch_open_symbol: i32,
+    branch_close_symbol: i32,
+    diffusion_steps: i32,
+    diffusion_global_multiplier: f32,
+) -> bool {
+
+    let (mut diffusion_config, mut diffusion_amounts) = extract_edges_and_nodes_in_place(
+        source_data,
+        diffusion_node_symbol,
+        diffusion_amount_symbol,
+        branch_open_symbol,
+        branch_close_symbol
+    );
+    diffusion_config.diffusion_global_multiplier = diffusion_global_multiplier;
+    let diffuse_job_ref = diffusion_config.borrowed();
+    let mut_diffuse_amount_data = &mut diffusion_amounts.borrowed_mut();
+
+    diffuse_job_ref.diffuse_between(
+        mut_diffuse_amount_data,
+        diffusion_steps);
+
+    apply_diffusion_results(
+        diffuse_job_ref,
+        mut_diffuse_amount_data,
+        source_data,
+        diffusion_node_symbol,
+        diffusion_amount_symbol,
+        true);
     true
 }

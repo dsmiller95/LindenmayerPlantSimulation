@@ -8,6 +8,7 @@ pub trait SymbolStringRead {
     fn len(&self) -> usize;
     fn symbol_at(&self, index: usize) -> i32;
     fn take_slice(&self, param_index: JaggedIndexing) -> &[f32];
+    fn take_param_slice(&self, symbol_index: usize) -> &[f32];
 }
 
 pub trait SymbolStringWrite {
@@ -37,12 +38,25 @@ impl SymbolStringRead for SymbolString<'_>{
         let true_index = param_index.index as usize;
         &self.parameters[true_index..true_index + param_index.length as usize]
     }
+    fn take_param_slice(&self, symbol_index: usize) -> &[f32] {
+        self.take_slice(self.param_indexing[symbol_index])
+    }
 }
 
 pub struct SymbolStringMut<'a> {
     pub symbols: &'a mut [i32],
     pub param_indexing: &'a mut [JaggedIndexing],
     pub parameters: &'a mut [f32],
+}
+
+impl SymbolStringMut<'_> {
+    pub fn borrowed(&self) -> SymbolString{
+        SymbolString {
+            symbols: self.symbols,
+            param_indexing: self.param_indexing,
+            parameters: self.parameters
+        }
+    }
 }
 
 impl SymbolStringRead for SymbolStringMut<'_>{
@@ -64,6 +78,9 @@ impl SymbolStringRead for SymbolStringMut<'_>{
     fn take_slice(&self, param_index: JaggedIndexing) -> &[f32] {
         let true_index = param_index.index as usize;
         &self.parameters[true_index..true_index + param_index.length as usize]
+    }
+    fn take_param_slice(&self, symbol_index: usize) -> &[f32] {
+        self.take_slice(self.param_indexing[symbol_index])
     }
 }
 impl SymbolStringWrite for SymbolStringMut<'_>{
@@ -115,30 +132,115 @@ struct BranchEvent {
     pub current_node_parent: usize
 }
 
-pub fn extract_edges_and_nodes<'a>(
+pub fn extract_edges_and_nodes_in_place(
+    in_place_symbols: &mut SymbolStringMut,
+    diffusion_node_symbol: i32,
+    diffusion_amount_symbol: i32,
+    branch_open_symbol: i32,
+    branch_close_symbol: i32,
+) -> (DiffusionJobOwned, DiffusionAmountDataOwned) {
+
+    let read_borrow = &in_place_symbols.borrowed();
+    let graph_estimate = count_nodes_and_params(read_borrow, diffusion_node_symbol);
+
+    
+    extract_edges_and_nodes(
+        &read_borrow,
+        graph_estimate,
+        diffusion_node_symbol,
+        diffusion_amount_symbol,
+        branch_open_symbol,
+        branch_close_symbol,
+        |_| {},
+        |symbol_index, param_indexing| {
+            (symbol_index as i32, param_indexing)
+        }
+    )
+}
+
+pub fn extract_edges_and_nodes_in_parallel<'a>(
     source_symbols: &SymbolString,
     target_symbols: &mut SymbolStringMut,
     match_singletons: &[LSystemSingleSymbolMatchData],
     diffusion_node_symbol: i32,
     diffusion_amount_symbol: i32,
     branch_open_symbol: i32,
-    branch_close_symbol: i32) -> (DiffusionJobOwned, DiffusionAmountDataOwned) {
+    branch_close_symbol: i32,
+) -> (DiffusionJobOwned, DiffusionAmountDataOwned) {
     
+    let graph_estimate = count_nodes_and_params(source_symbols, diffusion_node_symbol);
+    
+    extract_edges_and_nodes(
+        source_symbols,
+        graph_estimate,
+        diffusion_node_symbol,
+        diffusion_amount_symbol,
+        branch_open_symbol,
+        branch_close_symbol,
+        |symbol_index| {
+
+            let node_singleton = &match_singletons[symbol_index];
+            let replacement_index = node_singleton.replacement_symbol_indexing.index as usize;
+            target_symbols.param_indexing[replacement_index] = JaggedIndexing {
+                index: node_singleton.replacement_parameter_indexing.index,
+                length: 0
+            };
+            target_symbols.symbols[replacement_index] = diffusion_amount_symbol;
+        },
+        |symbol_index, param_indexing| {
+            let node_singleton = &match_singletons[symbol_index];
+            (
+                node_singleton.replacement_symbol_indexing.index,
+                JaggedIndexing{
+                    index:node_singleton.replacement_parameter_indexing.index,
+                    length: param_indexing.length,
+                }
+            )
+        }
+    )
+}
+
+struct GraphEstimate {
+    pub node_count: usize,
+    pub param_count: usize,
+}
+
+fn count_nodes_and_params(
+    source_symbols: &SymbolString,
+    diffusion_node_symbol: i32) -> GraphEstimate {
+
     let mut total_resource_need = 0 as u32;
     let mut total_nodes = 0 as u32;
     for (symbol, indexing) in source_symbols.symbols.iter().zip(source_symbols.param_indexing){
         let is_node = (*symbol == diffusion_node_symbol) as u32;
-        total_resource_need += indexing.length as u32 * is_node;
+        total_resource_need += ((indexing.length - 1) / 2) as u32 * is_node;
         total_nodes += is_node;
     }
+    
+    GraphEstimate {
+        node_count: total_nodes as usize,
+        param_count: total_resource_need as usize,
+    }
+}
+
+fn extract_edges_and_nodes<'a, FDiffusionAmountCaptured, FGetSymbolAndParamIndex>(
+    source_symbols: &SymbolString,
+    graph_estimate: GraphEstimate,
+    diffusion_node_symbol: i32,
+    diffusion_amount_symbol: i32,
+    branch_open_symbol: i32,
+    branch_close_symbol: i32,
+    mut on_diffusion_amount_captured: FDiffusionAmountCaptured,
+    get_symbol_and_param_index: FGetSymbolAndParamIndex) -> (DiffusionJobOwned, DiffusionAmountDataOwned) 
+where FDiffusionAmountCaptured: FnMut(usize) -> (), FGetSymbolAndParamIndex: Fn(usize, JaggedIndexing) -> (i32, JaggedIndexing){
     
     // edges is the only one which will be potentially off by a small amount
     //  we assume there is 1 edge per node.
     //  for a tree this is mostly true, but for a graph it is not.
-    let mut edges = Vec::with_capacity(total_nodes as usize);
-    let mut nodes = Vec::with_capacity(total_nodes as usize);
-    let mut node_capacities = Vec::with_capacity(total_resource_need as usize);
-    let mut node_amounts = Vec::with_capacity(total_resource_need as usize);
+    let mut edges = Vec::with_capacity(graph_estimate.node_count);
+    let mut nodes = Vec::with_capacity(graph_estimate.node_count);
+    let mut node_capacities = Vec::with_capacity(graph_estimate.param_count);
+    let mut node_amounts = Vec::with_capacity(graph_estimate.param_count);
     
     let mut branch_symbol_parent_stack = VecDeque::with_capacity(5);
     let mut current_node_parent: i32 = -1;
@@ -158,17 +260,14 @@ pub fn extract_edges_and_nodes<'a>(
 
             let node_params = source_symbols.param_indexing[symbol_index];
             let params_slice = source_symbols.take_slice(node_params);
-            let node_singleton = &match_singletons[symbol_index];
+            let (symbol_in_target, param_in_target) = get_symbol_and_param_index(symbol_index, node_params);
 
             let new_node = DiffusionNode {
-                index_in_target: node_singleton.replacement_symbol_indexing.index,
-                target_parameters: JaggedIndexing {
-                    index: node_singleton.replacement_parameter_indexing.index,
-                    length: node_params.length
-                },
+                index_in_target: symbol_in_target,
+                target_parameters: param_in_target,
                 index_in_temp_amount_list: node_amounts.len() as i32,
 
-                total_resource_types: ((node_params.length - 1) / 2) as i32,
+                total_resource_types: ((param_in_target.length - 1) / 2) as i32,
                 diffusion_constant: params_slice[0],
             };
 
@@ -180,34 +279,22 @@ pub fn extract_edges_and_nodes<'a>(
             nodes.push(new_node);
             
         } else if symbol == diffusion_amount_symbol {
-            if current_node_parent < 0 {
+            let source_slice = source_symbols.take_param_slice(symbol_index);
+            if source_slice.len() == 0 {
                 continue;
             }
 
+            on_diffusion_amount_captured(symbol_index);
+
+            if current_node_parent < 0 {
+                continue;
+            }
             let modified_node = &mut nodes[current_node_parent as usize];
-            let amount_parameters = source_symbols.param_indexing[symbol_index];
-            if amount_parameters.length == 0 {
-                continue;
-            }
-
-            let node_singleton = &match_singletons[symbol_index];
-            target_symbols.param_indexing[node_singleton.replacement_symbol_indexing.index as usize] =
-                JaggedIndexing {
-                    index: node_singleton.replacement_parameter_indexing.index,
-                    length: 0,
-                };
-            target_symbols.symbols[node_singleton.replacement_symbol_indexing.index as usize] =
-                diffusion_amount_symbol;
-
-            if current_node_parent < 0 {
-                continue;
-            }
             
             let target_start_index = modified_node.index_in_temp_amount_list as usize;
             let target_end_index = target_start_index + modified_node.total_resource_types as usize;
             
             let target_slice = &mut node_amounts[target_start_index..target_end_index];
-            let source_slice = source_symbols.take_slice(amount_parameters);
             for (target_amount, amount_in_source) in target_slice.iter_mut().zip(source_slice) {
                 *target_amount += amount_in_source;
             }

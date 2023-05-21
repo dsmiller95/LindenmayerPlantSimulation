@@ -21,6 +21,10 @@ namespace Dman.LSystem.Extern
         [return: MarshalAs(UnmanagedType.U1)]
         public static extern bool perform_parallel_diffusion(SymbolStringInterop* source_data, SymbolStringInteropMut* target_data, NativeArrayInteropLSystemSingleSymbolMatchData* match_singleton_data, int diffusion_node_symbol, int diffusion_amount_symbol, int branch_open_symbol, int branch_close_symbol, int diffusion_steps, float diffusion_global_multiplier);
 
+        [DllImport(__DllName, EntryPoint = "perform_in_place_diffusion", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool perform_in_place_diffusion(SymbolStringInteropMut* source_data, int diffusion_node_symbol, int diffusion_amount_symbol, int branch_open_symbol, int branch_close_symbol, int diffusion_steps, float diffusion_global_multiplier);
+
         [DllImport(__DllName, EntryPoint = "evaluate_expression", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern float evaluate_expression(OperatorDefinition* operation_data, JaggedIndexing* operation_space, float* parameter_values, JaggedIndexing* parameter_space, float* parameter_values_2, JaggedIndexing* parameter_space_2);
 

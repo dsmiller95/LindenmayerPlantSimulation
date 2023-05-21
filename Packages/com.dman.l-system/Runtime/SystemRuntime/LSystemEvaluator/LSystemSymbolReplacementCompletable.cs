@@ -86,9 +86,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
             {
-                #if !RUST_SUBSYSTEM
+#if !RUST_SUBSYSTEM
                 diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
-                #endif
+#endif
                 var diffusionJob = new ParallelDiffusionReplacementJob
                 {
                     matchSingletonData = matchSingletonData,
@@ -126,12 +126,16 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             // diffusion is only dependent on the target symbol data. don't need to register as dependent on native data/source symbols
             if (customSymbols.hasDiffusion && customSymbols.independentDiffusionUpdate)
             {
+#if !RUST_SUBSYSTEM
                 diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
+#endif
                 var diffusionJob = new IndependentDiffusionReplacementJob
                 {
                     inPlaceSymbols = target,
                     customSymbols = customSymbols,
+#if !RUST_SUBSYSTEM
                     working = diffusionHelper
+#endif
                 };
                 dependency = diffusionJob.Schedule(dependency);
             }

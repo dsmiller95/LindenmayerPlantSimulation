@@ -1,4 +1,5 @@
 ﻿using Dman.LSystem.Extern;
+using Dman.LSystem.Extern.Adapters;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Unity.Burst;
 using Unity.Collections;
@@ -18,7 +19,9 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
         [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public SymbolString<float> inPlaceSymbols;
 
+#if !RUST_SUBSYSTEM
         internal DiffusionWorkingDataPack working;
+#endif
 
         public CustomRuleSymbols customSymbols;
 
@@ -27,11 +30,24 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
         {
             if (customSymbols.hasDiffusion && customSymbols.independentDiffusionUpdate)
             {
+#if RUST_SUBSYSTEM
+                NativeDiffusion.InPlaceDiffusion(
+                    Interop.FromMut(inPlaceSymbols),
+                    customSymbols.diffusionNode,
+                    customSymbols.diffusionAmount,
+                    customSymbols.branchOpenSymbol,
+                    customSymbols.branchCloseSymbol,
+                    customSymbols.diffusionStepsPerStep,
+                    customSymbols.diffusionConstantRuntimeGlobalMultiplier
+                );
+#else
                 ExtractEdgesAndNodes();
                 working.PerformDiffusionOnDataAndApply(inPlaceSymbols);
+#endif
             }
         }
 
+#if !RUST_SUBSYSTEM
         private void ExtractEdgesAndNodes()
         {
             var branchSymbolParentStack = new TmpNativeStack<BranchEvent>(5);
@@ -87,6 +103,11 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                     }
                     var modifiedNode = working.nodes[currentNodeParent];
                     var amountParameters = inPlaceSymbols.parameters[symbolIndex];
+                    if (amountParameters.length == 0)
+                    {
+                        // the amount has no parameters left. removal will be happening via regular update
+                        continue;
+                    }
                     inPlaceSymbols.parameters[symbolIndex] = new JaggedIndexing
                     {
                         index = amountParameters.index,
@@ -123,6 +144,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
             public int openBranchSymbolIndex;
             public int currentNodeParent;
         }
+#endif
 
     }
 

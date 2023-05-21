@@ -110,7 +110,6 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                 }
                 else if (symbol == customSymbols.diffusionAmount)
                 {
-                    var modifiedNode = working.nodes[currentNodeParent];
                     var amountParameters = sourceData.parameters[symbolIndex];
                     if (amountParameters.length == 0)
                     {
@@ -131,6 +130,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                         // problem: the amount will dissapear
                         continue;
                     }
+                    var modifiedNode = working.nodes[currentNodeParent];
                     for (int resourceType = 0; resourceType < modifiedNode.total_resource_types && resourceType < amountParameters.length; resourceType++)
                     {
                         working.nodeAmountsListA[modifiedNode.index_in_temp_amount_list + resourceType] += sourceData.parameters[amountParameters, resourceType];
@@ -146,6 +146,11 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                 }
                 else if (symbol == customSymbols.branchCloseSymbol)
                 {
+                    if (branchSymbolParentStack.Count <= 0)
+                    {
+                        // uh oh. idk how this is happening but it is. probably related to the volumetric destruction and autophagy.
+                        break;
+                    }
                     var lastBranchState = branchSymbolParentStack.Pop();
                     currentNodeParent = lastBranchState.currentNodeParent;
                 }
