@@ -1,7 +1,7 @@
 use std::collections::vec_deque::VecDeque;
 use crate::diffusion::diffusion_job::{DiffusionAmountData, DiffusionJob};
 use crate::interop_extern::data::JaggedIndexing;
-use crate::interop_extern::diffusion::{DiffusionEdge, DiffusionNode, LSystemSingleSymbolMatchData};
+use crate::interop_extern::diffusion::{ LSystemSingleSymbolMatchData};
 
 pub trait SymbolStringRead {
     fn param_for(&self, param_index: JaggedIndexing, index_in_param: usize) -> f32;
@@ -92,6 +92,22 @@ impl SymbolStringWrite for SymbolStringMut<'_>{
         self.parameters[true_index] = new_value
     }
 }
+
+
+pub struct DiffusionEdge{
+    pub node_a_index: i32,
+    pub node_b_index: i32,
+}
+
+pub struct DiffusionNode{
+    pub index_in_target: i32,
+    pub target_parameters: JaggedIndexing,
+    pub index_in_temp_amount_list: i32,
+
+    pub total_resource_types: i32,
+    pub diffusion_constant: f32
+}
+
 
 pub struct DiffusionJobOwned {
     pub edges: Vec<DiffusionEdge>,

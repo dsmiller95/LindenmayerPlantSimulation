@@ -1,4 +1,4 @@
-﻿use crate::interop_extern::diffusion::{DiffusionEdge, DiffusionNode};
+﻿use crate::diffusion::extract_graph::{DiffusionEdge, DiffusionNode};
 
 #[derive(Copy, Clone)]
 pub struct DiffusionJob<'a> {
@@ -12,7 +12,6 @@ pub struct DiffusionAmountData<'a> {
     pub node_amount_list_a: &'a mut [f32],
     pub node_amount_list_b: &'a mut [f32],
     pub latest_in_a: bool,
-    
 }
 
 impl DiffusionAmountData<'_> {

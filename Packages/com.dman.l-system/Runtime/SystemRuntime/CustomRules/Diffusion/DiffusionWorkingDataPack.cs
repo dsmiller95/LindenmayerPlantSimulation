@@ -1,4 +1,5 @@
-﻿using Dman.LSystem.Extern;
+﻿#if !RUST_SUBSYSTEM
+using Dman.LSystem.Extern;
 using Dman.LSystem.Extern.Adapters;
 using Unity.Collections;
 using Unity.Jobs;
@@ -7,6 +8,21 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
 {
     internal struct DiffusionWorkingDataPack : INativeDisposable
     {
+        public struct DiffusionEdge
+        {
+            public int node_a_index;
+            public int node_b_index;
+        }
+
+        public struct DiffusionNode
+        {
+            public int index_in_target;
+            public JaggedIndexing target_parameters;
+            public int index_in_temp_amount_list;
+            public int total_resource_types;
+            public float diffusion_constant;
+        }
+
         [NativeDisableParallelForRestriction] public NativeList<DiffusionEdge> allEdges;
         [NativeDisableParallelForRestriction] public NativeList<DiffusionNode> nodes;
 
@@ -41,25 +57,12 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
             // ReSharper disable once JoinDeclarationAndInitializer
             bool latestDataInA;
 
-#if RUST_SUBSYSTEM
-            latestDataInA = NativeDiffusion.DiffuseBetween(
-                allEdges,
-                nodes,
-                nodeMaxCapacities,
-                nodeAmountsListA,
-                nodeAmountsListB,
-                customSymbols.diffusionStepsPerStep,
-                customSymbols.diffusionConstantRuntimeGlobalMultiplier
-            );
-#else
             latestDataInA = true;
             for (int i = 0; i < customSymbols.diffusionStepsPerStep; i++)
             {
                 DiffuseBetween(latestDataInA);
                 latestDataInA = !latestDataInA;
             }
-#endif
-
 
             ApplyDiffusionResults(latestDataInA, targetSymbols);
         }
@@ -170,3 +173,4 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
         }
     }
 }
+#endif

@@ -25,7 +25,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         public SymbolStringBranchingCache branchingCache;
         private NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
 
+#if !RUST_SUBSYSTEM
         private DiffusionWorkingDataPack diffusionHelper;
+#endif
         private NativeArray<uint> maxIdReached;
         private NativeArray<bool> isImmature;
 
@@ -199,7 +201,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             currentJobHandle.Complete();
             branchingCache.Dispose();
             matchSingletonData.Dispose();
+#if !RUST_SUBSYSTEM
             if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
+#endif
 
             var hasImmatureSymbols = false;
 
@@ -249,7 +253,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
+#if !RUST_SUBSYSTEM
             if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
+#endif
             if (branchingCache.IsCreated) branchingCache.Dispose();
             if (isImmature.IsCreated) isImmature.Dispose();
             return inputDeps;
@@ -262,7 +268,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             maxIdReached.Dispose();
             target.Dispose();
             matchSingletonData.Dispose();
+#if !RUST_SUBSYSTEM
             if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
+#endif
             if (branchingCache.IsCreated) branchingCache.Dispose();
             if (isImmature.IsCreated) isImmature.Dispose();
         }

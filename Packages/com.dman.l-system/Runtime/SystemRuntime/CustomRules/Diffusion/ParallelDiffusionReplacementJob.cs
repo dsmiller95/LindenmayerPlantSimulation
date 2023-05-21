@@ -73,7 +73,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                 {
                     if (currentNodeParent >= 0)
                     {
-                        var newEdge = new DiffusionEdge
+                        var newEdge = new DiffusionWorkingDataPack.DiffusionEdge
                         {
                             node_a_index = currentNodeParent,
                             node_b_index = working.nodes.Length
@@ -85,7 +85,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
                     var nodeParams = sourceData.parameters[symbolIndex];
                     var nodeSingleton = matchSingletonData[symbolIndex];
 
-                    var newNode = new DiffusionNode
+                    var newNode = new DiffusionWorkingDataPack.DiffusionNode
                     {
                         index_in_target = nodeSingleton.replacement_symbol_indexing.index,
                         target_parameters = nodeSingleton.replacement_parameter_indexing,

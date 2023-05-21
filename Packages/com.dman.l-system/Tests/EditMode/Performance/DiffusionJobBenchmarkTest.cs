@@ -149,8 +149,8 @@ public class DiffusionJobBenchmarkTest
         
         Measure.Method(() =>
             {
-                var diffusionHelper = new DiffusionWorkingDataPack();
 #if !RUST_SUBSYSTEM
+                var diffusionHelper = new DiffusionWorkingDataPack();
                 diffusionHelper = new DiffusionWorkingDataPack(
                     10,
                     5,

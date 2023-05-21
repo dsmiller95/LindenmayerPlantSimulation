@@ -13,10 +13,6 @@ namespace Dman.LSystem.Extern
     {
         const string __DllName = "system_runtime_rustlib";
 
-        [DllImport(__DllName, EntryPoint = "diffuse_between", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool diffuse_between(DiffusionEdge* edges, int edges_len, DiffusionNode* nodes, float* node_capacities, float* node_amount_list_a, float* node_amount_list_b, int total_nodes, int diffusion_steps, float diffusion_global_multiplier);
-
         [DllImport(__DllName, EntryPoint = "perform_parallel_diffusion", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.U1)]
         public static extern bool perform_parallel_diffusion(SymbolStringInterop* source_data, SymbolStringInteropMut* target_data, NativeArrayInteropLSystemSingleSymbolMatchData* match_singleton_data, int diffusion_node_symbol, int diffusion_amount_symbol, int branch_open_symbol, int branch_close_symbol, int diffusion_steps, float diffusion_global_multiplier);
@@ -84,23 +80,6 @@ namespace Dman.LSystem.Extern
     {
         public JaggedIndexing* data;
         public int len;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe partial struct DiffusionEdge
-    {
-        public int node_a_index;
-        public int node_b_index;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe partial struct DiffusionNode
-    {
-        public int index_in_target;
-        public JaggedIndexing target_parameters;
-        public int index_in_temp_amount_list;
-        public int total_resource_types;
-        public float diffusion_constant;
     }
 
     [StructLayout(LayoutKind.Sequential)]
