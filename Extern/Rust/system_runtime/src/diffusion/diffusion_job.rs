@@ -64,6 +64,9 @@ impl DiffusionJob<'_> {
         // let capacities_slice_b = node_b.get_resource_slice(self.node_max_capacities);
         // 
         // let blended_resource_num = source_slice_a.len().min(source_slice_b.len());
+
+        let node_a_temp_amt_index = node_a.index_in_temp_amount_list as usize;
+        let node_b_temp_amt_index = node_b.index_in_temp_amount_list as usize;
         
         for resource in 0..blended_resource_num as usize {
             // let old_node_a_value = source_slice_a[resource];
@@ -71,26 +74,28 @@ impl DiffusionJob<'_> {
             // let node_a_value_cap = capacities_slice_a[resource];
             // let node_b_value_cap = capacities_slice_b[resource];
 
-            let old_node_a_value = source_amounts[node_a.index_in_temp_amount_list as usize + resource];
-            let node_a_value_cap = self.node_max_capacities[node_a.index_in_temp_amount_list as usize + resource];
-
-            let old_node_b_value = source_amounts[node_b.index_in_temp_amount_list as usize + resource];
-            let node_b_value_cap = self.node_max_capacities[node_b.index_in_temp_amount_list as usize + resource];
+            let node_a_resource_index = node_a_temp_amt_index + resource;
+            let node_b_resource_index = node_b_temp_amt_index + resource;
+            
+            let old_node_a_value = source_amounts[node_a_resource_index];
+            let old_node_b_value = source_amounts[node_b_resource_index];
             
             let a_to_b_transferred_amount = diffusion_constant * (old_node_b_value - old_node_a_value);
-
             let is_towards_b =a_to_b_transferred_amount < 0.0;
+            
+            let node_b_value_cap = self.node_max_capacities[node_b_resource_index];
             if is_towards_b && old_node_b_value >= node_b_value_cap {
                 // the direction of flow is towards node B, and also node B is above its value cap. skip updating the resource on this connection completely.
                 continue;
             }
+            let node_a_value_cap = self.node_max_capacities[node_a_resource_index];
             if !is_towards_b && old_node_a_value >= node_a_value_cap {
                 // the direction of flow is towards node A, and also node A is above its value cap. skip updating the resource on this connection completely.
                 continue;
             }
             
-            target_amounts[node_a.index_in_temp_amount_list as usize + resource] += a_to_b_transferred_amount;
-            target_amounts[node_b.index_in_temp_amount_list as usize + resource] -= a_to_b_transferred_amount;
+            target_amounts[node_a_resource_index] += a_to_b_transferred_amount;
+            target_amounts[node_b_resource_index] -= a_to_b_transferred_amount;
         }
     }
 }
