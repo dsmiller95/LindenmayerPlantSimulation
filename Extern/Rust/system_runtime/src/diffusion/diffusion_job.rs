@@ -47,7 +47,7 @@ impl DiffusionJob<'_> {
         if node.parent_node_index < 0 {
             return;
         }
-        let node_a = &node;
+        let node_a = node;
         let node_b = &self.nodes[node.parent_node_index as usize];
 
 
@@ -78,19 +78,17 @@ impl DiffusionJob<'_> {
             let node_b_value_cap = self.node_max_capacities[node_b.index_in_temp_amount_list as usize + resource];
             
             let a_to_b_transferred_amount = diffusion_constant * (old_node_b_value - old_node_a_value);
-        
-            if a_to_b_transferred_amount == 0.0 {
-                continue;
-            }
-            if a_to_b_transferred_amount < 0.0 && old_node_b_value >= node_b_value_cap {
+
+            let is_towards_b =a_to_b_transferred_amount < 0.0;
+            if is_towards_b && old_node_b_value >= node_b_value_cap {
                 // the direction of flow is towards node B, and also node B is above its value cap. skip updating the resource on this connection completely.
                 continue;
             }
-            if a_to_b_transferred_amount > 0.0 && old_node_a_value >= node_a_value_cap {
+            if !is_towards_b && old_node_a_value >= node_a_value_cap {
                 // the direction of flow is towards node A, and also node A is above its value cap. skip updating the resource on this connection completely.
                 continue;
             }
-
+            
             target_amounts[node_a.index_in_temp_amount_list as usize + resource] += a_to_b_transferred_amount;
             target_amounts[node_b.index_in_temp_amount_list as usize + resource] -= a_to_b_transferred_amount;
         }
