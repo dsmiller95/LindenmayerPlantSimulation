@@ -86,14 +86,18 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
             {
+                #if !RUST_SUBSYSTEM
                 diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
+                #endif
                 var diffusionJob = new ParallelDiffusionReplacementJob
                 {
                     matchSingletonData = matchSingletonData,
                     sourceData = lastSystemState.currentSymbols.Data,
                     targetData = target,
                     customSymbols = customSymbols,
+#if !RUST_SUBSYSTEM
                     working = diffusionHelper
+#endif
                 };
                 currentJobHandle = JobHandle.CombineDependencies(
                         currentJobHandle,

@@ -29,7 +29,9 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
         [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
         public SymbolString<float> targetData;
 
+#if !RUST_SUBSYSTEM
         internal DiffusionWorkingDataPack working;
+#endif
 
         public CustomRuleSymbols customSymbols;
 
@@ -58,6 +60,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
             }
         }
 
+#if !RUST_SUBSYSTEM
         private void ExtractEdgesAndNodes()
         {
             var branchSymbolParentStack = new TmpNativeStack<BranchEvent>(5);
@@ -154,6 +157,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
             public int openBranchSymbolIndex;
             public int currentNodeParent;
         }
+#endif
 
     }
 
