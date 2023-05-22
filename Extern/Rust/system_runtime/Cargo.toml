@@ -12,7 +12,7 @@ crate-type = ["rlib", "dylib"]
 bench = false
 
 [build-dependencies]
-csbindgen = {git = "https://github.com/dsmiller95/csbindgen.git"}
+csbindgen = "1.7.3"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
