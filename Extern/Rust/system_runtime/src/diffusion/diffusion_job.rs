@@ -23,6 +23,14 @@ impl DiffusionAmountData<'_> {
             (self.node_amount_list_b, self.node_amount_list_a)
         }
     }
+    
+    pub fn get_latest_data(&self) -> &[f32] {
+        if self.latest_in_a {
+            self.node_amount_list_a
+        }else {
+            self.node_amount_list_b
+        }
+    }
 }
 
 impl DiffusionJob<'_> {

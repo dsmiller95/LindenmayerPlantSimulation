@@ -10,15 +10,9 @@ pub fn apply_diffusion_results<'a>(
     clear_amounts: bool,
 ) -> Option<()>{
     
-    let amount_data = if double_buffered_data.latest_in_a {
-        &double_buffered_data.node_amount_list_a
-    } else {
-        &double_buffered_data.node_amount_list_b
-    };
+    let amount_data = double_buffered_data.get_latest_data();
 
-    for node_index in 0..diffusion_job.nodes.len() {
-        let node = &diffusion_job.nodes[node_index];
-
+    for node in diffusion_job.nodes {
         let node_index_in_target = node.index_in_target as usize;
         target_symbols.symbols[node_index_in_target] = diffusion_node_symbol;
         target_symbols.param_indexing[node_index_in_target] = node.target_parameters;
@@ -28,9 +22,9 @@ pub fn apply_diffusion_results<'a>(
         
         for resource_type in 0..node.total_resource_types {
             let partial_param = (resource_type * 2 + 1) as usize;
-            let node_index = (node.index_in_temp_amount_list + resource_type) as usize;
-            param_slice[partial_param] = amount_data[node_index];
-            param_slice[partial_param + 1] = diffusion_job.node_max_capacities[node_index];
+            let resource_index = (node.index_in_temp_amount_list + resource_type) as usize;
+            param_slice[partial_param] = amount_data[resource_index];
+            param_slice[partial_param + 1] = diffusion_job.node_max_capacities[resource_index];
         }
     }
     if clear_amounts {
