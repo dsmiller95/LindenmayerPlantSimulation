@@ -1,5 +1,5 @@
 use crate::diffusion::diffusion_job::{DiffusionAmountData, DiffusionJob};
-use crate::diffusion::extract_graph::{SymbolStringMut, SymbolStringRead, SymbolStringWrite};
+use crate::diffusion::extract_graph::{SymbolStringMut, SymbolStringWrite};
 
 pub fn apply_diffusion_results<'a>(
     diffusion_job: DiffusionJob,
