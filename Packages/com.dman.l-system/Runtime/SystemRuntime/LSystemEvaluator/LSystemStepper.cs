@@ -270,15 +270,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 throw new LSystemRuntimeException($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
 
-            var result = LSystemAsyncProcedure.Run(
+            var asyncProcedure = new LSystemAsyncProcedure(forceSynchronous, cancel);
+            var result = asyncProcedure.Run(
                 systemState,
                 nativeRuleData,
                 globalParameters,
                 includedCharacters,
                 customSymbols,
-                parameterWriteDependency,
-                forceSynchronous,
-                cancel);
+                parameterWriteDependency);
             UnityEngine.Profiling.Profiler.EndSample();
             return await result;
         }
