@@ -213,13 +213,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 #endif
                 using var cancelledSource = new CancellationTokenSource();
                 cancelledSource.Cancel();
-                var stepperCompletable = StepSystemJob(systemState, cancelledSource.Token, CancellationToken.None, globalParameters)
+                var nextState = StepSystemJob(systemState, cancelledSource.Token, CancellationToken.None, globalParameters)
                     .ExtractSync();
                 if (disposeOldSystem)
                 {
                     systemState.currentSymbols.Dispose();
                 }
-                return stepperCompletable;
+                return nextState;
 #if UNITY_EDITOR
             }
             catch (System.Exception e)
@@ -255,8 +255,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             if (isDisposed)
             {
-                Debug.LogError($"LSystem has already been disposed");
-                return null;
+                throw new LSystemRuntimeException($"LSystem has already been disposed");
             }
             UnityEngine.Profiling.Profiler.BeginSample("L system step");
             if (globalParameters == null)

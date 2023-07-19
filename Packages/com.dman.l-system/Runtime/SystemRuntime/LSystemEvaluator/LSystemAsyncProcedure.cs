@@ -41,7 +41,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(
                 lastSystemState.currentSymbols.Data.Length, Allocator.Persistent,
                 NativeArrayOptions.UninitializedMemory);
-            var branchingCache = new SymbolStringBranchingCache(
+            using var branchingCache = new SymbolStringBranchingCache(
                 customSymbols.branchOpenSymbol,
                 customSymbols.branchCloseSymbol,
                 includedCharactersByRuleIndex,
@@ -119,7 +119,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             
             public void Dispose()
             {
-                nativeData.Dispose();
                 matchSingletonData.Dispose();
             }
 
