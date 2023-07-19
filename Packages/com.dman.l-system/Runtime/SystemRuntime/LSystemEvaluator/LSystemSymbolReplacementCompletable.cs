@@ -1,4 +1,8 @@
-﻿using Dman.LSystem.Extern;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using Dman.LSystem.Extern;
 using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.CustomRules.Diffusion;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
@@ -11,32 +15,9 @@ using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 {
-    public class LSystemSymbolReplacementCompletable : ICompletable<LSystemState<float>>
+    public class LSystemSymbolReplacementCompletable
     {
-#if UNITY_EDITOR
-        public string TaskDescription => "L System symbol replacements";
-#endif
-
-        public LSystemState<float> lastSystemState;
-        public Unity.Mathematics.Random randResult;
-
-        /////////////// things owned by this step /////////
-        private SymbolString<float> target;
-        public SymbolStringBranchingCache branchingCache;
-        private NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
-
-#if !RUST_SUBSYSTEM
-        private DiffusionWorkingDataPack diffusionHelper;
-#endif
-        private NativeArray<uint> maxIdReached;
-        private NativeArray<bool> isImmature;
-
-        /////////////// l-system native data /////////
-        public DependencyTracker<SystemLevelRuleNativeData> nativeData;
-
-        public JobHandle currentJobHandle { get; private set; }
-
-        public LSystemSymbolReplacementCompletable(
+        public static async UniTask<LSystemState<float>> Run(
             Unity.Mathematics.Random randResult,
             LSystemState<float> lastSystemState,
             int totalNewSymbolSize,
@@ -46,18 +27,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
             DependencyTracker<SystemLevelRuleNativeData> nativeData,
             SymbolStringBranchingCache branchingCache,
-            CustomRuleSymbols customSymbols)
+            CustomRuleSymbols customSymbols,
+            CancellationToken forceSynchronous,
+            CancellationToken cancel)
         {
-            this.lastSystemState = lastSystemState;
-            this.matchSingletonData = matchSingletonData;
-            this.branchingCache = branchingCache;
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
+            var target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
             UnityEngine.Profiling.Profiler.EndSample();
-
-            this.randResult = randResult;
-
-            this.nativeData = nativeData;
 
             // 5
             UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
@@ -81,7 +57,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 customSymbols = customSymbols
             };
 
-            currentJobHandle = replacementJob.Schedule(
+            var currentJobHandle = replacementJob.Schedule(
                     matchSingletonData.Length,
                     100
                 );
@@ -110,94 +86,50 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
+            var (isAssignmentJob, maxIdReached) = ScheduleIdAssignmentJob(currentJobHandle, customSymbols, lastSystemState, target);
+
+            var (immaturityJob, isImmature) = ScheduleImmaturityJob(currentJobHandle, nativeData, target);
+            
             currentJobHandle = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(
-                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, lastSystemState),
-                    ScheduleIndependentDiffusion(currentJobHandle, customSymbols)
+                    isAssignmentJob,
+                    ScheduleIndependentDiffusion(currentJobHandle, customSymbols, target)
                 ),
                 JobHandle.CombineDependencies(
-                    ScheduleAutophagyJob(currentJobHandle, customSymbols),
-                    ScheduleImmaturityJob(currentJobHandle)
+                    ScheduleAutophagyJob(currentJobHandle, customSymbols, target),
+                    immaturityJob
                 ));
 
             UnityEngine.Profiling.Profiler.EndSample();
-        }
-
-        private JobHandle ScheduleIndependentDiffusion(JobHandle dependency, CustomRuleSymbols customSymbols)
-        {
-            // diffusion is only dependent on the target symbol data. don't need to register as dependent on native data/source symbols
-            if (customSymbols.hasDiffusion && customSymbols.independentDiffusionUpdate)
+            
+            
+            
+            using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
+            try
             {
+                var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(cancelJobSource.Token, 3);
+                if (cancelled && cancel.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+            }
+            catch(Exception)
+            {
+                currentJobHandle.Complete();
+
+                maxIdReached.Dispose();
+                target.Dispose();
+                matchSingletonData.Dispose();
 #if !RUST_SUBSYSTEM
-                diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
+            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
 #endif
-                var diffusionJob = new IndependentDiffusionReplacementJob
-                {
-                    inPlaceSymbols = target,
-                    customSymbols = customSymbols,
-#if !RUST_SUBSYSTEM
-                    working = diffusionHelper
-#endif
-                };
-                dependency = diffusionJob.Schedule(dependency);
+                if (branchingCache.IsCreated) branchingCache.Dispose();
+                if (isImmature.IsCreated) isImmature.Dispose();
             }
-            return dependency;
-        }
-        private JobHandle ScheduleIdAssignmentJob(
-            JobHandle dependency, 
-            CustomRuleSymbols customSymbols,
-            LSystemState<float> lastSystemState)
-        {
-            // identity assignment job is not dependent on the source string or any other native data. can skip assigning it as a dependent
-            maxIdReached = new NativeArray<uint>(1, Allocator.TempJob);
-            var identityAssignmentJob = new IdentityAssignmentPostProcessRule
-            {
-                targetData = target,
-                maxIdentityId = maxIdReached,
-                customSymbols = customSymbols,
-                lastMaxIdReached = lastSystemState.maxUniqueOrganIds,
-                uniquePlantId = lastSystemState.uniquePlantId,
-                originOfUniqueIndexes = lastSystemState.firstUniqueOrganId,
-            };
-            return identityAssignmentJob.Schedule(dependency);
-        }
-        private JobHandle ScheduleAutophagyJob(JobHandle dependency, CustomRuleSymbols customSymbols)
-        {
-            // autophagy is only dependent on the source string. don't need to register as dependent on native data/source symbols
-            if (customSymbols.hasAutophagy)
-            {
-                var helperStack = new TmpNativeStack<AutophagyPostProcess.BranchIdentity>(10, Allocator.TempJob);
-                var autophagicJob = new AutophagyPostProcess
-                {
-                    symbols = target,
-                    lastIdentityStack = helperStack,
-                    customSymbols = customSymbols
-                };
 
-                dependency = autophagicJob.Schedule(dependency);
-                dependency = helperStack.Dispose(dependency);
-            }
-            return dependency;
-        }
-        private JobHandle ScheduleImmaturityJob(JobHandle dependency)
-        {
-            if (nativeData.Data.immaturityMarkerSymbols.IsCreated)
-            {
-                isImmature = new NativeArray<bool>(1, Allocator.TempJob);
-                var immaturityJob = new NativeArrayMultiContainsJob
-                {
-                    symbols = target.symbols,
-                    symbolsToCheckFor = nativeData.Data.immaturityMarkerSymbols,
-                    doesContainSymbols = isImmature
-                };
-                dependency = immaturityJob.Schedule(dependency);
-                nativeData.RegisterDependencyOnData(dependency);
-            }
-            return dependency;
-        }
-
-        public ICompletable StepNext()
-        {
+            
+            
+            
             currentJobHandle.Complete();
             branchingCache.Dispose();
             matchSingletonData.Dispose();
@@ -224,55 +156,92 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             };
 
             maxIdReached.Dispose();
-            return new CompleteCompletable<LSystemState<float>>(newResult);
+            var nextCompletable = new CompleteCompletable<LSystemState<float>>(newResult);
+            return await nextCompletable.ToUniTask(forceSynchronous, cancel);
         }
-
-        public bool IsComplete()
+        
+        private static JobHandle ScheduleIndependentDiffusion(
+            JobHandle dependency,
+            CustomRuleSymbols customSymbols,
+            SymbolString<float> targetString)
         {
-            return false;
-        }
-        public bool HasErrored()
-        {
-            return false;
-        }
-        public string GetError()
-        {
-            return null;
-        }
-
-        public LSystemState<float> GetData()
-        {
-            return null;
-        }
-
-        public JobHandle Dispose(JobHandle inputDeps)
-        {
-            //TODO
-            currentJobHandle.Complete();
-
-            maxIdReached.Dispose();
-            target.Dispose();
-            matchSingletonData.Dispose();
+            // diffusion is only dependent on the target symbol data. don't need to register as dependent on native data/source symbols
+            if (customSymbols.hasDiffusion && customSymbols.independentDiffusionUpdate)
+            {
 #if !RUST_SUBSYSTEM
-            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
+                diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
 #endif
-            if (branchingCache.IsCreated) branchingCache.Dispose();
-            if (isImmature.IsCreated) isImmature.Dispose();
-            return inputDeps;
-        }
-
-        public void Dispose()
-        {
-            currentJobHandle.Complete();
-
-            maxIdReached.Dispose();
-            target.Dispose();
-            matchSingletonData.Dispose();
+                var diffusionJob = new IndependentDiffusionReplacementJob
+                {
+                    inPlaceSymbols = targetString,
+                    customSymbols = customSymbols,
 #if !RUST_SUBSYSTEM
-            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
+                    working = diffusionHelper
 #endif
-            if (branchingCache.IsCreated) branchingCache.Dispose();
-            if (isImmature.IsCreated) isImmature.Dispose();
+                };
+                dependency = diffusionJob.Schedule(dependency);
+            }
+            return dependency;
+        }
+        private static (JobHandle, NativeArray<uint>) ScheduleIdAssignmentJob(
+            JobHandle dependency, 
+            CustomRuleSymbols customSymbols,
+            LSystemState<float> lastSystemState,
+            SymbolString<float> targetString)
+        {
+            // identity assignment job is not dependent on the source string or any other native data. can skip assigning it as a dependent
+            var maxIdReached = new NativeArray<uint>(1, Allocator.TempJob);
+            var identityAssignmentJob = new IdentityAssignmentPostProcessRule
+            {
+                targetData = targetString,
+                maxIdentityId = maxIdReached,
+                customSymbols = customSymbols,
+                lastMaxIdReached = lastSystemState.maxUniqueOrganIds,
+                uniquePlantId = lastSystemState.uniquePlantId,
+                originOfUniqueIndexes = lastSystemState.firstUniqueOrganId,
+            };
+            return (identityAssignmentJob.Schedule(dependency), maxIdReached);
+        }
+        private static JobHandle ScheduleAutophagyJob(
+            JobHandle dependency,
+            CustomRuleSymbols customSymbols, 
+            SymbolString<float> targetString)
+        {
+            // autophagy is only dependent on the source string. don't need to register as dependent on native data/source symbols
+            if (customSymbols.hasAutophagy)
+            {
+                var helperStack = new TmpNativeStack<AutophagyPostProcess.BranchIdentity>(10, Allocator.TempJob);
+                var autophagicJob = new AutophagyPostProcess
+                {
+                    symbols = targetString,
+                    lastIdentityStack = helperStack,
+                    customSymbols = customSymbols
+                };
+
+                dependency = autophagicJob.Schedule(dependency);
+                dependency = helperStack.Dispose(dependency);
+            }
+            return dependency;
+        }
+        private static (JobHandle, NativeArray<bool>) ScheduleImmaturityJob(
+            JobHandle dependency,
+            DependencyTracker<SystemLevelRuleNativeData> nativeData, 
+            SymbolString<float> targetString)
+        {
+            NativeArray<bool> isImmature = default;
+            if (nativeData.Data.immaturityMarkerSymbols.IsCreated)
+            {
+                isImmature = new NativeArray<bool>(1, Allocator.TempJob);
+                var immaturityJob = new NativeArrayMultiContainsJob
+                {
+                    symbols = targetString.symbols,
+                    symbolsToCheckFor = nativeData.Data.immaturityMarkerSymbols,
+                    doesContainSymbols = isImmature
+                };
+                dependency = immaturityJob.Schedule(dependency);
+                nativeData.RegisterDependencyOnData(dependency);
+            }
+            return (dependency, isImmature);
         }
     }
 

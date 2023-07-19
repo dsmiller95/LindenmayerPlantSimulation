@@ -122,7 +122,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             totalSymbolCount.Dispose();
             totalSymbolParameterCount.Dispose();
 
-            var nextCompletable =  new LSystemSymbolReplacementCompletable(
+            return await LSystemSymbolReplacementCompletable.Run(
                 randResult,
                 lastSystemState,
                 totalNewSymbolSize,
@@ -132,8 +132,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 matchSingletonData,
                 nativeData,
                 branchingCache,
-                customSymbols);
-            return await nextCompletable.ToUniTask(forceSynchronous, cancel);
+                customSymbols,
+                forceSynchronous, cancel);
         }
     }
 
