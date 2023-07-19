@@ -72,7 +72,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
             try
             {
-                var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(cancelJobSource.Token, 3);
+                var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
+                    cancelJobSource.Token,
+                    LSystemJobExecutionConfig.Instance.forceUpdates,
+                    3);
                 if (cancelled && cancel.IsCancellationRequested)
                 {
                     throw new TaskCanceledException();
