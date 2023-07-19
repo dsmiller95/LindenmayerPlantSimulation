@@ -35,24 +35,15 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             JobHandle parameterModificationJobDependency)
         {
             // 1.
-            UnityEngine.Profiling.Profiler.BeginSample("Parameter counts");
-
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(
-                lastSystemState.currentSymbols.Data.Length, Allocator.Persistent,
-                NativeArrayOptions.UninitializedMemory);
             using var branchingCache = new SymbolStringBranchingCache(
                 customSymbols.branchOpenSymbol,
                 customSymbols.branchCloseSymbol,
                 includedCharactersByRuleIndex,
                 nativeData.Data);
 
-            using var singletonDataPack = new MatchSingletonsDataPacket
-            {
-                lastSystemState = lastSystemState,
-                nativeData = nativeData,
-                matchSingletonData = matchSingletonData
-            };
+            using var singletonDataPack = new MatchSingletonsDataPacket(lastSystemState, nativeData);
+            UnityEngine.Profiling.Profiler.EndSample();
             
             var paramTotalTask = CountParameterTotals(singletonDataPack);
 
@@ -66,18 +57,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            using var tmpParameterMemory =
-                new NativeArray<float>(paramTotal, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
+            using var matchDataPack = new MatchAndWriteWorkingMemoryDataPacket(
+                branchingCache,
+                paramTotal,
+                globalParameters);
             UnityEngine.Profiling.Profiler.EndSample();
 
-            var matchDataPack = new MatchAndWriteWorkingMemoryDataPacket
-            {
-                globalParamNative = globalParamNative,
-                tmpParameterMemory = tmpParameterMemory,
-                branchingCache = branchingCache,
-            };
-            
             var (totalNewSymbolSize, totalNewParamSize) = await PerformLSystemMatch(
                 singletonDataPack,
                 matchDataPack,
@@ -116,6 +101,21 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             public SymbolString<float> symbols => lastSystemState.currentSymbols.Data;
 
             public int Length => symbols.Length;
+
+            public MatchSingletonsDataPacket(
+                LSystemState<float> lastSystemState,
+                DependencyTracker<SystemLevelRuleNativeData> nativeData,
+                Allocator allocator = Allocator.Persistent
+            )
+            {
+                this.lastSystemState = lastSystemState;
+                this.nativeData = nativeData;
+                
+                matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(
+                    lastSystemState.currentSymbols.Data.Length, 
+                    allocator,
+                    NativeArrayOptions.UninitializedMemory);
+            }
             
             public void Dispose()
             {
@@ -131,8 +131,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         }
         private async Task<int> CountParameterTotals(MatchSingletonsDataPacket singletonDataPack)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
             using var parameterTotalSum = new NativeArray<int>(1, Allocator.TempJob);
-            UnityEngine.Profiling.Profiler.EndSample();
 
             var memorySizeJob = new SymbolStringMemoryRequirementsJob
             {
@@ -151,11 +151,29 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             return parameterTotalSum[0];
         }
 
-        private struct MatchAndWriteWorkingMemoryDataPacket
+        private struct MatchAndWriteWorkingMemoryDataPacket : IDisposable
         {
             public NativeArray<float> globalParamNative;
             public NativeArray<float> tmpParameterMemory;
             public SymbolStringBranchingCache branchingCache;
+
+            public MatchAndWriteWorkingMemoryDataPacket(
+                SymbolStringBranchingCache branchingCache,
+                int totalParameters,
+                float[] globalParameters,
+                Allocator allocator = Allocator.Persistent)
+            {
+                this.branchingCache = branchingCache;
+                tmpParameterMemory =
+                    new NativeArray<float>(totalParameters, allocator, NativeArrayOptions.UninitializedMemory);
+                globalParamNative = new NativeArray<float>(globalParameters, allocator);
+            }
+
+            public void Dispose()
+            {
+                tmpParameterMemory.Dispose();
+                globalParamNative.Dispose();
+            }
         }
         private async Task<(int symbolSize, int paramSize)> PerformLSystemMatch(
             MatchSingletonsDataPacket singletonDataPack,
