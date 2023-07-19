@@ -4,6 +4,8 @@ using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.ObjectSets;
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
@@ -29,7 +31,8 @@ namespace Dman.LSystem.UnityObjects
         private LSystemStepper compiledSystem;
 
 
-        private CompletableHandle<LSystemState<float>> lSystemPendingCompletable;
+        private CancellationTokenSource lSystemPendingCancellation;
+        private bool isLSystemUpdatePending = false;
 
         private LSystemGlobalResourceHandle globalResourceHandle;
 
@@ -112,9 +115,10 @@ namespace Dman.LSystem.UnityObjects
             {
                 throw new Exception("trying to access disposed stepping handle");
             }
-            if (lSystemPendingCompletable != null)
+
+            if (lSystemPendingCancellation != null)
             {
-                lSystemPendingCompletable.Cancel();
+                lSystemPendingCancellation.Cancel();
             }
             lastState?.currentSymbols.Dispose();
             lastState = null;
@@ -157,7 +161,7 @@ namespace Dman.LSystem.UnityObjects
         }
         public bool CanStep()
         {
-            return lSystemPendingCompletable == null && HasValidSystem();
+            return !isLSystemUpdatePending && HasValidSystem();
         }
         /// <summary>
         /// step the Lsystem forward one tick. when CompleteInLateUpdate is true, be very careful with changes to the L-system
@@ -173,7 +177,7 @@ namespace Dman.LSystem.UnityObjects
                 Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }
-            StepSystemAsync(runtimeParameters);
+            StepSystemAsync(runtimeParameters, forceSync: false);
         }
         public void StepSystemImmediate()
         {
@@ -182,8 +186,7 @@ namespace Dman.LSystem.UnityObjects
                 Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }
-            StepSystemAsync(runtimeParameters);
-            lSystemPendingCompletable.CompleteImmediate();
+            StepSystemAsync(runtimeParameters, forceSync: true);
         }
 
         public void RepeatLastStepImmediate()
@@ -193,8 +196,7 @@ namespace Dman.LSystem.UnityObjects
                 Debug.LogError("System is already waiting for an update!! To many!!");
                 return;
             }
-            StepSystemAsync(runtimeParameters, repeatLast: true);
-            lSystemPendingCompletable.CompleteImmediate();
+            StepSystemAsync(runtimeParameters, forceSync: true, repeatLast: true);
         }
 
         /// <summary>
@@ -204,13 +206,30 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="repeatLast">True if this system should just repeat the last update. Useful if a runtime parameter changed, or </param>
         private void StepSystemAsync(
             ArrayParameterRepresenation<float> runtimeParameters,
+            bool forceSync,
             bool repeatLast = false)
+        {
+            if (lSystemPendingCancellation == null || lSystemPendingCancellation.IsCancellationRequested)
+            {
+                lSystemPendingCancellation = new CancellationTokenSource();
+            }
+            var result = AsyncStepSystemFunction(runtimeParameters, repeatLast, forceSync, lSystemPendingCancellation.Token);
+            result.Forget();
+        }
+
+        private async UniTask AsyncStepSystemFunction(
+            ArrayParameterRepresenation<float> runtimeParameters,
+            bool repeatLast,
+            bool forceSync,
+            CancellationToken cancel)
         {
             if (isDisposed)
             {
                 throw new Exception("trying to access disposed stepping handle");
             }
-            ICompletable<LSystemState<float>> pendingStateHandle;
+
+            this.isLSystemUpdatePending = true;
+            UniTask<LSystemState<float>> pendingStateHandle;
             try
             {
                 if (compiledSystem == null || compiledSystem.isDisposed)
@@ -222,6 +241,8 @@ namespace Dman.LSystem.UnityObjects
                     globalResourceHandle.UpdateUniqueIdReservationSpace(lastState);
                     pendingStateHandle = compiledSystem.StepSystemJob(
                         lastState,
+                        forceSync,
+                        cancel,
                         runtimeParameters.GetCurrentParameters());
                 }
                 else
@@ -233,51 +254,45 @@ namespace Dman.LSystem.UnityObjects
 
                     pendingStateHandle = compiledSystem.StepSystemJob(
                         currentState,
+                        forceSync,
+                        cancel,
                         runtimeParameters.GetCurrentParameters(),
                         parameterWriteDependency: sunlightJob);
-                }
-                if (pendingStateHandle == null)
-                {
-                    lSystemPendingCompletable = null;
-                    return;
                 }
             }
             catch (System.Exception e)
             {
                 lastUpdateChanged = false;
                 Debug.LogException(e);
-                lSystemPendingCompletable = null;
+                this.isLSystemUpdatePending = false;
                 return;
             }
 
-            lSystemPendingCompletable = CompletableExecutor.Instance.RegisterCompletable(pendingStateHandle);
+            var nextState = await pendingStateHandle;
 
-            lSystemPendingCompletable.OnCompleted += (nextState) =>
+            UnityEngine.Profiling.Profiler.BeginSample("updating stepping handle state");
+            if (repeatLast)
             {
-                UnityEngine.Profiling.Profiler.BeginSample("updating stepping handle state");
-                if (repeatLast)
-                {
-                    // dispose the current state, since it is about to be replaced
-                    currentState?.currentSymbols.Dispose();
-                }
-                else
-                {
-                    // dispose the last state
-                    lastState?.currentSymbols.Dispose();
-                    lastState = currentState;
-                    totalSteps++;
-                }
-                currentState = nextState;
-                // if there are immature markers, use those instead. avoiding an equality check saves time.
-                var hasImmatureMarkers = systemObject.linkedFiles.immaturitySymbolMarkers.Length > 0;
-                lastUpdateChanged = hasImmatureMarkers || !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
+                // dispose the current state, since it is about to be replaced
+                currentState?.currentSymbols.Dispose();
+            }
+            else
+            {
+                // dispose the last state
+                lastState?.currentSymbols.Dispose();
+                lastState = currentState;
+                totalSteps++;
+            }
+            currentState = nextState;
+            // if there are immature markers, use those instead. avoiding an equality check saves time.
+            var hasImmatureMarkers = systemObject.linkedFiles.immaturitySymbolMarkers.Length > 0;
+            lastUpdateChanged = hasImmatureMarkers || !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
 
-                lSystemPendingCompletable = null;
-                UnityEngine.Profiling.Profiler.EndSample();
-                UnityEngine.Profiling.Profiler.BeginSample("notifying system state listeners");
-                OnSystemStateUpdated?.Invoke();
-                UnityEngine.Profiling.Profiler.EndSample();
-            };
+            this.isLSystemUpdatePending = false;
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("notifying system state listeners");
+            OnSystemStateUpdated?.Invoke();
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
 
@@ -306,7 +321,8 @@ namespace Dman.LSystem.UnityObjects
                 compiledSystem?.Dispose();
                 compiledSystem = null;
             }
-            lSystemPendingCompletable?.Cancel();
+
+            lSystemPendingCancellation?.Cancel();
             lastState?.currentSymbols.Dispose();
             lastState = null;
 
@@ -410,10 +426,7 @@ namespace Dman.LSystem.UnityObjects
             if (!useSharedSystem)
             {
                 var newSystem = systemObject.CompileWithParameters(compiledGlobalCompiletimeReplacements);
-                if (lSystemPendingCompletable != null)
-                {
-                    lSystemPendingCompletable.Cancel();
-                }
+                lSystemPendingCancellation?.Cancel();
                 compiledSystem?.Dispose();
                 compiledSystem = newSystem;
             }
@@ -422,7 +435,7 @@ namespace Dman.LSystem.UnityObjects
             {
                 // the unique ID origin point changed. therefore, the l-system must step again to update the IDs based on the serialized LastState
                 //  this could be done faster with a simple ID update
-                StepSystemAsync(runtimeParameters, repeatLast: true);
+                StepSystemAsync(runtimeParameters, forceSync: false, repeatLast: true);
             }
         }
 

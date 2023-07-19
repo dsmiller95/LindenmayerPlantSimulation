@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -209,20 +211,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             try
             {
 #endif
-                var stepper = StepSystemJob(systemState, globalParameters);
-                while (!stepper.IsComplete())
-                {
-                    stepper = stepper.StepNextTyped();
-                }
+                var stepperCompletable = StepSystemJob(systemState, true, CancellationToken.None, globalParameters)
+                    .ExtractSync();
                 if (disposeOldSystem)
                 {
                     systemState.currentSymbols.Dispose();
                 }
-                if (stepper.HasErrored())
-                {
-                    throw new LSystemRuntimeException("Error during stepping");
-                }
-                return stepper.GetData();
+                return stepperCompletable;
 #if UNITY_EDITOR
             }
             catch (System.Exception e)
@@ -249,7 +244,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// </summary>
         /// <param name="systemState">The entire state of the L-system. no modifications are made to this object or the contained properties.</param>
         /// <param name="globalParameters">The global parameters, if any</param>
-        public ICompletable<LSystemState<float>> StepSystemJob(LSystemState<float> systemState, float[] globalParameters = null, JobHandle parameterWriteDependency = default)
+        public async UniTask<LSystemState<float>> StepSystemJob(
+            LSystemState<float> systemState,
+            bool forceSynchronous,
+            CancellationToken cancel,
+            float[] globalParameters = null,
+            JobHandle parameterWriteDependency = default)
         {
             if (isDisposed)
             {
@@ -276,7 +276,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 customSymbols,
                 parameterWriteDependency);
             UnityEngine.Profiling.Profiler.EndSample();
-            return result;
+            return await result.ToUniTask(forceSynchronous, cancel);
         }
 
         public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)

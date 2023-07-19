@@ -1,6 +1,7 @@
 ﻿use crate::dynamic_expressions;
 use crate::interop_extern::data::{IndexesIn, JaggedIndexing};
 
+#[derive(Copy, Clone, Debug)]
 #[repr(u8)]
 pub enum OperatorType
 {
@@ -48,15 +49,6 @@ pub struct OperatorDefinition {
     /// used when operator is binary op. index of the left hand side value in the operator
     ///     data array
     pub lhs: u16,
-}
-
-#[repr(C)]
-pub union NodeProperty {
-    /// is set when the node has a constant value
-    pub node_value: f32,
-    /// used when operator is PARAMETER_VALUE. carries an index in input parameters
-    ///     from which to pull the value for this operator
-    pub parameter_index: i32,
 }
 
 #[no_mangle]

@@ -15,9 +15,9 @@ pub fn evaluate_expression(
 }
 
 pub struct DynamicExpressionEvaluator<'a> {
-    operation_data: &'a[OperatorDefinition],
-    parameter_values: &'a[f32],
-    parameter_values_2: &'a[f32],
+    operation_data: &'a [OperatorDefinition],
+    parameter_values: &'a [f32],
+    parameter_values_2: &'a [f32],
 }
 
 impl DynamicExpressionEvaluator<'_> {
