@@ -93,14 +93,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         private struct MatchSingletonsDataPacket : IDisposable
         {
-            public LSystemState<float> lastSystemState;
-            public DependencyTracker<SystemLevelRuleNativeData> nativeData;
+            public readonly LSystemState<float> lastSystemState;
+            public readonly DependencyTracker<SystemLevelRuleNativeData> nativeData;
             public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
             
-            public SystemLevelRuleNativeData systemData => nativeData.Data;
-            public SymbolString<float> symbols => lastSystemState.currentSymbols.Data;
-
-            public int Length => symbols.Length;
+            public SystemLevelRuleNativeData SystemData => nativeData.Data;
+            public SymbolString<float> Symbols => lastSystemState.currentSymbols.Data;
+            public int Length => Symbols.Length;
 
             public MatchSingletonsDataPacket(
                 LSystemState<float> lastSystemState,
@@ -137,9 +136,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var memorySizeJob = new SymbolStringMemoryRequirementsJob
             {
                 matchSingletonData = singletonDataPack.matchSingletonData,
-                memoryRequirementsPerSymbol = singletonDataPack.systemData.maxParameterMemoryRequirementsPerSymbol,
+                memoryRequirementsPerSymbol = singletonDataPack.SystemData.maxParameterMemoryRequirementsPerSymbol,
                 parameterTotalSum = parameterTotalSum,
-                sourceSymbolString = singletonDataPack.symbols
+                sourceSymbolString = singletonDataPack.Symbols
             };
 
             var currentJobHandle = memorySizeJob.Schedule();
@@ -155,7 +154,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         {
             public NativeArray<float> globalParamNative;
             public NativeArray<float> tmpParameterMemory;
-            public SymbolStringBranchingCache branchingCache;
+            public readonly SymbolStringBranchingCache branchingCache;
 
             public MatchAndWriteWorkingMemoryDataPacket(
                 SymbolStringBranchingCache branchingCache,
@@ -189,14 +188,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             {
                 matchSingletonData = singletonDataPack.matchSingletonData,
 
-                sourceData = singletonDataPack.symbols,
+                sourceData = singletonDataPack.Symbols,
                 tmpParameterMemory = matchDataPack.tmpParameterMemory,
 
-                globalOperatorData = singletonDataPack.systemData.dynamicOperatorMemory,
-                outcomes = singletonDataPack.systemData.ruleOutcomeMemorySpace,
+                globalOperatorData = singletonDataPack.SystemData.dynamicOperatorMemory,
+                outcomes = singletonDataPack.SystemData.ruleOutcomeMemorySpace,
                 globalParams = matchDataPack.globalParamNative,
 
-                blittableRulesByTargetSymbol = singletonDataPack.systemData.blittableRulesByTargetSymbol,
+                blittableRulesByTargetSymbol = singletonDataPack.SystemData.blittableRulesByTargetSymbol,
                 branchingCache = matchDataPack.branchingCache,
                 seed = randomSeed
             };
@@ -220,7 +219,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var totalSymbolLengthJob = new RuleReplacementSizeJob
             {
                 matchSingletonData = singletonDataPack.matchSingletonData,
-                sourceData = singletonDataPack.symbols,
+                sourceData = singletonDataPack.Symbols,
                 
                 totalResultSymbolCount = totalSymbolCount,
                 totalResultParameterCount = totalSymbolParameterCount,
@@ -252,14 +251,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 parameterMatchMemory = matchDataPack.tmpParameterMemory,
                 matchSingletonData = singletonDataPack.matchSingletonData,
 
-                sourceData = singletonDataPack.symbols,
-                structExpressionSpace = singletonDataPack.systemData.structExpressionMemorySpace,
-                globalOperatorData = singletonDataPack.systemData.dynamicOperatorMemory,
-                replacementSymbolData = singletonDataPack.systemData.replacementsSymbolMemorySpace,
-                outcomeData = singletonDataPack.systemData.ruleOutcomeMemorySpace,
+                sourceData = singletonDataPack.Symbols,
+                structExpressionSpace = singletonDataPack.SystemData.structExpressionMemorySpace,
+                globalOperatorData = singletonDataPack.SystemData.dynamicOperatorMemory,
+                replacementSymbolData = singletonDataPack.SystemData.replacementsSymbolMemorySpace,
+                outcomeData = singletonDataPack.SystemData.ruleOutcomeMemorySpace,
 
                 targetData = target,
-                blittableRulesByTargetSymbol = singletonDataPack.systemData.blittableRulesByTargetSymbol,
+                blittableRulesByTargetSymbol = singletonDataPack.SystemData.blittableRulesByTargetSymbol,
                 branchingCache = matchDataPack.branchingCache,
                 customSymbols = customSymbols
             };
@@ -280,7 +279,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 var diffusionJob = new ParallelDiffusionReplacementJob
                 {
                     matchSingletonData = singletonDataPack.matchSingletonData,
-                    sourceData = singletonDataPack.symbols,
+                    sourceData = singletonDataPack.Symbols,
                     targetData = target,
                     customSymbols = customSymbols,
 #if !RUST_SUBSYSTEM
