@@ -1,4 +1,9 @@
-﻿using Dman.LSystem.Extern;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using Dman.LSystem.Extern;
 using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
@@ -13,46 +18,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     /// Class used to track intermediate state during the lsystem step. accessed from multiple job threads
     /// beware of multithreading
     /// </summary>
-    public class LSystemRuleMatchCompletable : ICompletable<LSystemState<float>>
+    public class LSystemRuleMatchCompletable
     {
-#if UNITY_EDITOR
-        public string TaskDescription => "L System rule matching";
-#endif
-        public Unity.Mathematics.Random randResult;
-        public CustomRuleSymbols customSymbols;
-        public LSystemState<float> lastSystemState;
-
-        /////////////// things owned by this step /////////
-        public NativeArray<int> totalSymbolCount;
-        public NativeArray<int> totalSymbolParameterCount;
-
-
-        /////////////// things transferred to the next step /////////
-        public SymbolStringBranchingCache branchingCache;
-        public NativeArray<float> globalParamNative;
-        public NativeArray<float> tmpParameterMemory;
-        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
-
-        /////////////// l-system native data /////////
-        public DependencyTracker<SystemLevelRuleNativeData> nativeData;
-
-
-        public JobHandle currentJobHandle { get; private set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="lastSystemState"></param>
-        /// <param name="lSystemNativeData"></param>
-        /// <param name="globalParameters"></param>
-        /// <param name="maxMemoryRequirementsPerSymbol"></param>
-        /// <param name="branchOpenSymbol"></param>
-        /// <param name="branchCloseSymbol"></param>
-        /// <param name="includedCharactersByRuleIndex"></param>
-        /// <param name="customSymbols"></param>
-        /// <param name="parameterModificationJobDependency">A dependency on a job which only makes changes to the parameters of the source symbol string.
-        ///     the symbols themselves must be constant</param>
-        public LSystemRuleMatchCompletable(
+        public static async UniTask<LSystemState<float>> Run(
             NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
             int parameterTotalSum,
             SymbolStringBranchingCache branchingCache,
@@ -60,20 +28,18 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             DependencyTracker<SystemLevelRuleNativeData> lSystemNativeData,
             float[] globalParameters,
             CustomRuleSymbols customSymbols,
-            JobHandle parameterModificationJobDependency)
+            JobHandle parameterModificationJobDependency,
+            CancellationToken forceSynchronous,
+            CancellationToken cancel)
         {
-            this.customSymbols = customSymbols;
-            this.lastSystemState = lastSystemState;
-            randResult = lastSystemState.randomProvider;
-            nativeData = lSystemNativeData;
-
-            this.matchSingletonData = matchSingletonData;
-            this.branchingCache = branchingCache;
+            
+            var randResult = lastSystemState.randomProvider;
+            var nativeData = lSystemNativeData;
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            tmpParameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
+            var tmpParameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // 2.
@@ -108,8 +74,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            totalSymbolCount = new NativeArray<int>(1, Allocator.Persistent);
-            totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
+            var totalSymbolCount = new NativeArray<int>(1, Allocator.Persistent);
+            var totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
             UnityEngine.Profiling.Profiler.EndSample();
 
             var totalSymbolLengthJob = new RuleReplacementSizeJob
@@ -120,15 +86,35 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 sourceData = lastSystemState.currentSymbols.Data,
                 customSymbols = customSymbols
             };
-            currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
+            var currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
             lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
             nativeData.RegisterDependencyOnData(currentJobHandle);
 
             UnityEngine.Profiling.Profiler.EndSample();
-        }
-
-        public ICompletable StepNext()
-        {
+            
+            
+            using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
+            try
+            {
+                var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(cancelJobSource.Token, 3);
+                if (cancelled && cancel.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+            }
+            catch(Exception)
+            {
+                currentJobHandle.Complete();
+                totalSymbolCount.Dispose();
+                totalSymbolParameterCount.Dispose();
+                globalParamNative.Dispose();
+                tmpParameterMemory.Dispose();
+                matchSingletonData.Dispose();
+                if (branchingCache.IsCreated) branchingCache.Dispose();
+            }
+            
+            
+            
             currentJobHandle.Complete();
 
             var totalNewSymbolSize = totalSymbolCount[0];
@@ -136,7 +122,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             totalSymbolCount.Dispose();
             totalSymbolParameterCount.Dispose();
 
-            return new LSystemSymbolReplacementCompletable(
+            var nextCompletable =  new LSystemSymbolReplacementCompletable(
                 randResult,
                 lastSystemState,
                 totalNewSymbolSize,
@@ -147,49 +133,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 nativeData,
                 branchingCache,
                 customSymbols);
-        }
-
-        public bool IsComplete()
-        {
-            return false;
-        }
-        public bool HasErrored()
-        {
-            return false;
-        }
-
-        public string GetError()
-        {
-            return null;
-        }
-
-        public LSystemState<float> GetData()
-        {
-            return null;
-        }
-
-        public JobHandle Dispose(JobHandle inputDeps)
-        {
-            // TODO
-            currentJobHandle.Complete();
-            totalSymbolCount.Dispose();
-            totalSymbolParameterCount.Dispose();
-            globalParamNative.Dispose();
-            tmpParameterMemory.Dispose();
-            matchSingletonData.Dispose();
-            if (branchingCache.IsCreated) branchingCache.Dispose();
-            return inputDeps;
-        }
-
-        public void Dispose()
-        {
-            currentJobHandle.Complete();
-            totalSymbolCount.Dispose();
-            totalSymbolParameterCount.Dispose();
-            globalParamNative.Dispose();
-            tmpParameterMemory.Dispose();
-            matchSingletonData.Dispose();
-            if (branchingCache.IsCreated) branchingCache.Dispose();
+            return await nextCompletable.ToUniTask(forceSynchronous, cancel);
         }
     }
 

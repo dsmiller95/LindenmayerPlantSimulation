@@ -90,7 +90,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var paramTotal = parameterTotalSum[0];
             parameterTotalSum.Dispose();
 
-            var nextCompletable = new LSystemRuleMatchCompletable(
+            return await LSystemRuleMatchCompletable.Run(
                 matchSingletonData,
                 paramTotal,
                 branchingCache,
@@ -98,9 +98,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 nativeData,
                 globalParameters,
                 customSymbols,
-                paramModificationDependency);
-            
-            return await nextCompletable.ToUniTask(forceSynchronous, cancel);
+                paramModificationDependency,
+                forceSynchronous, cancel);
         }
     }
 
