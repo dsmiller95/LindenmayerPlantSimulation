@@ -213,6 +213,7 @@ namespace Dman.LSystem.UnityObjects
             {
                 lSystemPendingCancellation = new CancellationTokenSource();
             }
+            
             var result = AsyncStepSystemFunction(runtimeParameters, repeatLast, forceSync, lSystemPendingCancellation.Token);
             result.Forget();
         }
@@ -228,6 +229,13 @@ namespace Dman.LSystem.UnityObjects
                 throw new Exception("trying to access disposed stepping handle");
             }
 
+            
+            using var cancelledSource = new CancellationTokenSource();
+            if (forceSync)
+            {
+                cancelledSource.Cancel();
+            }
+            
             this.isLSystemUpdatePending = true;
             UniTask<LSystemState<float>> pendingStateHandle;
             try
@@ -241,7 +249,7 @@ namespace Dman.LSystem.UnityObjects
                     globalResourceHandle.UpdateUniqueIdReservationSpace(lastState);
                     pendingStateHandle = compiledSystem.StepSystemJob(
                         lastState,
-                        forceSync,
+                        cancelledSource.Token,
                         cancel,
                         runtimeParameters.GetCurrentParameters());
                 }
@@ -254,7 +262,7 @@ namespace Dman.LSystem.UnityObjects
 
                     pendingStateHandle = compiledSystem.StepSystemJob(
                         currentState,
-                        forceSync,
+                        cancelledSource.Token,
                         cancel,
                         runtimeParameters.GetCurrentParameters(),
                         parameterWriteDependency: sunlightJob);

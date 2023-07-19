@@ -211,7 +211,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             try
             {
 #endif
-                var stepperCompletable = StepSystemJob(systemState, true, CancellationToken.None, globalParameters)
+                using var cancelledSource = new CancellationTokenSource();
+                cancelledSource.Cancel();
+                var stepperCompletable = StepSystemJob(systemState, cancelledSource.Token, CancellationToken.None, globalParameters)
                     .ExtractSync();
                 if (disposeOldSystem)
                 {
@@ -246,7 +248,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         /// <param name="globalParameters">The global parameters, if any</param>
         public async UniTask<LSystemState<float>> StepSystemJob(
             LSystemState<float> systemState,
-            bool forceSynchronous,
+            CancellationToken forceSynchronous,
             CancellationToken cancel,
             float[] globalParameters = null,
             JobHandle parameterWriteDependency = default)
@@ -268,15 +270,17 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 throw new LSystemRuntimeException($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
 
-            var result = new LSystemParameterSizeCountingCompletable(
+            var result = LSystemParameterSizeCountingCompletable.Run(
                 systemState,
                 nativeRuleData,
                 globalParameters,
                 includedCharacters,
                 customSymbols,
-                parameterWriteDependency);
+                parameterWriteDependency,
+                forceSynchronous,
+                cancel);
             UnityEngine.Profiling.Profiler.EndSample();
-            return await result.ToUniTask(forceSynchronous, cancel);
+            return await result;
         }
 
         public static Unity.Mathematics.Random RandomFromIndexAndSeed(uint index, uint seed)

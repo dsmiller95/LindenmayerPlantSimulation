@@ -9,15 +9,26 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
     
     public static class CompleteableToUniTask
     {
-        public static async UniTask<T> ToUniTask<T>(this ICompletable<T> completable, bool forceSynchronous, CancellationToken cancel = default)
+        public static async UniTask<T> ToUniTask<T>(
+            this ICompletable<T> completable,
+            CancellationToken forceSynchronous, 
+            CancellationToken cancel = default)
         {
             try
             {
                 while (!completable.IsComplete())
                 {
-                    if (!forceSynchronous)
+                    if (!forceSynchronous.IsCancellationRequested)
                     {
-                        await UniTask.WaitUntil(() => completable.currentJobHandle.IsCompleted, cancellationToken: cancel);
+                        using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
+                        var cancelled = await UniTask.WaitUntil(
+                                () => completable.currentJobHandle.IsCompleted,
+                                cancellationToken: cancelJobSource.Token)
+                            .SuppressCancellationThrow();
+                        if (cancelled && cancel.IsCancellationRequested)
+                        {
+                            throw new OperationCanceledException();
+                        }
                     }
                     if (completable.HasErrored())
                     {
@@ -43,7 +54,9 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         /// <exception cref="CompletableException"></exception>
         public static T ToCompleted<T>(this ICompletable<T> completable)
         {
-            var task = completable.ToUniTask(forceSynchronous: true);
+            var cancelledSource = new CancellationTokenSource();
+            cancelledSource.Cancel();
+            var task = completable.ToUniTask(cancelledSource.Token);
             return task.ExtractSync();
         }
 
@@ -62,7 +75,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         /// <returns>true if cancelled</returns>
         /// <exception cref="OperationCanceledException"></exception>
         public static async UniTask<bool> AwaitCompleteImmediateOnCancel(
-            JobHandle handle,
+            this JobHandle handle,
             CancellationToken cancel,
             int maxFameDelay = -1)
         {
