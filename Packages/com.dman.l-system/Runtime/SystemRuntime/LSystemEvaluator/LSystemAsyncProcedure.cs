@@ -79,10 +79,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             };
             
             var (totalNewSymbolSize, totalNewParamSize) = await PerformLSystemMatch(
-                parameterModificationJobDependency,
                 singletonDataPack,
                 matchDataPack,
                 customSymbols,
+                parameterModificationJobDependency,
                 randResult.NextUInt());
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
@@ -91,8 +91,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             
             var (hasImmatureSymbols, maxUniqueOrganIds) = await PerformSymbolReplacement(
                 singletonDataPack,
-                customSymbols,
                 matchDataPack,
+                customSymbols,
                 target);
 
             return new LSystemState<float>
@@ -111,6 +111,12 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             public LSystemState<float> lastSystemState;
             public DependencyTracker<SystemLevelRuleNativeData> nativeData;
             public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
+            
+            public SystemLevelRuleNativeData systemData => nativeData.Data;
+            public SymbolString<float> symbols => lastSystemState.currentSymbols.Data;
+
+            public int Length => symbols.Length;
+            
             public void Dispose()
             {
                 nativeData.Dispose();
@@ -122,6 +128,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 lastSystemState.currentSymbols.RegisterDependencyOnData(deps);
                 nativeData.RegisterDependencyOnData(deps);
             }
+            
         }
         private async Task<int> CountParameterTotals(MatchSingletonsDataPacket singletonDataPack)
         {
@@ -131,9 +138,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var memorySizeJob = new SymbolStringMemoryRequirementsJob
             {
                 matchSingletonData = singletonDataPack.matchSingletonData,
-                memoryRequirementsPerSymbol = singletonDataPack.nativeData.Data.maxParameterMemoryRequirementsPerSymbol,
+                memoryRequirementsPerSymbol = singletonDataPack.systemData.maxParameterMemoryRequirementsPerSymbol,
                 parameterTotalSum = parameterTotalSum,
-                sourceSymbolString = singletonDataPack.lastSystemState.currentSymbols.Data
+                sourceSymbolString = singletonDataPack.symbols
             };
 
             var currentJobHandle = memorySizeJob.Schedule();
@@ -152,10 +159,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             public SymbolStringBranchingCache branchingCache;
         }
         private async Task<(int symbolSize, int paramSize)> PerformLSystemMatch(
-            JobHandle parameterModificationJobDependency,
             MatchSingletonsDataPacket singletonDataPack,
             MatchAndWriteWorkingMemoryDataPacket matchDataPack,
             CustomRuleSymbols customSymbols,
+            JobHandle parameterModificationJobDependency,
             uint randomSeed)
         {
             // 2.
@@ -165,20 +172,20 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             {
                 matchSingletonData = singletonDataPack.matchSingletonData,
 
-                sourceData = singletonDataPack.lastSystemState.currentSymbols.Data,
+                sourceData = singletonDataPack.symbols,
                 tmpParameterMemory = matchDataPack.tmpParameterMemory,
 
-                globalOperatorData = singletonDataPack.nativeData.Data.dynamicOperatorMemory,
-                outcomes = singletonDataPack.nativeData.Data.ruleOutcomeMemorySpace,
+                globalOperatorData = singletonDataPack.systemData.dynamicOperatorMemory,
+                outcomes = singletonDataPack.systemData.ruleOutcomeMemorySpace,
                 globalParams = matchDataPack.globalParamNative,
 
-                blittableRulesByTargetSymbol = singletonDataPack.nativeData.Data.blittableRulesByTargetSymbol,
+                blittableRulesByTargetSymbol = singletonDataPack.systemData.blittableRulesByTargetSymbol,
                 branchingCache = matchDataPack.branchingCache,
                 seed = randomSeed
             };
 
             var currentJobHandle = prematchJob.ScheduleBatch(
-                singletonDataPack.matchSingletonData.Length,
+                singletonDataPack.Length,
                 100,
                 parameterModificationJobDependency);
 
@@ -196,7 +203,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             var totalSymbolLengthJob = new RuleReplacementSizeJob
             {
                 matchSingletonData = singletonDataPack.matchSingletonData,
-                sourceData = singletonDataPack.lastSystemState.currentSymbols.Data,
+                sourceData = singletonDataPack.symbols,
                 
                 totalResultSymbolCount = totalSymbolCount,
                 totalResultParameterCount = totalSymbolParameterCount,
@@ -214,8 +221,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
         private async Task<(bool hasImmatureSymbols, uint maxUniqueOrganIds)> PerformSymbolReplacement(
             MatchSingletonsDataPacket singletonDataPack,
-            CustomRuleSymbols customSymbols,
             MatchAndWriteWorkingMemoryDataPacket matchDataPack,
+            CustomRuleSymbols customSymbols,
             SymbolString<float> target)
         {
             // 5
@@ -228,20 +235,20 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 parameterMatchMemory = matchDataPack.tmpParameterMemory,
                 matchSingletonData = singletonDataPack.matchSingletonData,
 
-                sourceData = singletonDataPack.lastSystemState.currentSymbols.Data,
-                structExpressionSpace = singletonDataPack.nativeData.Data.structExpressionMemorySpace,
-                globalOperatorData = singletonDataPack.nativeData.Data.dynamicOperatorMemory,
-                replacementSymbolData = singletonDataPack.nativeData.Data.replacementsSymbolMemorySpace,
-                outcomeData = singletonDataPack.nativeData.Data.ruleOutcomeMemorySpace,
+                sourceData = singletonDataPack.symbols,
+                structExpressionSpace = singletonDataPack.systemData.structExpressionMemorySpace,
+                globalOperatorData = singletonDataPack.systemData.dynamicOperatorMemory,
+                replacementSymbolData = singletonDataPack.systemData.replacementsSymbolMemorySpace,
+                outcomeData = singletonDataPack.systemData.ruleOutcomeMemorySpace,
 
                 targetData = target,
-                blittableRulesByTargetSymbol = singletonDataPack.nativeData.Data.blittableRulesByTargetSymbol,
+                blittableRulesByTargetSymbol = singletonDataPack.systemData.blittableRulesByTargetSymbol,
                 branchingCache = matchDataPack.branchingCache,
                 customSymbols = customSymbols
             };
 
             var currentJobHandle = replacementJob.Schedule(
-                singletonDataPack.matchSingletonData.Length,
+                singletonDataPack.Length,
                 100
             );
 
@@ -256,7 +263,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 var diffusionJob = new ParallelDiffusionReplacementJob
                 {
                     matchSingletonData = singletonDataPack.matchSingletonData,
-                    sourceData = singletonDataPack.lastSystemState.currentSymbols.Data,
+                    sourceData = singletonDataPack.symbols,
                     targetData = target,
                     customSymbols = customSymbols,
 #if !RUST_SUBSYSTEM
