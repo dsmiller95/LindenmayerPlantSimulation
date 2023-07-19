@@ -193,11 +193,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     100
                 );
 
+#if !RUST_SUBSYSTEM
+                using var diffusionHelper = customSymbols.hasDiffusion ?
+                    new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob) :
+                    default;
+#endif
+
                 if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
                 {
-#if !RUST_SUBSYSTEM
-                    diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
-#endif
                     var diffusionJob = new ParallelDiffusionReplacementJob
                     {
                         matchSingletonData = matchSingletonData,
@@ -227,7 +230,13 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 currentJobHandle = JobHandle.CombineDependencies(
                     JobHandle.CombineDependencies(
                         isAssignmentJob,
-                        MaybeScheduleIndependentDiffusion(currentJobHandle, customSymbols, target)
+                        MaybeScheduleIndependentDiffusion(
+                            currentJobHandle,
+                            customSymbols,
+#if !RUST_SUBSYSTEM
+                            diffusionHelper,
+#endif
+                            target)
                     ),
                     JobHandle.CombineDependencies(
                         MaybeScheduleAutophagyJob(currentJobHandle, customSymbols, target),
@@ -254,17 +263,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                     catch (Exception)
                     {
                         target.Dispose();
-#if !RUST_SUBSYSTEM
-                        if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
-#endif
                         if (isImmature.IsCreated) isImmature.Dispose();
                         throw;
                     }
                 }
                 
-#if !RUST_SUBSYSTEM
-                if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
-#endif
                 if (isImmature.IsCreated)
                 {
                     hasImmatureSymbols = isImmature[0];
@@ -290,14 +293,14 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
         private static JobHandle MaybeScheduleIndependentDiffusion(
             JobHandle dependency,
             CustomRuleSymbols customSymbols,
+#if !RUST_SUBSYSTEM
+            DiffusionWorkingDataPack diffusionHelper,
+#endif
             SymbolString<float> targetString)
         {
             // diffusion is only dependent on the target symbol data. don't need to register as dependent on native data/source symbols
             if (customSymbols.hasDiffusion && customSymbols.independentDiffusionUpdate)
             {
-#if !RUST_SUBSYSTEM
-                diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
-#endif
                 var diffusionJob = new IndependentDiffusionReplacementJob
                 {
                     inPlaceSymbols = targetString,

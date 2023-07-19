@@ -165,6 +165,7 @@ namespace Dman.LSystem.SystemRuntime.CustomRules.Diffusion
 
         public void Dispose()
         {
+            if (!IsCreated) return;
             allEdges.Dispose();
             nodes.Dispose();
             nodeMaxCapacities.Dispose();
