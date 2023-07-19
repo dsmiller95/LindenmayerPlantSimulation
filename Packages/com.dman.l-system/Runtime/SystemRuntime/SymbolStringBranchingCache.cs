@@ -434,6 +434,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public void Dispose()
         {
+            if (!IsCreated) return;
             branchingJumpIndexes.Dispose();
             includeSymbols.Dispose();
         }

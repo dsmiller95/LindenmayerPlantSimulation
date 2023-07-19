@@ -19,11 +19,9 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
     public struct RuleReplacementJob : IJobParallelFor
     {
         [ReadOnly]
-        [DeallocateOnJobCompletion]
         [NativeDisableParallelForRestriction]
         public NativeArray<float> globalParametersArray;
         [ReadOnly]
-        [DeallocateOnJobCompletion]
         [NativeDisableParallelForRestriction]
         public NativeArray<float> parameterMatchMemory;
 

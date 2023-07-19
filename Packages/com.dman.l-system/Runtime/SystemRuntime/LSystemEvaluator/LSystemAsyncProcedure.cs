@@ -25,46 +25,48 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             CancellationToken forceSynchronous,
             CancellationToken cancel)
         {
-            
             JobHandle currentJobHandle = default;
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("Parameter counts");
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(lastSystemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            var parameterTotalSum = new NativeArray<int>(1, Allocator.TempJob);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            var memorySizeJob = new SymbolStringMemoryRequirementsJob
-            {
-                matchSingletonData = matchSingletonData,
-                memoryRequirementsPerSymbol = nativeData.Data.maxParameterMemoryRequirementsPerSymbol,
-                parameterTotalSum = parameterTotalSum,
-                sourceSymbolString = lastSystemState.currentSymbols.Data
-            };
-
-            currentJobHandle = memorySizeJob.Schedule();
-            lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
-            nativeData.RegisterDependencyOnData(currentJobHandle);
-
-
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            // 2.1
-            UnityEngine.Profiling.Profiler.BeginSample("branch cache");
-            var branchingCache = new SymbolStringBranchingCache(
+            using var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(
+                lastSystemState.currentSymbols.Data.Length, Allocator.Persistent,
+                NativeArrayOptions.UninitializedMemory);
+            using var branchingCache = new SymbolStringBranchingCache(
                 customSymbols.branchOpenSymbol,
                 customSymbols.branchCloseSymbol,
                 includedCharactersByRuleIndex,
                 nativeData.Data);
-            branchingCache.BuildJumpIndexesFromSymbols(lastSystemState.currentSymbols);
-            UnityEngine.Profiling.Profiler.EndSample();
-
+            int paramTotal;
             {
-                using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
-                try
+                using var parameterTotalSum = new NativeArray<int>(1, Allocator.TempJob);
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                var memorySizeJob = new SymbolStringMemoryRequirementsJob
                 {
+                    matchSingletonData = matchSingletonData,
+                    memoryRequirementsPerSymbol = nativeData.Data.maxParameterMemoryRequirementsPerSymbol,
+                    parameterTotalSum = parameterTotalSum,
+                    sourceSymbolString = lastSystemState.currentSymbols.Data
+                };
+
+                currentJobHandle = memorySizeJob.Schedule();
+                lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
+                nativeData.RegisterDependencyOnData(currentJobHandle);
+
+
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                // 2.1
+                UnityEngine.Profiling.Profiler.BeginSample("branch cache");
+                branchingCache.BuildJumpIndexesFromSymbols(lastSystemState.currentSymbols);
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                {
+                    using var cancelJobSource =
+                        CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
                     var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
                         cancelJobSource.Token,
                         LSystemJobExecutionConfig.Instance.forceUpdates,
@@ -74,242 +76,218 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                         throw new TaskCanceledException();
                     }
                 }
-                catch (Exception)
-                {
-                    currentJobHandle.Complete();
-                    matchSingletonData.Dispose();
-                    parameterTotalSum.Dispose();
-                    if (branchingCache.IsCreated) branchingCache.Dispose();
-                }
+
+                paramTotal = parameterTotalSum[0];
             }
-
-
-            var paramTotal = parameterTotalSum[0];
-            parameterTotalSum.Dispose();
 
             var randResult = lastSystemState.randomProvider;
 
+            int totalNewSymbolSize;
+            int totalNewParamSize;
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            var tmpParameterMemory = new NativeArray<float>(paramTotal, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
+            using var tmpParameterMemory =
+                new NativeArray<float>(paramTotal, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
             UnityEngine.Profiling.Profiler.EndSample();
-
-            // 2.
-            UnityEngine.Profiling.Profiler.BeginSample("matching");
-
-
-            var prematchJob = new RuleCompleteMatchJob
             {
-                matchSingletonData = matchSingletonData,
-
-                sourceData = lastSystemState.currentSymbols.Data,
-                tmpParameterMemory = tmpParameterMemory,
-
-                globalOperatorData = nativeData.Data.dynamicOperatorMemory,
-                outcomes = nativeData.Data.ruleOutcomeMemorySpace,
-                globalParams = globalParamNative,
-
-                blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol,
-                branchingCache = branchingCache,
-                seed = randResult.NextUInt()
-            };
-
-            var matchingJobHandle = prematchJob.ScheduleBatch(
-                matchSingletonData.Length,
-                100,
-                parameterModificationJobDependency);
+                // 2.
+                UnityEngine.Profiling.Profiler.BeginSample("matching");
 
 
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            // 4.
-            UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
-
-            UnityEngine.Profiling.Profiler.BeginSample("allocating");
-            var totalSymbolCount = new NativeArray<int>(1, Allocator.Persistent);
-            var totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            var totalSymbolLengthJob = new RuleReplacementSizeJob
-            {
-                matchSingletonData = matchSingletonData,
-                totalResultSymbolCount = totalSymbolCount,
-                totalResultParameterCount = totalSymbolParameterCount,
-                sourceData = lastSystemState.currentSymbols.Data,
-                customSymbols = customSymbols
-            };
-            currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
-            lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
-            nativeData.RegisterDependencyOnData(currentJobHandle);
-
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            {
-                using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
-                try
+                var prematchJob = new RuleCompleteMatchJob
                 {
+                    matchSingletonData = matchSingletonData,
+
+                    sourceData = lastSystemState.currentSymbols.Data,
+                    tmpParameterMemory = tmpParameterMemory,
+
+                    globalOperatorData = nativeData.Data.dynamicOperatorMemory,
+                    outcomes = nativeData.Data.ruleOutcomeMemorySpace,
+                    globalParams = globalParamNative,
+
+                    blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol,
+                    branchingCache = branchingCache,
+                    seed = randResult.NextUInt()
+                };
+
+                var matchingJobHandle = prematchJob.ScheduleBatch(
+                    matchSingletonData.Length,
+                    100,
+                    parameterModificationJobDependency);
+
+
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                // 4.
+                UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
+
+                UnityEngine.Profiling.Profiler.BeginSample("allocating");
+                using var totalSymbolCount = new NativeArray<int>(1, Allocator.Persistent);
+                using var totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                var totalSymbolLengthJob = new RuleReplacementSizeJob
+                {
+                    matchSingletonData = matchSingletonData,
+                    totalResultSymbolCount = totalSymbolCount,
+                    totalResultParameterCount = totalSymbolParameterCount,
+                    sourceData = lastSystemState.currentSymbols.Data,
+                    customSymbols = customSymbols
+                };
+                currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
+                lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
+                nativeData.RegisterDependencyOnData(currentJobHandle);
+
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                {
+                    using var cancelJobSource =
+                        CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
                     var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
                         cancelJobSource.Token,
-                        LSystemJobExecutionConfig.Instance.forceUpdates, 
+                        LSystemJobExecutionConfig.Instance.forceUpdates,
                         3);
                     if (cancelled && cancel.IsCancellationRequested)
                     {
                         throw new TaskCanceledException();
                     }
                 }
-                catch(Exception)
-                {
-                    currentJobHandle.Complete();
-                    totalSymbolCount.Dispose();
-                    totalSymbolParameterCount.Dispose();
-                    globalParamNative.Dispose();
-                    tmpParameterMemory.Dispose();
-                    matchSingletonData.Dispose();
-                    if (branchingCache.IsCreated) branchingCache.Dispose();
-                }
-            }
-            
-            currentJobHandle.Complete();
 
-            var totalNewSymbolSize = totalSymbolCount[0];
-            var totalNewParamSize = totalSymbolParameterCount[0];
-            totalSymbolCount.Dispose();
-            totalSymbolParameterCount.Dispose();
+                totalNewSymbolSize = totalSymbolCount[0];
+                totalNewParamSize = totalSymbolParameterCount[0];
+            }
 
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
             var target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
             UnityEngine.Profiling.Profiler.EndSample();
 
-            // 5
-            UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
+            var hasImmatureSymbols = false;
+            uint maxUniqueOrganIds;
 
-            var replacementJob = new RuleReplacementJob
             {
-                globalParametersArray = globalParamNative,
+                // 5
+                UnityEngine.Profiling.Profiler.BeginSample("generating replacements");
 
-                parameterMatchMemory = tmpParameterMemory,
-                matchSingletonData = matchSingletonData,
+                var replacementJob = new RuleReplacementJob
+                {
+                    globalParametersArray = globalParamNative,
 
-                sourceData = lastSystemState.currentSymbols.Data,
-                structExpressionSpace = nativeData.Data.structExpressionMemorySpace,
-                globalOperatorData = nativeData.Data.dynamicOperatorMemory,
-                replacementSymbolData = nativeData.Data.replacementsSymbolMemorySpace,
-                outcomeData = nativeData.Data.ruleOutcomeMemorySpace,
+                    parameterMatchMemory = tmpParameterMemory,
+                    matchSingletonData = matchSingletonData,
 
-                targetData = target,
-                blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol,
-                branchingCache = branchingCache,
-                customSymbols = customSymbols
-            };
+                    sourceData = lastSystemState.currentSymbols.Data,
+                    structExpressionSpace = nativeData.Data.structExpressionMemorySpace,
+                    globalOperatorData = nativeData.Data.dynamicOperatorMemory,
+                    replacementSymbolData = nativeData.Data.replacementsSymbolMemorySpace,
+                    outcomeData = nativeData.Data.ruleOutcomeMemorySpace,
 
-            currentJobHandle = replacementJob.Schedule(
+                    targetData = target,
+                    blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol,
+                    branchingCache = branchingCache,
+                    customSymbols = customSymbols
+                };
+
+                currentJobHandle = replacementJob.Schedule(
                     matchSingletonData.Length,
                     100
                 );
 
-            if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
-            {
-#if !RUST_SUBSYSTEM
-                diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
-#endif
-                var diffusionJob = new ParallelDiffusionReplacementJob
+                if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
                 {
-                    matchSingletonData = matchSingletonData,
-                    sourceData = lastSystemState.currentSymbols.Data,
-                    targetData = target,
-                    customSymbols = customSymbols,
 #if !RUST_SUBSYSTEM
-                    working = diffusionHelper
+                    diffusionHelper = new DiffusionWorkingDataPack(10, 5, 2, customSymbols, Allocator.TempJob);
 #endif
-                };
-                currentJobHandle = JobHandle.CombineDependencies(
+                    var diffusionJob = new ParallelDiffusionReplacementJob
+                    {
+                        matchSingletonData = matchSingletonData,
+                        sourceData = lastSystemState.currentSymbols.Data,
+                        targetData = target,
+                        customSymbols = customSymbols,
+#if !RUST_SUBSYSTEM
+                        working = diffusionHelper
+#endif
+                    };
+                    currentJobHandle = JobHandle.CombineDependencies(
                         currentJobHandle,
                         diffusionJob.Schedule()
-                     );
-            }
-            // only parameter modifications beyond this point
-            lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
-            nativeData.RegisterDependencyOnData(currentJobHandle);
+                    );
+                }
 
-            var (isAssignmentJob, maxIdReached) = ScheduleIdAssignmentJob(currentJobHandle, customSymbols, lastSystemState, target);
+                // only parameter modifications beyond this point
+                lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
+                nativeData.RegisterDependencyOnData(currentJobHandle);
 
-            var (immaturityJob, isImmature) = ScheduleImmaturityJob(currentJobHandle, nativeData, target);
-            
-            currentJobHandle = JobHandle.CombineDependencies(
-                JobHandle.CombineDependencies(
-                    isAssignmentJob,
-                    ScheduleIndependentDiffusion(currentJobHandle, customSymbols, target)
-                ),
-                JobHandle.CombineDependencies(
-                    ScheduleAutophagyJob(currentJobHandle, customSymbols, target),
-                    immaturityJob
-                ));
+                var (isAssignmentJob, maxIdReached) =
+                    ScheduleIdAssignmentJob(currentJobHandle, customSymbols, lastSystemState, target);
+                using var _ = maxIdReached;
+                
+                var (immaturityJob, isImmature) = MaybeScheduleImmaturityJob(currentJobHandle, nativeData, target);
 
-            UnityEngine.Profiling.Profiler.EndSample();
+                currentJobHandle = JobHandle.CombineDependencies(
+                    JobHandle.CombineDependencies(
+                        isAssignmentJob,
+                        MaybeScheduleIndependentDiffusion(currentJobHandle, customSymbols, target)
+                    ),
+                    JobHandle.CombineDependencies(
+                        MaybeScheduleAutophagyJob(currentJobHandle, customSymbols, target),
+                        immaturityJob
+                    ));
+
+                UnityEngine.Profiling.Profiler.EndSample();
 
 
-            {
-                using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
-                try
                 {
-                    var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
-                        cancelJobSource.Token,
-                        LSystemJobExecutionConfig.Instance.forceUpdates,
-                        3);
-                    if (cancelled && cancel.IsCancellationRequested)
+                    using var cancelJobSource =
+                        CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
+                    try
                     {
-                        throw new TaskCanceledException();
+                        var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
+                            cancelJobSource.Token,
+                            LSystemJobExecutionConfig.Instance.forceUpdates,
+                            3);
+                        if (cancelled && cancel.IsCancellationRequested)
+                        {
+                            throw new TaskCanceledException();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        target.Dispose();
+#if !RUST_SUBSYSTEM
+                        if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
+#endif
+                        if (isImmature.IsCreated) isImmature.Dispose();
+                        throw;
                     }
                 }
-                catch (Exception)
+                
+#if !RUST_SUBSYSTEM
+                if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
+#endif
+                if (isImmature.IsCreated)
                 {
-                    currentJobHandle.Complete();
-
-                    maxIdReached.Dispose();
-                    target.Dispose();
-                    matchSingletonData.Dispose();
-#if !RUST_SUBSYSTEM
-            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
-#endif
-                    if (branchingCache.IsCreated) branchingCache.Dispose();
-                    if (isImmature.IsCreated) isImmature.Dispose();
+                    hasImmatureSymbols = isImmature[0];
+                    isImmature.Dispose();
                 }
-            }
-
-
-
-
-            currentJobHandle.Complete();
-            branchingCache.Dispose();
-            matchSingletonData.Dispose();
-#if !RUST_SUBSYSTEM
-            if (diffusionHelper.IsCreated) diffusionHelper.Dispose();
-#endif
-
-            var hasImmatureSymbols = false;
-
-            if (isImmature.IsCreated)
-            {
-                hasImmatureSymbols = isImmature[0];
-                isImmature.Dispose();
+                
+                maxUniqueOrganIds = maxIdReached[0];
             }
 
             var newResult = new LSystemState<float>
             {
                 randomProvider = randResult,
                 currentSymbols = new DependencyTracker<SymbolString<float>>(target),
-                maxUniqueOrganIds = maxIdReached[0],
+                maxUniqueOrganIds = maxUniqueOrganIds,
                 hasImmatureSymbols = hasImmatureSymbols,
                 firstUniqueOrganId = lastSystemState.firstUniqueOrganId,
                 uniquePlantId = lastSystemState.uniquePlantId,
             };
 
-            maxIdReached.Dispose();
             return newResult;
         }
         
-        private static JobHandle ScheduleIndependentDiffusion(
+        private static JobHandle MaybeScheduleIndependentDiffusion(
             JobHandle dependency,
             CustomRuleSymbols customSymbols,
             SymbolString<float> targetString)
@@ -351,7 +329,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             };
             return (identityAssignmentJob.Schedule(dependency), maxIdReached);
         }
-        private static JobHandle ScheduleAutophagyJob(
+        private static JobHandle MaybeScheduleAutophagyJob(
             JobHandle dependency,
             CustomRuleSymbols customSymbols, 
             SymbolString<float> targetString)
@@ -372,7 +350,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             }
             return dependency;
         }
-        private static (JobHandle, NativeArray<bool>) ScheduleImmaturityJob(
+        private static (JobHandle, NativeArray<bool>) MaybeScheduleImmaturityJob(
             JobHandle dependency,
             DependencyTracker<SystemLevelRuleNativeData> nativeData, 
             SymbolString<float> targetString)
