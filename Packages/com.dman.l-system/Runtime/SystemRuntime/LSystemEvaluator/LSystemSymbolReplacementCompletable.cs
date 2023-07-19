@@ -156,8 +156,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             };
 
             maxIdReached.Dispose();
-            var nextCompletable = new CompleteCompletable<LSystemState<float>>(newResult);
-            return await nextCompletable.ToUniTask(forceSynchronous, cancel);
+            return newResult;
         }
         
         private static JobHandle ScheduleIndependentDiffusion(
