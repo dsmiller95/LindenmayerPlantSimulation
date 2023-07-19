@@ -25,7 +25,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             CancellationToken forceSynchronous,
             CancellationToken cancel)
         {
-            JobHandle currentJobHandle = default;
+            JobHandle currentJobHandle;
 
             // 1.
             UnityEngine.Profiling.Profiler.BeginSample("Parameter counts");
@@ -55,8 +55,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 currentJobHandle = memorySizeJob.Schedule();
                 lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
                 nativeData.RegisterDependencyOnData(currentJobHandle);
-
-
                 UnityEngine.Profiling.Profiler.EndSample();
 
                 // 2.1
@@ -64,18 +62,10 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 branchingCache.BuildJumpIndexesFromSymbols(lastSystemState.currentSymbols);
                 UnityEngine.Profiling.Profiler.EndSample();
 
-                {
-                    using var cancelJobSource =
-                        CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
-                    var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
-                        cancelJobSource.Token,
-                        LSystemJobExecutionConfig.Instance.forceUpdates,
-                        3);
-                    if (cancelled && cancel.IsCancellationRequested)
-                    {
-                        throw new TaskCanceledException();
-                    }
-                }
+                await AwaitLSystemJob(
+                    currentJobHandle,
+                    forceSynchronous,
+                    cancel);
 
                 paramTotal = parameterTotalSum[0];
             }
@@ -140,19 +130,11 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 nativeData.RegisterDependencyOnData(currentJobHandle);
 
                 UnityEngine.Profiling.Profiler.EndSample();
-
-                {
-                    using var cancelJobSource =
-                        CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
-                    var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
-                        cancelJobSource.Token,
-                        LSystemJobExecutionConfig.Instance.forceUpdates,
-                        3);
-                    if (cancelled && cancel.IsCancellationRequested)
-                    {
-                        throw new TaskCanceledException();
-                    }
-                }
+                
+                await AwaitLSystemJob(
+                    currentJobHandle,
+                    forceSynchronous,
+                    cancel);
 
                 totalNewSymbolSize = totalSymbolCount[0];
                 totalNewParamSize = totalSymbolParameterCount[0];
@@ -246,26 +228,18 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 UnityEngine.Profiling.Profiler.EndSample();
 
 
+                try
                 {
-                    using var cancelJobSource =
-                        CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
-                    try
-                    {
-                        var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
-                            cancelJobSource.Token,
-                            LSystemJobExecutionConfig.Instance.forceUpdates,
-                            3);
-                        if (cancelled && cancel.IsCancellationRequested)
-                        {
-                            throw new TaskCanceledException();
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        target.Dispose();
-                        if (isImmature.IsCreated) isImmature.Dispose();
-                        throw;
-                    }
+                    await AwaitLSystemJob(
+                        currentJobHandle,
+                        forceSynchronous,
+                        cancel);
+                }
+                catch (Exception)
+                {
+                    target.Dispose();
+                    if (isImmature.IsCreated) isImmature.Dispose();
+                    throw;
                 }
                 
                 if (isImmature.IsCreated)
@@ -372,6 +346,24 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 nativeData.RegisterDependencyOnData(dependency);
             }
             return (dependency, isImmature);
+        }
+        
+        
+        private static async UniTask AwaitLSystemJob(
+            JobHandle handle,
+            CancellationToken forceSynchronous,
+            CancellationToken cancel)
+        {
+            using var cancelJobSource =
+                CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
+            var cancelled = await handle.AwaitCompleteImmediateOnCancel(
+                cancelJobSource.Token,
+                LSystemJobExecutionConfig.Instance.forceUpdates,
+                3);
+            if (cancelled && cancel.IsCancellationRequested)
+            {
+                throw new TaskCanceledException();
+            }
         }
     }
 }
