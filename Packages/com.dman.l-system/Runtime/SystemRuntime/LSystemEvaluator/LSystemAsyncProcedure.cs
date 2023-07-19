@@ -1,23 +1,226 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Dman.LSystem.Extern;
 using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.CustomRules.Diffusion;
-using Dman.LSystem.SystemRuntime.DynamicExpressions;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Dman.LSystem.SystemRuntime.ThreadBouncer;
-using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 {
-    public class LSystemSymbolReplacementCompletable
+    public class LSystemAsyncProcedure
     {
         public static async UniTask<LSystemState<float>> Run(
+            LSystemState<float> systemState,
+            DependencyTracker<SystemLevelRuleNativeData> lSystemNativeData,
+            float[] globalParameters,
+            ISet<int>[] includedCharactersByRuleIndex,
+            CustomRuleSymbols customSymbols,
+            JobHandle parameterModificationJobDependency,
+            CancellationToken forceSynchronous,
+            CancellationToken cancel)
+        {
+            
+            JobHandle currentJobHandle = default;
+
+            var paramModificationDependency = parameterModificationJobDependency;
+
+            var nativeData = lSystemNativeData;
+
+            // 1.
+            UnityEngine.Profiling.Profiler.BeginSample("Parameter counts");
+
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
+            var matchSingletonData = new NativeArray<LSystemSingleSymbolMatchData>(systemState.currentSymbols.Data.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var parameterTotalSum = new NativeArray<int>(1, Allocator.TempJob);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            var memorySizeJob = new SymbolStringMemoryRequirementsJob
+            {
+                matchSingletonData = matchSingletonData,
+                memoryRequirementsPerSymbol = nativeData.Data.maxParameterMemoryRequirementsPerSymbol,
+                parameterTotalSum = parameterTotalSum,
+                sourceSymbolString = systemState.currentSymbols.Data
+            };
+
+            currentJobHandle = memorySizeJob.Schedule();
+            systemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
+            nativeData.RegisterDependencyOnData(currentJobHandle);
+
+
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            // 2.1
+            UnityEngine.Profiling.Profiler.BeginSample("branch cache");
+            var branchingCache = new SymbolStringBranchingCache(
+                customSymbols.branchOpenSymbol,
+                customSymbols.branchCloseSymbol,
+                includedCharactersByRuleIndex,
+                nativeData.Data);
+            branchingCache.BuildJumpIndexesFromSymbols(systemState.currentSymbols);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
+            try
+            {
+                var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
+                    cancelJobSource.Token,
+                    LSystemJobExecutionConfig.Instance.forceUpdates,
+                    3);
+                if (cancelled && cancel.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+            }
+            catch(Exception)
+            {
+                currentJobHandle.Complete();
+                matchSingletonData.Dispose();
+                parameterTotalSum.Dispose();
+                if (branchingCache.IsCreated) branchingCache.Dispose();
+            }
+            
+            
+            var paramTotal = parameterTotalSum[0];
+            parameterTotalSum.Dispose();
+
+            return await RunMatch(
+                matchSingletonData,
+                paramTotal,
+                branchingCache,
+                systemState,
+                nativeData,
+                globalParameters,
+                customSymbols,
+                paramModificationDependency,
+                forceSynchronous, cancel);
+        }
+        
+        public static async UniTask<LSystemState<float>> RunMatch(
+            NativeArray<LSystemSingleSymbolMatchData> matchSingletonData,
+            int parameterTotalSum,
+            SymbolStringBranchingCache branchingCache,
+            LSystemState<float> lastSystemState,
+            DependencyTracker<SystemLevelRuleNativeData> lSystemNativeData,
+            float[] globalParameters,
+            CustomRuleSymbols customSymbols,
+            JobHandle parameterModificationJobDependency,
+            CancellationToken forceSynchronous,
+            CancellationToken cancel)
+        {
+            
+            var randResult = lastSystemState.randomProvider;
+            var nativeData = lSystemNativeData;
+
+            // 1.
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
+            var tmpParameterMemory = new NativeArray<float>(parameterTotalSum, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var globalParamNative = new NativeArray<float>(globalParameters, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            // 2.
+            UnityEngine.Profiling.Profiler.BeginSample("matching");
+
+
+            var prematchJob = new RuleCompleteMatchJob
+            {
+                matchSingletonData = matchSingletonData,
+
+                sourceData = lastSystemState.currentSymbols.Data,
+                tmpParameterMemory = tmpParameterMemory,
+
+                globalOperatorData = nativeData.Data.dynamicOperatorMemory,
+                outcomes = nativeData.Data.ruleOutcomeMemorySpace,
+                globalParams = globalParamNative,
+
+                blittableRulesByTargetSymbol = nativeData.Data.blittableRulesByTargetSymbol,
+                branchingCache = branchingCache,
+                seed = randResult.NextUInt()
+            };
+
+            var matchingJobHandle = prematchJob.ScheduleBatch(
+                matchSingletonData.Length,
+                100,
+                parameterModificationJobDependency);
+
+
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            // 4.
+            UnityEngine.Profiling.Profiler.BeginSample("replacement counting");
+
+            UnityEngine.Profiling.Profiler.BeginSample("allocating");
+            var totalSymbolCount = new NativeArray<int>(1, Allocator.Persistent);
+            var totalSymbolParameterCount = new NativeArray<int>(1, Allocator.Persistent);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            var totalSymbolLengthJob = new RuleReplacementSizeJob
+            {
+                matchSingletonData = matchSingletonData,
+                totalResultSymbolCount = totalSymbolCount,
+                totalResultParameterCount = totalSymbolParameterCount,
+                sourceData = lastSystemState.currentSymbols.Data,
+                customSymbols = customSymbols
+            };
+            var currentJobHandle = totalSymbolLengthJob.Schedule(matchingJobHandle);
+            lastSystemState.currentSymbols.RegisterDependencyOnData(currentJobHandle);
+            nativeData.RegisterDependencyOnData(currentJobHandle);
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            
+            
+            using var cancelJobSource = CancellationTokenSource.CreateLinkedTokenSource(forceSynchronous, cancel);
+            try
+            {
+                var cancelled = await currentJobHandle.AwaitCompleteImmediateOnCancel(
+                    cancelJobSource.Token,
+                    LSystemJobExecutionConfig.Instance.forceUpdates, 
+                    3);
+                if (cancelled && cancel.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+            }
+            catch(Exception)
+            {
+                currentJobHandle.Complete();
+                totalSymbolCount.Dispose();
+                totalSymbolParameterCount.Dispose();
+                globalParamNative.Dispose();
+                tmpParameterMemory.Dispose();
+                matchSingletonData.Dispose();
+                if (branchingCache.IsCreated) branchingCache.Dispose();
+            }
+            
+            
+            
+            currentJobHandle.Complete();
+
+            var totalNewSymbolSize = totalSymbolCount[0];
+            var totalNewParamSize = totalSymbolParameterCount[0];
+            totalSymbolCount.Dispose();
+            totalSymbolParameterCount.Dispose();
+
+            return await RunReplacement(
+                randResult,
+                lastSystemState,
+                totalNewSymbolSize,
+                totalNewParamSize,
+                globalParamNative,
+                tmpParameterMemory,
+                matchSingletonData,
+                nativeData,
+                branchingCache,
+                customSymbols,
+                forceSynchronous, cancel);
+        }
+        
+        public static async UniTask<LSystemState<float>> RunReplacement(
             Unity.Mathematics.Random randResult,
             LSystemState<float> lastSystemState,
             int totalNewSymbolSize,
@@ -244,108 +447,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 nativeData.RegisterDependencyOnData(dependency);
             }
             return (dependency, isImmature);
-        }
-    }
-
-    [BurstCompile]
-    public struct RuleReplacementJob : IJobParallelFor
-    {
-        [ReadOnly]
-        [DeallocateOnJobCompletion]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float> globalParametersArray;
-        [ReadOnly]
-        [DeallocateOnJobCompletion]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float> parameterMatchMemory;
-
-        [ReadOnly]
-        public NativeArray<LSystemSingleSymbolMatchData> matchSingletonData;
-
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<RuleOutcome.Blittable> outcomeData;
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<ReplacementSymbolGenerator.Blittable> replacementSymbolData;
-
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<StructExpression> structExpressionSpace;
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<OperatorDefinition> globalOperatorData;
-
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public SymbolString<float> sourceData;
-
-        [WriteOnly]
-        [NativeDisableParallelForRestriction]
-        [NativeDisableContainerSafetyRestriction] // disable all safety to allow parallel writes
-        public SymbolString<float> targetData;
-
-        [ReadOnly]
-        public NativeOrderedMultiDictionary<BasicRule.Blittable> blittableRulesByTargetSymbol;
-        [ReadOnly]
-        public SymbolStringBranchingCache branchingCache;
-
-        public CustomRuleSymbols customSymbols;
-
-        public void Execute(int indexInSymbols)
-        {
-            var matchSingleton = matchSingletonData[indexInSymbols];
-            var symbol = sourceData.symbols[indexInSymbols];
-            if (matchSingleton.is_trivial)
-            {
-                var targetIndex = matchSingleton.replacement_symbol_indexing.index;
-                // check for custom rules
-                if (customSymbols.hasDiffusion && !customSymbols.independentDiffusionUpdate)
-                {
-                    // let the diffusion library handle these updates. only if diffusion is happening in parallel
-                    if (symbol == customSymbols.diffusionNode || symbol == customSymbols.diffusionAmount)
-                    {
-                        return;
-                    }
-                }
-
-                // match is trivial. just copy the existing symbol and parameters over, nothing else.
-                targetData.symbols[targetIndex] = symbol;
-                var sourceParamIndexer = sourceData.parameters[indexInSymbols];
-                var targetDataIndexer = new JaggedIndexing
-                {
-                    index = matchSingleton.replacement_parameter_indexing.index,
-                    length = sourceParamIndexer.length
-                };
-                targetData.parameters[targetIndex] = targetDataIndexer;
-                // when trivial, copy out of the source param array directly. As opposed to reading parameters out of the parameterMatchMemory when evaluating
-                //      a non-trivial match
-                for (int i = 0; i < sourceParamIndexer.length; i++)
-                {
-                    targetData.parameters[targetDataIndexer, i] = sourceData.parameters[sourceParamIndexer, i];
-                }
-                return;
-            }
-
-            if (!blittableRulesByTargetSymbol.TryGetValue(symbol, out var ruleList) || ruleList.length <= 0)
-            {
-                //throw new System.Exception(LSystemMatchErrorCode.TRIVIAL_SYMBOL_NOT_INDICATED_AT_REPLACEMENT_TIME.ToString());
-
-                return;
-            }
-
-            var rule = blittableRulesByTargetSymbol[ruleList, matchSingleton.matched_rule_index_in_possible];
-
-            rule.WriteReplacementSymbols(
-                globalParametersArray,
-                parameterMatchMemory,
-                targetData,
-                matchSingleton,
-                globalOperatorData,
-                replacementSymbolData,
-                outcomeData,
-                structExpressionSpace
-                );
         }
     }
 }

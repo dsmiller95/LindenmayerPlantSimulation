@@ -270,7 +270,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 throw new LSystemRuntimeException($"Incomplete parameters provided. Expected {GlobalParameters} parameters but got {globalParamSize}");
             }
 
-            var result = LSystemParameterSizeCountingCompletable.Run(
+            var result = LSystemAsyncProcedure.Run(
                 systemState,
                 nativeRuleData,
                 globalParameters,
