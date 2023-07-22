@@ -49,6 +49,7 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
 
             // 2.1
             UnityEngine.Profiling.Profiler.BeginSample("branch cache");
+            // defer calculating the jump indexes till after we've already queued the parameter counting job
             branchingCache.BuildJumpIndexesFromSymbols(lastSystemState.currentSymbols);
             UnityEngine.Profiling.Profiler.EndSample();
             
@@ -73,12 +74,22 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
             UnityEngine.Profiling.Profiler.BeginSample("allocating");
             var target = new SymbolString<float>(totalNewSymbolSize, totalNewParamSize, Allocator.Persistent);
             UnityEngine.Profiling.Profiler.EndSample();
+            bool hasImmatureSymbols;
+            uint maxUniqueOrganIds;
             
-            var (hasImmatureSymbols, maxUniqueOrganIds) = await PerformSymbolReplacement(
-                singletonDataPack,
-                matchDataPack,
-                customSymbols,
-                target);
+            try
+            {
+                (hasImmatureSymbols, maxUniqueOrganIds) = await PerformSymbolReplacement(
+                    singletonDataPack,
+                    matchDataPack,
+                    customSymbols,
+                    target);
+            }
+            catch (Exception)
+            {
+                target.Dispose();
+                throw;
+            }
 
             return new LSystemState<float>
             {
@@ -205,7 +216,6 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 100,
                 parameterModificationJobDependency);
 
-
             UnityEngine.Profiling.Profiler.EndSample();
 
             // 4.
@@ -323,17 +333,8 @@ namespace Dman.LSystem.SystemRuntime.LSystemEvaluator
                 ));
 
             UnityEngine.Profiling.Profiler.EndSample();
-
-
-            try
-            {
-                await AwaitLSystemJob(currentJobHandle);
-            }
-            catch (Exception)
-            {
-                target.Dispose();
-                throw;
-            }
+            
+            await AwaitLSystemJob(currentJobHandle);
 
             return (
                 isImmature.IsCreated && isImmature[0], 

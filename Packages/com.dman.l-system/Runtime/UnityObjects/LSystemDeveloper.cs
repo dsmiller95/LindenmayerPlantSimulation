@@ -82,16 +82,16 @@ namespace Dman.LSystem.UnityObjects
 
             foreach (var system in GetComponentsInChildren<LSystemBehavior>())
             {
-                if (system.steppingHandle.lastUpdateChanged
-                    && system.steppingHandle.totalSteps < maxUpdates
+                if (system.steppingHandle.DidLastUpdateCauseChange()
+                    && system.steppingHandle.GetStepCount() < maxUpdates
                     && Time.unscaledTime > system.lastUpdateTime + secondsPerUpdate
-                    && system.steppingHandle.CanStep())
+                    && (!system.steppingHandle.IsUpdatePending() && system.steppingHandle.HasValidSystem()))
                 {
                     system.StepSystem();
                 }
                 else if (
-                    (!system.steppingHandle.lastUpdateChanged
-                    || system.steppingHandle.totalSteps >= maxUpdates)
+                    (!system.steppingHandle.DidLastUpdateCauseChange()
+                    || system.steppingHandle.GetStepCount() >= maxUpdates)
                     && Time.unscaledTime > system.lastUpdateTime + timeBeforeRestart)
                 {
                     system.ResetState();

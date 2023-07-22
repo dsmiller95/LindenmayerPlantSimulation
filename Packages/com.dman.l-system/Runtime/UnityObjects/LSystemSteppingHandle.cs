@@ -1,6 +1,5 @@
 ﻿using Dman.LSystem.SystemRuntime.GlobalCoordinator;
 using Dman.LSystem.SystemRuntime.LSystemEvaluator;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.ObjectSets;
 using System;
 using System.Collections.Generic;
@@ -10,6 +9,7 @@ using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects
 {
+    [Obsolete("use implementations of ISteppingHandle instead, via ISteppingHandleFactory")]
     public class LSystemSteppingHandle : IDisposable
     {
         // metadata
@@ -46,8 +46,7 @@ namespace Dman.LSystem.UnityObjects
 
             this.systemObject = mySystemObject;
             this.useSharedSystem = useSharedSystem;
-
-
+            
             if (GlobalLSystemCoordinator.instance == null)
             {
                 throw new Exception("No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
@@ -331,9 +330,10 @@ namespace Dman.LSystem.UnityObjects
             }
 
             lSystemPendingCancellation?.Cancel();
+            lSystemPendingCancellation?.Dispose();
+            
             lastState?.currentSymbols.Dispose();
             lastState = null;
-
             currentState?.currentSymbols.Dispose();
             currentState = null;
 

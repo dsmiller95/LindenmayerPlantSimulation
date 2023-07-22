@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 
 namespace Dman.LSystem.Editor.LSystemDebugger
@@ -53,7 +54,8 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 return EmptyTree("Nothing selected ya dingus");
             }
 
-            var stepper = inspectedMachine.steppingHandle.Stepper();
+            var stepper = inspectedMachine.steppingHandle.TryGetUnderlyingStepper();
+            Assert.IsNotNull(stepper);
             try
             {
                 ISet<int> displayedSymbols;
@@ -71,7 +73,7 @@ namespace Dman.LSystem.Editor.LSystemDebugger
                 }
                 var rootNode = LSystemStructureTreeElement.ConstructTreeFromString(
                     inspectedMachine.systemObject.linkedFiles,
-                    inspectedMachine.steppingHandle.currentState.currentSymbols.Data,
+                    inspectedMachine.steppingHandle.GetCurrentState().currentSymbols.Data,
                     displayedSymbols,
                     stepper.customSymbols.branchOpenSymbol,
                     stepper.customSymbols.branchCloseSymbol

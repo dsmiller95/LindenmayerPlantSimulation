@@ -3,7 +3,9 @@ using Dman.ObjectSets;
 using Dman.SceneSaveSystem;
 using System;
 using System.Collections.Generic;
+using Dman.LSystem.UnityObjects.SteppingHandles;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Dman.LSystem.UnityObjects
 {
@@ -23,7 +25,7 @@ namespace Dman.LSystem.UnityObjects
 
         public event Action OnSystemStateUpdated;
         public event Action OnSystemObjectUpdated;
-        public LSystemSteppingHandle steppingHandle { get; private set; }
+        public ISteppingHandle steppingHandle { get; private set; }
         /// <summary>
         /// the value of Time.time when this system was last updated
         /// </summary>
@@ -53,15 +55,16 @@ namespace Dman.LSystem.UnityObjects
             if (systemObject != null)
             {
                 steppingHandle?.Dispose();
+                
+                ISteppingHandleFactory handleFactory = new SteppingHandleFactory();
+                
                 var globalParams = GetComponent<ILSystemCompileTimeParameterGenerator>();
-                if (globalParams == null)
-                {
-                    steppingHandle = new LSystemSteppingHandle(systemObject, true, this);
-                }
-                else
-                {
-                    steppingHandle = new LSystemSteppingHandle(systemObject, false, this);
-                }
+                var sharingMode = globalParams == null ? LSystemSharing.SharedCompiled : LSystemSharing.SelfCompiledWithRuntimeParameters;
+                steppingHandle = handleFactory.CreateSteppingHandle(
+                    systemObject,
+                    this,
+                    sharingMode);
+                
                 steppingHandle.OnSystemStateUpdated += LSystemStateWasUpdated;
             }
             OnSystemObjectUpdated?.Invoke();
@@ -79,7 +82,10 @@ namespace Dman.LSystem.UnityObjects
             if (globalParams != null)
             {
                 var extraGlobalParams = globalParams.GenerateCompileTimeParameters();
-                steppingHandle.RecompileLSystem(extraGlobalParams);
+                // TODO: liskov violation, stinky
+                var recompilable = steppingHandle as IRecompileableSteppingHandle;
+                Assert.IsNotNull(recompilable);
+                recompilable.RecompileLSystem(extraGlobalParams);
             }
             else
             {
@@ -97,7 +103,7 @@ namespace Dman.LSystem.UnityObjects
         /// <returns>true if the state changed. false otherwise</returns>
         public void StepSystem()
         {
-            steppingHandle.StepSystem();
+            steppingHandle.InitiateStep(Concurrency.Asyncronous, StateSelection.Next);
         }
 
         private void LSystemStateWasUpdated()
@@ -111,7 +117,7 @@ namespace Dman.LSystem.UnityObjects
         {
             if (logStates)
             {
-                var state = steppingHandle?.currentState?.currentSymbols?.Data;
+                var state = steppingHandle?.GetCurrentState()?.currentSymbols?.Data;
                 if (state.HasValue)
                 {
                     Debug.Log(systemObject.ConvertToReadableString(state.Value));
@@ -132,7 +138,7 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="parameterValue"></param>
         public void SetRuntimeParameter(string parameterName, float parameterValue)
         {
-            steppingHandle.runtimeParameters.SetParameter(parameterName, parameterValue);
+            steppingHandle.SetRuntimeParameter(parameterName, parameterValue);
         }
 
         #region Saving
@@ -144,11 +150,11 @@ namespace Dman.LSystem.UnityObjects
         class LSystemBehaviorSaveState
         {
             private int lSystemId;
-            private LSystemSteppingHandle.SavedData steppingHandle;
+            private ISerializeableSteppingHandle steppingHandle;
             public LSystemBehaviorSaveState(LSystemBehavior source)
             {
                 this.lSystemId = source.systemObject.myId;
-                this.steppingHandle = new LSystemSteppingHandle.SavedData(source.steppingHandle);
+                this.steppingHandle = source.steppingHandle.SerializeToSerializableObject();
             }
 
             public void Apply(LSystemBehavior target)
@@ -159,8 +165,9 @@ namespace Dman.LSystem.UnityObjects
 
                 target.steppingHandle?.Dispose();
 
-                target.steppingHandle = steppingHandle.Deserialize();
-                target.steppingHandle.InitializePostDeserialize(target);
+                ISteppingHandleFactory handleFactory = new SteppingHandleFactory();
+
+                target.steppingHandle = handleFactory.RehydratedFromSerializableObject(this.steppingHandle, target);
                 target.steppingHandle.OnSystemStateUpdated += target.LSystemStateWasUpdated;
 
                 target.OnSystemObjectUpdated?.Invoke();
