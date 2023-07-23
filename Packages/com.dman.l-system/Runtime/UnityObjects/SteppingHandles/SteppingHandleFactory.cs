@@ -15,31 +15,19 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 LSystemSharing.SelfCompiledWithRuntimeParameters => new IndividuallyCompiledStrategy(systemObject),
                 _ => throw new NotImplementedException()
             };
-            
-            return sharingMode switch
-            {
-                LSystemSharing.SharedCompiled => 
-                    new SharedCompiledSteppingHandle(systemObject, associatedBehavior, compilationStrategy),
-                LSystemSharing.SelfCompiledWithRuntimeParameters =>
-                    new IndividuallyCompiledSteppingHandle(systemObject, associatedBehavior, compilationStrategy),
-                _ => throw new NotImplementedException()
-            };
+
+            return new SteppingHandle(systemObject, associatedBehavior, compilationStrategy);
         }
 
         public ISteppingHandle RehydratedFromSerializableObject(
             ISerializeableSteppingHandle serializedHandle,
             LSystemBehavior associatedBehavior)
         {
-            switch(serializedHandle)
+            return serializedHandle switch
             {
-                case SharedCompiledSteppingHandle.SavedData saved:
-                    
-                    return new SharedCompiledSteppingHandle(saved, associatedBehavior);
-                case IndividuallyCompiledSteppingHandle.SavedData saved:
-                    return new IndividuallyCompiledSteppingHandle(saved, associatedBehavior);
-                default:
-                    throw new NotImplementedException();
-            }
+                SteppingHandle.SavedData saved => new SteppingHandle(saved, associatedBehavior),
+                _ => throw new NotImplementedException()
+            };
         }
     }
 

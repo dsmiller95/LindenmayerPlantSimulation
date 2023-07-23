@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Dman.LSystem.SystemRuntime.GlobalCoordinator;
@@ -10,7 +9,7 @@ using UnityEngine.Assertions;
 
 namespace Dman.LSystem.UnityObjects.SteppingHandles
 {
-    public class IndividuallyCompiledSteppingHandle : IRecompileableSteppingHandle
+    public class SteppingHandle : ISteppingHandle
     {
         public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
         
@@ -31,7 +30,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         private LSystemGlobalResourceHandle globalResourceHandle;
         private LSystemObject mySystemObject;
         
-        public IndividuallyCompiledSteppingHandle(
+        public SteppingHandle(
             LSystemObject mySystemObject,
             LSystemBehavior associatedBehavior,
             ILSystemCompilationStrategy compilationStrategy)
@@ -54,19 +53,16 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             }
         }
 
-        public IndividuallyCompiledSteppingHandle(
+        public SteppingHandle(
             SavedData savedData,
             LSystemBehavior associatedBehavior)
         {
             savedData.ApplyChangesTo(this);
             this.InitializePostDeserialize(associatedBehavior);
         }
-        
-        private IndividuallyCompiledSteppingHandle() { }
-
-        public void RecompileLSystem(Dictionary<string, string> globalCompileTimeOverrides)
+        private SteppingHandle()
         {
-            this.compilationStrategy.SetGlobalCompileTimeParameters(globalCompileTimeOverrides);
+            
         }
         
         private void OnSystemRecompiled()
@@ -74,7 +70,6 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             this.ResetStateInternal();
             OnSystemStateUpdated?.Invoke();
         }
-
 
         private void ResetStateInternal(uint? seed = null)
         {
@@ -128,7 +123,6 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         {
             return compilationStrategy.IsCompiledSystemValid() && !isDisposed;
         }
-
 
         public int GetStepCount()
         {
@@ -270,8 +264,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             OnSystemStateUpdated?.Invoke();
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
-
+        
         public LSystemStepper TryGetUnderlyingStepper()
         {
             return compilationStrategy.GetCompiledLSystem();
@@ -282,6 +275,9 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         {
             return new SavedData(this);
         }
+
+        
+
         [System.Serializable]
         public class SavedData : ISerializeableSteppingHandle
         {
@@ -295,10 +291,10 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             private int systemObjectId;
 
             private ArrayParameterRepresenation<float> runtimeParameters;
-
-            public ISavedCompilationStrategy savedCompilationStrategy;
             
-            public SavedData(IndividuallyCompiledSteppingHandle source)
+            public ISavedCompilationStrategy savedCompilationStrategy;
+
+            public SavedData(SteppingHandle source)
             {
                 this.stepCount = source.stepCount;
                 this.lastUpdateChanged = source.lastUpdateChanged;
@@ -310,29 +306,27 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 this.systemObjectId = source.mySystemObject.myId;
 
                 this.runtimeParameters = source.runtimeParameters;
-
                 this.savedCompilationStrategy = source.compilationStrategy.GetSerializableType();
             }
 
-            public IndividuallyCompiledSteppingHandle Deserialize()
+            public SteppingHandle Deserialize()
             {
-                var target = new IndividuallyCompiledSteppingHandle();
+                var target = new SteppingHandle();
                 return ApplyChangesTo(target);
             }
 
-            public IndividuallyCompiledSteppingHandle ApplyChangesTo(IndividuallyCompiledSteppingHandle target)
+            public SteppingHandle ApplyChangesTo(
+                SteppingHandle target)
             {
                 target.stepCount = this.stepCount;
-
                 target.lastUpdateChanged = this.lastUpdateChanged;
-
                 target.currentState = this.currentState;
                 target.lastState = this.lastState;
                 target.globalResourceHandle = this.oldHandle;
 
                 var lSystemObjectRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
-                target.mySystemObject = lSystemObjectRegistry.GetUniqueObjectFromID(this.systemObjectId);
-                
+                target.mySystemObject = lSystemObjectRegistry.GetUniqueObjectFromID(systemObjectId);
+
                 target.runtimeParameters = this.runtimeParameters;
                 
                 target.compilationStrategy = savedCompilationStrategy.Rehydrate();
@@ -353,11 +347,11 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
                 return target;
             }
+
         }
 
 
-        public void InitializePostDeserialize(
-            LSystemBehavior handleOwner)
+        public void InitializePostDeserialize(LSystemBehavior handleOwner)
         {
             if (isDisposed || globalResourceHandle.isDisposed)
             {
@@ -382,7 +376,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 StepSystemAsync(Concurrency.Asyncronous, StateSelection.RepeatLast);
             }
         }
-
+        
         #endregion
     }
 }
