@@ -9,26 +9,37 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             LSystemBehavior associatedBehavior,
             LSystemSharing sharingMode)
         {
+            ILSystemCompilationStrategy compilationStrategy = sharingMode switch
+            {
+                LSystemSharing.SharedCompiled => new SharedCompilationStrategy(systemObject),
+                LSystemSharing.SelfCompiledWithRuntimeParameters => new IndividuallyCompiledStrategy(systemObject),
+                _ => throw new NotImplementedException()
+            };
+            
             return sharingMode switch
             {
                 LSystemSharing.SharedCompiled => 
-                    new SharedCompiledSteppingHandle(systemObject, associatedBehavior),
+                    new SharedCompiledSteppingHandle(systemObject, associatedBehavior, compilationStrategy),
                 LSystemSharing.SelfCompiledWithRuntimeParameters =>
-                    new IndividuallyCompiledSteppingHandle(systemObject, associatedBehavior),
+                    new IndividuallyCompiledSteppingHandle(systemObject, associatedBehavior, compilationStrategy),
                 _ => throw new NotImplementedException()
             };
         }
 
-        public ISteppingHandle RehydratedFromSerializableObject(ISerializeableSteppingHandle serializedHandle, LSystemBehavior associatedBehavior)
+        public ISteppingHandle RehydratedFromSerializableObject(
+            ISerializeableSteppingHandle serializedHandle,
+            LSystemBehavior associatedBehavior)
         {
-            return serializedHandle switch
+            switch(serializedHandle)
             {
-                SharedCompiledSteppingHandle.SavedData saved => new SharedCompiledSteppingHandle(saved,
-                    associatedBehavior),
-                IndividuallyCompiledSteppingHandle.SavedData saved => new IndividuallyCompiledSteppingHandle(saved,
-                    associatedBehavior),
-                _ => throw new NotImplementedException()
-            };
+                case SharedCompiledSteppingHandle.SavedData saved:
+                    
+                    return new SharedCompiledSteppingHandle(saved, associatedBehavior);
+                case IndividuallyCompiledSteppingHandle.SavedData saved:
+                    return new IndividuallyCompiledSteppingHandle(saved, associatedBehavior);
+                default:
+                    throw new NotImplementedException();
+            }
         }
     }
 

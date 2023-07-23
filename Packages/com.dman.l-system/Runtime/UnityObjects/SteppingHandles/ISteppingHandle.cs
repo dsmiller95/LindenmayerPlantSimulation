@@ -51,6 +51,5 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
     public interface ISerializeableSteppingHandle
     {
-        
     }
 }

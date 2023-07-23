@@ -17,8 +17,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         private CancellationTokenSource lSystemPendingCancellation;
         private CancellationTokenSource lSystemForceSyncCancellation;
         private bool isLSystemUpdatePending = false;
-        // todo: replace this with a computed property referencing the LSystemObject?
-        private LSystemStepper compiledSystem = null;
+        private ILSystemCompilationStrategy compilationStrategy;
         private bool isDisposed = false;
         
         private int stepCount = 0;
@@ -33,7 +32,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         
         public SharedCompiledSteppingHandle(
             LSystemObject mySystemObject,
-            LSystemBehavior associatedBehavior)
+            LSystemBehavior associatedBehavior,
+            ILSystemCompilationStrategy compilationStrategy)
         {
             stepCount = 0;
             lastUpdateChanged = true;
@@ -45,12 +45,17 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle(associatedBehavior);
             this.mySystemObject = mySystemObject;
             
-            this.mySystemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
-            if(this.mySystemObject.compiledSystem != null)
-                OnSharedSystemRecompiled();
+            this.compilationStrategy = compilationStrategy;
+            this.compilationStrategy.OnCompiledSystemChanged += OnSystemRecompiled;
+            if (this.compilationStrategy.IsCompiledSystemValid())
+            {
+                OnSystemRecompiled();
+            }
         }
 
-        public SharedCompiledSteppingHandle(SavedData savedData, LSystemBehavior associatedBehavior)
+        public SharedCompiledSteppingHandle(
+            SavedData savedData,
+            LSystemBehavior associatedBehavior)
         {
             savedData.ApplyChangesTo(this);
             this.InitializePostDeserialize(associatedBehavior);
@@ -60,11 +65,9 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             
         }
         
-        private void OnSharedSystemRecompiled()
+        private void OnSystemRecompiled()
         {
             this.ResetStateInternal();
-            compiledSystem?.Dispose();
-            compiledSystem = mySystemObject.compiledSystem;
             OnSystemStateUpdated?.Invoke();
         }
 
@@ -118,9 +121,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
         public bool HasValidSystem()
         {
-            return compiledSystem != null && !isDisposed;
+            return compilationStrategy.IsCompiledSystemValid() && !isDisposed;
         }
-
 
         public int GetStepCount()
         {
@@ -142,9 +144,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         {
             if (isDisposed) return;
             isDisposed = true;
-            
-        
-            mySystemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
+
+            compilationStrategy.Dispose();
 
             lSystemPendingCancellation?.Cancel();
             lSystemPendingCancellation?.Dispose();
@@ -201,14 +202,14 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             UniTask<LSystemState<float>> pendingStateHandle;
             try
             {
-                if (compiledSystem == null || compiledSystem.isDisposed)
+                if (!compilationStrategy.IsCompiledSystemValid())
                 {
                     Debug.LogError("No Compiled system available!");
                 }
                 if (stateSelection == StateSelection.RepeatLast)
                 {
                     globalResourceHandle.UpdateUniqueIdReservationSpace(lastState);
-                    pendingStateHandle = compiledSystem.StepSystemJob(
+                    pendingStateHandle = compilationStrategy.GetCompiledLSystem().StepSystemJob(
                         lastState,
                         forceSynchronous,
                         cancel,
@@ -219,9 +220,9 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                     globalResourceHandle.UpdateUniqueIdReservationSpace(currentState);
                     var sunlightJob = globalResourceHandle.ApplyPrestepEnvironment(
                         currentState,
-                        compiledSystem.customSymbols);
+                        compilationStrategy.GetCompiledLSystem().customSymbols);
 
-                    pendingStateHandle = compiledSystem.StepSystemJob(
+                    pendingStateHandle = compilationStrategy.GetCompiledLSystem().StepSystemJob(
                         currentState,
                         forceSynchronous,
                         cancel,
@@ -266,7 +267,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         
         public LSystemStepper TryGetUnderlyingStepper()
         {
-            return compiledSystem;
+            return compilationStrategy.GetCompiledLSystem();
         }
 
         #region Serialization
@@ -290,6 +291,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             private int systemObjectId;
 
             private ArrayParameterRepresenation<float> runtimeParameters;
+            
+            public ISavedCompilationStrategy savedCompilationStrategy;
 
             public SavedData(SharedCompiledSteppingHandle source)
             {
@@ -303,6 +306,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 this.systemObjectId = source.mySystemObject.myId;
 
                 this.runtimeParameters = source.runtimeParameters;
+                this.savedCompilationStrategy = source.compilationStrategy.GetSerializableType();
             }
 
             public SharedCompiledSteppingHandle Deserialize()
@@ -311,7 +315,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 return ApplyChangesTo(target);
             }
 
-            public SharedCompiledSteppingHandle ApplyChangesTo(SharedCompiledSteppingHandle target)
+            public SharedCompiledSteppingHandle ApplyChangesTo(
+                SharedCompiledSteppingHandle target)
             {
                 target.stepCount = this.stepCount;
                 target.lastUpdateChanged = this.lastUpdateChanged;
@@ -322,8 +327,14 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 var lSystemObjectRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
                 target.mySystemObject = lSystemObjectRegistry.GetUniqueObjectFromID(systemObjectId);
 
-
                 target.runtimeParameters = this.runtimeParameters;
+                
+                target.compilationStrategy = savedCompilationStrategy.Rehydrate();
+                target.compilationStrategy.OnCompiledSystemChanged += target.OnSystemRecompiled;
+                if (target.compilationStrategy.IsCompiledSystemValid())
+                {
+                    target.OnSystemRecompiled();
+                }
 
                 if (target.isDisposed)
                 {
@@ -336,6 +347,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
                 return target;
             }
+
         }
 
 
@@ -345,7 +357,6 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             {
                 throw new Exception("stepping handle is disposed when deserializing");
             }
-            this.mySystemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
             if (GlobalLSystemCoordinator.instance == null)
             {
                 throw new Exception("No global l system coordinator singleton object. A single GlobalLSystemCoordinator must be present");

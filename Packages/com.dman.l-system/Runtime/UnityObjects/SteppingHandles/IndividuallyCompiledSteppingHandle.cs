@@ -15,11 +15,10 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
         
         public event Action OnSystemStateUpdated;
-
         private CancellationTokenSource lSystemPendingCancellation;
         private CancellationTokenSource lSystemForceSyncCancellation;
         private bool isLSystemUpdatePending = false;
-        private LSystemStepper compiledSystem = null;
+        private ILSystemCompilationStrategy compilationStrategy;
         private bool isDisposed = false;
         
         private int stepCount = 0;
@@ -34,7 +33,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         
         public IndividuallyCompiledSteppingHandle(
             LSystemObject mySystemObject,
-            LSystemBehavior associatedBehavior)
+            LSystemBehavior associatedBehavior,
+            ILSystemCompilationStrategy compilationStrategy)
         {
             stepCount = 0;
             lastUpdateChanged = true;
@@ -45,27 +45,36 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             }
             globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle(associatedBehavior);
             this.mySystemObject = mySystemObject;
+            
+            this.compilationStrategy = compilationStrategy;
+            this.compilationStrategy.OnCompiledSystemChanged += OnSystemRecompiled;
+            if (this.compilationStrategy.IsCompiledSystemValid())
+            {
+                OnSystemRecompiled();
+            }
         }
 
-        public IndividuallyCompiledSteppingHandle(SavedData savedData, LSystemBehavior associatedBehavior)
+        public IndividuallyCompiledSteppingHandle(
+            SavedData savedData,
+            LSystemBehavior associatedBehavior)
         {
             savedData.ApplyChangesTo(this);
             this.InitializePostDeserialize(associatedBehavior);
         }
         
-        // TODO: only used for serialization
-        private Dictionary<string, string> compiledGlobalCompiletimeReplacements;
         private IndividuallyCompiledSteppingHandle() { }
 
         public void RecompileLSystem(Dictionary<string, string> globalCompileTimeOverrides)
         {
-            compiledGlobalCompiletimeReplacements = globalCompileTimeOverrides;
-            var newSystem = mySystemObject.CompileWithParameters(globalCompileTimeOverrides);
-            ResetStateInternal();
-            compiledSystem?.Dispose();
-            compiledSystem = newSystem;
+            this.compilationStrategy.SetGlobalCompileTimeParameters(globalCompileTimeOverrides);
+        }
+        
+        private void OnSystemRecompiled()
+        {
+            this.ResetStateInternal();
             OnSystemStateUpdated?.Invoke();
         }
+
 
         private void ResetStateInternal(uint? seed = null)
         {
@@ -117,7 +126,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
         public bool HasValidSystem()
         {
-            return compiledSystem != null && !isDisposed;
+            return compilationStrategy.IsCompiledSystemValid() && !isDisposed;
         }
 
 
@@ -142,8 +151,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             if (isDisposed) return;
             isDisposed = true;
 
-            compiledSystem?.Dispose();
-            compiledSystem = null;
+            compilationStrategy.Dispose();
 
             lSystemPendingCancellation?.Cancel();
             lSystemPendingCancellation?.Dispose();
@@ -200,14 +208,14 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             UniTask<LSystemState<float>> pendingStateHandle;
             try
             {
-                if (compiledSystem == null || compiledSystem.isDisposed)
+                if (!compilationStrategy.IsCompiledSystemValid())
                 {
                     Debug.LogError("No Compiled system available!");
                 }
                 if (stateSelection == StateSelection.RepeatLast)
                 {
                     globalResourceHandle.UpdateUniqueIdReservationSpace(lastState);
-                    pendingStateHandle = compiledSystem.StepSystemJob(
+                    pendingStateHandle = compilationStrategy.GetCompiledLSystem().StepSystemJob(
                         lastState,
                         forceSynchronous,
                         cancel,
@@ -218,9 +226,9 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                     globalResourceHandle.UpdateUniqueIdReservationSpace(currentState);
                     var sunlightJob = globalResourceHandle.ApplyPrestepEnvironment(
                         currentState,
-                        compiledSystem.customSymbols);
+                        compilationStrategy.GetCompiledLSystem().customSymbols);
 
-                    pendingStateHandle = compiledSystem.StepSystemJob(
+                    pendingStateHandle = compilationStrategy.GetCompiledLSystem().StepSystemJob(
                         currentState,
                         forceSynchronous,
                         cancel,
@@ -266,7 +274,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
         public LSystemStepper TryGetUnderlyingStepper()
         {
-            return compiledSystem;
+            return compilationStrategy.GetCompiledLSystem();
         }
 
         #region Serialization
@@ -279,7 +287,6 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         {
             private int stepCount;
             private bool? lastUpdateChanged;
-            private bool useSharedSystem;
 
             private LSystemState<float> currentState;
             private LSystemState<float> lastState;
@@ -288,8 +295,9 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             private int systemObjectId;
 
             private ArrayParameterRepresenation<float> runtimeParameters;
-            private Dictionary<string, string> compiledGlobalCompiletimeReplacements;
 
+            public ISavedCompilationStrategy savedCompilationStrategy;
+            
             public SavedData(IndividuallyCompiledSteppingHandle source)
             {
                 this.stepCount = source.stepCount;
@@ -302,7 +310,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 this.systemObjectId = source.mySystemObject.myId;
 
                 this.runtimeParameters = source.runtimeParameters;
-                this.compiledGlobalCompiletimeReplacements = source.compiledGlobalCompiletimeReplacements;
+
+                this.savedCompilationStrategy = source.compilationStrategy.GetSerializableType();
             }
 
             public IndividuallyCompiledSteppingHandle Deserialize()
@@ -325,7 +334,13 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 target.mySystemObject = lSystemObjectRegistry.GetUniqueObjectFromID(this.systemObjectId);
                 
                 target.runtimeParameters = this.runtimeParameters;
-                target.compiledGlobalCompiletimeReplacements = this.compiledGlobalCompiletimeReplacements;
+                
+                target.compilationStrategy = savedCompilationStrategy.Rehydrate();
+                target.compilationStrategy.OnCompiledSystemChanged += target.OnSystemRecompiled;
+                if (target.compilationStrategy.IsCompiledSystemValid())
+                {
+                    target.OnSystemRecompiled();
+                }
 
                 if (target.isDisposed)
                 {
@@ -341,7 +356,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         }
 
 
-        public void InitializePostDeserialize(LSystemBehavior handleOwner)
+        public void InitializePostDeserialize(
+            LSystemBehavior handleOwner)
         {
             if (isDisposed || globalResourceHandle.isDisposed)
             {
@@ -358,11 +374,6 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             {
                 throw new Exception("global resource handle is already disposed");
             }
-
-            var newSystem = mySystemObject.CompileWithParameters(compiledGlobalCompiletimeReplacements);
-            lSystemPendingCancellation?.Cancel();
-            compiledSystem?.Dispose();
-            compiledSystem = newSystem;
 
             if (globalResourceHandle.uniqueIdOriginPoint != lastHandle.uniqueIdOriginPoint)
             {
