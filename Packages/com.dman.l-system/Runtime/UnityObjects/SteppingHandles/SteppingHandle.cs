@@ -269,6 +269,10 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         {
             return compilationStrategy.GetCompiledLSystem();
         }
+        public bool HasCompletedIterations()
+        {
+            return stepCount >= mySystemObject.iterations;
+        }
 
         #region Serialization
         public ISerializeableSteppingHandle SerializeToSerializableObject()

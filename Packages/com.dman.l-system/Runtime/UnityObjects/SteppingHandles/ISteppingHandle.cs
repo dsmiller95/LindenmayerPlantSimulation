@@ -31,6 +31,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
         [CanBeNull]
         public LSystemStepper TryGetUnderlyingStepper();
+
+        public bool HasCompletedIterations();
     }
     public enum Concurrency
     {
