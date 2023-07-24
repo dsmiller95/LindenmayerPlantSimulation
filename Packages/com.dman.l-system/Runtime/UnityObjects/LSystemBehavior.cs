@@ -37,7 +37,7 @@ namespace Dman.LSystem.UnityObjects
             SetLastUpdateTime();
             if(GlobalLSystemCoordinator.instance != null && systemObject != null)
             {
-                SetSystem(systemObject);
+                InitializeFromSetSystem();
             }
         }
         private void OnDestroy()
@@ -51,7 +51,17 @@ namespace Dman.LSystem.UnityObjects
         /// <param name="newSystemObject"></param>
         public void SetSystem(LSystemObject newSystemObject)
         {
+            if (systemObject == newSystemObject)
+            {// NOOP
+                return;
+            }
+            
             systemObject = newSystemObject;
+            this.InitializeFromSetSystem();
+        }
+
+        private void InitializeFromSetSystem()
+        {
             if (systemObject != null)
             {
                 steppingHandle?.Dispose();

@@ -11,7 +11,6 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         private readonly LSystemObject systemObject;
     
         public event Action OnCompiledSystemChanged;
-        public string StrategyTypeName => "SharedCompilationStrategy";
 
         private LSystemStepper compiledSystem = null;
         // TODO: only used for serialization
@@ -20,29 +19,20 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         public IndividuallyCompiledStrategy(LSystemObject systemObject)
         {
             this.systemObject = systemObject;
-            
-            this.systemObject.OnCachedSystemUpdated += OnSharedSystemRecompiled;
-            if(this.systemObject.compiledSystem != null)
-                OnSharedSystemRecompiled();
         }
 
         public void SetGlobalCompileTimeParameters(Dictionary<string, string> globalCompileTimeOverrides)
         {
             var newSystem = systemObject.CompileWithParameters(globalCompileTimeOverrides);
             compiledSystem?.Dispose();
-            compiledSystem = newSystem;
+            compiledSystem                             = newSystem;
+            compiledGlobalCompiletimeReplacements = globalCompileTimeOverrides;
             OnCompiledSystemChanged?.Invoke();
         }
         
         public bool IsCompiledSystemValid()
         {
             return compiledSystem is { isDisposed: false }; 
-        }
-
-        private void OnSharedSystemRecompiled()
-        {
-            compiledSystem = systemObject.compiledSystem;
-            OnCompiledSystemChanged?.Invoke();
         }
         
         [CanBeNull]
@@ -51,14 +41,10 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             return compiledSystem;
         }
         
-
         public void Dispose()
         {
-            systemObject.OnCachedSystemUpdated -= OnSharedSystemRecompiled;
-            
-            var newSystem = systemObject.CompileWithParameters(compiledGlobalCompiletimeReplacements);
             compiledSystem?.Dispose();
-            compiledSystem = newSystem;
+            compiledSystem = null;
         }
         
         
@@ -69,6 +55,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             return new SaveData(this);
         }
         
+        [Serializable]
         public class SaveData : ISavedCompilationStrategy
         {
             private readonly int systemObjectId;

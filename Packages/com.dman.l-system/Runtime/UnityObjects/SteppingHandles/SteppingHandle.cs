@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Dman.LSystem.SystemRuntime.GlobalCoordinator;
@@ -9,7 +10,7 @@ using UnityEngine.Assertions;
 
 namespace Dman.LSystem.UnityObjects.SteppingHandles
 {
-    public class SteppingHandle : ISteppingHandle
+    public class SteppingHandle : IRecompileableSteppingHandle
     {
         public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
         
@@ -98,6 +99,13 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             }
             ResetStateInternal(seed);
             OnSystemStateUpdated?.Invoke();
+        }
+        
+        public void RecompileLSystem(Dictionary<string, string> globalCompileTimeOverrides)
+        {
+            // TODO: this will conditionally throw an exception if the compilation strategy is not recompileable. STINKY LISKOV VIOLATION
+            //  maybe we can dynamically switch the compilation strategy?
+            this.compilationStrategy.SetGlobalCompileTimeParameters(globalCompileTimeOverrides);
         }
         
         public void SetRuntimeParameter(string parameterName, float parameterValue)
@@ -282,7 +290,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
         
 
-        [System.Serializable]
+        [Serializable]
         public class SavedData : ISerializeableSteppingHandle
         {
             private int stepCount;
@@ -334,11 +342,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 target.runtimeParameters = this.runtimeParameters;
                 
                 target.compilationStrategy = savedCompilationStrategy.Rehydrate();
+                
                 target.compilationStrategy.OnCompiledSystemChanged += target.OnSystemRecompiled;
-                if (target.compilationStrategy.IsCompiledSystemValid())
-                {
-                    target.OnSystemRecompiled();
-                }
 
                 if (target.isDisposed)
                 {

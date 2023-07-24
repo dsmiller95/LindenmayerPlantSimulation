@@ -64,6 +64,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             return new SaveData(this);
         }
         
+        [Serializable]
         public class SaveData : ISavedCompilationStrategy
         {
             private readonly int systemObjectId;
