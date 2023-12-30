@@ -2,7 +2,7 @@
 using Unity.Jobs;
 using UnityEngine;
 
-namespace Dman.LSystem.SystemRuntime.ThreadBouncer
+namespace Dman.LSystem.SystemRuntime.NativeJobsUtilities
 {
     /// <summary>
     /// Used to manage data which is generated as part of a long-running job,

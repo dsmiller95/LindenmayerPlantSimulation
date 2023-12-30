@@ -1,8 +1,6 @@
-﻿
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Dman.LSystem.SystemRuntime.ThreadBouncer
+namespace Dman.LSystem.SystemRuntime.NativeJobsUtilities
 {
     public class LSystemJobExecutionConfig : MonoBehaviour
     {

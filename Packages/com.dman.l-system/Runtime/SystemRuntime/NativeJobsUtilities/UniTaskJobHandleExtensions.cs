@@ -4,10 +4,10 @@ using Cysharp.Threading.Tasks;
 using Unity.Jobs;
 using UnityEngine.Assertions;
 
-namespace Dman.LSystem.SystemRuntime.ThreadBouncer
+namespace Dman.LSystem.SystemRuntime.NativeJobsUtilities
 {
     
-    public static class CompleteableToUniTask
+    public static class UniTaskJobHandleExtensions
     {
         public static T ExtractSync<T>(this UniTask<T> syncTask)
         {
@@ -20,6 +20,7 @@ namespace Dman.LSystem.SystemRuntime.ThreadBouncer
         /// </summary>
         /// <param name="handle"></param>
         /// <param name="cancel"></param>
+        /// <param name="forceCompleteOnNextTick"></param>
         /// <param name="maxFameDelay"></param>
         /// <returns>true if cancelled</returns>
         /// <exception cref="OperationCanceledException"></exception>

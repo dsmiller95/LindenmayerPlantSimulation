@@ -1,7 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Jobs;
 
-namespace Dman.LSystem.SystemRuntime.ThreadBouncer
+namespace Dman.LSystem.SystemRuntime.NativeCollections
 {
     public struct NativeArrayNativeDisposableAdapter<T> : INativeDisposable where T : unmanaged
     {

@@ -7,7 +7,7 @@ using Dman.LSystem.Extern;
 using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.CustomRules.Diffusion;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
+using Dman.LSystem.SystemRuntime.NativeJobsUtilities;
 using Unity.Collections;
 using Unity.Jobs;
 

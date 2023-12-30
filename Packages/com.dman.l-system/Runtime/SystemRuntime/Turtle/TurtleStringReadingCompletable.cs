@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using Dman.LSystem.SystemRuntime.CustomRules;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
@@ -9,6 +8,7 @@ using Dman.Utilities;
 using Dman.Utilities.Math;
 using System;
 using System.Threading;
+using Dman.LSystem.SystemRuntime.NativeJobsUtilities;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
