@@ -1,6 +1,5 @@
 ﻿using Dman.Utilities.SerializableUnityObjects;
 using System;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels
 {

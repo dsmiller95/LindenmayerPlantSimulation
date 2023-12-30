@@ -1,7 +1,7 @@
 ﻿using Dman.LSystem.SystemCompiler;
 using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using System.Collections.Generic;
+using Dman.LSystem.SystemRuntime.NativeJobsUtilities;
 using Unity.Collections;
 
 namespace Dman.LSystem.SystemRuntime
@@ -434,6 +434,7 @@ namespace Dman.LSystem.SystemRuntime
 
         public void Dispose()
         {
+            if (!IsCreated) return;
             branchingJumpIndexes.Dispose();
             includeSymbols.Dispose();
         }

@@ -1,5 +1,4 @@
-﻿using Dman.LSystem.Extern;
-using Dman.LSystem.Extern.Adapters;
+﻿using Dman.LSystem.Extern.Adapters;
 using Dman.LSystem.SystemRuntime.NativeCollections;
 using Unity.Burst;
 using Unity.Collections;

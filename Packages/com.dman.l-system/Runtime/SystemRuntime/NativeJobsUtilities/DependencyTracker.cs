@@ -2,7 +2,7 @@
 using Unity.Collections;
 using Unity.Jobs;
 
-namespace Dman.LSystem.SystemRuntime.ThreadBouncer
+namespace Dman.LSystem.SystemRuntime.NativeJobsUtilities
 {
     [System.Serializable]
     public class DependencyTracker<T> : ISerializable, INativeDisposable where T : INativeDisposable

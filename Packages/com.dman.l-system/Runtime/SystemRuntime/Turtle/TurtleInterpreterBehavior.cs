@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using Dman.LSystem.SystemRuntime.ThreadBouncer;
 using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.UnityObjects;
@@ -8,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Dman.LSystem.SystemRuntime.NativeJobsUtilities;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
@@ -207,7 +207,7 @@ namespace Dman.LSystem.SystemRuntime.Turtle
             if (this.isActiveAndEnabled)
             {
                 IsTurtlePending = true;
-                await InterpretSymbols(System.steppingHandle.currentState.currentSymbols, cancelPending.Token);
+                await InterpretSymbols(System.steppingHandle.GetCurrentState().currentSymbols, cancelPending.Token);
             }
             IsTurtlePending = false;
         }
