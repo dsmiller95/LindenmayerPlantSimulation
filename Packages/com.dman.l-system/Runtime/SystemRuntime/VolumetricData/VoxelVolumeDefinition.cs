@@ -1,12 +1,4 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections.NativeVolumetricSpace;
-using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
-using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
-using Dman.SceneSaveSystem;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Unity.Collections;
-using Unity.Jobs;
+﻿using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.VolumetricData

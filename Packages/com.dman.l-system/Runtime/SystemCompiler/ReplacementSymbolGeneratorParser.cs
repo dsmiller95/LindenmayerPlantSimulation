@@ -1,7 +1,7 @@
 ﻿using Dman.LSystem.SystemCompiler;
 using System;
 using System.Collections.Generic;
-using System.Text;
+
 namespace Dman.LSystem.SystemRuntime
 {
     internal static class ReplacementSymbolGeneratorParser

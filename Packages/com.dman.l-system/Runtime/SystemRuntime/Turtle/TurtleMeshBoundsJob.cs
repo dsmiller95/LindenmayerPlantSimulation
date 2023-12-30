@@ -1,10 +1,6 @@
-﻿using Dman.LSystem.SystemRuntime.NativeCollections;
-using Dman.Utilities.Math;
-using Unity.Burst;
+﻿using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle
 {

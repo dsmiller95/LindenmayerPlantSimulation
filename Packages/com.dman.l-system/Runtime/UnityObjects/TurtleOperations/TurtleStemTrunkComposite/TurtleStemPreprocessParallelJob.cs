@@ -1,11 +1,9 @@
 ﻿using Dman.LSystem.SystemRuntime.Turtle;
-using Dman.Utilities.Math;
 using Unity.Burst;
 using Unity.Burst.CompilerServices;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace Dman.LSystem.UnityObjects.StemTrunk
