@@ -13,40 +13,41 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
     public class SteppingHandle : IRecompileableSteppingHandle
     {
         public ArrayParameterRepresenation<float> runtimeParameters { get; private set; }
-        
+
         public event Action OnSystemStateUpdated;
         private CancellationTokenSource lSystemPendingCancellation;
         private CancellationTokenSource lSystemForceSyncCancellation;
         private bool isLSystemUpdatePending = false;
         private ILSystemCompilationStrategy compilationStrategy;
         private bool isDisposed = false;
-        
+
         private int stepCount = 0;
         private bool? lastUpdateChanged = null;
 
 
         private LSystemState<float> currentState;
         private LSystemState<float> lastState;
-        
+
         private LSystemGlobalResourceHandle globalResourceHandle;
         private LSystemObject mySystemObject;
-        
+
         public SteppingHandle(
             LSystemObject mySystemObject,
             LSystemBehavior associatedBehavior,
             ILSystemCompilationStrategy compilationStrategy)
         {
-            stepCount = 0;
+            stepCount         = 0;
             lastUpdateChanged = true;
-            
+
             if (GlobalLSystemCoordinator.instance == null)
             {
-                throw new Exception("No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
+                throw new Exception(
+                    "No global l system coordinator singleton object. make a single GlobalLSystemCoordinator per scene");
             }
             globalResourceHandle = GlobalLSystemCoordinator.instance.AllocateResourceHandle(associatedBehavior);
-            this.mySystemObject = mySystemObject;
-            
-            this.compilationStrategy = compilationStrategy;
+            this.mySystemObject  = mySystemObject;
+
+            this.compilationStrategy                         =  compilationStrategy;
             this.compilationStrategy.OnCompiledSystemChanged += OnSystemRecompiled;
             if (this.compilationStrategy.IsCompiledSystemValid())
             {
@@ -61,11 +62,11 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             savedData.ApplyChangesTo(this);
             this.InitializePostDeserialize(associatedBehavior);
         }
+
         private SteppingHandle()
         {
-            
         }
-        
+
         private void OnSystemRecompiled()
         {
             this.ResetStateInternal();
@@ -85,12 +86,13 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             currentState?.currentSymbols.Dispose();
             currentState = null;
 
-            stepCount = 0;
+            stepCount         = 0;
             lastUpdateChanged = true;
-            currentState = new DefaultLSystemState(mySystemObject.axiom, seed.Value);
+            currentState      = new DefaultLSystemState(mySystemObject.axiom, seed.Value);
 
             runtimeParameters = mySystemObject.GetRuntimeParameters();
         }
+
         public void ResetState(uint? seed = null)
         {
             if (isDisposed)
@@ -100,19 +102,19 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             ResetStateInternal(seed);
             OnSystemStateUpdated?.Invoke();
         }
-        
+
         public void RecompileLSystem(Dictionary<string, string> globalCompileTimeOverrides)
         {
-            // TODO: this will conditionally throw an exception if the compilation strategy is not recompileable. STINKY LISKOV VIOLATION
+            // this will conditionally throw an exception if the compilation strategy is not recompileable. STINKY LISKOV VIOLATION
             //  maybe we can dynamically switch the compilation strategy?
             this.compilationStrategy.SetGlobalCompileTimeParameters(globalCompileTimeOverrides);
         }
-        
+
         public void SetRuntimeParameter(string parameterName, float parameterValue)
         {
             runtimeParameters.SetParameter(parameterName, parameterValue);
         }
-        
+
         public bool IsUpdatePending()
         {
             return isLSystemUpdatePending;
@@ -147,7 +149,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
         {
             return currentState;
         }
-        
+
         public void Dispose()
         {
             if (isDisposed) return;
@@ -157,7 +159,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
             lSystemPendingCancellation?.Cancel();
             lSystemPendingCancellation?.Dispose();
-            
+
             lastState?.currentSymbols.Dispose();
             lastState = null;
             currentState?.currentSymbols.Dispose();
@@ -165,12 +167,12 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
             globalResourceHandle.Dispose();
         }
-        
+
         public void InitiateStep(Concurrency concurrency, StateSelection stateSelection)
         {
             StepSystemAsync(concurrency, stateSelection);
         }
-        
+
         private void StepSystemAsync(Concurrency concurrency, StateSelection stateSelection)
         {
             if (lSystemPendingCancellation == null || lSystemPendingCancellation.IsCancellationRequested)
@@ -188,7 +190,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             {
                 lSystemForceSyncCancellation.Cancel();
             }
-            
+
             var result = AsyncStepSystemFunction(
                 stateSelection,
                 lSystemForceSyncCancellation.Token,
@@ -264,7 +266,8 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             currentState = nextState;
             // if there are immature markers, use those instead. avoiding an equality check saves time.
             var hasImmatureMarkers = mySystemObject.linkedFiles.immaturitySymbolMarkers.Length > 0;
-            lastUpdateChanged = hasImmatureMarkers || !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
+            lastUpdateChanged = hasImmatureMarkers ||
+                                !(currentState?.currentSymbols.Data.Equals(lastState.currentSymbols.Data) ?? false);
 
             isLSystemUpdatePending = false;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -272,23 +275,24 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             OnSystemStateUpdated?.Invoke();
             UnityEngine.Profiling.Profiler.EndSample();
         }
-        
+
         public LSystemStepper TryGetUnderlyingStepper()
         {
             return compilationStrategy.GetCompiledLSystem();
         }
+
         public bool HasCompletedIterations()
         {
             return stepCount >= mySystemObject.iterations;
         }
 
         #region Serialization
+
         public ISerializeableSteppingHandle SerializeToSerializableObject()
         {
             return new SavedData(this);
         }
 
-        
 
         [Serializable]
         public class SavedData : ISerializeableSteppingHandle
@@ -303,21 +307,21 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             private int systemObjectId;
 
             private ArrayParameterRepresenation<float> runtimeParameters;
-            
+
             public ISavedCompilationStrategy savedCompilationStrategy;
 
             public SavedData(SteppingHandle source)
             {
-                this.stepCount = source.stepCount;
+                this.stepCount         = source.stepCount;
                 this.lastUpdateChanged = source.lastUpdateChanged;
 
                 this.currentState = source.currentState;
-                this.lastState = source.lastState;
-                this.oldHandle = source.globalResourceHandle;
+                this.lastState    = source.lastState;
+                this.oldHandle    = source.globalResourceHandle;
 
                 this.systemObjectId = source.mySystemObject.myId;
 
-                this.runtimeParameters = source.runtimeParameters;
+                this.runtimeParameters        = source.runtimeParameters;
                 this.savedCompilationStrategy = source.compilationStrategy.GetSerializableType();
             }
 
@@ -330,19 +334,19 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             public SteppingHandle ApplyChangesTo(
                 SteppingHandle target)
             {
-                target.stepCount = this.stepCount;
-                target.lastUpdateChanged = this.lastUpdateChanged;
-                target.currentState = this.currentState;
-                target.lastState = this.lastState;
+                target.stepCount            = this.stepCount;
+                target.lastUpdateChanged    = this.lastUpdateChanged;
+                target.currentState         = this.currentState;
+                target.lastState            = this.lastState;
                 target.globalResourceHandle = this.oldHandle;
 
                 var lSystemObjectRegistry = RegistryRegistry.GetObjectRegistry<LSystemObject>();
                 target.mySystemObject = lSystemObjectRegistry.GetUniqueObjectFromID(systemObjectId);
 
                 target.runtimeParameters = this.runtimeParameters;
-                
+
                 target.compilationStrategy = savedCompilationStrategy.Rehydrate();
-                
+
                 target.compilationStrategy.OnCompiledSystemChanged += target.OnSystemRecompiled;
 
                 if (target.isDisposed)
@@ -356,7 +360,6 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
 
                 return target;
             }
-
         }
 
 
@@ -368,11 +371,13 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
             }
             if (GlobalLSystemCoordinator.instance == null)
             {
-                throw new Exception("No global l system coordinator singleton object. A single GlobalLSystemCoordinator must be present");
+                throw new Exception(
+                    "No global l system coordinator singleton object. A single GlobalLSystemCoordinator must be present");
             }
 
             var lastHandle = globalResourceHandle;
-            globalResourceHandle = GlobalLSystemCoordinator.instance.GetManagedResourceHandleFromSavedData(lastHandle, handleOwner);
+            globalResourceHandle =
+                GlobalLSystemCoordinator.instance.GetManagedResourceHandleFromSavedData(lastHandle, handleOwner);
             if (globalResourceHandle.isDisposed)
             {
                 throw new Exception("global resource handle is already disposed");
@@ -385,7 +390,7 @@ namespace Dman.LSystem.UnityObjects.SteppingHandles
                 StepSystemAsync(Concurrency.Asyncronous, StateSelection.RepeatLast);
             }
         }
-        
+
         #endregion
     }
 }
