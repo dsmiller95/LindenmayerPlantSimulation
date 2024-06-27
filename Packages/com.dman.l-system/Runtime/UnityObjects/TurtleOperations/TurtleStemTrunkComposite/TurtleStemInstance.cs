@@ -1,4 +1,4 @@
-﻿using Dman.Utilities.Math;
+﻿using Dman.Math;
 using UnityEngine;
 
 namespace Dman.LSystem.SystemRuntime.Turtle

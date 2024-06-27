@@ -1,5 +1,5 @@
 ﻿using Dman.LSystem.Extern;
-using Dman.Utilities.Math;
+using Dman.Math;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;

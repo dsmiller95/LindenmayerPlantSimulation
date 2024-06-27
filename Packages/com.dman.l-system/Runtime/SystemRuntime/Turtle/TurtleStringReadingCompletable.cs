@@ -5,7 +5,7 @@ using Dman.LSystem.SystemRuntime.VolumetricData;
 using Dman.LSystem.SystemRuntime.VolumetricData.Layers;
 using Dman.LSystem.SystemRuntime.VolumetricData.NativeVoxels;
 using Dman.Utilities;
-using Dman.Utilities.Math;
+using Dman.Math;
 using System;
 using System.Threading;
 using Dman.LSystem.SystemRuntime.NativeJobsUtilities;

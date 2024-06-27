@@ -1,4 +1,4 @@
-using Dman.Utilities.Math;
+using Dman.Math;
 using Unity.Entities;
 using UnityEngine;
 

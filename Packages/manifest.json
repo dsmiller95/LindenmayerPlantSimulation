@@ -5,7 +5,7 @@
     "com.dman.object-sets": "0.1.5",
     "com.dman.reactive-variables": "0.1.10",
     "com.dman.scene-save-system": "0.2.5",
-    "com.dman.utilities": "0.5.1",
+    "com.dman.utilities": "0.6.1",
     "com.unity.burst": "1.5.5",
     "com.unity.collab-proxy": "1.15.7",
     "com.unity.entities": "0.17.0-preview.42",
@@ -52,7 +52,8 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.dman.math": "0.1.1"
   },
   "scopedRegistries": [
     {
@@ -61,6 +62,7 @@
       "scopes": [
         "com.cysharp.unitask",
         "com.dman.entity-utilities",
+        "com.dman.math",
         "com.dman.object-sets",
         "com.dman.reactive-variables",
         "com.dman.scene-save-system",

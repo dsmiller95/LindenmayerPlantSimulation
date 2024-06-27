@@ -30,6 +30,7 @@ MonoBehaviour:
     m_Scopes:
     - com.cysharp.unitask
     - com.dman.entity-utilities
+    - com.dman.math
     - com.dman.object-sets
     - com.dman.reactive-variables
     - com.dman.scene-save-system
@@ -49,6 +50,7 @@ MonoBehaviour:
       m_Scopes:
       - com.cysharp.unitask
       - com.dman.entity-utilities
+      - com.dman.math
       - com.dman.object-sets
       - com.dman.reactive-variables
       - com.dman.scene-save-system
@@ -63,6 +65,7 @@ MonoBehaviour:
     m_Scopes:
     - com.cysharp.unitask
     - com.dman.entity-utilities
+    - com.dman.math
     - com.dman.object-sets
     - com.dman.reactive-variables
     - com.dman.scene-save-system
