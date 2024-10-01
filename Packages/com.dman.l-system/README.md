@@ -237,7 +237,7 @@ x || y
 
 ## [Contextual Matching](#contextual-matching)
 
-- Contextual matches must occur in-order, even if nested in branching structures. See the [Contextual match](Runtime/Tests/EditMode/ContextualMatcherTests.cs) tests for examples of how the matching rules work
+- Contextual matches must occur in-order, even if nested in branching structures. See the [Contextual match](Tests/EditMode/ContextualMatcherTests.cs) tests for examples of how the matching rules work
 - Parametric conditional matching occurs -after- a valid contextual match has been found. If the conditional does not match on the parameters captured by the first found contextual match, then the whole rule won't match. No attempt is made to find one contextual match out of several possible which does satisfy the conditional
 
 ## [Library files](#library-files)
